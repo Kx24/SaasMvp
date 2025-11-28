@@ -1,40 +1,21 @@
-touch .gitignore
-```
-
-Contenido de `.gitignore`:
-```
-# Python
-*.py[cod]
-*$py.class
-__pycache__/
-*.so
-.Python
+# ─── Entornos virtuales ─────────────────────────────
 env/
 venv/
 ENV/
 
-# Django
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-/media
-/staticfiles
-
-# Environment
+# ─── Archivos de entorno ────────────────────────────
 .env
 .env.local
 
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# ─── Base de datos local ────────────────────────────
+db.sqlite3
+db.sqlite3-journal
 
-# OS
+# ─── Archivos temporales y cache ────────────────────
+__pycache__/
+*.py[cod]
+*.pyc
+
+# ─── Archivos de sistema ────────────────────────────
 .DS_Store
 Thumbs.db
-
-# Render
-.render/
