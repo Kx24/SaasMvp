@@ -1,0 +1,111 @@
+project_root/
+│
+├── manage.py
+├── requirements.txt
+├── .env                          # Variables de entorno
+├── .gitignore
+├── README.md
+├── Procfile                      # Para Render
+│
+├── config/                       # Configuración Django (ex servelecpage/)
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── wsgi.py
+│   ├── urls.py                   # URLs principales
+│   └── settings/
+│       ├── __init__.py
+│       ├── base.py               # Settings compartidos
+│       ├── development.py        # Local
+│       └── production.py         # Render
+│
+├── apps/                         # 🎯 Apps por DOMINIO (negocio)
+│   │
+│   ├── tenants/                  # 🏢 Multi-tenancy (core)
+│   │   ├── __init__.py
+│   │   ├── models.py             # Client model
+│   │   ├── admin.py
+│   │   ├── middleware.py         # TenantMiddleware
+│   │   ├── managers.py           # TenantManager
+│   │   ├── views.py              # Admin de tenants (tu uso)
+│   │   ├── urls.py
+│   │   └── management/
+│   │       └── commands/
+│   │           └── create_client.py
+│   │
+│   ├── website/                  # 🌐 Landing pages públicas
+│   │   ├── __init__.py
+│   │   ├── models.py             # Section, Service, Testimonial
+│   │   ├── admin.py              # CMS admin
+│   │   ├── views.py              # HomeView, ServicesView
+│   │   ├── urls.py
+│   │   ├── managers.py           # TenantAwareManager
+│   │   ├── forms.py              # ContactForm
+│   │   └── templatetags/
+│   │       └── website_tags.py   # {% get_section %}
+│   │
+│   ├── accounts/                 # 👤 Usuarios (clientes que editan)
+│   │   ├── __init__.py
+│   │   ├── models.py             # UserProfile con tenant
+│   │   ├── admin.py
+│   │   ├── views.py              # Login, logout
+│   │   └── urls.py
+│   │
+│   └── core/                     # 🛠️ Utilidades compartidas
+│       ├── __init__.py
+│       ├── models.py             # BaseModel (timestamps, etc)
+│       ├── utils.py              # Helpers
+│       ├── validators.py
+│       └── mixins.py             # TenantRequiredMixin
+│
+├── templates/                    # Templates globales
+│   ├── base.html                 # Base template
+│   ├── errors/
+│   │   ├── 404.html
+│   │   ├── 500.html
+│   │   └── tenant_not_found.html
+│   │
+│   ├── landing/                  # Templates públicos
+│   │   ├── base.html             # Hereda de base.html
+│   │   ├── home.html
+│   │   ├── services.html
+│   │   └── contact.html
+│   │
+│   └── components/               # Componentes reutilizables
+│       ├── navbar.html
+│       ├── footer.html
+│       ├── hero.html
+│       └── service_card.html
+│
+├── static/                       # Assets estáticos
+│   ├── css/
+│   │   ├── input.css             # Tailwind source
+│   │   └── output.css            # Compilado
+│   ├── js/
+│   │   └── main.js
+│   └── img/
+│       └── placeholder.svg
+│
+├── media/                        # Uploads locales (dev only)
+│   └── .gitkeep
+│
+├── templates_library/            # 📦 Templates de cliente
+│   ├── electricidad/
+│   │   ├── seed_data.json        # Contenido por defecto
+│   │   └── preview.png
+│   ├── construccion/
+│   │   ├── seed_data.json
+│   │   └── preview.png
+│   └── servicios_profesionales/
+│       ├── seed_data.json
+│       └── preview.png
+│
+├── scripts/                      # Scripts de automatización
+│   ├── provision_client.py       # Crear cliente completo
+│   ├── backup_tenant.py
+│   └── migrate_from_wordpress.py
+│
+└── docs/                         # Documentación
+    ├── SETUP.md
+    ├── DEPLOYMENT.md
+    ├── CLIENT_ONBOARDING.md
+    └── API.md

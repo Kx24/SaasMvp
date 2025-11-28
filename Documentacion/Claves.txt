@@ -1,0 +1,11 @@
+PostgreSQL
+
+clave instalacion windows: !"#123
+
+SCRIPTS POSGRESQL
+
+psql -U postgres
+CREATE DATABASE saas_mvp_dev;
+CREATE USER saas_user WITH PASSWORD 'Saas2025!';
+GRANT ALL PRIVILEGES ON DATABASE saas_mvp_dev TO saas_user;
+\q
