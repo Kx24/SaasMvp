@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Sitio no encontrado{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <h1 class="text-4xl font-bold text-gray-900">Sitio no disponible</h1>
+        <p class="text-xl text-gray-600 mt-4">
+            El dominio <strong>{{ domain }}</strong> no está configurado.
+        </p>
+        <p class="text-sm text-gray-500 mt-2">
+            Si eres el propietario, contacta al administrador.
+        </p>
+    </div>
+</div>
+{% endblock %}
