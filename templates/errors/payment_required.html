@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Pago Requerido - {{ client.company_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div class="max-w-md w-full text-center">
+        <!-- Icono de advertencia -->
+        <div class="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-6">
+            <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+        </div>
+        
+        <!-- Título -->
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">
+            Sitio Temporalmente Suspendido
+        </h1>
+        
+        <!-- Mensaje -->
+        <p class="text-gray-600 mb-6">
+            Este sitio está temporalmente inactivo debido a un pago pendiente.
+        </p>
+        
+        {% if next_payment_due %}
+        <p class="text-sm text-gray-500 mb-6">
+            Último pago vencido: {{ next_payment_due|date:"d/m/Y" }}
+        </p>
+        {% endif %}
+        
+        <!-- Información de contacto -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <p class="text-sm text-gray-700 mb-2">
+                Si eres el propietario del sitio, por favor contacta:
+            </p>
+            <a href="mailto:{{ contact_email }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                {{ contact_email }}
+            </a>
+        </div>
+        
+        <p class="text-xs text-gray-400">
+            Error 402 - Payment Required
+        </p>
+    </div>
+</div>
+{% endblock %}

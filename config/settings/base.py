@@ -53,6 +53,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # ==================== TENANT MIDDLEWARE ====================
+    # IMPORTANTE: Debe ir DESPUÉS de AuthenticationMiddleware
+    # para que request.user esté disponible
+    'apps.tenants.middleware.TenantMiddleware',
+    
+    # Opcional: Inyectar cliente en contexto de templates
+    # 'apps.tenants.middleware.TenantContextMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

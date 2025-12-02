@@ -6,6 +6,11 @@ SCRIPTS POSGRESQL
 
 psql -U postgres
 CREATE DATABASE saas_mvp_dev;
-CREATE USER saas_user WITH PASSWORD 'Saas2025!';
+CREATE USER saas_user WITH PASSWORD '12345';
 GRANT ALL PRIVILEGES ON DATABASE saas_mvp_dev TO saas_user;
 \q
+
+superusuario django
+admin
+admin@saaslandingmvp.local
+admin123

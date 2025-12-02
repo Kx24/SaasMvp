@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Tenant Debug{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">
+        🔍 Tenant Middleware Debug
+    </h1>
+    
+    <!-- Request Info -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Request Info</h2>
+        <dl class="space-y-2">
+            <div class="flex">
+                <dt class="w-32 text-gray-600 font-medium">Hostname:</dt>
+                <dd class="text-gray-900">{{ hostname }}</dd>
+            </div>
+            <div class="flex">
+                <dt class="w-32 text-gray-600 font-medium">Path:</dt>
+                <dd class="text-gray-900">{{ path }}</dd>
+            </div>
+            <div class="flex">
+                <dt class="w-32 text-gray-600 font-medium">Method:</dt>
+                <dd class="text-gray-900">{{ method }}</dd>
+            </div>
+        </dl>
+    </div>
+    
+    <!-- Client Info -->
+    {% if client %}
+    <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-green-800 mb-4">
+            ✅ Cliente Detectado
+        </h2>
+        
+        <dl class="space-y-3">
+            <div>
+                <dt class="text-sm font-medium text-green-700">Nombre:</dt>
+                <dd class="text-lg text-green-900">{{ client.company_name }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-green-700">Dominio:</dt>
+                <dd class="text-green-900">{{ client.domain }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-green-700">Template:</dt>
+                <dd class="text-green-900">{{ client.get_template_display }}</dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-green-700">Estado:</dt>
+                <dd class="text-green-900">
+                    {% if client.is_active %}
+                        <span class="text-green-600">✓ Activo</span>
+                    {% else %}
+                        <span class="text-red-600">✗ Inactivo</span>
+                    {% endif %}
+                </dd>
+            </div>
+            
+            <div>
+                <dt class="text-sm font-medium text-green-700">Pago:</dt>
+                <dd class="text-green-900">
+                    {% if client.is_payment_current %}
+                        <span class="text-green-600">✓ Al día</span>
+                    {% else %}
+                        <span class="text-red-600">✗ Vencido</span>
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
+        
+        <!-- Settings -->
+        <div class="mt-6 pt-6 border-t border-green-200">
+            <h3 class="text-lg font-semibold text-green-800 mb-3">Settings</h3>
+            <dl class="space-y-2">
+                <div class="flex">
+                    <dt class="w-40 text-sm text-green-700">Color Primario:</dt>
+                    <dd class="text-green-900">
+                        <span style="background-color: {{ client.settings.primary_color }}; width: 20px; height: 20px; display: inline-block; border-radius: 4px; border: 1px solid #ccc;"></span>
+                        {{ client.settings.primary_color }}
+                    </dd>
+                </div>
+                
+                <div class="flex">
+                    <dt class="w-40 text-sm text-green-700">WhatsApp:</dt>
+                    <dd class="text-green-900">{{ client.settings.whatsapp_number|default:"No configurado" }}</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+    
+    {% else %}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-red-800 mb-2">
+            ❌ No se detectó cliente
+        </h2>
+        <p class="text-red-700">
+            request.client no está disponible. El middleware no funcionó correctamente.
+        </p>
+    </div>
+    {% endif %}
+    
+    <!-- Links útiles -->
+    <div class="mt-8 flex gap-4">
+        <a href="/admin/" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Django Admin
+        </a>
+        <a href="/" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+            Home
+        </a>
+    </div>
+</div>
+{% endblock %}
