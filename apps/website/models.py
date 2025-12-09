@@ -1,564 +1,415 @@
 """
-Modelos para el CMS Multi-Tenant.
-
-Este módulo contiene los modelos para gestionar el contenido de las landing pages
-de cada cliente. Todos los modelos heredan de una clase base que incluye la
-relación con el cliente (tenant) y gestión automática de fechas.
-
-Modelos:
-    - Section: Secciones editables de la página (hero, about, services, etc)
-    - Service: Servicios ofrecidos por el cliente
-    - Testimonial: Testimonios de clientes satisfechos
-    - ContactSubmission: Formularios de contacto enviados
-
-Todos los modelos usan TenantAwareManager para filtrado automático por cliente.
+Modelos de la aplicación Website - CMS Multi-tenant
 """
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.text import slugify
 from ckeditor.fields import RichTextField
-from cloudinary.models import CloudinaryField
 from apps.tenants.managers import TenantAwareManager
 
 
-class TenantAwareModel(models.Model):
+class Section(models.Model):
     """
-    Modelo base abstracto para todos los modelos multi-tenant.
+    Secciones de contenido editables del sitio.
     
-    Proporciona:
-    - Relación ForeignKey con Client (tenant)
-    - Campos de auditoría (created_at, updated_at)
-    - Manager personalizado con filtrado automático
-    
-    Todos los modelos CMS deben heredar de esta clase para garantizar
-    el aislamiento de datos entre clientes.
-    
-    Example:
-        class MiModelo(TenantAwareModel):
-            nombre = models.CharField(max_length=100)
-            
-            class Meta:
-                verbose_name = 'Mi Modelo'
+    Cada cliente tiene un conjunto fijo de secciones predefinidas.
+    No se crean secciones arbitrarias - solo se editan las existentes.
     """
     
-    # ==================== RELACIÓN CON TENANT ====================
-    client = models.ForeignKey(
-        'tenants.Client',
-        on_delete=models.CASCADE,  # Si se borra el cliente, se borra todo su contenido
-        related_name='%(class)s_set',  # Acceso reverso: client.section_set.all()
-        verbose_name='Cliente',
-        help_text='Cliente al que pertenece este registro'
-    )
-    
-    # ==================== AUDITORÍA ====================
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Creado',
-        help_text='Fecha y hora de creación (automático)'
-    )
-    
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name='Actualizado',
-        help_text='Fecha y hora de última actualización (automático)'
-    )
-    
-    # ==================== MANAGER PERSONALIZADO ====================
-    objects = TenantAwareManager()
-    
-    class Meta:
-        abstract = True  # No crear tabla en la base de datos
-        ordering = ['-created_at']  # Ordenar por más recientes primero
-
-
-class Section(TenantAwareModel):
-    """
-    Secciones editables del sitio web.
-    
-    Cada cliente puede tener múltiples secciones (hero, about, services, etc).
-    Las secciones controlan el contenido de diferentes partes de la landing page.
-    
-    Tipos de secciones:
-        - hero: Banner principal de la página
-        - about: Sección "Sobre Nosotros"
-        - services: Listado de servicios (contenedor)
-        - portfolio: Proyectos/trabajos realizados
-        - testimonials: Contenedor de testimonios
-        - team: Sección del equipo
-        - contact: Información de contacto
-        - cta: Call to Action (llamada a la acción)
-        - footer: Pie de página
-        - custom: Sección personalizada
-    
-    Cada sección puede tener:
-        - Título y subtítulo
-        - Contenido HTML enriquecido (via CKEditor)
-        - Imagen principal y/o imagen de fondo
-        - Botón CTA con texto y URL
-        - Control de visibilidad y orden
-    
-    Example:
-        # Crear sección Hero para un cliente
-        hero = Section.objects.create(
-            client=mi_cliente,
-            section_type='hero',
-            title='Soluciones Eléctricas Profesionales',
-            subtitle='Más de 20 años de experiencia',
-            cta_text='Solicitar Cotización',
-            cta_url='/contacto'
-        )
-    """
-    
-    # ==================== TIPO DE SECCIÓN ====================
+    # Secciones predefinidas disponibles
     SECTION_TYPES = [
         ('hero', 'Hero / Banner Principal'),
         ('about', 'Sobre Nosotros'),
-        ('services', 'Servicios'),
-        ('portfolio', 'Portafolio / Proyectos'),
-        ('testimonials', 'Testimonios'),
-        ('team', 'Equipo'),
-        ('contact', 'Contacto'),
-        ('cta', 'Llamada a la Acción'),
-        ('footer', 'Pie de Página'),
-        ('custom', 'Sección Personalizada'),
+        ('services', 'Servicios (Intro)'),
+        ('features', 'Características'),
+        ('testimonials', 'Testimonios (Intro)'),
+        ('contact', 'Contacto (Intro)'),
+        ('cta', 'Call to Action'),
+        ('footer', 'Footer / Pie de Página'),
     ]
+    
+    # === CAMPOS CORE ===
+    client = models.ForeignKey(
+        'tenants.Client',
+        on_delete=models.CASCADE,
+        related_name='sections'
+    )
     
     section_type = models.CharField(
         max_length=50,
         choices=SECTION_TYPES,
-        verbose_name='Tipo de Sección',
-        help_text='Tipo de sección de la página'
+        help_text="Tipo de sección (predefinido)"
     )
     
-    # ==================== CONTENIDO TEXTUAL ====================
+    # === CONTENIDO ===
     title = models.CharField(
         max_length=200,
-        verbose_name='Título',
-        help_text='Título principal de la sección'
+        help_text="Título principal de la sección"
     )
     
     subtitle = models.CharField(
         max_length=300,
         blank=True,
-        verbose_name='Subtítulo',
-        help_text='Subtítulo o descripción corta (opcional)'
+        help_text="Subtítulo o tagline (opcional)"
     )
     
     content = RichTextField(
         blank=True,
-        verbose_name='Contenido',
-        help_text='Contenido HTML enriquecido (opcional)'
+        help_text="Contenido HTML enriquecido"
     )
     
-    # ==================== IMÁGENES (CLOUDINARY) ====================
-    image = CloudinaryField(
-        'section_image',
+    # === MULTIMEDIA ===
+    image = models.ImageField(
+        upload_to='sections/%Y/%m/',
         blank=True,
         null=True,
-        help_text='Imagen principal de la sección (se guarda en Cloudinary)'
-    )
-
-    background_image = CloudinaryField(
-        'section_bg',
-        blank=True,
-        null=True,
-        help_text='Imagen de fondo para la sección (opcional)'
+        help_text="Imagen de la sección (opcional)"
     )
     
-    # ==================== CALL TO ACTION (CTA) ====================
-    cta_text = models.CharField(
-        max_length=100,
-        blank=True,
-        verbose_name='Texto del Botón',
-        help_text='Texto del botón de acción (ej: "Contáctanos", "Ver más")'
+    # === CONFIGURACIÓN ===
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text="Orden de visualización"
     )
     
-    cta_url = models.CharField(
-        max_length=200,
-        blank=True,
-        verbose_name='URL del Botón',
-        help_text='URL a la que dirige el botón (ej: /contacto, https://wa.me/...)'
-    )
-    
-    # ==================== CONFIGURACIÓN ====================
     is_active = models.BooleanField(
         default=True,
-        verbose_name='Activo',
-        help_text='Si está inactivo, no se mostrará en el sitio'
+        help_text="¿Mostrar esta sección en el sitio?"
     )
     
-    order = models.IntegerField(
-        default=0,
-        verbose_name='Orden',
-        help_text='Orden de aparición (menor = primero). Ej: 0, 10, 20, 30...'
-    )
+    # === METADATA ===
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # === MANAGER ===
+    objects = TenantAwareManager()
     
     class Meta:
+        unique_together = [['client', 'section_type']]
+        ordering = ['order', 'section_type']
         verbose_name = 'Sección'
         verbose_name_plural = 'Secciones'
-        ordering = ['client', 'order', 'section_type']
-        
-        # Índices para mejorar performance de queries
         indexes = [
-            models.Index(fields=['client', 'section_type', 'is_active']),
-            models.Index(fields=['client', 'order']),
+            models.Index(fields=['client', 'section_type']),
+            models.Index(fields=['client', 'is_active']),
         ]
-        
-        # Un cliente solo puede tener UNA sección de cada tipo
-        # (evita duplicados: no puede haber 2 "hero" para el mismo cliente)
-        unique_together = [['client', 'section_type']]
     
     def __str__(self):
-        """Representación en string de la sección"""
-        return f"{self.client.company_name} - {self.get_section_type_display()}"
+        return f"{self.client.name} - {self.get_section_type_display()}"
+    
+    def save(self, *args, **kwargs):
+        # Auto-asignar order si no está definido
+        if not self.order:
+            max_order = Section.objects.filter(client=self.client).aggregate(
+                models.Max('order')
+            )['order__max']
+            self.order = (max_order or 0) + 10
+        
+        super().save(*args, **kwargs)
 
 
-class Service(TenantAwareModel):
+class Service(models.Model):
     """
     Servicios ofrecidos por el cliente.
     
-    Cada cliente puede tener múltiples servicios que ofrece.
-    Los servicios se muestran típicamente en cards/tarjetas en el sitio.
-    
-    Características:
-        - Nombre y descripción del servicio
-        - Icono (clase CSS) o imagen
-        - Precio opcional (desde $X)
-        - Destacado (featured) para mostrar primero
-        - Control de orden y visibilidad
-    
-    Example:
-        # Crear servicio para empresa eléctrica
-        servicio = Service.objects.create(
-            client=mi_cliente,
-            name='Instalaciones Eléctricas Industriales',
-            description='<p>Instalación completa de sistemas eléctricos...</p>',
-            icon='fa-bolt',
-            price=500000,
-            is_featured=True
-        )
+    Cada cliente puede tener múltiples servicios.
+    Se muestran como cards/tarjetas en el sitio.
     """
     
-    # ==================== INFORMACIÓN BÁSICA ====================
+    # === CAMPOS CORE ===
+    client = models.ForeignKey(
+        'tenants.Client',
+        on_delete=models.CASCADE,
+        related_name='services'
+    )
+    
+    # === CONTENIDO ===
     name = models.CharField(
-        max_length=150,
-        verbose_name='Nombre',
-        help_text='Nombre del servicio (ej: "Instalaciones Eléctricas")'
+        max_length=200,
+        help_text="Nombre del servicio"
     )
     
-    description = RichTextField(
-        verbose_name='Descripción',
-        help_text='Descripción detallada del servicio (HTML enriquecido)'
+    slug = models.SlugField(
+        max_length=250,
+        blank=True,
+        help_text="URL amigable (se genera automáticamente)"
     )
     
-    # ==================== VISUAL ====================
+    description = models.TextField(
+        help_text="Descripción breve del servicio"
+    )
+    
+    full_description = RichTextField(
+        blank=True,
+        help_text="Descripción completa (opcional)"
+    )
+    
+    # === VISUAL ===
     icon = models.CharField(
         max_length=50,
-        blank=True,
-        verbose_name='Clase de Icono',
-        help_text='Clase de icono Font Awesome o Lucide (ej: "fa-bolt", "lucide-zap")'
+        default='⚡',
+        help_text="Emoji o clase de icono (ej: 'fa-bolt')"
     )
     
-    image = CloudinaryField(
-        'service_image',
-        blank=True,
-        null=True,
-        help_text='Imagen del servicio (alternativa al icono)'
-    )
-    
-    # ==================== PRECIO ====================
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    image = models.ImageField(
+        upload_to='services/%Y/%m/',
         blank=True,
         null=True,
-        verbose_name='Precio',
-        help_text='Precio del servicio en moneda local (opcional)'
+        help_text="Imagen del servicio (opcional)"
     )
     
-    price_label = models.CharField(
-        max_length=50,
+    # === PRICING (opcional para el futuro) ===
+    price_text = models.CharField(
+        max_length=100,
         blank=True,
-        default='Desde',
-        verbose_name='Etiqueta del Precio',
-        help_text='Texto antes del precio (ej: "Desde", "Por proyecto")'
+        help_text="Ej: 'Desde $50.000' o 'Consultar precio'"
     )
     
-    # ==================== CONFIGURACIÓN ====================
-    is_featured = models.BooleanField(
-        default=False,
-        verbose_name='Destacado',
-        help_text='Si está marcado, se mostrará primero o con estilo especial'
+    # === CONFIGURACIÓN ===
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text="Orden de visualización"
     )
     
     is_active = models.BooleanField(
         default=True,
-        verbose_name='Activo',
-        help_text='Si está inactivo, no se mostrará en el sitio'
+        help_text="¿Mostrar este servicio?"
     )
     
-    order = models.IntegerField(
-        default=0,
-        verbose_name='Orden',
-        help_text='Orden de aparición (menor = primero)'
+    is_featured = models.BooleanField(
+        default=False,
+        help_text="¿Es un servicio destacado?"
     )
+    
+    # === METADATA ===
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # === MANAGER ===
+    objects = TenantAwareManager()
     
     class Meta:
+        unique_together = [['client', 'slug']]
+        ordering = ['order', 'name']
         verbose_name = 'Servicio'
         verbose_name_plural = 'Servicios'
-        ordering = ['client', 'order', '-is_featured', 'name']
-        
         indexes = [
-            models.Index(fields=['client', 'is_active', 'is_featured']),
-            models.Index(fields=['client', 'order']),
+            models.Index(fields=['client', 'slug']),
+            models.Index(fields=['client', 'is_active']),
+            models.Index(fields=['client', 'is_featured']),
         ]
     
     def __str__(self):
-        """Representación en string del servicio"""
-        featured = '⭐ ' if self.is_featured else ''
-        return f"{featured}{self.client.company_name} - {self.name}"
+        return f"{self.client.name} - {self.name}"
+    
+    def save(self, *args, **kwargs):
+        # Auto-generar slug único si no existe
+        if not self.slug:
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            
+            # Asegurar que el slug sea único para este cliente
+            while Service.objects.filter(
+                client=self.client, 
+                slug=slug
+            ).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            self.slug = slug
+        
+        # Auto-asignar order si no está definido
+        if not self.order:
+            max_order = Service.objects.filter(client=self.client).aggregate(
+                models.Max('order')
+            )['order__max']
+            self.order = (max_order or 0) + 10
+        
+        super().save(*args, **kwargs)
 
 
-class Testimonial(TenantAwareModel):
+class Testimonial(models.Model):
     """
     Testimonios de clientes satisfechos.
-    
-    Los testimonios son opiniones/reviews de clientes que han usado
-    los servicios del cliente. Ayudan a generar confianza.
-    
-    Características:
-        - Nombre y cargo del cliente que da el testimonio
-        - Texto del testimonio
-        - Rating de 1-5 estrellas
-        - Foto opcional del cliente
-        - Control de visibilidad
-    
-    Example:
-        # Crear testimonio
-        testimonio = Testimonial.objects.create(
-            client=mi_cliente,
-            client_name='Juan Pérez',
-            client_role='Gerente de Operaciones, Empresa XYZ',
-            testimonial='Excelente servicio, muy profesionales y puntuales.',
-            rating=5
-        )
     """
     
-    # ==================== CLIENTE QUE DA EL TESTIMONIO ====================
+    # === CAMPOS CORE ===
+    client = models.ForeignKey(
+        'tenants.Client',
+        on_delete=models.CASCADE,
+        related_name='testimonials'
+    )
+    
+    # === CONTENIDO ===
     client_name = models.CharField(
-        max_length=100,
-        verbose_name='Nombre del Cliente',
-        help_text='Nombre de la persona que da el testimonio'
+        max_length=200,
+        help_text="Nombre del cliente que da el testimonio"
     )
     
-    client_role = models.CharField(
-        max_length=100,
+    company = models.CharField(
+        max_length=200,
         blank=True,
-        verbose_name='Cargo / Empresa',
-        help_text='Cargo o empresa del cliente (ej: "Gerente, Empresa ABC")'
+        help_text="Empresa del cliente (opcional)"
     )
     
-    client_photo = CloudinaryField(
-        'testimonial_photo',
+    position = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Cargo del cliente (opcional)"
+    )
+    
+    content = models.TextField(
+        help_text="El testimonio en sí"
+    )
+    
+    # === VISUAL ===
+    avatar = models.ImageField(
+        upload_to='testimonials/%Y/%m/',
         blank=True,
         null=True,
-        help_text='Foto de la persona que da el testimonio (opcional)'
+        help_text="Foto del cliente (opcional)"
     )
     
-    # ==================== TESTIMONIO ====================
-    testimonial = models.TextField(
-        verbose_name='Testimonio',
-        help_text='Texto completo del testimonio'
-    )
-    
-    rating = models.IntegerField(
+    rating = models.PositiveSmallIntegerField(
         default=5,
-        validators=[
-            MinValueValidator(1, message='El rating mínimo es 1 estrella'),
-            MaxValueValidator(5, message='El rating máximo es 5 estrellas')
-        ],
-        verbose_name='Rating',
-        help_text='Calificación de 1 a 5 estrellas'
+        choices=[(i, f"{i} estrellas") for i in range(1, 6)],
+        help_text="Calificación de 1 a 5 estrellas"
     )
     
-    # ==================== CONFIGURACIÓN ====================
+    # === CONFIGURACIÓN ===
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text="Orden de visualización"
+    )
+    
     is_active = models.BooleanField(
         default=True,
-        verbose_name='Activo',
-        help_text='Si está inactivo, no se mostrará en el sitio'
+        help_text="¿Mostrar este testimonio?"
     )
     
     is_featured = models.BooleanField(
         default=False,
-        verbose_name='Destacado',
-        help_text='Testimonios destacados se muestran primero'
+        help_text="¿Destacar en home?"
     )
     
+    # === METADATA ===
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # === MANAGER ===
+    objects = TenantAwareManager()
+    
     class Meta:
+        ordering = ['order', '-created_at']
         verbose_name = 'Testimonio'
         verbose_name_plural = 'Testimonios'
-        ordering = ['client', '-is_featured', '-rating', '-created_at']
-        
         indexes = [
-            models.Index(fields=['client', 'is_active', 'is_featured']),
+            models.Index(fields=['client', 'is_active']),
+            models.Index(fields=['client', 'is_featured']),
         ]
     
     def __str__(self):
-        """Representación en string del testimonio"""
-        stars = '⭐' * self.rating
-        return f"{self.client.company_name} - {self.client_name} ({stars})"
+        return f"{self.client_name} - {self.client.name}"
     
-    def get_rating_display(self):
-        """
-        Retorna el rating como string de estrellas.
+    def save(self, *args, **kwargs):
+        # Auto-asignar order si no está definido
+        if not self.order:
+            max_order = Testimonial.objects.filter(client=self.client).aggregate(
+                models.Max('order')
+            )['order__max']
+            self.order = (max_order or 0) + 10
         
-        Returns:
-            str: String con estrellas (ej: "⭐⭐⭐⭐⭐")
-        """
-        return '⭐' * self.rating
+        super().save(*args, **kwargs)
 
 
-class ContactSubmission(TenantAwareModel):
+class ContactSubmission(models.Model):
     """
-    Formularios de contacto enviados por visitantes.
-    
-    Cuando un visitante llena el formulario de contacto del sitio,
-    los datos se guardan aquí. El cliente puede verlos desde el admin.
-    
-    Características:
-        - Datos del visitante (nombre, email, teléfono)
-        - Asunto y mensaje
-        - Metadata (IP, user agent, fecha)
-        - Estado (leído, spam)
-        - Fecha de respuesta (opcional)
-    
-    Flujo típico:
-        1. Visitante llena formulario en el sitio
-        2. Datos se guardan en ContactSubmission
-        3. Se envía email al cliente (opcional)
-        4. Cliente ve el formulario en /admin/
-        5. Cliente marca como "leído" después de responder
-    
-    Example:
-        # Crear formulario de contacto
-        submission = ContactSubmission.objects.create(
-            client=mi_cliente,
-            name='María González',
-            email='maria@example.com',
-            phone='+56912345678',
-            subject='Cotización de servicios',
-            message='Necesito cotizar instalación eléctrica...',
-            ip_address='192.168.1.1'
-        )
+    Mensajes de contacto recibidos del formulario del sitio.
     """
     
-    # ==================== DATOS DEL VISITANTE ====================
-    name = models.CharField(
-        max_length=100,
-        verbose_name='Nombre',
-        help_text='Nombre completo del visitante'
+    STATUS_CHOICES = [
+        ('new', 'Nuevo'),
+        ('read', 'Leído'),
+        ('replied', 'Respondido'),
+        ('spam', 'Spam'),
+    ]
+    
+    # === CAMPOS CORE ===
+    client = models.ForeignKey(
+        'tenants.Client',
+        on_delete=models.CASCADE,
+        related_name='contact_submissions'
     )
     
-    email = models.EmailField(
-        verbose_name='Email',
-        help_text='Email de contacto del visitante'
-    )
+    # === INFORMACIÓN DEL CONTACTO ===
+    name = models.CharField(max_length=200)
+    email = models.EmailField()
+    phone = models.CharField(max_length=50, blank=True)
+    company = models.CharField(max_length=200, blank=True)
     
-    phone = models.CharField(
-        max_length=20,
-        blank=True,
-        verbose_name='Teléfono',
-        help_text='Teléfono de contacto (opcional)'
-    )
-    
-    # ==================== MENSAJE ====================
+    # === MENSAJE ===
     subject = models.CharField(
-        max_length=200,
+        max_length=300,
         blank=True,
-        verbose_name='Asunto',
-        help_text='Asunto del mensaje (opcional)'
+        help_text="Asunto del mensaje"
     )
     
-    message = models.TextField(
-        verbose_name='Mensaje',
-        help_text='Mensaje completo del visitante'
+    message = models.TextField(help_text="Mensaje del contacto")
+    
+    # === METADATA ===
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='new'
     )
     
-    # ==================== METADATA ====================
-    submitted_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Fecha de Envío',
-        help_text='Fecha y hora en que se envió el formulario'
+    source = models.CharField(
+        max_length=50,
+        default='website',
+        help_text="Origen: website, landing, form, etc."
     )
     
     ip_address = models.GenericIPAddressField(
         blank=True,
         null=True,
-        verbose_name='Dirección IP',
-        help_text='Dirección IP del visitante (para seguridad)'
+        help_text="IP del visitante"
     )
     
     user_agent = models.TextField(
         blank=True,
-        verbose_name='User Agent',
-        help_text='Navegador y sistema operativo del visitante'
+        help_text="Navegador del visitante"
     )
     
-    # ==================== ESTADO ====================
-    is_read = models.BooleanField(
-        default=False,
-        verbose_name='Leído',
-        help_text='Marca como leído cuando el cliente lo revise'
-    )
+    # === TIMESTAMPS ===
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
-    is_spam = models.BooleanField(
-        default=False,
-        verbose_name='Spam',
-        help_text='Marca como spam si es un mensaje no deseado'
-    )
-    
-    replied_at = models.DateTimeField(
-        blank=True,
-        null=True,
-        verbose_name='Respondido',
-        help_text='Fecha y hora en que se respondió al cliente (opcional)'
-    )
-    
-    notes = models.TextField(
-        blank=True,
-        verbose_name='Notas Internas',
-        help_text='Notas privadas sobre este contacto (no visibles para el visitante)'
-    )
+    # === MANAGER ===
+    objects = TenantAwareManager()
     
     class Meta:
-        verbose_name = 'Formulario de Contacto'
-        verbose_name_plural = 'Formularios de Contacto'
-        ordering = ['client', '-submitted_at']
-        
+        ordering = ['-created_at']
+        verbose_name = 'Mensaje de Contacto'
+        verbose_name_plural = 'Mensajes de Contacto'
         indexes = [
-            models.Index(fields=['client', 'is_read', 'is_spam']),
-            models.Index(fields=['client', '-submitted_at']),
+            models.Index(fields=['client', 'status']),
+            models.Index(fields=['client', '-created_at']),
         ]
     
     def __str__(self):
-        """Representación en string del formulario"""
-        status = '✉️' if not self.is_read else '✅'
-        spam = ' [SPAM]' if self.is_spam else ''
-        return f"{status} {self.client.company_name} - {self.name}{spam}"
+        return f"{self.name} - {self.created_at.strftime('%d/%m/%Y')}"
     
     def mark_as_read(self):
-        """
-        Marca el formulario como leído.
-        
-        Útil para llamar desde el admin o una vista.
-        """
-        self.is_read = True
-        self.save(update_fields=['is_read'])
+        """Marcar mensaje como leído"""
+        self.status = 'read'
+        self.save(update_fields=['status', 'updated_at'])
+    
+    def mark_as_replied(self):
+        """Marcar mensaje como respondido"""
+        self.status = 'replied'
+        self.save(update_fields=['status', 'updated_at'])
     
     def mark_as_spam(self):
-        """
-        Marca el formulario como spam.
-        
-        Los formularios marcados como spam se pueden ocultar en el admin.
-        """
-        self.is_spam = True
-        self.save(update_fields=['is_spam'])
+        """Marcar mensaje como spam"""
+        self.status = 'spam'
+        self.save(update_fields=['status', 'updated_at'])
