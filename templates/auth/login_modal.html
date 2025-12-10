@@ -1,0 +1,67 @@
+<!-- Modal de Login -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" 
+     @click.self="$el.remove()">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+        <!-- Header -->
+        <div class="bg-primary text-white px-6 py-4 rounded-t-xl flex justify-between items-center">
+            <h3 class="text-xl font-bold">🔑 Iniciar Sesión</h3>
+            <button @click="$el.closest('.fixed').remove()" 
+                    class="text-white hover:text-gray-200 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Form -->
+        <form method="post" action="{% url 'login' %}" class="p-6">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        Usuario
+                    </label>
+                    <input type="text" 
+                           name="username" 
+                           required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                           placeholder="Tu usuario">
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        Contraseña
+                    </label>
+                    <input type="password" 
+                           name="password" 
+                           required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                           placeholder="Tu contraseña">
+                </div>
+                
+                <input type="hidden" name="next" value="{{ request.path }}">
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex gap-3 mt-8">
+                <button type="submit" 
+                        class="flex-1 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-secondary transition shadow-lg hover:shadow-xl">
+                    Entrar
+                </button>
+                <button type="button"
+                        @click="$el.closest('.fixed').remove()"
+                        class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">
+                    Cancelar
+                </button>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    ¿Olvidaste tu contraseña? 
+                    <a href="#" class="text-primary hover:underline">Recuperar</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,103 @@
+<!-- Modal de edición de sección -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" 
+     @click.self="$el.remove()">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- Header -->
+        <div class="bg-primary text-white px-6 py-4 rounded-t-xl flex justify-between items-center sticky top-0">
+            <h3 class="text-xl font-bold">
+                ✏️ Editar: {{ section.get_section_type_display }}
+            </h3>
+            <button @click="$el.closest('.fixed').remove()" 
+                    class="text-white hover:text-gray-200 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Form -->
+        <form method="post" 
+              hx-post="{% url 'edit_section' section.id %}"
+              hx-target="#section-{{ section.id }}"
+              hx-swap="outerHTML"
+              class="p-6">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <!-- Title -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        {{ form.title.label }}
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Subtitle -->
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        {{ form.subtitle.label }}
+                    </label>
+                    {{ form.subtitle }}
+                    {% if form.subtitle.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.subtitle.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Is Active -->
+                <div class="flex items-center gap-3">
+                    {{ form.is_active }}
+                    <label class="text-gray-700 font-medium">
+                        {{ form.is_active.label }}
+                    </label>
+                </div>
+                
+                <!-- Info Note -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-sm text-blue-800">
+                        💡 <strong>Nota:</strong> Por ahora solo puedes editar el título y subtítulo. 
+                        La edición de contenido completo estará disponible en una próxima versión.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex gap-3 mt-8 pt-6 border-t border-gray-200">
+                <button type="submit" 
+                        class="flex-1 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-secondary transition shadow-lg hover:shadow-xl">
+                    💾 Guardar Cambios
+                </button>
+                <button type="button"
+                        hx-get="{% url 'cancel_edit_section' section.id %}"
+                        hx-target="#section-{{ section.id }}"
+                        hx-swap="outerHTML"
+                        @click="$el.closest('.fixed').remove()"
+                        class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.querySelector('.fixed.inset-0');
+            if (modal) modal.remove();
+        }
+    });
+    
+    // Mostrar notificación cuando se guarde
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id && evt.detail.target.id.startsWith('section-')) {
+            window.showToast('✅ Sección actualizada correctamente', 'success');
+            // Cerrar modal
+            const modal = document.querySelector('.fixed.inset-0');
+            if (modal) modal.remove();
+        }
+    });
+</script>

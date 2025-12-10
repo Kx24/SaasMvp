@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load website_tags %}
+
+{% block content %}
+<!-- Hero Section -->
+{% get_section 'hero' as hero %}
+{% if hero %}
+<section class="bg-gradient-to-r from-primary to-secondary text-white py-20">
+    <div class="container mx-auto px-4">
+        <h1 class="text-5xl font-bold mb-4">{{ hero.title }}</h1>
+        {% if hero.subtitle %}
+        <p class="text-xl mb-8">{{ hero.subtitle }}</p>
+        {% endif %}
+        <a href="#contacto" class="px-8 py-3 bg-white text-primary font-bold rounded-lg hover:bg-gray-100">
+            Contáctanos
+        </a>
+    </div>
+    {% if user.is_authenticated %}
+    <button hx-get="{% url 'edit_section' hero.id %}"
+            hx-target="#modal-container"
+            hx-swap="innerHTML"
+            class="absolute top-4 right-4 px-4 py-2 bg-white/20 backdrop-blur-md text-white rounded-lg hover:bg-white/30 transition shadow-lg flex items-center gap-2 group">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+        <span class="font-medium">Editar Hero</span>
+    </button>
+    {% endif %}    
+</section>
+{% endif %}
+
+<!-- Services -->
+<section id="servicios" class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Nuestros Servicios</h2>
+        
+        <div id="services-grid" class="grid md:grid-cols-3 gap-8">
+            {% get_services as services %}
+            {% for service in services %}
+                {% include 'partials/service_card.html' with service=service can_edit=user.is_authenticated %}
+            {% empty %}
+            <div class="col-span-full text-center py-12 text-gray-500">
+                <p class="text-lg mb-4">No hay servicios disponibles aún.</p>
+                {% if user.is_authenticated %}
+                <button hx-get="{% url 'add_service' %}"
+                        hx-target="#modal-container"
+                        hx-swap="innerHTML"
+                        class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-secondary transition">
+                    Agregar Primer Servicio
+                </button>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Add Service Button -->
+        {% if user.is_authenticated %}
+        <div class="text-center mt-8">
+            <button hx-get="{% url 'add_service' %}"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-secondary transition shadow-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Agregar Servicio
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Contact -->
+<section id="contacto" class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4 max-w-2xl">
+        <h2 class="text-3xl font-bold text-center mb-12">Contáctanos</h2>
+        <form class="space-y-6">
+            <input type="text" placeholder="Nombre" class="w-full px-4 py-3 border rounded-lg">
+            <input type="email" placeholder="Email" class="w-full px-4 py-3 border rounded-lg">
+            <textarea placeholder="Mensaje" rows="4" class="w-full px-4 py-3 border rounded-lg"></textarea>
+            <button type="submit" class="w-full px-8 py-3 bg-primary text-white font-bold rounded-lg hover:bg-secondary">
+                Enviar
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}

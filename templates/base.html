@@ -3,25 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SaaS Landing MVP{% endblock %}</title>
+    <title>{% block title %}{{ client.settings.company_name }}{% endblock %}</title>
     
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    {% block extra_css %}{% endblock %}
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Configuración de Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '{{ client.settings.primary_color|default:"#2563eb" }}',
+                        secondary: '{{ client.settings.secondary_color|default:"#1e40af" }}',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        html { scroll-behavior: smooth; }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-50">
-    {% block content %}
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-4xl font-bold text-center text-gray-900">
-            Multi-Tenant SaaS MVP
-        </h1>
-        <p class="text-center mt-4 text-gray-600">
-            Estructura funcionando correctamente ✅
-        </p>
-    </div>
-    {% endblock %}
+
+<body class="bg-gray-50 text-gray-900">
+    {% include 'components/navbar.html' %}
     
-    {% block extra_js %}{% endblock %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% include 'components/footer.html' %}
+    
+    <div id="modal-container"></div>
+    
+    <script>
+        window.showToast = function(message, type = 'success') {
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500'
+            };
+            const toast = document.createElement('div');
+            toast.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+    </script>
+    
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

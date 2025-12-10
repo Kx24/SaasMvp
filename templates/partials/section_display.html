@@ -1,0 +1,108 @@
+<!-- Sección en modo display (después de editar) -->
+{% if section.section_type == 'hero' %}
+<section id="section-{{ section.id }}" class="relative bg-gradient-to-br from-primary via-blue-600 to-secondary text-white overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-96 h-96 bg-white rounded-full filter blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full filter blur-3xl"></div>
+    </div>
+    
+    <div class="relative container mx-auto px-4 py-20 md:py-32">
+        <div class="max-w-3xl">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                {{ section.title }}
+            </h1>
+            
+            {% if section.subtitle %}
+            <p class="text-xl md:text-2xl text-white/90 mb-8">
+                {{ section.subtitle }}
+            </p>
+            {% endif %}
+            
+            {% if section.content %}
+            <div class="prose prose-lg prose-invert mb-8">
+                {{ section.content|safe }}
+            </div>
+            {% endif %}
+            
+            <div class="flex flex-wrap gap-4">
+                <a href="#contacto" 
+                   class="px-8 py-3 bg-white text-primary font-semibold rounded-lg hover:bg-gray-100 transition shadow-lg hover:shadow-xl">
+                    Contáctanos
+                </a>
+                <a href="#servicios" 
+                   class="px-8 py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-lg hover:bg-white/20 transition border border-white/20">
+                    Ver Servicios
+                </a>
+            </div>
+        </div>
+        
+        {% if can_edit %}
+        <button hx-get="{% url 'edit_section' section.id %}"
+                hx-target="#modal-container"
+                hx-swap="innerHTML"
+                class="absolute top-4 right-4 px-4 py-2 bg-white/20 backdrop-blur-md text-white rounded-lg hover:bg-white/30 transition shadow-lg flex items-center gap-2 group">
+            <svg class="w-5 h-5 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            <span class="font-medium">Editar Hero</span>
+        </button>
+        {% endif %}
+    </div>
+</section>
+
+{% elif section.section_type == 'about' %}
+<section id="section-{{ section.id }}" class="py-16 md:py-24 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12 relative">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                    {{ section.title }}
+                </h2>
+                
+                {% if section.subtitle %}
+                <p class="text-xl text-gray-600 mb-6">
+                    {{ section.subtitle }}
+                </p>
+                {% endif %}
+                
+                <div class="prose prose-lg max-w-none">
+                    {{ section.content|safe }}
+                </div>
+                
+                {% if can_edit %}
+                <button hx-get="{% url 'edit_section' section.id %}"
+                        hx-target="#modal-container"
+                        hx-swap="innerHTML"
+                        class="absolute top-4 right-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Editar
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% else %}
+<!-- Otros tipos de sección con layout genérico -->
+<section id="section-{{ section.id }}" class="py-16 bg-white">
+    <div class="container mx-auto px-4 relative">
+        <h2 class="text-3xl font-bold text-center mb-6">{{ section.title }}</h2>
+        {% if section.subtitle %}
+        <p class="text-xl text-center text-gray-600 mb-8">{{ section.subtitle }}</p>
+        {% endif %}
+        <div class="prose max-w-none">{{ section.content|safe }}</div>
+        
+        {% if can_edit %}
+        <button hx-get="{% url 'edit_section' section.id %}"
+                hx-target="#modal-container"
+                hx-swap="innerHTML"
+                class="absolute top-4 right-4 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200">
+            ✏️ Editar
+        </button>
+        {% endif %}
+    </div>
+</section>
+{% endif %}

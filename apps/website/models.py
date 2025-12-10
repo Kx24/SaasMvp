@@ -3,7 +3,6 @@ Modelos de la aplicación Website - CMS Multi-tenant
 """
 from django.db import models
 from django.utils.text import slugify
-from ckeditor.fields import RichTextField
 from apps.tenants.managers import TenantAwareManager
 
 
@@ -51,12 +50,7 @@ class Section(models.Model):
         blank=True,
         help_text="Subtítulo o tagline (opcional)"
     )
-    
-    content = RichTextField(
-        blank=True,
-        help_text="Contenido HTML enriquecido"
-    )
-    
+      
     # === MULTIMEDIA ===
     image = models.ImageField(
         upload_to='sections/%Y/%m/',
@@ -137,12 +131,7 @@ class Service(models.Model):
     description = models.TextField(
         help_text="Descripción breve del servicio"
     )
-    
-    full_description = RichTextField(
-        blank=True,
-        help_text="Descripción completa (opcional)"
-    )
-    
+       
     # === VISUAL ===
     icon = models.CharField(
         max_length=50,
