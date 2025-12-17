@@ -1,0 +1,76 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Secciones{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Secciones del Sitio</h1>
+            <p class="text-gray-600 mt-1">Gestiona las secciones de tu página web</p>
+        </div>
+    </div>
+    
+    <!-- Sections List -->
+    <div class="space-y-4">
+        {% for section in sections %}
+        <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h3 class="text-xl font-bold text-gray-900">
+                            {{ section.get_section_type_display }}
+                        </h3>
+                        {% if section.is_active %}
+                        <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
+                            ✓ Activa
+                        </span>
+                        {% else %}
+                        <span class="px-3 py-1 bg-gray-100 text-gray-800 text-xs font-bold rounded-full">
+                            Inactiva
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="text-2xl font-semibold text-gray-800 mb-2">
+                        {{ section.title }}
+                    </p>
+                    
+                    {% if section.subtitle %}
+                    <p class="text-gray-600 mb-3">
+                        {{ section.subtitle }}
+                    </p>
+                    {% endif %}
+                    
+                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                        <span>📊 Orden: {{ section.order }}</span>
+                        <span>🕐 Actualizado: {{ section.updated_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button hx-get="{% url 'edit_section' section.id %}"
+                            hx-target="#modal-container"
+                            hx-swap="innerHTML"
+                            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Editar
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+            </svg>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">No hay secciones aún</h3>
+            <p class="text-gray-600">Las secciones se crean automáticamente desde el Django Admin</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

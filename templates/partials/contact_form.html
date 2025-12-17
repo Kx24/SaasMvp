@@ -1,0 +1,73 @@
+<!-- Formulario de contacto (para usar con HTMX) -->
+<form method="post" 
+      hx-post="{% url 'contact_submit' %}"
+      hx-target="#contact-response"
+      hx-swap="innerHTML"
+      class="space-y-6">
+    {% csrf_token %}
+    
+    <!-- Nombre -->
+    <div>
+        <label class="block text-gray-700 font-semibold mb-2">
+            {{ form.name.label }} <span class="text-red-500">*</span>
+        </label>
+        {{ form.name }}
+        {% if form.name.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+        {% endif %}
+    </div>
+    
+    <!-- Email -->
+    <div>
+        <label class="block text-gray-700 font-semibold mb-2">
+            {{ form.email.label }} <span class="text-red-500">*</span>
+        </label>
+        {{ form.email }}
+        {% if form.email.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+        {% endif %}
+    </div>
+    
+    <!-- Teléfono -->
+    <div>
+        <label class="block text-gray-700 font-semibold mb-2">
+            {{ form.phone.label }}
+        </label>
+        {{ form.phone }}
+        {% if form.phone.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+        {% endif %}
+    </div>
+    
+    <!-- Asunto -->
+    <div>
+        <label class="block text-gray-700 font-semibold mb-2">
+            {{ form.subject.label }}
+        </label>
+        {{ form.subject }}
+        {% if form.subject.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ form.subject.errors.0 }}</p>
+        {% endif %}
+    </div>
+    
+    <!-- Mensaje -->
+    <div>
+        <label class="block text-gray-700 font-semibold mb-2">
+            {{ form.message.label }} <span class="text-red-500">*</span>
+        </label>
+        {{ form.message }}
+        {% if form.message.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ form.message.errors.0 }}</p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">Mínimo 10 caracteres</p>
+    </div>
+    
+    <!-- Submit Button -->
+    <button type="submit" 
+            class="w-full px-8 py-4 bg-primary text-white font-bold rounded-lg hover:bg-secondary transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+        Enviar Mensaje
+    </button>
+</form>

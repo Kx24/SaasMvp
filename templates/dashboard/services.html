@@ -1,0 +1,95 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Servicios{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Servicios</h1>
+            <p class="text-gray-600 mt-1">Gestiona los servicios que ofreces</p>
+        </div>
+        
+        <button hx-get="{% url 'add_service' %}"
+                hx-target="#modal-container"
+                hx-swap="innerHTML"
+                class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-secondary transition flex items-center gap-2 shadow-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Agregar Servicio
+        </button>
+    </div>
+    
+    <!-- Services Grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for service in services %}
+        <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition relative">
+            <div class="text-4xl mb-4">{{ service.icon }}</div>
+            
+            <h3 class="text-xl font-bold text-gray-900 mb-2">
+                {{ service.name }}
+            </h3>
+            
+            <p class="text-gray-600 mb-4">
+                {{ service.description }}
+            </p>
+            
+            {% if service.price_text %}
+            <p class="text-primary font-semibold mb-4">
+                {{ service.price_text }}
+            </p>
+            {% endif %}
+            
+            <div class="flex flex-wrap gap-2 mb-4">
+                {% if service.is_active %}
+                <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
+                    ✓ Activo
+                </span>
+                {% else %}
+                <span class="px-3 py-1 bg-gray-100 text-gray-800 text-xs font-bold rounded-full">
+                    Inactivo
+                </span>
+                {% endif %}
+                
+                {% if service.is_featured %}
+                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full">
+                    ⭐ Destacado
+                </span>
+                {% endif %}
+            </div>
+            
+            <div class="flex gap-2">
+                <button hx-get="{% url 'edit_service' service.id %}"
+                        hx-target="#modal-container"
+                        hx-swap="innerHTML"
+                        class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition text-sm">
+                    ✏️ Editar
+                </button>
+                <button hx-get="{% url 'delete_service' service.id %}"
+                        hx-target="#modal-container"
+                        hx-swap="innerHTML"
+                        class="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition text-sm">
+                    🗑️
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full bg-white rounded-xl shadow-lg p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">No hay servicios aún</h3>
+            <p class="text-gray-600 mb-4">Crea tu primer servicio para mostrarlo en tu sitio</p>
+            <button hx-get="{% url 'add_service' %}"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML"
+                    class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-secondary transition">
+                Agregar Primer Servicio
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

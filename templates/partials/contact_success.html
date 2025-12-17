@@ -1,0 +1,38 @@
+<!-- Mensaje de éxito después de enviar el formulario -->
+<div class="bg-green-50 border-2 border-green-200 rounded-xl p-8 text-center">
+    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+    </div>
+    
+    <h3 class="text-2xl font-bold text-green-900 mb-2">
+        ¡Mensaje Enviado!
+    </h3>
+    
+    <p class="text-green-800 mb-6">
+        Gracias {{ contact.name }}, hemos recibido tu mensaje. Te contactaremos pronto a <strong>{{ contact.email }}</strong>
+    </p>
+    
+    <div class="bg-white rounded-lg p-4 text-left mb-6">
+        <p class="text-sm text-gray-600 mb-2">
+            <strong>Tu mensaje:</strong>
+        </p>
+        <p class="text-gray-800">
+            {{ contact.message|truncatewords:30 }}
+        </p>
+    </div>
+    
+    <button onclick="location.reload()" 
+            class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-secondary transition">
+        Enviar Otro Mensaje
+    </button>
+</div>
+
+<script>
+    // Mostrar notificación toast
+    window.showToast('✅ Mensaje enviado correctamente', 'success');
+    
+    // Scroll al inicio del formulario
+    document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' });
+</script>

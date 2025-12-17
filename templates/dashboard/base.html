@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - {{ client.settings.company_name }}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '{{ client.settings.primary_color|default:"#2563eb" }}',
+                        secondary: '{{ client.settings.secondary_color|default:"#1e40af" }}',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center gap-4">
+                    <div class="text-xl font-bold text-primary">
+                        📊 Dashboard
+                    </div>
+                    <span class="text-gray-400">|</span>
+                    <span class="text-gray-600">{{ client.settings.company_name }}</span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <a href="{% url 'home' %}" 
+                       class="px-4 py-2 text-gray-600 hover:text-primary transition">
+                        🌐 Ver Sitio
+                    </a>
+                    <span class="text-gray-600">👋 {{ user.username }}</span>
+                    <a href="{% url 'logout' %}" 
+                       class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                        Salir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Layout -->
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-lg" x-data="{ open: true }">
+            <div class="p-6">
+                <nav class="space-y-2">
+                    <a href="{% url 'dashboard' %}" 
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition {% if request.resolver_match.url_name == 'dashboard' %}bg-primary text-white hover:bg-secondary{% else %}text-gray-700{% endif %}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        Inicio
+                    </a>
+                    
+                    <a href="{% url 'dashboard_sections' %}" 
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition {% if request.resolver_match.url_name == 'dashboard_sections' %}bg-primary text-white hover:bg-secondary{% else %}text-gray-700{% endif %}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                        </svg>
+                        Secciones
+                    </a>
+                    
+                    <a href="{% url 'dashboard_services' %}" 
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition {% if request.resolver_match.url_name == 'dashboard_services' %}bg-primary text-white hover:bg-secondary{% else %}text-gray-700{% endif %}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        Servicios
+                    </a>
+                    
+                    <a href="{% url 'dashboard_contacts' %}" 
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition {% if request.resolver_match.url_name == 'dashboard_contacts' %}bg-primary text-white hover:bg-secondary{% else %}text-gray-700{% endif %}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        Contactos
+                        {% if new_contacts > 0 %}
+                        <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            {{ new_contacts }}
+                        </span>
+                        {% endif %}
+                    </a>
+                </nav>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="bg-{{ message.tags }}-100 border border-{{ message.tags }}-200 text-{{ message.tags }}-800 px-4 py-3 rounded-lg">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+</body>
+</html>

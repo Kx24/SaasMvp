@@ -1,0 +1,120 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Contactos{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Mensajes de Contacto</h1>
+            <p class="text-gray-600 mt-1">Gestiona los mensajes recibidos</p>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-lg p-4">
+        <div class="flex gap-2">
+            <a href="{% url 'dashboard_contacts' %}" 
+               class="px-4 py-2 rounded-lg transition {% if not status_filter %}bg-primary text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Todos
+            </a>
+            <a href="?status=new" 
+               class="px-4 py-2 rounded-lg transition {% if status_filter == 'new' %}bg-primary text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Nuevos
+            </a>
+            <a href="?status=read" 
+               class="px-4 py-2 rounded-lg transition {% if status_filter == 'read' %}bg-primary text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Leídos
+            </a>
+            <a href="?status=replied" 
+               class="px-4 py-2 rounded-lg transition {% if status_filter == 'replied' %}bg-primary text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                Respondidos
+            </a>
+        </div>
+    </div>
+    
+    <!-- Contacts List -->
+    <div class="space-y-4">
+        {% for contact in contacts %}
+        <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h3 class="text-xl font-bold text-gray-900">
+                            {{ contact.name }}
+                        </h3>
+                        {% if contact.status == 'new' %}
+                        <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full">
+                            🆕 Nuevo
+                        </span>
+                        {% elif contact.status == 'read' %}
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full">
+                            👁️ Leído
+                        </span>
+                        {% elif contact.status == 'replied' %}
+                        <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
+                            ✅ Respondido
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                        <span>📧 {{ contact.email }}</span>
+                        {% if contact.phone %}
+                        <span>📞 {{ contact.phone }}</span>
+                        {% endif %}
+                        <span>🕐 {{ contact.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if contact.subject %}
+            <p class="font-semibold text-gray-900 mb-2">
+                Asunto: {{ contact.subject }}
+            </p>
+            {% endif %}
+            
+            <p class="text-gray-700 mb-4 whitespace-pre-line">
+                {{ contact.message }}
+            </p>
+            
+            <div class="flex gap-2 pt-4 border-t border-gray-200">
+                {% if contact.status == 'new' %}
+                <form method="post" action="{% url 'mark_contact_read' contact.id %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-sm">
+                        👁️ Marcar como Leído
+                    </button>
+                </form>
+                {% endif %}
+                
+                {% if contact.status != 'replied' %}
+                <form method="post" action="{% url 'mark_contact_replied' contact.id %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition text-sm">
+                        ✅ Marcar como Respondido
+                    </button>
+                </form>
+                {% endif %}
+                
+                <a href="mailto:{{ contact.email }}" 
+                   class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition text-sm">
+                    📧 Responder Email
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">No hay mensajes</h3>
+            <p class="text-gray-600">Aún no has recibido ningún mensaje de contacto</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

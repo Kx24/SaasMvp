@@ -5,8 +5,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib import messages
-from .models import Section, Service, Testimonial
-from .forms import SectionForm, ServiceForm, TestimonialForm
+from .models import Section, Service, Testimonial, ContactSubmission
+from .forms import SectionForm, ServiceForm, TestimonialForm, ContactForm
 
 
 def home(request):
@@ -14,8 +14,11 @@ def home(request):
     Vista principal del sitio público.
     Muestra el home page con todas las secciones.
     """
+    from .forms import ContactForm  # Importar aquí si no está arriba
+    
     context = {
         'client': request.client if hasattr(request, 'client') else None,
+        'form': ContactForm(),  # Agregar form vacío
     }
     return render(request, 'landing/home.html', context)
 
@@ -174,3 +177,190 @@ def login_modal(request):
     Devuelve el modal de login para HTMX.
     """
     return render(request, 'auth/login_modal.html')
+
+"""
+Views del dashboard para clientes
+"""
+
+@login_required
+def dashboard(request):
+    """
+    Dashboard principal del cliente.
+    Vista general con estadísticas y accesos rápidos.
+    """
+    context = {
+        'client': request.client,
+        'sections_count': Section.objects.filter(client=request.client).count(),
+        'services_count': Service.objects.filter(client=request.client).count(),
+        'testimonials_count': Testimonial.objects.filter(client=request.client).count(),
+        'contacts_count': ContactSubmission.objects.filter(client=request.client).count(),
+        'new_contacts': ContactSubmission.objects.filter(
+            client=request.client,
+            status='new'
+        ).count(),
+    }
+    return render(request, 'dashboard/index.html', context)
+
+
+@login_required
+def dashboard_sections(request):
+    """
+    Lista de todas las secciones del cliente.
+    """
+    sections = Section.objects.filter(
+        client=request.client
+    ).order_by('section_type', 'order')
+    
+    context = {
+        'client': request.client,
+        'sections': sections,
+    }
+    return render(request, 'dashboard/sections.html', context)
+
+
+@login_required
+def dashboard_services(request):
+    """
+    Lista de todos los servicios del cliente.
+    """
+    services = Service.objects.filter(
+        client=request.client
+    ).order_by('order', 'name')
+    
+    context = {
+        'client': request.client,
+        'services': services,
+    }
+    return render(request, 'dashboard/services.html', context)
+
+
+@login_required
+def dashboard_testimonials(request):
+    """
+    Lista de todos los testimonios del cliente.
+    """
+    testimonials = Testimonial.objects.filter(
+        client=request.client
+    ).order_by('-created_at')
+    
+    context = {
+        'client': request.client,
+        'testimonials': testimonials,
+    }
+    return render(request, 'dashboard/testimonials.html', context)
+
+
+@login_required
+def dashboard_contacts(request):
+    """
+    Lista de mensajes de contacto recibidos.
+    """
+    contacts = ContactSubmission.objects.filter(
+        client=request.client
+    ).order_by('-created_at')
+    
+    # Filtros opcionales
+    status_filter = request.GET.get('status')
+    if status_filter:
+        contacts = contacts.filter(status=status_filter)
+    
+    context = {
+        'client': request.client,
+        'contacts': contacts,
+        'status_filter': status_filter,
+    }
+    return render(request, 'dashboard/contacts.html', context)
+
+
+@login_required
+def mark_contact_read(request, contact_id):
+    """
+    Marcar un contacto como leído.
+    """
+    if request.method == 'POST':
+        contact = ContactSubmission.objects.get(
+            id=contact_id,
+            client=request.client
+        )
+        contact.mark_as_read()
+        messages.success(request, 'Contacto marcado como leído')
+    
+    return redirect('dashboard_contacts')
+
+
+@login_required
+def mark_contact_replied(request, contact_id):
+    """
+    Marcar un contacto como respondido.
+    """
+    if request.method == 'POST':
+        contact = ContactSubmission.objects.get(
+            id=contact_id,
+            client=request.client
+        )
+        contact.mark_as_replied()
+        messages.success(request, 'Contacto marcado como respondido')
+    
+    return redirect('dashboard_contacts')
+
+
+
+"""
+View para procesar el formulario de contacto
+AGREGAR al final de apps/website/views.py
+"""
+
+# ============================================================
+# FORMULARIO DE CONTACTO (Card #10)
+# ============================================================
+
+def contact_submit(request):
+    """
+    Procesa el formulario de contacto con HTMX.
+    Guarda en la base de datos y devuelve mensaje de éxito/error.
+    """
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        
+        if form.is_valid():
+            # Guardar el contacto
+            contact = form.save(commit=False)
+            contact.client = request.client
+            
+            # Guardar IP y User Agent
+            contact.ip_address = get_client_ip(request)
+            contact.user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
+            
+            contact.save()
+            
+            # Si es petición HTMX, devolver mensaje de éxito
+            if request.headers.get('HX-Request'):
+                return render(request, 'partials/contact_success.html', {
+                    'contact': contact
+                })
+            
+            messages.success(request, '¡Mensaje enviado correctamente! Te contactaremos pronto.')
+            return redirect('home')
+        else:
+            # Si hay errores, devolver formulario con errores
+            if request.headers.get('HX-Request'):
+                return render(request, 'partials/contact_form.html', {
+                    'form': form
+                })
+            
+            messages.error(request, 'Por favor corrige los errores en el formulario.')
+            return render(request, 'landing/home.html', {'form': form})
+    
+    # GET request
+    form = ContactForm()
+    return render(request, 'partials/contact_form.html', {'form': form})
+
+
+def get_client_ip(request):
+    """Helper para obtener la IP del cliente"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
