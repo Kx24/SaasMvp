@@ -16,12 +16,21 @@ print(f"Cliente 3 creado: {client3.name}")
 # Verificar que existen ambos
 print(f"\nTotal clientes: {Client.objects.count()}")
 
+#-------------Listar propiedades de una seccion -------------#
+
+from apps.website.models import Section
+
+# Ver los campos disponibles en Section
+print("Campos disponibles en Section:")
+for field in Testimonial._meta.get_fields():
+    print(f"  - {field.name}")
+
 
 #------------------ Crear Contenido cliente 1 ------------------#
 
 from apps.website.models import Section, Service, Testimonial
 
-client1 = Client.objects.get(slug='SaasPrueba')
+client1 = Client.objects.get(slug='saasprueba')
 
 # IMPORTANTE: Simular que estamos en el contexto del Cliente 1
 Section._current_client = client1

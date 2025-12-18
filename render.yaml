@@ -1,0 +1,25 @@
+services:
+  # Web Service
+  - type: web
+    name: saasmvp
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+
+databases:
+  # PostgreSQL Database
+  - name: saasmvp-db
+    plan: free
+    region: oregon
