@@ -23,6 +23,11 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
+# Agregar dominio de Render automáticamente
+render_domain = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if render_domain:
+    ALLOWED_HOSTS.append(render_domain)
+
 # Agregar dominio personalizado si existe
 custom_domain = os.environ.get('DOMAIN')
 if custom_domain:
