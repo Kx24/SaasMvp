@@ -68,21 +68,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
@@ -164,4 +149,22 @@ TEMPLATES = [
             ],
         },
     },
+
+    
 ]
+
+#La sesión expira al cerrar el navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# La sesión dura 2 horas de inactividad
+SESSION_COOKIE_AGE = 7200  # 2 horas en segundos
+
+# Nombre de la cookie de sesión (para evitar conflictos)
+SESSION_COOKIE_NAME = 'saasmvp_sessionid'
+
+# Cookie de sesión solo por HTTPS en producción
+SESSION_COOKIE_SECURE = not DEBUG
+
+# Cookie no accesible desde JavaScript (seguridad)
+SESSION_COOKIE_HTTPONLY = True
+

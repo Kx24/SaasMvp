@@ -27,7 +27,7 @@ def home(request):
 # EDICIÓN DE SECCIONES
 # ============================================================
 
-@login_required
+@login_required(login_url='/auth/login/')
 def edit_section(request, section_id):
     """
     Editar una sección existente con HTMX.
@@ -59,7 +59,7 @@ def edit_section(request, section_id):
     })
 
 
-@login_required
+@login_required(login_url='/auth/login/')
 def cancel_edit_section(request, section_id):
     """
     Cancelar edición y devolver la vista normal de la sección.
@@ -75,7 +75,7 @@ def cancel_edit_section(request, section_id):
 # EDICIÓN DE SERVICIOS
 # ============================================================
 
-@login_required
+@login_required(login_url='/auth/login/')
 def edit_service(request, service_id):
     """
     Editar un servicio existente con HTMX.
@@ -105,7 +105,7 @@ def edit_service(request, service_id):
     })
 
 
-@login_required
+@login_required(login_url='/auth/login/')
 def add_service(request):
     """
     Agregar un nuevo servicio.
@@ -134,7 +134,7 @@ def add_service(request):
     })
 
 
-@login_required
+@login_required(login_url='/auth/login/')
 def delete_service(request, service_id):
     """
     Eliminar un servicio.
@@ -156,7 +156,7 @@ def delete_service(request, service_id):
     })
 
 
-@login_required
+@login_required(login_url='/auth/login/')
 def cancel_edit_service(request, service_id):
     """
     Cancelar edición de servicio y devolver la card normal.
@@ -182,7 +182,7 @@ def login_modal(request):
 Views del dashboard para clientes
 """
 
-@login_required
+@login_required(login_url='/auth/login/')
 def dashboard(request):
     """
     Dashboard principal del cliente.
@@ -202,7 +202,7 @@ def dashboard(request):
     return render(request, 'dashboard/index.html', context)
 
 
-@login_required
+@login_required(login_url='/auth/login/')
 def dashboard_sections(request):
     """
     Lista de todas las secciones del cliente.
@@ -218,7 +218,7 @@ def dashboard_sections(request):
     return render(request, 'dashboard/sections.html', context)
 
 
-@login_required
+@login_required(login_url='/auth/login/')
 def dashboard_services(request):
     """
     Lista de todos los servicios del cliente.
@@ -234,7 +234,7 @@ def dashboard_services(request):
     return render(request, 'dashboard/services.html', context)
 
 
-@login_required
+@login_required(login_url='/auth/login/')
 def dashboard_testimonials(request):
     """
     Lista de todos los testimonios del cliente.
@@ -250,7 +250,7 @@ def dashboard_testimonials(request):
     return render(request, 'dashboard/testimonials.html', context)
 
 
-@login_required
+@login_required(login_url='/auth/login/')
 def dashboard_contacts(request):
     """
     Lista de mensajes de contacto recibidos.
@@ -272,7 +272,7 @@ def dashboard_contacts(request):
     return render(request, 'dashboard/contacts.html', context)
 
 
-@login_required
+@login_required(login_url='/auth/login/')
 def mark_contact_read(request, contact_id):
     """
     Marcar un contacto como leído.
@@ -288,7 +288,7 @@ def mark_contact_read(request, contact_id):
     return redirect('dashboard_contacts')
 
 
-@login_required
+@login_required(login_url='/auth/login/')
 def mark_contact_replied(request, contact_id):
     """
     Marcar un contacto como respondido.

@@ -1,0 +1,368 @@
+# 📋 CARD #13: Arreglar Autenticación - Guía de Implementación
+
+## ✅ Archivos a Crear/Modificar
+
+### 1. MODIFICAR: config/urls.py
+**Acción:** 🔄 REEMPLAZAR todo el contenido
+
+**Ruta:** `config/urls.py`
+
+**Fuente:** `config_urls.py`
+
+**Cambios clave:**
+- Django Admin movido de `/admin/` a `/superadmin/`
+- Nueva ruta `/auth/` para login/logout custom
+- Personalización de Django Admin
+
+---
+
+### 2. CREAR: apps/website/auth_urls.py
+**Acción:** ➕ CREAR nuevo archivo
+
+**Ruta:** `apps/website/auth_urls.py`
+
+**Fuente:** `apps_website_auth_urls.py`
+
+**Contiene:**
+- `/auth/login/` → client_login
+- `/auth/logout/` → client_logout
+
+---
+
+### 3. CREAR: apps/website/auth_views.py
+**Acción:** ➕ CREAR nuevo archivo
+
+**Ruta:** `apps/website/auth_views.py`
+
+**Fuente:** `apps_website_auth_views.py`
+
+**Contiene:**
+- `client_login()` - Login custom con redirect a home
+- `client_logout()` - Logout con mensaje y redirect
+
+---
+
+### 4. CREAR: templates/auth/login.html
+**Acción:** ➕ CREAR nuevo archivo
+
+**Ruta:** `templates/auth/login.html`
+
+**Fuente:** `templates_auth_login.html`
+
+**Características:**
+- Diseño con Tailwind CSS
+- Logo del cliente
+- Mensajes de error/éxito
+- Responsive
+
+---
+
+### 5. MODIFICAR: templates/components/navbar.html
+**Acción:** 🔄 REEMPLAZAR todo el contenido
+
+**Ruta:** `templates/components/navbar.html`
+
+**Fuente:** `templates_components_navbar_updated.html`
+
+**Cambios clave:**
+- Detecta si usuario está logueado
+- Muestra botón "Admin" solo a superadmin
+- Muestra "Dashboard" a usuarios logueados
+- Link correcto a `/auth/login/`
+- Link correcto a `/auth/logout/`
+- Menú mobile actualizado
+
+---
+
+## 🚀 Pasos de Implementación
+
+### PASO 1: Actualizar config/urls.py
+
+```bash
+# 1. Abrir config/urls.py
+# 2. Reemplazar TODO el contenido con config_urls.py
+# 3. Guardar
+```
+
+---
+
+### PASO 2: Crear auth_urls.py
+
+```bash
+# 1. Crear archivo apps/website/auth_urls.py
+# 2. Copiar contenido de apps_website_auth_urls.py
+# 3. Guardar
+```
+
+---
+
+### PASO 3: Crear auth_views.py
+
+```bash
+# 1. Crear archivo apps/website/auth_views.py
+# 2. Copiar contenido de apps_website_auth_views.py
+# 3. Guardar
+```
+
+---
+
+### PASO 4: Crear template de login
+
+```bash
+# 1. Crear carpeta templates/auth/ (si no existe)
+# 2. Crear archivo templates/auth/login.html
+# 3. Copiar contenido de templates_auth_login.html
+# 4. Guardar
+```
+
+---
+
+### PASO 5: Actualizar navbar
+
+```bash
+# 1. Abrir templates/components/navbar.html
+# 2. Reemplazar TODO el contenido con templates_components_navbar_updated.html
+# 3. Guardar
+```
+
+---
+
+## 🧪 Testing Local
+
+### Test 1: Django Admin ahora en /superadmin/
+
+```bash
+# 1. Iniciar servidor
+python manage.py runserver
+
+# 2. Ir a http://127.0.0.1:8000/admin/
+# Resultado esperado: 404 Not Found
+
+# 3. Ir a http://127.0.0.1:8000/superadmin/
+# Resultado esperado: Django Admin login
+```
+
+✅ **Correcto:** Admin ahora está en /superadmin/
+
+---
+
+### Test 2: Login Cliente Funciona
+
+```bash
+# 1. Ir a http://127.0.0.1:8000/
+# 2. Clic en "Iniciar Sesión"
+# 3. Debe ir a /auth/login/
+# 4. Login con usuario de prueba
+# 5. Debe redirigir a home (/)
+# 6. Navbar debe mostrar "Dashboard" y "Cerrar Sesión"
+```
+
+✅ **Correcto:** Login funciona y redirige a home
+
+---
+
+### Test 3: Logout Funciona
+
+```bash
+# 1. Estando logueado
+# 2. Clic en "Cerrar Sesión"
+# 3. Debe redirigir a home (/)
+# 4. Navbar debe mostrar "Iniciar Sesión"
+# 5. Debe aparecer mensaje "Hasta pronto, [usuario]!"
+```
+
+✅ **Correcto:** Logout funciona sin errores
+
+---
+
+### Test 4: Superadmin tiene acceso especial
+
+```bash
+# 1. Login con superadmin (admin / admin123)
+# 2. En navbar debe aparecer botón "🔧 Admin"
+# 3. Clic en "Admin" → va a /superadmin/
+# 4. También debe tener acceso a "Dashboard"
+```
+
+✅ **Correcto:** Superadmin tiene botón especial
+
+---
+
+### Test 5: Cliente NO ve botón Admin
+
+```bash
+# 1. Crear usuario normal (no superadmin)
+# 2. Login con ese usuario
+# 3. En navbar NO debe aparecer botón "Admin"
+# 4. Solo debe ver "Dashboard" y "Cerrar Sesión"
+```
+
+✅ **Correcto:** Cliente normal no ve Admin
+
+---
+
+## 🐛 Troubleshooting
+
+### Error: "Reverse for 'client_login' not found"
+
+**Causa:** auth_urls.py no está incluido o tiene errores
+
+**Solución:**
+1. Verificar que `apps/website/auth_urls.py` existe
+2. Verificar que `config/urls.py` tiene:
+   ```python
+   path('auth/', include('apps.website.auth_urls')),
+   ```
+3. Reiniciar servidor
+
+---
+
+### Error: "Template 'auth/login.html' not found"
+
+**Causa:** Template no existe o está mal ubicado
+
+**Solución:**
+1. Verificar que existe `templates/auth/login.html`
+2. Verificar que `templates/` está en TEMPLATES dirs
+3. Reiniciar servidor
+
+---
+
+### Error: Después de login sigue en login page
+
+**Causa:** Redirect no funciona o sesión no se guarda
+
+**Solución:**
+1. Verificar que `login(request, user)` se ejecuta
+2. Verificar que `redirect('home')` existe
+3. Ver logs del servidor para errores
+4. Verificar que SESSION_COOKIE está configurado
+
+---
+
+### Error: Al hacer logout da error 500
+
+**Causa:** Problema en redirect o mensajes
+
+**Solución:**
+1. Verificar que `client_logout` tiene `@login_required`
+2. Verificar que `logout(request)` se ejecuta antes de redirect
+3. Verificar que `messages.success` funciona
+4. Ver traceback en logs
+
+---
+
+## 📊 Cambios Realizados - Resumen
+
+### URLs
+- ❌ `/admin/` → ✅ `/superadmin/` (Django Admin)
+- ➕ `/auth/login/` (Login custom)
+- ➕ `/auth/logout/` (Logout custom)
+
+### Vistas
+- ➕ `client_login()` - Login con redirect a home
+- ➕ `client_logout()` - Logout con mensaje
+
+### Templates
+- ➕ `templates/auth/login.html` - Login con Tailwind
+- 🔄 `templates/components/navbar.html` - Navbar dinámico
+
+### Comportamiento
+- ✅ Login → Redirige a home (con botones editar)
+- ✅ Logout → Redirige a home (con mensaje)
+- ✅ Superadmin ve botón "Admin"
+- ✅ Cliente NO ve botón "Admin"
+- ✅ No hay errores en login/logout
+
+---
+
+## 🎯 Definition of Done - Checklist
+
+### Archivos
+- [ ] `config/urls.py` actualizado
+- [ ] `apps/website/auth_urls.py` creado
+- [ ] `apps/website/auth_views.py` creado
+- [ ] `templates/auth/login.html` creado
+- [ ] `templates/components/navbar.html` actualizado
+
+### Funcionalidad
+- [ ] Django Admin en `/superadmin/`
+- [ ] Login funciona en `/auth/login/`
+- [ ] Login redirige a home
+- [ ] Logout funciona sin errores
+- [ ] Logout redirige a home
+- [ ] Navbar muestra estado correcto
+- [ ] Superadmin ve botón "Admin"
+- [ ] Cliente NO ve botón "Admin"
+- [ ] Mensajes de éxito/error funcionan
+
+### Testing
+- [ ] Test 1: Admin en /superadmin/ ✓
+- [ ] Test 2: Login funciona ✓
+- [ ] Test 3: Logout funciona ✓
+- [ ] Test 4: Superadmin acceso especial ✓
+- [ ] Test 5: Cliente sin botón Admin ✓
+
+---
+
+## 🚀 Siguiente Paso
+
+Una vez completado Card #13:
+
+**Card #14: Extender Modelos**
+- Agregar campo `description` a Section
+- Agregar campo `description` a Service
+- Migración
+- Actualizar Admin
+- Actualizar Forms
+
+**Tiempo estimado:** 1-2 horas
+
+---
+
+## 💡 Notas Importantes
+
+### Diferencia entre /superadmin/ y /dashboard/
+
+```
+/superadmin/ (Django Admin)
+├── Solo superadmin
+├── Gestión de tenants
+├── Ver todo el contenido (read-only)
+└── Crear usuarios
+
+/dashboard/ (Dashboard Custom)
+├── Todos los usuarios logueados
+├── Gestionar SU contenido
+├── Ver SUS estadísticas
+└── Editar SUS secciones/servicios
+```
+
+### Flujo de Autenticación
+
+```
+Usuario NO logueado:
+    Click "Iniciar Sesión"
+    → /auth/login/
+    → Formulario de login
+    → Autenticación
+    → Redirect a home (/)
+    → Ve botones de edición
+
+Usuario logueado:
+    Navega normalmente
+    → Ve botones "Dashboard" y "Cerrar Sesión"
+    → Puede editar su contenido
+    
+Superadmin logueado:
+    Navega normalmente
+    → Ve botones "Admin", "Dashboard", "Cerrar Sesión"
+    → Puede acceder a Django Admin
+    → Puede gestionar tenants
+```
+
+---
+
+**¿Listo para implementar?** 🚀
+
+Sigue los pasos en orden y verifica cada test antes de continuar.

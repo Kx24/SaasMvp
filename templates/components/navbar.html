@@ -1,55 +1,113 @@
-<nav class="bg-white shadow-lg sticky top-0 z-40" x-data="{ open: false }">
+<!-- Navbar Responsivo con Autenticación -->
+<nav class="bg-white shadow-md fixed top-0 left-0 right-0 z-50" x-data="{ mobileMenuOpen: false }">
     <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center py-4">
+        <div class="flex justify-between items-center h-16">
             <!-- Logo -->
-            <div class="text-2xl font-bold text-primary">
-                {{ client.settings.company_name }}
+            <div class="flex items-center gap-3">
+                {% if client.settings.logo %}
+                <img src="{{ client.settings.logo.url }}" alt="{{ client.settings.company_name }}" class="h-10 w-auto">
+                {% endif %}
+                <a href="{% url 'home' %}" class="text-xl font-bold" style="color: {{ client.settings.primary_color|default:'#2563eb' }};">
+                    {{ client.settings.company_name|default:"Mi Sitio" }}
+                </a>
             </div>
-            
-            <!-- Desktop Menu -->
+
+            <!-- Desktop Navigation -->
             <div class="hidden md:flex items-center gap-6">
-                <a href="{% url 'home' %}" class="text-gray-700 hover:text-primary">Inicio</a>
-                <a href="#servicios" class="text-gray-700 hover:text-primary">Servicios</a>
-                <a href="#contacto" class="text-gray-700 hover:text-primary">Contacto</a>
-            </div>
-            
-            <!-- User Menu -->
-            <div class="hidden md:block">
+                <a href="{% url 'home' %}" class="text-gray-700 hover:text-primary transition">Inicio</a>
+                <a href="#servicios" class="text-gray-700 hover:text-primary transition">Servicios</a>
+                <a href="#contacto" class="text-gray-700 hover:text-primary transition">Contacto</a>
+                
                 {% if user.is_authenticated %}
-                    <div class="flex items-center gap-4">
-                        <span class="text-gray-700">👋 {{ user.username }}</span>
-                        <a href="{% url 'logout' %}" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                            Salir
+                    <!-- Usuario LOGUEADO -->
+                    <div class="flex items-center gap-4 ml-4 pl-4 border-l border-gray-300">
+                        <span class="text-sm text-gray-600">
+                            👤 {{ user.username }}
+                        </span>
+                        
+                        <!-- Superadmin: Botón Admin -->
+                        {% if user.is_superuser or user.is_staff %}
+                        <a href="/superadmin/" 
+                           class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-semibold"
+                           target="_blank">
+                            🔧 Admin
+                        </a>
+                        {% endif %}
+                        
+                        <!-- Dashboard -->
+                        <a href="{% url 'dashboard' %}" 
+                           class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition font-semibold">
+                            📊 Dashboard
+                        </a>
+                        
+                        <!-- Logout -->
+                        <a href="{% url 'client_logout' %}" 
+                           class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-semibold">
+                            Cerrar Sesión
                         </a>
                     </div>
                 {% else %}
-                    <button hx-get="{% url 'login_modal' %}"
-                            hx-target="#modal-container"
-                            hx-swap="innerHTML"
-                            class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-secondary">
-                        🔑 Iniciar Sesión
-                    </button>
+                    <!-- Usuario NO LOGUEADO -->
+                    <a href="{% url 'client_login' %}" 
+                       class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition font-semibold">
+                        Iniciar Sesión
+                    </a>
                 {% endif %}
             </div>
-            
-            <!-- Mobile Button -->
-            <button @click="open = !open" class="md:hidden">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </button>
+
+            <!-- Mobile menu button -->
+            <div class="md:hidden">
+                <button 
+                    @click="mobileMenuOpen = !mobileMenuOpen"
+                    class="text-gray-700 hover:text-primary transition"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
-        
-        <!-- Mobile Menu -->
-        <div x-show="open" x-cloak class="md:hidden pb-4">
-            <a href="{% url 'home' %}" class="block py-2 text-gray-700">Inicio</a>
-            <a href="#servicios" class="block py-2 text-gray-700">Servicios</a>
-            <a href="#contacto" class="block py-2 text-gray-700">Contacto</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'logout' %}" class="block py-2 text-red-500">Salir</a>
-            {% else %}
-                <a href="{% url 'login' %}" class="block py-2 text-primary">Iniciar Sesión</a>
-            {% endif %}
+
+        <!-- Mobile menu -->
+        <div x-show="mobileMenuOpen" 
+             x-transition
+             class="md:hidden py-4 border-t border-gray-200">
+            <div class="flex flex-col gap-4">
+                <a href="{% url 'home' %}" class="text-gray-700 hover:text-primary transition">Inicio</a>
+                <a href="#servicios" class="text-gray-700 hover:text-primary transition">Servicios</a>
+                <a href="#contacto" class="text-gray-700 hover:text-primary transition">Contacto</a>
+                
+                {% if user.is_authenticated %}
+                    <div class="pt-4 border-t border-gray-200 space-y-3">
+                        <div class="text-sm text-gray-600">
+                            👤 {{ user.username }}
+                        </div>
+                        
+                        {% if user.is_superuser or user.is_staff %}
+                        <a href="/superadmin/" 
+                           class="block px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-center"
+                           target="_blank">
+                            🔧 Admin
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'dashboard' %}" 
+                           class="block px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition text-center">
+                            📊 Dashboard
+                        </a>
+                        
+                        <a href="{% url 'client_logout' %}" 
+                           class="block px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition text-center">
+                            Cerrar Sesión
+                        </a>
+                    </div>
+                {% else %}
+                    <a href="{% url 'client_login' %}" 
+                       class="block px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition text-center">
+                        Iniciar Sesión
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </nav>

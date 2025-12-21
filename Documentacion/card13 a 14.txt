@@ -1,0 +1,176 @@
+# Agregar campo:
+description = TextField()  # Obligatorio
+```
+
+**3. Migración**
+- Crear migración
+- Aplicar en local
+- Aplicar en producción
+
+**4. Actualizar Django Admin**
+- Section admin: mostrar description en form
+- Service admin: mostrar description en form
+- Filtros por tenant
+- Solo lectura para contenido (no crear secciones/servicios de clientes)
+- Admin enfocado en gestión de tenants
+
+**5. Actualizar Forms**
+- SectionForm: incluir description
+- ServiceForm: incluir description
+- Validaciones
+
+### **Definition of Done:**
+- [ ] Section tiene campo description
+- [ ] Service tiene campo description
+- [ ] Migraciones aplicadas
+- [ ] Forms actualizados
+- [ ] Admin actualizado y funcional
+
+---
+
+## 📝 **CARD #15: Dashboard Funcional Completo**
+
+**⏱️ Estimado: 4-5 horas**
+
+### **Objetivo:**
+Dashboard cliente permite gestión real de contenido
+
+### **Tasks:**
+
+**1. Dashboard - Gestión de Secciones**
+- Lista de secciones del cliente
+- Editar sección (modal o página)
+  - Hero: title, subtitle
+  - About: title, subtitle, description
+  - Services: title, subtitle
+  - Contact: title, subtitle
+- Activar/desactivar sección
+- Guardar cambios
+- Feedback visual (toast)
+
+**2. Dashboard - CRUD Servicios**
+- Lista de servicios del cliente
+- Crear nuevo servicio (modal)
+  - Campos: name, icon, description, price_text
+  - is_active, is_featured
+- Editar servicio (modal)
+- Eliminar servicio (confirmación)
+- Cambiar orden (drag & drop opcional, o input number)
+- Todo con HTMX (sin reload)
+
+**3. Integrar con Edición Inline**
+- Mantener botones "Editar" en sitio público
+- Ambos métodos (dashboard e inline) funcionan
+- Cambios se reflejan en ambos lados
+
+**4. Mejorar UI Dashboard**
+- Cards para cada sección
+- Vista previa del contenido
+- Indicadores visuales (activo/inactivo)
+- Botones de acción claros
+
+### **Definition of Done:**
+- [ ] Cliente puede editar hero, about, services, contact
+- [ ] Cliente puede crear/editar/eliminar servicios
+- [ ] Edición inline sigue funcionando
+- [ ] Dashboard es intuitivo y fácil de usar
+- [ ] Todo funciona con HTMX
+
+---
+
+## 📝 **CARD #16: Setup Multi-Dominio y Tu Página**
+
+**⏱️ Estimado: 3-4 horas**
+
+### **Objetivo:**
+Configurar correctamente multi-dominio y crear tu tenant maestro
+
+### **Tasks:**
+
+**1. Crear Tu Tenant (miempresa.cl)**
+- En producción: crear tenant "Mi Empresa SaaS"
+- Dominio: www.miempresa.cl (o tu dominio real)
+- Slug: "master" o "saas"
+- is_active: True
+- Configurar colores corporativos
+
+**2. Contenido de Tu Landing**
+- Sección Hero: "Crea tu Sitio Web Profesional en Minutos"
+- Sección About: Sobre tu SaaS
+- Sección Services: Features del producto
+  - Servicio 1: Multi-tenant
+  - Servicio 2: Fácil de usar
+  - Servicio 3: Soporte incluido
+- Sección Contact: Formulario para prospectos
+- Sección Pricing (opcional): Planes y precios
+
+**3. Usuario Superadmin Especial**
+- Usuario: tu_usuario
+- Asociado a tenant "miempresa.cl"
+- Pero con permisos superadmin
+- Puede acceder a /superadmin/
+- Puede acceder a dashboard de miempresa.cl
+
+**4. Configuración DNS**
+- Guía de configuración DNS
+- CNAME para www.miempresa.cl → Render
+- CNAME para www.tenant1.cl → Render
+- Documentar proceso
+
+**5. ALLOWED_HOSTS Dinámico**
+- Cualquier dominio apuntando a Render funciona
+- Middleware detecta tenant correcto
+- Sin necesidad de agregar cada dominio manualmente
+
+### **Definition of Done:**
+- [ ] www.miempresa.cl funciona como tenant
+- [ ] Tiene contenido profesional de tu SaaS
+- [ ] /superadmin/ accesible desde miempresa.cl
+- [ ] Guía DNS documentada
+- [ ] Sistema acepta cualquier dominio
+
+---
+
+## 📋 **RESUMEN DEL ROADMAP**
+```
+Estado Actual: MVP Básico Desplegado (83%)
+                ↓
+Card #13: Autenticación (2-3h)
+    - Login/Logout arreglado
+    - Separación superadmin/cliente
+    - Permisos correctos
+                ↓
+Card #14: Modelos Extendidos (1-2h)
+    - Campo description en Section
+    - Campo description en Service
+    - Admin mejorado
+                ↓
+Card #15: Dashboard Funcional (4-5h)
+    - Editar secciones (hero, about, services, contact)
+    - CRUD completo servicios
+    - Inline + Dashboard funcionando
+                ↓
+Card #16: Multi-Dominio (3-4h)
+    - Tu página miempresa.cl como tenant
+    - Configuración DNS
+    - Sistema multi-dominio completo
+                ↓
+MVP COMPLETO Y FUNCIONAL (100%)
+    - ✅ Autenticación correcta
+    - ✅ Dashboard operativo
+    - ✅ Multi-dominio real
+    - ✅ Tu página + clientes
+    - ✅ Listo para vender
+```
+
+**Total estimado: 10-14 horas**
+
+---
+
+## 🎯 **Después del MVP (Fase 2 - MEDIA Prioridad)**
+```
+Card #17: Galería de Fotos
+Card #18: Subir Imágenes a Secciones
+Card #19: Analytics Básico
+Card #20: Sistema de Templates
+Card #21: Provisioning Automático
