@@ -50,7 +50,12 @@ class Section(models.Model):
         blank=True,
         help_text="Subtítulo o tagline (opcional)"
     )
-      
+    
+    description = models.TextField(
+        blank=True,
+        help_text="Descripción larga (para about, generic, etc.)"
+    )
+    
     # === MULTIMEDIA ===
     image = models.ImageField(
         upload_to='sections/%Y/%m/',
@@ -130,6 +135,12 @@ class Service(models.Model):
     
     description = models.TextField(
         help_text="Descripción breve del servicio"
+    )
+
+    full_description = models.TextField(
+        blank=True,
+        default='',
+        help_text="Descripción completa del servicio"
     )
        
     # === VISUAL ===
