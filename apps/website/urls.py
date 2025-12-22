@@ -48,4 +48,24 @@ urlpatterns = [
     # LOGIN MODAL (para edición inline - HTMX)
     # ============================================================
     path('login-modal/', views.login_modal, name='login_modal'),
+
+    # ============================================================
+    # DASHBOARD - SECCIONES #card 15
+    # ============================================================
+    path('dashboard/section/<int:section_id>/edit/', views.edit_section_dashboard, name='edit_section_dashboard'),
+
+    # ============================================================
+    # DASHBOARD - SERVICIOS CRUD
+    # ============================================================
+    path('dashboard/service/create/', views.create_service, name='create_service'),
+    path('dashboard/service/<int:service_id>/edit/', views.edit_service_dashboard, name='edit_service_dashboard'),
+    path('dashboard/service/<int:service_id>/delete/', views.delete_service_dashboard, name='delete_service_dashboard'),
+
+    # ============================================================
+    # DASHBOARD - SERVICIOS AJAX
+    # ============================================================
+    path('dashboard/service/<int:service_id>/toggle-active/', views.toggle_service_active, name='toggle_service_active'),
+    path('dashboard/service/<int:service_id>/toggle-featured/', views.toggle_service_featured, name='toggle_service_featured'),
+    path('dashboard/services/reorder/', views.reorder_services, name='reorder_services'),
+
 ]

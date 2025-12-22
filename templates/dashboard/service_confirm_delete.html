@@ -1,0 +1,50 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Eliminar Servicio{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg border border-red-200 p-8">
+        <!-- Icono de advertencia -->
+        <div class="flex justify-center mb-6">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Título -->
+        <h2 class="text-2xl font-bold text-gray-900 text-center mb-4">
+            ¿Estás seguro?
+        </h2>
+
+        <!-- Mensaje -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p class="text-gray-700 text-center">
+                Estás a punto de eliminar el servicio:
+            </p>
+            <p class="text-xl font-bold text-red-600 text-center mt-2">
+                {{ service.icon }} {{ service.name }}
+            </p>
+        </div>
+
+        <p class="text-gray-600 text-center mb-6">
+            Esta acción <strong class="text-red-600">no se puede deshacer</strong>. El servicio se eliminará permanentemente.
+        </p>
+
+        <!-- Botones -->
+        <form method="post" class="space-y-3">
+            {% csrf_token %}
+            <button type="submit" 
+                    class="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold">
+                🗑️ Sí, Eliminar Servicio
+            </button>
+            <a href="{% url 'dashboard_services' %}" 
+               class="block w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold text-center">
+                Cancelar
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

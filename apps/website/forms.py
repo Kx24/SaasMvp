@@ -1,176 +1,142 @@
 """
-Formularios para la aplicación website
+Formularios para la aplicación Website
+CARD #15: Forms para dashboard
 """
 from django import forms
-from .models import Section, Service, Testimonial, ContactSubmission
+from .models import Section, Service, ContactSubmission
 
 
 class SectionForm(forms.ModelForm):
     """
-    Formulario para editar secciones del sitio.
-    Usa Tailwind CSS para styling.
+    Formulario para editar secciones
     """
-    
     class Meta:
         model = Section
-        fields = ['title', 'subtitle', 'is_active']
+        fields = ['title', 'subtitle', 'description', 'image', 'is_active']
         widgets = {
             'title': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition',
-                'placeholder': 'Título de la sección',
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Título de la sección'
             }),
             'subtitle': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition',
-                'placeholder': 'Subtítulo (opcional)',
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Subtítulo (opcional)'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Descripción completa (opcional)',
+                'rows': 4
+            }),
+            'image': forms.FileInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'accept': 'image/*'
             }),
             'is_active': forms.CheckboxInput(attrs={
-                'class': 'w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary',
+                'class': 'w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary'
             }),
         }
         labels = {
             'title': 'Título',
             'subtitle': 'Subtítulo',
-            'is_active': '¿Mostrar esta sección?',
+            'description': 'Descripción',
+            'image': 'Imagen',
+            'is_active': '¿Mostrar esta sección?'
         }
 
 
 class ServiceForm(forms.ModelForm):
     """
-    Formulario para crear/editar servicios.
+    Formulario para crear/editar servicios
     """
-    
     class Meta:
         model = Service
-        fields = ['name', 'description', 'icon', 'price_text', 'is_active', 'is_featured']
+        fields = ['name', 'icon', 'description', 'full_description', 'image', 'price_text', 'is_active', 'is_featured']
         widgets = {
             'name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
-                'placeholder': 'Nombre del servicio',
-            }),
-            'description': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
-                'rows': 4,
-                'placeholder': 'Descripción del servicio...',
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Nombre del servicio'
             }),
             'icon': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
-                'placeholder': '⚡ (emoji o clase de icono)',
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Emoji o clase de icono (ej: 💼 o fa-briefcase)'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Descripción breve (aparece en la tarjeta)',
+                'rows': 3
+            }),
+            'full_description': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Descripción completa (aparece en la página del servicio)',
+                'rows': 5
+            }),
+            'image': forms.FileInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'accept': 'image/*'
             }),
             'price_text': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
-                'placeholder': 'Ej: Desde $50.000 o Consultar precio',
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Ej: Desde $100.000, Cotizar, Gratis'
             }),
             'is_active': forms.CheckboxInput(attrs={
-                'class': 'w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary',
+                'class': 'w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary'
             }),
             'is_featured': forms.CheckboxInput(attrs={
-                'class': 'w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary',
+                'class': 'w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary'
             }),
         }
         labels = {
             'name': 'Nombre del Servicio',
+            'icon': 'Ícono',
             'description': 'Descripción Breve',
-            'icon': 'Icono',
-            'price_text': 'Precio (opcional)',
+            'full_description': 'Descripción Completa',
+            'image': 'Imagen',
+            'price_text': 'Texto de Precio',
             'is_active': '¿Mostrar este servicio?',
-            'is_featured': '¿Destacar en home?',
+            'is_featured': '¿Es un servicio destacado?'
         }
 
-
-class TestimonialForm(forms.ModelForm):
-    """
-    Formulario para crear/editar testimonios.
-    """
-    
-    class Meta:
-        model = Testimonial
-        fields = ['client_name', 'company', 'position', 'content', 'rating', 'is_active', 'is_featured']
-        widgets = {
-            'client_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
-                'placeholder': 'Nombre del cliente',
-            }),
-            'company': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
-                'placeholder': 'Empresa (opcional)',
-            }),
-            'position': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
-                'placeholder': 'Cargo (opcional)',
-            }),
-            'content': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
-                'rows': 4,
-                'placeholder': 'Testimonio del cliente...',
-            }),
-            'rating': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
-            }),
-            'is_active': forms.CheckboxInput(attrs={
-                'class': 'w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary',
-            }),
-            'is_featured': forms.CheckboxInput(attrs={
-                'class': 'w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary',
-            }),
-        }
 
 class ContactForm(forms.ModelForm):
     """
-    Formulario de contacto público con validación y Tailwind CSS.
+    Formulario público de contacto
     """
-    
     class Meta:
         model = ContactSubmission
-        fields = ['name', 'email', 'phone', 'subject', 'message']
+        fields = ['name', 'email', 'phone', 'company', 'subject', 'message']
         widgets = {
             'name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition',
-                'placeholder': 'Tu nombre completo',
-                'required': True,
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Tu nombre completo'
             }),
             'email': forms.EmailInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition',
-                'placeholder': 'tu@email.com',
-                'required': True,
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'tu@email.com'
             }),
             'phone': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition',
-                'placeholder': '+56 9 1234 5678 (opcional)',
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': '+56 9 1234 5678 (opcional)'
+            }),
+            'company': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Tu empresa (opcional)'
             }),
             'subject': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition',
-                'placeholder': 'Asunto del mensaje (opcional)',
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Asunto del mensaje'
             }),
             'message': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition',
-                'rows': 6,
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
                 'placeholder': 'Escribe tu mensaje aquí...',
-                'required': True,
+                'rows': 5
             }),
         }
         labels = {
             'name': 'Nombre',
             'email': 'Email',
             'phone': 'Teléfono',
+            'company': 'Empresa',
             'subject': 'Asunto',
-            'message': 'Mensaje',
+            'message': 'Mensaje'
         }
-    
-    def clean_email(self):
-        """Validación adicional de email"""
-        email = self.cleaned_data.get('email')
-        if email:
-            email = email.lower().strip()
-        return email
-    
-    def clean_message(self):
-        """Validación de mensaje mínimo"""
-        message = self.cleaned_data.get('message')
-        if message and len(message) < 10:
-            raise forms.ValidationError('El mensaje debe tener al menos 10 caracteres.')
-        return message
-
-
-
-
 

@@ -3,10 +3,10 @@ Views para la aplicación website
 """
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from .models import Section, Service, Testimonial, ContactSubmission
-from .forms import SectionForm, ServiceForm, TestimonialForm, ContactForm
+from .forms import SectionForm, ServiceForm, ContactForm
 
 
 def home(request):
@@ -364,3 +364,177 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+# ============================================================
+# CARD #15 - DASHBOARD FUNCIONAL
+# ============================================================
+
+@login_required(login_url='/auth/login/')
+def edit_section_dashboard(request, section_id):
+    """
+    Editar una sección desde el dashboard
+    """
+    section = get_object_or_404(Section, id=section_id, client=request.client)
+
+    if request.method == 'POST':
+        form = SectionForm(request.POST, request.FILES, instance=section)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                f'Sección "{section.get_section_type_display()}" actualizada correctamente'
+            )
+            return redirect('dashboard_sections')
+    else:
+        form = SectionForm(instance=section)
+
+    return render(request, 'dashboard/edit_section.html', {
+        'client': request.client,
+        'section': section,
+        'form': form,
+    })
+
+
+# ============================================================
+# SERVICIOS - CRUD DASHBOARD
+# ============================================================
+
+@login_required(login_url='/auth/login/')
+def create_service(request):
+    """
+    Crear un nuevo servicio
+    """
+    if request.method == 'POST':
+        form = ServiceForm(request.POST, request.FILES)
+        if form.is_valid():
+            service = form.save(commit=False)
+            service.client = request.client
+            service.save()
+            messages.success(
+                request,
+                f'Servicio "{service.name}" creado correctamente'
+            )
+            return redirect('dashboard_services')
+    else:
+        form = ServiceForm()
+
+    return render(request, 'dashboard/service_form.html', {
+        'client': request.client,
+        'form': form,
+        'action': 'Crear',
+    })
+
+
+@login_required(login_url='/auth/login/')
+def edit_service_dashboard(request, service_id):
+    """
+    Editar un servicio existente
+    """
+    service = get_object_or_404(Service, id=service_id, client=request.client)
+
+    if request.method == 'POST':
+        form = ServiceForm(request.POST, request.FILES, instance=service)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                f'Servicio "{service.name}" actualizado correctamente'
+            )
+            return redirect('dashboard_services')
+    else:
+        form = ServiceForm(instance=service)
+
+    return render(request, 'dashboard/service_form.html', {
+        'client': request.client,
+        'service': service,
+        'form': form,
+        'action': 'Editar',
+    })
+
+
+@login_required(login_url='/auth/login/')
+def delete_service_dashboard(request, service_id):
+    """
+    Eliminar un servicio
+    """
+    service = get_object_or_404(Service, id=service_id, client=request.client)
+
+    if request.method == 'POST':
+        service_name = service.name
+        service.delete()
+        messages.success(
+            request,
+            f'Servicio "{service_name}" eliminado correctamente'
+        )
+        return redirect('dashboard_services')
+
+    return render(request, 'dashboard/service_confirm_delete.html', {
+        'client': request.client,
+        'service': service,
+    })
+
+
+# ============================================================
+# SERVICIOS - AJAX
+# ============================================================
+
+@login_required(login_url='/auth/login/')
+def toggle_service_active(request, service_id):
+    """
+    Activar / desactivar un servicio
+    """
+    service = get_object_or_404(Service, id=service_id, client=request.client)
+    service.is_active = not service.is_active
+    service.save(update_fields=['is_active'])
+
+    return JsonResponse({
+        'success': True,
+        'is_active': service.is_active,
+        'message': f'Servicio {"activado" if service.is_active else "desactivado"}'
+    })
+
+
+@login_required(login_url='/auth/login/')
+def toggle_service_featured(request, service_id):
+    """
+    Destacar / quitar destacado de un servicio
+    """
+    service = get_object_or_404(Service, id=service_id, client=request.client)
+    service.is_featured = not service.is_featured
+    service.save(update_fields=['is_featured'])
+
+    return JsonResponse({
+        'success': True,
+        'is_featured': service.is_featured,
+        'message': f'Servicio {"destacado" if service.is_featured else "no destacado"}'
+    })
+
+
+@login_required(login_url='/auth/login/')
+def reorder_services(request):
+    """
+    Reordenar servicios (drag & drop)
+    """
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+        order_data = data.get('order', [])
+
+        for item in order_data:
+            service = get_object_or_404(
+                Service,
+                id=item['id'],
+                client=request.client
+            )
+            service.order = item['order']
+            service.save(update_fields=['order'])
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Orden actualizado'
+        })
+
+    return JsonResponse({
+        'success': False,
+        'message': 'Método no permitido'
+    })

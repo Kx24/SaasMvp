@@ -3,74 +3,87 @@
 {% block title %}Secciones{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div>
     <!-- Header -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Secciones del Sitio</h1>
-            <p class="text-gray-600 mt-1">Gestiona las secciones de tu página web</p>
-        </div>
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Secciones del Sitio</h1>
+        <p class="text-gray-600 mt-2">Personaliza el contenido de cada sección de tu sitio web</p>
     </div>
-    
-    <!-- Sections List -->
-    <div class="space-y-4">
+
+    <!-- Lista de Secciones -->
+    <div class="grid gap-6">
         {% for section in sections %}
-        <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
             <div class="flex items-start justify-between">
+                <!-- Contenido -->
                 <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-2">
+                    <div class="flex items-center gap-3 mb-3">
                         <h3 class="text-xl font-bold text-gray-900">
                             {{ section.get_section_type_display }}
                         </h3>
                         {% if section.is_active %}
-                        <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
-                            ✓ Activa
-                        </span>
+                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                                Activo
+                            </span>
                         {% else %}
-                        <span class="px-3 py-1 bg-gray-100 text-gray-800 text-xs font-bold rounded-full">
-                            Inactiva
-                        </span>
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">
+                                Inactivo
+                            </span>
                         {% endif %}
                     </div>
-                    
-                    <p class="text-2xl font-semibold text-gray-800 mb-2">
-                        {{ section.title }}
-                    </p>
-                    
-                    {% if section.subtitle %}
-                    <p class="text-gray-600 mb-3">
-                        {{ section.subtitle }}
-                    </p>
-                    {% endif %}
-                    
-                    <div class="flex items-center gap-4 text-sm text-gray-500">
-                        <span>📊 Orden: {{ section.order }}</span>
-                        <span>🕐 Actualizado: {{ section.updated_at|date:"d/m/Y H:i" }}</span>
+
+                    <div class="space-y-2">
+                        <div>
+                            <span class="text-sm font-medium text-gray-500">Título:</span>
+                            <p class="text-gray-900">{{ section.title }}</p>
+                        </div>
+
+                        {% if section.subtitle %}
+                        <div>
+                            <span class="text-sm font-medium text-gray-500">Subtítulo:</span>
+                            <p class="text-gray-700">{{ section.subtitle }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if section.description %}
+                        <div>
+                            <span class="text-sm font-medium text-gray-500">Descripción:</span>
+                            <p class="text-gray-700 line-clamp-2">{{ section.description }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if section.image %}
+                        <div>
+                            <img src="{{ section.image.url }}" alt="{{ section.title }}" 
+                                 class="mt-2 w-48 h-32 object-cover rounded-lg border border-gray-200">
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                
-                <div class="flex gap-2">
-                    <button hx-get="{% url 'edit_section' section.id %}"
-                            hx-target="#modal-container"
-                            hx-swap="innerHTML"
-                            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                        Editar
-                    </button>
+
+                <!-- Acciones -->
+                <div>
+                    <a href="{% url 'edit_section_dashboard' section.id %}" 
+                       class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition font-semibold inline-block">
+                        ✏️ Editar
+                    </a>
                 </div>
             </div>
         </div>
         {% empty %}
-        <div class="bg-white rounded-xl shadow-lg p-12 text-center">
-            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
-            </svg>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">No hay secciones aún</h3>
-            <p class="text-gray-600">Las secciones se crean automáticamente desde el Django Admin</p>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <p class="text-yellow-800">No hay secciones creadas aún.</p>
         </div>
         {% endfor %}
+    </div>
+
+    <!-- Ayuda -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-blue-900 mb-3">💡 ¿Qué son las secciones?</h3>
+        <p class="text-blue-800">
+            Las secciones son las diferentes partes de tu sitio web (Hero, Sobre Nosotros, Servicios, Contacto, etc.). 
+            Puedes editar el contenido de cada una para personalizar tu sitio.
+        </p>
     </div>
 </div>
 {% endblock %}
