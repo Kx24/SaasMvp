@@ -1,20 +1,21 @@
-<!-- Navbar Responsivo con Autenticación -->
+<!-- Navbar Responsivo  -->
 <nav class="bg-white shadow-md fixed top-0 left-0 right-0 z-50" x-data="{ mobileMenuOpen: false }">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
             <!-- Logo -->
             <div class="flex items-center gap-3">
                 {% if client.settings.logo %}
-                <img src="{{ client.settings.logo.url }}" alt="{{ client.settings.company_name }}" class="h-10 w-auto">
+                <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-10 w-auto">
                 {% endif %}
                 <a href="{% url 'home' %}" class="text-xl font-bold" style="color: {{ client.settings.primary_color|default:'#2563eb' }};">
-                    {{ client.settings.company_name|default:"Mi Sitio" }}
+                    {{ client.name }}
                 </a>
             </div>
 
             <!-- Desktop Navigation -->
             <div class="hidden md:flex items-center gap-6">
                 <a href="{% url 'home' %}" class="text-gray-700 hover:text-primary transition">Inicio</a>
+                <a href="#about" class="text-gray-700 hover:text-primary transition">Sobre Nosotros</a>
                 <a href="#servicios" class="text-gray-700 hover:text-primary transition">Servicios</a>
                 <a href="#contacto" class="text-gray-700 hover:text-primary transition">Contacto</a>
                 
@@ -71,11 +72,29 @@
         <!-- Mobile menu -->
         <div x-show="mobileMenuOpen" 
              x-transition
+             @click.away="mobileMenuOpen = false"
              class="md:hidden py-4 border-t border-gray-200">
             <div class="flex flex-col gap-4">
-                <a href="{% url 'home' %}" class="text-gray-700 hover:text-primary transition">Inicio</a>
-                <a href="#servicios" class="text-gray-700 hover:text-primary transition">Servicios</a>
-                <a href="#contacto" class="text-gray-700 hover:text-primary transition">Contacto</a>
+                <a href="{% url 'home' %}" 
+                   @click="mobileMenuOpen = false"
+                   class="text-gray-700 hover:text-primary transition">
+                    Inicio
+                </a>
+                <a href="#about" 
+                   @click="mobileMenuOpen = false"
+                   class="text-gray-700 hover:text-primary transition">
+                    Sobre Nosotros
+                </a>
+                <a href="#servicios" 
+                   @click="mobileMenuOpen = false"
+                   class="text-gray-700 hover:text-primary transition">
+                    Servicios
+                </a>
+                <a href="#contacto" 
+                   @click="mobileMenuOpen = false"
+                   class="text-gray-700 hover:text-primary transition">
+                    Contacto
+                </a>
                 
                 {% if user.is_authenticated %}
                     <div class="pt-4 border-t border-gray-200 space-y-3">
@@ -92,6 +111,7 @@
                         {% endif %}
                         
                         <a href="{% url 'dashboard' %}" 
+                           @click="mobileMenuOpen = false"
                            class="block px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition text-center">
                             📊 Dashboard
                         </a>
@@ -103,6 +123,7 @@
                     </div>
                 {% else %}
                     <a href="{% url 'client_login' %}" 
+                       @click="mobileMenuOpen = false"
                        class="block px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition text-center">
                         Iniciar Sesión
                     </a>

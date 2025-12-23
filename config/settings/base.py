@@ -133,6 +133,41 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# ============================================================
+# CLOUDINARY (Preparado para activar cuando quieras)
+# ============================================================
+
+# Para activar Cloudinary, descomenta y configura:
+"""
+# 1. Instalar: pip install cloudinary
+# 2. Agregar a INSTALLED_APPS:
+INSTALLED_APPS = [
+    ...
+    'cloudinary_storage',
+    'cloudinary',
+    ...
+]
+
+# 3. Configurar credenciales (usar variables de entorno):
+import cloudinary
+
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME', ''),
+    api_key=os.getenv('CLOUDINARY_API_KEY', ''),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET', ''),
+)
+
+# 4. Cambiar storage backend:
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# 5. Opcional - Static files también en Cloudinary:
+# STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
+
+# Por ahora, usar almacenamiento local
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+"""
+
 # Templates
 TEMPLATES = [
     {

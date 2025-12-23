@@ -16,8 +16,6 @@ urlpatterns = [
     # ============================================================
     path('dashboard/', views.dashboard, name='dashboard'),
     path('dashboard/sections/', views.dashboard_sections, name='dashboard_sections'),
-    path('dashboard/services/', views.dashboard_services, name='dashboard_services'),
-    path('dashboard/testimonials/', views.dashboard_testimonials, name='dashboard_testimonials'),
     path('dashboard/contacts/', views.dashboard_contacts, name='dashboard_contacts'),
     
     # ============================================================

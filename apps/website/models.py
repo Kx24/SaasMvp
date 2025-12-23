@@ -16,14 +16,10 @@ class Section(models.Model):
     
     # Secciones predefinidas disponibles
     SECTION_TYPES = [
-        ('hero', 'Hero / Banner Principal'),
-        ('about', 'Sobre Nosotros'),
-        ('services', 'Servicios (Intro)'),
-        ('features', 'Características'),
-        ('testimonials', 'Testimonios (Intro)'),
-        ('contact', 'Contacto (Intro)'),
-        ('cta', 'Call to Action'),
-        ('footer', 'Footer / Pie de Página'),
+    ('hero', 'Hero / Banner Principal'),
+    ('about', 'Sobre Nosotros'),
+    ('service', 'Servicio Individual'),  # ← NUEVO: cada servicio es una sección
+    ('contact', 'Contacto'),
     ]
     
     # === CAMPOS CORE ===
