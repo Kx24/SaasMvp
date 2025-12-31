@@ -142,14 +142,14 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'apps.tenants.context_processors.client_context',
             ],
-            'loaders': [
-                # 1. Primero: Buscar en tenants/{slug}/ y tenants/_default/
-                'apps.tenants.template_loader.TenantTemplateLoader',
-                # 2. Segundo: Buscar en DIRS (templates/)
-                'django.template.loaders.filesystem.Loader',
-                # 3. Tercero: Buscar en apps (app/templates/)
-                'django.template.loaders.app_directories.Loader',
-            ],
+#            'loaders': [
+#                # 1. Primero: Buscar en tenants/{slug}/ y tenants/_default/
+#                'apps.tenants.template_loader.TenantTemplateLoader',
+#                # 2. Segundo: Buscar en DIRS (templates/)
+#                'django.template.loaders.filesystem.Loader',
+#                # 3. Tercero: Buscar en apps (app/templates/)
+#                'django.template.loaders.app_directories.Loader',
+#            ],
         },
     },
 ]
