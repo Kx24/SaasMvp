@@ -1,313 +1,257 @@
 """
-Middleware Multi-Tenant con soporte para:
-- Múltiples dominios por cliente
-- Wildcard subdomains (*.tuapp.cl)
-- Parámetro ?tenant= para desarrollo
-- Fallback a tenant default
-- SEGURIDAD: Validación de acceso por usuario
-- THREAD-LOCAL: Para acceso desde template loader
-"""
-import threading
-from django.shortcuts import render
-from django.conf import settings
-from django.http import HttpResponseRedirect
-from django.contrib import messages
+TenantMiddleware - Detección de tenant por dominio
+==================================================
 
-# Thread-local storage para el tenant actual
+Funcionalidades:
+- Detecta tenant por dominio, subdominio, o parámetro ?tenant=
+- Thread-local storage para acceso desde template loader
+- Manejo graceful de errores (no 500 si no hay tenant)
+- Logging claro para debugging
+
+Orden de detección:
+1. Parámetro GET ?tenant=slug (solo en DEBUG)
+2. Dominio exacto en tabla Domain
+3. DEFAULT_TENANT_SLUG de settings
+4. Respuesta amigable si no encuentra nada
+"""
+
+import logging
+import threading
+
+from django.conf import settings
+from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.utils.deprecation import MiddlewareMixin
+
+logger = logging.getLogger(__name__)
+
+# ============================================================
+# THREAD-LOCAL STORAGE
+# ============================================================
+# Permite acceder al tenant actual desde cualquier parte del código
+# (especialmente desde el template loader)
+
 _thread_locals = threading.local()
 
 
 def get_current_tenant():
     """
-    Obtiene el tenant actual desde cualquier parte del código.
-    Útil para template loaders, managers, etc.
+    Obtiene el tenant actual del thread-local storage.
+    
+    Returns:
+        Client instance o None
     """
     return getattr(_thread_locals, 'tenant', None)
 
 
-def get_current_request():
+def set_current_tenant(tenant):
     """
-    Obtiene el request actual desde cualquier parte del código.
+    Establece el tenant actual en thread-local storage.
+    
+    Args:
+        tenant: Client instance o None
     """
-    return getattr(_thread_locals, 'request', None)
+    _thread_locals.tenant = tenant
 
 
-class TenantMiddleware:
+def clear_current_tenant():
+    """Limpia el tenant del thread-local storage."""
+    if hasattr(_thread_locals, 'tenant'):
+        del _thread_locals.tenant
+
+
+# ============================================================
+# MIDDLEWARE
+# ============================================================
+
+class TenantMiddleware(MiddlewareMixin):
     """
-    Middleware que detecta el tenant basándose en:
-    1. Parámetro GET ?tenant=slug (solo en DEBUG)
-    2. Dominio exacto en tabla Domain
-    3. Wildcard subdomain (cliente.tuapp.cl)
-    4. Fallback a DEFAULT_TENANT_SLUG
+    Middleware que detecta y establece el tenant actual.
     
-    SEGURIDAD:
-    - Usuarios logueados solo pueden acceder a SU tenant
-    - Superusers pueden acceder a cualquier tenant
-    
-    THREAD-LOCAL:
-    - Guarda tenant en thread-local para acceso desde template loader
+    Agrega `request.client` con el Client detectado.
     """
+    
+    # Paths que no requieren tenant (admin, static, etc.)
+    EXEMPT_PATHS = [
+        '/superadmin/',
+        '/admin/',
+        '/static/',
+        '/media/',
+        '/__debug__/',
+        '/favicon.ico',
+        '/robots.txt',
+        '/health/',
+    ]
     
     def __init__(self, get_response):
         self.get_response = get_response
-        self.base_domain = getattr(settings, 'BASE_DOMAIN', 'tuapp.cl')
-        self.default_tenant = getattr(settings, 'DEFAULT_TENANT_SLUG', None)
-        self.saas_domain = getattr(settings, 'SAAS_DOMAIN', None)
+        super().__init__(get_response)
     
     def __call__(self, request):
-        from apps.tenants.models import Client, Domain
+        # Limpiar tenant anterior
+        clear_current_tenant()
         
-        host = request.get_host()
-        domain = host.split(':')[0].lower()
-        
-        client = None
-        
-        # ============================================================
-        # 1. RUTAS EXCLUIDAS (admin, static, media)
-        # ============================================================
-        excluded_paths = ['/superadmin/', '/static/', '/media/', '/__debug__/']
-        if any(request.path.startswith(p) for p in excluded_paths):
-            try:
-                if settings.DEBUG and request.GET.get('tenant'):
-                    client = Client.objects.get(
-                        slug=request.GET.get('tenant'),
-                        is_active=True
-                    )
-                else:
-                    domain_obj = Domain.objects.select_related('client').get(
-                        domain=domain,
-                        is_active=True,
-                        client__is_active=True
-                    )
-                    client = domain_obj.client
-            except (Client.DoesNotExist, Domain.DoesNotExist):
-                client = None
-            
-            request.client = client
-            # Guardar en thread-local
-            _thread_locals.tenant = client
-            _thread_locals.request = request
-            
-            response = self.get_response(request)
-            
-            # Limpiar thread-local
-            _thread_locals.tenant = None
-            _thread_locals.request = None
-            
-            return response
-        
-        # ============================================================
-        # 2. PARÁMETRO ?tenant= (solo en DEBUG)
-        # ============================================================
-        if settings.DEBUG and request.GET.get('tenant'):
-            tenant_slug = request.GET.get('tenant')
-            try:
-                client = Client.objects.get(slug=tenant_slug, is_active=True)
-                
-                # VALIDAR ACCESO DEL USUARIO
-                redirect_response = self._validate_user_access(request, client)
-                if redirect_response:
-                    return redirect_response
-                
-                request.client = client
-                _thread_locals.tenant = client
-                _thread_locals.request = request
-                
-                response = self.get_response(request)
-                
-                _thread_locals.tenant = None
-                _thread_locals.request = None
-                
-                return response
-            except Client.DoesNotExist:
-                pass
-        
-        # ============================================================
-        # 3. DOMINIO DEL SAAS (landing page del servicio)
-        # ============================================================
-        if self.saas_domain and domain in [self.saas_domain, f'www.{self.saas_domain}']:
+        # Verificar si el path está exento
+        path = request.path
+        if self._is_exempt_path(path):
             request.client = None
-            request.is_saas_landing = True
             return self.get_response(request)
         
-        # ============================================================
-        # 4. BÚSQUEDA POR DOMINIO EXACTO
-        # ============================================================
+        # Detectar tenant
+        client = self._detect_tenant(request)
+        
+        # Establecer en request y thread-local
+        request.client = client
+        set_current_tenant(client)
+        
+        # Si no hay tenant y no es path exento
+        if client is None:
+            return self._handle_no_tenant(request)
+        
+        # Log para debugging
+        logger.debug(f"[Tenant] {request.get_host()} → {client.name}")
+        
+        # Continuar con la request
+        response = self.get_response(request)
+        
+        # Limpiar después de la request
+        clear_current_tenant()
+        
+        return response
+    
+    def _is_exempt_path(self, path):
+        """Verifica si el path está exento de detección de tenant."""
+        for exempt in self.EXEMPT_PATHS:
+            if path.startswith(exempt):
+                return True
+        return False
+    
+    def _detect_tenant(self, request):
+        """
+        Detecta el tenant basado en la request.
+        
+        Orden de prioridad:
+        1. Parámetro ?tenant=slug (solo DEBUG)
+        2. Dominio en tabla Domain
+        3. DEFAULT_TENANT_SLUG
+        """
+        from apps.tenants.models import Client, Domain
+        
+        # 1. Parámetro GET (solo en desarrollo)
+        if settings.DEBUG:
+            tenant_slug = request.GET.get('tenant')
+            if tenant_slug:
+                try:
+                    client = Client.objects.get(slug=tenant_slug, is_active=True)
+                    logger.debug(f"[Tenant] Detected via ?tenant={tenant_slug}")
+                    return client
+                except Client.DoesNotExist:
+                    logger.warning(f"[Tenant] ?tenant={tenant_slug} not found")
+        
+        # 2. Buscar por dominio
+        host = request.get_host().lower()
+        # Remover puerto si existe
+        if ':' in host:
+            host = host.split(':')[0]
+        
         try:
-            domain_obj = Domain.objects.select_related('client').get(
-                domain=domain,
+            domain = Domain.objects.select_related('client').get(
+                domain=host,
                 is_active=True,
                 client__is_active=True
             )
-            client = domain_obj.client
-            
-            # VALIDAR ACCESO DEL USUARIO
-            redirect_response = self._validate_user_access(request, client)
-            if redirect_response:
-                return redirect_response
-            
-            request.client = client
-            request.current_domain = domain_obj
-            _thread_locals.tenant = client
-            _thread_locals.request = request
-            
-            response = self.get_response(request)
-            
-            _thread_locals.tenant = None
-            _thread_locals.request = None
-            
-            return response
+            logger.debug(f"[Tenant] Detected via domain: {host}")
+            return domain.client
         except Domain.DoesNotExist:
-            pass
+            logger.debug(f"[Tenant] Domain not found: {host}")
+        except Domain.MultipleObjectsReturned:
+            # Si hay múltiples, tomar el primero (no debería pasar)
+            domain = Domain.objects.filter(domain=host, is_active=True).first()
+            if domain:
+                return domain.client
         
-        # ============================================================
-        # 5. WILDCARD SUBDOMAIN (cliente.tuapp.cl)
-        # ============================================================
-        if domain.endswith(f'.{self.base_domain}'):
-            subdomain = domain.replace(f'.{self.base_domain}', '')
-            
-            if subdomain == 'www':
-                request.client = None
-                request.is_saas_landing = True
-                return self.get_response(request)
-            
+        # 3. DEFAULT_TENANT_SLUG
+        default_slug = getattr(settings, 'DEFAULT_TENANT_SLUG', None)
+        if default_slug:
             try:
-                client = Client.objects.get(slug=subdomain, is_active=True)
-                
-                # VALIDAR ACCESO DEL USUARIO
-                redirect_response = self._validate_user_access(request, client)
-                if redirect_response:
-                    return redirect_response
-                
-                domain_obj, created = Domain.objects.get_or_create(
-                    domain=domain,
-                    defaults={
-                        'client': client,
-                        'domain_type': 'subdomain',
-                        'is_active': True,
-                        'is_verified': True,
-                    }
-                )
-                
-                request.client = client
-                request.current_domain = domain_obj
-                _thread_locals.tenant = client
-                _thread_locals.request = request
-                
-                response = self.get_response(request)
-                
-                _thread_locals.tenant = None
-                _thread_locals.request = None
-                
-                return response
+                client = Client.objects.get(slug=default_slug, is_active=True)
+                logger.debug(f"[Tenant] Using default: {default_slug}")
+                return client
             except Client.DoesNotExist:
-                pass
-        
-        # ============================================================
-        # 6. LOCALHOST / DESARROLLO
-        # ============================================================
-        localhost_domains = ['localhost', '127.0.0.1', 'testserver']
-        if domain in localhost_domains:
-            if self.default_tenant:
-                try:
-                    client = Client.objects.get(slug=self.default_tenant, is_active=True)
-                    
-                    # VALIDAR ACCESO DEL USUARIO
-                    redirect_response = self._validate_user_access(request, client)
-                    if redirect_response:
-                        return redirect_response
-                    
-                    request.client = client
-                    _thread_locals.tenant = client
-                    _thread_locals.request = request
-                    
-                    response = self.get_response(request)
-                    
-                    _thread_locals.tenant = None
-                    _thread_locals.request = None
-                    
-                    return response
-                except Client.DoesNotExist:
-                    pass
-            
-            client = Client.objects.filter(is_active=True).first()
-            if client:
-                # VALIDAR ACCESO DEL USUARIO
-                redirect_response = self._validate_user_access(request, client)
-                if redirect_response:
-                    return redirect_response
-                
-                request.client = client
-                _thread_locals.tenant = client
-                _thread_locals.request = request
-                
-                response = self.get_response(request)
-                
-                _thread_locals.tenant = None
-                _thread_locals.request = None
-                
-                return response
-        
-        # ============================================================
-        # 7. TENANT NO ENCONTRADO
-        # ============================================================
-        return render(request, 'errors/tenant_not_found.html', {
-            'domain': domain,
-            'host': host,
-            'base_domain': self.base_domain,
-        }, status=404)
-    
-    def _validate_user_access(self, request, client):
-        """
-        Valida que el usuario tenga acceso al tenant.
-        """
-        user = request.user
-        
-        if not user.is_authenticated:
-            return None
-        
-        if user.is_superuser:
-            request.is_superuser_override = True
-            return None
-        
-        if hasattr(user, 'profile') and user.profile.client:
-            user_client = user.profile.client
-            
-            if user_client.id != client.id:
-                if settings.DEBUG:
-                    messages.warning(
-                        request,
-                        f'No tienes acceso a "{client.name}". Redirigido a tu sitio.'
-                    )
-                    return HttpResponseRedirect(f'/?tenant={user_client.slug}')
-                else:
-                    return render(request, 'errors/access_denied.html', {
-                        'user_tenant': user_client.name,
-                        'requested_tenant': client.name,
-                    }, status=403)
-        
-        elif hasattr(user, 'profile') and user.profile.client is None:
-            if not user.is_staff:
-                return render(request, 'errors/no_tenant_assigned.html', {
-                    'user': user,
-                }, status=403)
+                logger.warning(f"[Tenant] Default tenant not found: {default_slug}")
         
         return None
-
-
-class TenantAdminMiddleware:
-    """
-    Middleware adicional para el admin.
-    """
     
-    def __init__(self, get_response):
-        self.get_response = get_response
-    
-    def __call__(self, request):
-        if request.path.startswith('/superadmin/'):
-            if hasattr(request, 'user') and request.user.is_authenticated:
-                if not request.user.is_superuser:
-                    if hasattr(request.user, 'profile') and request.user.profile.client:
-                        request.admin_client = request.user.profile.client
+    def _handle_no_tenant(self, request):
+        """
+        Maneja el caso cuando no se encuentra tenant.
         
-        return self.get_response(request)
+        En lugar de error 500, muestra mensaje amigable.
+        """
+        host = request.get_host()
+        
+        logger.warning(f"[Tenant] No tenant for: {host}{request.path}")
+        
+        # Respuesta HTML simple (no usa templates para evitar errores)
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Sitio no configurado</title>
+            <style>
+                * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                body {{
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                }}
+                .container {{
+                    background: white;
+                    padding: 40px;
+                    border-radius: 16px;
+                    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+                    max-width: 500px;
+                    text-align: center;
+                }}
+                h1 {{ color: #1f2937; margin-bottom: 16px; font-size: 24px; }}
+                p {{ color: #6b7280; margin-bottom: 24px; line-height: 1.6; }}
+                .domain {{ 
+                    background: #f3f4f6; 
+                    padding: 8px 16px; 
+                    border-radius: 8px; 
+                    font-family: monospace;
+                    color: #374151;
+                    display: inline-block;
+                    margin: 8px 0;
+                }}
+                .help {{
+                    font-size: 14px;
+                    color: #9ca3af;
+                    margin-top: 24px;
+                    padding-top: 24px;
+                    border-top: 1px solid #e5e7eb;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🔧 Sitio no configurado</h1>
+                <p>El dominio solicitado no está asociado a ningún sitio.</p>
+                <div class="domain">{host}</div>
+                <p class="help">
+                    Si eres el administrador, verifica que el dominio esté 
+                    registrado en la tabla <code>Domain</code> y vinculado 
+                    a un <code>Client</code> activo.
+                </p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return HttpResponse(html, status=404, content_type='text/html')
