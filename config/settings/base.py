@@ -125,14 +125,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ============================================================
-# TEMPLATES
+# TEMPLATES - Con soporte Multi-Tenant
 # ============================================================
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
+        # IMPORTANTE: Desactivar APP_DIRS cuando usamos loaders personalizados
+        'APP_DIRS': False,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -141,9 +142,35 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'apps.tenants.context_processors.client_context',
             ],
+            'loaders': [
+                # 1. Primero: Buscar en tenants/{slug}/ y tenants/_default/
+                'apps.tenants.template_loader.TenantTemplateLoader',
+                # 2. Segundo: Buscar en DIRS (templates/)
+                'django.template.loaders.filesystem.Loader',
+                # 3. Tercero: Buscar en apps (app/templates/)
+                'django.template.loaders.app_directories.Loader',
+            ],
         },
     },
 ]
+
+# ============================================================
+# NOTA: El orden de loaders es importante
+# ============================================================
+#
+# Cuando se solicita "landing/home.html" para tenant "servelec":
+#
+# 1. TenantTemplateLoader busca:
+#    - templates/tenants/servelec/landing/home.html (si existe, usa este)
+#    - templates/tenants/_default/landing/home.html (si existe, usa este)
+#
+# 2. Si no encuentra, filesystem.Loader busca:
+#    - templates/landing/home.html
+#
+# 3. Si no encuentra, app_directories.Loader busca:
+#    - apps/*/templates/landing/home.html
+#
+# ============================================================
 
 # ============================================================
 # SESSIONS

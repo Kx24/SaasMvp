@@ -1,20 +1,47 @@
 #!/usr/bin/env bash
-# exit on error
-set -o errexit
+# build.sh - Script de build para Render
+# ======================================
+# Este script se ejecuta cada vez que Render despliega la aplicación
 
-echo "🔧 Installing dependencies..."
+set -o errexit  # Salir si hay error
+
+echo "=========================================="
+echo "  🚀 INICIANDO BUILD - SaaS MVP"
+echo "=========================================="
+
+# 1. Instalar dependencias
+echo ""
+echo "📦 Instalando dependencias..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
-echo "📦 Collecting static files..."
-python manage.py collectstatic --no-input
+# 2. Crear directorio de archivos estáticos
+echo ""
+echo "📁 Preparando directorios..."
+mkdir -p staticfiles
+mkdir -p media/tenants
 
-echo "🗄️  Running migrations..."
-python manage.py migrate
+# 3. Recolectar archivos estáticos
+echo ""
+echo "🎨 Recolectando archivos estáticos..."
+python manage.py collectstatic --noinput --clear
 
-echo "🚀 Running production setup..."
-python manage.py setup_production
+# 4. Ejecutar migraciones
+echo ""
+echo "🗄️  Ejecutando migraciones..."
+python manage.py migrate --noinput
 
-echo "🌐 Updating domain..."
-python manage.py update_domain
+# 5. Crear directorios de templates si no existen
+echo ""
+echo "📄 Verificando estructura de templates..."
+mkdir -p templates/tenants/_default/landing
 
-echo "✅ Build completed successfully!"
+# 6. Verificar configuración
+echo ""
+echo "✅ Verificando configuración..."
+python manage.py check --deploy
+
+echo ""
+echo "=========================================="
+echo "  ✅ BUILD COMPLETADO EXITOSAMENTE"
+echo "=========================================="

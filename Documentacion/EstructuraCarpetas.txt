@@ -59,23 +59,36 @@ project_root/
 │
 ├── templates/                    # Templates globales
 │   ├── base.html                 # Base template
+│   ├── components/
+│   │   ├── footer.html
+│   │   ├── navbar.html
+│   ├── auth/
+│   │   ├── login.html
+│   │   ├── login_modal.html
 │   ├── errors/
 │   │   ├── 404.html
-│   │   ├── 500.html
+│   │   ├── access_denied.html
 │   │   └── tenant_not_found.html
-│   │
-│   ├── landing/                  # Templates públicos
-│   │   ├── base.html             # Hereda de base.html
+│   │   └── payment_required.html
+│   ├── partials/                  
+│   │   ├── contact_form.html             
+│   │   ├── contact_success.html
+│   │   ├── sections_display.html
+│   │   └── sections_edit.html
+│   │   └── service_card.html
+│   │   └── service_delete_confirm.html
+│   │   └── service_edit.html
+│   ├── landing/                 
 │   │   ├── home.html
-│   │   ├── services.html
-│   │   └── contact.html
-│   │
-│   └── components/               # Componentes reutilizables
-│       ├── navbar.html
-│       ├── footer.html
-│       ├── hero.html
-│       └── service_card.html
-│
+│   └── dashboard/              
+│       ├── base.html
+│       ├── contacts.html
+│       ├── edit_section.html
+│       ├── index.html
+│       ├── sections.html
+│       ├── service_confirm_delete.html
+│       ├── service_form.html
+│       ├── service.html
 ├── static/                       # Assets estáticos
 │   ├── css/
 │   │   ├── input.css             # Tailwind source

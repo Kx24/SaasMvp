@@ -5,11 +5,31 @@ Middleware Multi-Tenant con soporte para:
 - Parámetro ?tenant= para desarrollo
 - Fallback a tenant default
 - SEGURIDAD: Validación de acceso por usuario
+- THREAD-LOCAL: Para acceso desde template loader
 """
+import threading
 from django.shortcuts import render
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.contrib import messages
+
+# Thread-local storage para el tenant actual
+_thread_locals = threading.local()
+
+
+def get_current_tenant():
+    """
+    Obtiene el tenant actual desde cualquier parte del código.
+    Útil para template loaders, managers, etc.
+    """
+    return getattr(_thread_locals, 'tenant', None)
+
+
+def get_current_request():
+    """
+    Obtiene el request actual desde cualquier parte del código.
+    """
+    return getattr(_thread_locals, 'request', None)
 
 
 class TenantMiddleware:
@@ -23,11 +43,13 @@ class TenantMiddleware:
     SEGURIDAD:
     - Usuarios logueados solo pueden acceder a SU tenant
     - Superusers pueden acceder a cualquier tenant
+    
+    THREAD-LOCAL:
+    - Guarda tenant en thread-local para acceso desde template loader
     """
     
     def __init__(self, get_response):
         self.get_response = get_response
-        # Cachear configuración
         self.base_domain = getattr(settings, 'BASE_DOMAIN', 'tuapp.cl')
         self.default_tenant = getattr(settings, 'DEFAULT_TENANT_SLUG', None)
         self.saas_domain = getattr(settings, 'SAAS_DOMAIN', None)
@@ -62,7 +84,17 @@ class TenantMiddleware:
                 client = None
             
             request.client = client
-            return self.get_response(request)
+            # Guardar en thread-local
+            _thread_locals.tenant = client
+            _thread_locals.request = request
+            
+            response = self.get_response(request)
+            
+            # Limpiar thread-local
+            _thread_locals.tenant = None
+            _thread_locals.request = None
+            
+            return response
         
         # ============================================================
         # 2. PARÁMETRO ?tenant= (solo en DEBUG)
@@ -78,7 +110,15 @@ class TenantMiddleware:
                     return redirect_response
                 
                 request.client = client
-                return self.get_response(request)
+                _thread_locals.tenant = client
+                _thread_locals.request = request
+                
+                response = self.get_response(request)
+                
+                _thread_locals.tenant = None
+                _thread_locals.request = None
+                
+                return response
             except Client.DoesNotExist:
                 pass
         
@@ -108,7 +148,15 @@ class TenantMiddleware:
             
             request.client = client
             request.current_domain = domain_obj
-            return self.get_response(request)
+            _thread_locals.tenant = client
+            _thread_locals.request = request
+            
+            response = self.get_response(request)
+            
+            _thread_locals.tenant = None
+            _thread_locals.request = None
+            
+            return response
         except Domain.DoesNotExist:
             pass
         
@@ -143,7 +191,15 @@ class TenantMiddleware:
                 
                 request.client = client
                 request.current_domain = domain_obj
-                return self.get_response(request)
+                _thread_locals.tenant = client
+                _thread_locals.request = request
+                
+                response = self.get_response(request)
+                
+                _thread_locals.tenant = None
+                _thread_locals.request = None
+                
+                return response
             except Client.DoesNotExist:
                 pass
         
@@ -162,7 +218,15 @@ class TenantMiddleware:
                         return redirect_response
                     
                     request.client = client
-                    return self.get_response(request)
+                    _thread_locals.tenant = client
+                    _thread_locals.request = request
+                    
+                    response = self.get_response(request)
+                    
+                    _thread_locals.tenant = None
+                    _thread_locals.request = None
+                    
+                    return response
                 except Client.DoesNotExist:
                     pass
             
@@ -174,7 +238,15 @@ class TenantMiddleware:
                     return redirect_response
                 
                 request.client = client
-                return self.get_response(request)
+                _thread_locals.tenant = client
+                _thread_locals.request = request
+                
+                response = self.get_response(request)
+                
+                _thread_locals.tenant = None
+                _thread_locals.request = None
+                
+                return response
         
         # ============================================================
         # 7. TENANT NO ENCONTRADO
@@ -188,43 +260,32 @@ class TenantMiddleware:
     def _validate_user_access(self, request, client):
         """
         Valida que el usuario tenga acceso al tenant.
-        
-        Returns:
-            None: Acceso permitido
-            HttpResponse: Redirección o error si acceso denegado
         """
         user = request.user
         
-        # Usuario anónimo - permitir (páginas públicas)
         if not user.is_authenticated:
             return None
         
-        # Superuser - permitir todo
         if user.is_superuser:
             request.is_superuser_override = True
             return None
         
-        # Usuario con perfil - validar tenant
         if hasattr(user, 'profile') and user.profile.client:
             user_client = user.profile.client
             
-            # Usuario intentando acceder a OTRO tenant
             if user_client.id != client.id:
                 if settings.DEBUG:
-                    # En desarrollo: redirigir a su tenant con mensaje
                     messages.warning(
                         request,
                         f'No tienes acceso a "{client.name}". Redirigido a tu sitio.'
                     )
                     return HttpResponseRedirect(f'/?tenant={user_client.slug}')
                 else:
-                    # En producción: mostrar error 403
                     return render(request, 'errors/access_denied.html', {
                         'user_tenant': user_client.name,
                         'requested_tenant': client.name,
                     }, status=403)
         
-        # Usuario sin tenant asignado
         elif hasattr(user, 'profile') and user.profile.client is None:
             if not user.is_staff:
                 return render(request, 'errors/no_tenant_assigned.html', {
@@ -237,7 +298,6 @@ class TenantMiddleware:
 class TenantAdminMiddleware:
     """
     Middleware adicional para el admin.
-    Filtra automáticamente por tenant en el admin de Django.
     """
     
     def __init__(self, get_response):
