@@ -1,0 +1,32 @@
+{% comment %}
+Template: templates/emails/contact_confirmation.txt
+Email texto plano de confirmación al usuario.
+{% endcomment %}
+═══════════════════════════════════════════
+✅ MENSAJE RECIBIDO - {{ client.name }}
+═══════════════════════════════════════════
+
+Hola {{ contact.name }},
+
+Gracias por contactarnos. Hemos recibido tu mensaje y te responderemos a la brevedad.
+
+───────────────────────────────────────────
+RESUMEN DE TU MENSAJE
+───────────────────────────────────────────
+{% if contact.subject %}
+Asunto: {{ contact.subject }}
+{% endif %}
+{{ contact.message|truncatewords:50 }}
+
+───────────────────────────────────────────
+
+Si tienes alguna pregunta urgente, no dudes en contactarnos{% if settings.contact_phone %} al {{ settings.contact_phone }}{% endif %}.
+
+Saludos cordiales,
+{{ client.name }}
+
+═══════════════════════════════════════════
+{% if client.get_absolute_url %}{{ client.get_absolute_url }}{% endif %}
+
+Este es un mensaje automático, por favor no respondas a este email.
+═══════════════════════════════════════════

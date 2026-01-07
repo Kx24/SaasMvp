@@ -1,14 +1,15 @@
 """
-Django Admin para Tenants
-=========================
+Django Admin para Tenants - CORREGIDO
+=====================================
 SOLO SUPERUSERS pueden gestionar tenants.
-Staff de tenant no debe ver este modulo.
+
+FIX: Inlines con extra=0 y max_num=1 evitan duplicados.
 """
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django import forms
-from .models import Client, Domain, ClientSettings
+from .models import Client, Domain, ClientSettings, ClientEmailSettings
 
 
 # ============================================================
@@ -92,7 +93,7 @@ class ClientAdminForm(forms.ModelForm):
 
 
 # ============================================================
-# INLINES
+# INLINES - CORREGIDOS
 # ============================================================
 
 class DomainInline(admin.TabularInline):
@@ -103,8 +104,14 @@ class DomainInline(admin.TabularInline):
 
 
 class ClientSettingsInline(admin.StackedInline):
+    """
+    Inline para ClientSettings.
+    extra=0 y max_num=1 evitan crear duplicados.
+    """
     model = ClientSettings
     can_delete = False
+    extra = 0
+    max_num = 1
     
     fieldsets = (
         ('Avanzado', {
@@ -122,6 +129,38 @@ class ClientSettingsInline(admin.StackedInline):
     )
 
 
+class ClientEmailSettingsInline(admin.StackedInline):
+    """
+    Inline para ClientEmailSettings.
+    extra=0 y max_num=1 evitan crear duplicados.
+    """
+    model = ClientEmailSettings
+    can_delete = False
+    extra = 0
+    max_num = 1
+    verbose_name = "Configuración de Email"
+    
+    fieldsets = (
+        ('Modo de Notificación', {
+            'fields': ('provider', 'notify_mode', 'is_active', 'test_mode'),
+        }),
+        ('SMTP', {
+            'fields': ('smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_use_tls', 'smtp_use_ssl'),
+            'classes': ('collapse',),
+        }),
+        ('API Key', {
+            'fields': ('api_key',),
+            'classes': ('collapse',),
+        }),
+        ('Remitente', {
+            'fields': ('from_email', 'from_name', 'reply_to'),
+        }),
+        ('Destinatarios', {
+            'fields': ('notify_emails', 'send_copy_to_sender'),
+        }),
+    )
+
+
 # ============================================================
 # CLIENT ADMIN - SOLO SUPERUSERS
 # ============================================================
@@ -129,7 +168,7 @@ class ClientSettingsInline(admin.StackedInline):
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     form = ClientAdminForm
-    inlines = [DomainInline, ClientSettingsInline]
+    inlines = [DomainInline, ClientSettingsInline, ClientEmailSettingsInline]
     
     list_display = ['name', 'domain_display', 'status_display', 'users_count', 'content_count', 'site_link']
     list_filter = ['is_active', 'template', 'created_at']
@@ -178,7 +217,6 @@ class ClientAdmin(admin.ModelAdmin):
     # ============================================================
     
     def has_module_permission(self, request):
-        """Solo superusers ven el modulo de Tenants"""
         return request.user.is_superuser
     
     def has_view_permission(self, request, obj=None):
@@ -194,10 +232,14 @@ class ClientAdmin(admin.ModelAdmin):
         return request.user.is_superuser
     
     # ============================================================
-    # SAVE
+    # SAVE - CORREGIDO
     # ============================================================
     
     def save_model(self, request, obj, form, change):
+        """
+        Guarda el cliente. NO crea Settings aquí porque
+        el modelo Client.save() ya lo hace.
+        """
         super().save_model(request, obj, form, change)
         
         # Dominio
@@ -219,7 +261,7 @@ class ClientAdmin(admin.ModelAdmin):
                     is_primary=True, is_active=True
                 )
         
-        # Settings
+        # Settings - get_or_create (el modelo ya lo creó, solo actualizamos)
         settings_obj, _ = ClientSettings.objects.get_or_create(client=obj)
         settings_obj.primary_color = form.cleaned_data.get('primary_color') or '#2563eb'
         settings_obj.secondary_color = form.cleaned_data.get('secondary_color') or '#1e40af'
@@ -235,7 +277,10 @@ class ClientAdmin(admin.ModelAdmin):
         settings_obj.company_name = obj.company_name or obj.name
         settings_obj.save()
         
-        # Contenido inicial
+        # EmailSettings - asegurar que existe
+        ClientEmailSettings.objects.get_or_create(client=obj)
+        
+        # Contenido inicial (solo al crear)
         if not change and form.cleaned_data.get('create_initial_content', True):
             self._create_initial_content(obj)
     

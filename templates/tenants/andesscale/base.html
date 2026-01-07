@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ client.settings.meta_title|default:client.settings.company_name }}{% endblock %}</title>
+    <meta name="description" content="{{ client.settings.meta_description|default:'' }}">
+    
+    <!-- Favicon -->
+    {% if client.settings.favicon %}
+    <link rel="icon" href="{{ client.settings.favicon.url }}">
+    {% endif %}
+    
+    <!-- Google Fonts - Stripe usa fonts similares -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Configuración Tailwind con colores del tenant -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '{{ client.settings.primary_color|default:"#0ea5e9" }}',
+                        secondary: '{{ client.settings.secondary_color|default:"#f0f9ff" }}',
+                        accent: '#6366f1',
+                    },
+                    fontFamily: {
+                        'display': ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        'body': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- Estilos personalizados estilo Stripe -->
+    <style>
+        :root {
+            --primary: {{ client.settings.primary_color|default:"#0ea5e9" }};
+            --secondary: {{ client.settings.secondary_color|default:"#f0f9ff" }};
+            --gradient-start: #0ea5e9;
+            --gradient-mid: #6366f1;
+            --gradient-end: #a855f7;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Stripe-style gradient mesh background */
+        .stripe-gradient {
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14, 165, 233, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 0%, rgba(99, 102, 241, 0.1), transparent),
+                radial-gradient(ellipse 50% 30% at 0% 100%, rgba(168, 85, 247, 0.08), transparent),
+                linear-gradient(to bottom, var(--secondary), #ffffff);
+        }
+        
+        /* Grid pattern overlay */
+        .stripe-grid {
+            background-image: 
+                linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        
+        /* Glow effect */
+        .glow-primary {
+            box-shadow: 0 0 60px -15px var(--primary);
+        }
+        
+        /* Smooth animations */
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        /* Stripe-style card */
+        .stripe-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(14, 165, 233, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stripe-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -15px rgba(14, 165, 233, 0.2);
+            border-color: rgba(14, 165, 233, 0.2);
+        }
+        
+        /* Button styles */
+        .btn-stripe {
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-stripe::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-stripe:hover::before {
+            left: 100%;
+        }
+        
+        .btn-stripe:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px var(--primary);
+        }
+        
+        /* Text gradient */
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary), #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Decorative lines */
+        .stripe-line {
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), #6366f1, #a855f7);
+            border-radius: 2px;
+        }
+        
+        /* Scroll animations */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+        
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--primary), #6366f1);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-800">
+    <!-- Navbar -->
+    {% include 'components/navbar.html' %}
+    
+    <!-- Mensajes Django con estilo Stripe -->
+    {% if messages %}
+    <div class="fixed top-20 right-4 z-50 space-y-2" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
+        {% for message in messages %}
+        <div class="stripe-card px-6 py-4 rounded-xl flex items-center gap-3 {% if message.tags == 'error' %}border-red-200 bg-red-50{% elif message.tags == 'success' %}border-green-200 bg-green-50{% else %}border-sky-200 bg-sky-50{% endif %}"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-x-8"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-8">
+            {% if message.tags == 'success' %}
+            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            {% endif %}
+            <span class="text-sm font-medium">{{ message }}</span>
+            <button @click="show = false" class="ml-2 text-slate-400 hover:text-slate-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Contenido Principal -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    {% include 'components/footer.html' %}
+    
+    <!-- Modal Container para HTMX -->
+    <div id="modal-container"></div>
+    
+    <!-- Scroll Animation Script -->
+    <script>
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

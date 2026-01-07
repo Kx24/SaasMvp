@@ -9,6 +9,7 @@ Arquitectura:
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
+from django.core.validators import MinValueValidator
 
 
 class Client(models.Model):
@@ -129,6 +130,11 @@ class Client(models.Model):
         # Crear ClientSettings si no existe
         if not hasattr(self, 'settings'):
             ClientSettings.objects.create(client=self)
+            
+        # AGREGAR: Crear ClientEmailSettings si no existe
+        if not hasattr(self, 'email_settings'):
+            from .models import ClientEmailSettings  # Import local para evitar circular
+            ClientEmailSettings.objects.create(client=self)
     
     @property
     def primary_domain(self):
@@ -350,3 +356,214 @@ class ClientSettings(models.Model):
         if not self.company_name and self.client:
             self.company_name = self.client.company_name or self.client.name
         super().save(*args, **kwargs)
+
+
+# ==================== Configuración de Email ====================
+
+class ClientEmailSettings(models.Model):
+    """
+    Configuración de email por tenant.
+    
+    Define cómo cada cliente maneja las notificaciones:
+    - SMTP propio (ej: Zoho, Gmail, etc.)
+    - Provider externo (SendGrid, Resend, etc.)
+    - Solo dashboard (sin email)
+    
+    El formulario de contacto NO decide nada, solo emite eventos.
+    Este modelo define el CONTRATO de cómo se procesan.
+    """
+    
+    # ==================== PROVIDERS ====================
+    PROVIDER_CHOICES = [
+        ('none', 'Sin email (solo dashboard)'),
+        ('smtp', 'SMTP personalizado'),
+        ('sendgrid', 'SendGrid'),
+        ('resend', 'Resend'),
+        ('mailgun', 'Mailgun'),
+        ('ses', 'Amazon SES'),
+    ]
+    
+    NOTIFY_MODE_CHOICES = [
+        ('dashboard', 'Solo dashboard'),
+        ('email', 'Solo email'),
+        ('both', 'Dashboard + Email'),
+    ]
+    
+    # ==================== RELACIÓN ====================
+    client = models.OneToOneField(
+        'Client',
+        on_delete=models.CASCADE,
+        related_name='email_settings'
+    )
+    
+    # ==================== CONFIGURACIÓN GENERAL ====================
+    provider = models.CharField(
+        max_length=20,
+        choices=PROVIDER_CHOICES,
+        default='none',
+        help_text="Proveedor de email a utilizar"
+    )
+    
+    notify_mode = models.CharField(
+        max_length=20,
+        choices=NOTIFY_MODE_CHOICES,
+        default='dashboard',
+        help_text="Cómo notificar nuevos contactos"
+    )
+    
+    is_active = models.BooleanField(
+        default=True,
+        help_text="¿Está activo el envío de emails?"
+    )
+    
+    # ==================== SMTP CONFIG ====================
+    smtp_host = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Servidor SMTP (ej: smtp.zoho.com)"
+    )
+    
+    smtp_port = models.IntegerField(
+        default=587,
+        help_text="Puerto SMTP (587 para TLS, 465 para SSL)"
+    )
+    
+    smtp_username = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Usuario SMTP"
+    )
+    
+    smtp_password = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Contraseña SMTP (se almacena encriptada)"
+    )
+    
+    smtp_use_tls = models.BooleanField(
+        default=True,
+        help_text="Usar TLS (recomendado)"
+    )
+    
+    smtp_use_ssl = models.BooleanField(
+        default=False,
+        help_text="Usar SSL (alternativa a TLS)"
+    )
+    
+    # ==================== API PROVIDERS ====================
+    api_key = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="API Key para SendGrid, Resend, etc."
+    )
+    
+    # ==================== EMAILS ====================
+    from_email = models.EmailField(
+        blank=True,
+        help_text="Email remitente (ej: contacto@empresa.cl)"
+    )
+    
+    from_name = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Nombre del remitente (ej: 'Servelec Ingeniería')"
+    )
+    
+    reply_to = models.EmailField(
+        blank=True,
+        help_text="Email para respuestas (si es diferente del remitente)"
+    )
+    
+    # ==================== DESTINATARIOS ====================
+    notify_emails = models.TextField(
+        blank=True,
+        help_text="Emails a notificar (uno por línea). Si está vacío, usa contact_email del cliente."
+    )
+    
+    # ==================== TEMPLATES ====================
+    email_subject_template = models.CharField(
+        max_length=200,
+        default="Nuevo contacto de {name}",
+        help_text="Asunto del email. Variables: {name}, {email}, {subject}"
+    )
+    
+    send_copy_to_sender = models.BooleanField(
+        default=False,
+        help_text="¿Enviar copia al remitente del formulario?"
+    )
+    
+    # ==================== TESTING ====================
+    test_mode = models.BooleanField(
+        default=False,
+        help_text="Modo prueba: loguea pero no envía emails"
+    )
+    
+    last_test_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Última prueba de conexión"
+    )
+    
+    last_test_success = models.BooleanField(
+        default=False,
+        help_text="¿Última prueba exitosa?"
+    )
+    
+    last_test_error = models.TextField(
+        blank=True,
+        help_text="Error de la última prueba"
+    )
+    
+    # ==================== METADATA ====================
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Configuración de Email'
+        verbose_name_plural = 'Configuraciones de Email'
+    
+    def __str__(self):
+        return f"Email Settings - {self.client.name} ({self.get_provider_display()})"
+    
+    def get_notify_emails_list(self):
+        """Retorna lista de emails a notificar."""
+        if self.notify_emails:
+            return [e.strip() for e in self.notify_emails.strip().split('\n') if e.strip()]
+        # Fallback al email de contacto del cliente
+        if self.client.contact_email:
+            return [self.client.contact_email]
+        return []
+    
+    def get_from_email(self):
+        """Retorna el email remitente con nombre."""
+        email = self.from_email or self.client.contact_email or 'noreply@example.com'
+        name = self.from_name or self.client.name
+        return f'"{name}" <{email}>'
+    
+    def can_send_email(self):
+        """Verifica si está configurado para enviar emails."""
+        if not self.is_active:
+            return False
+        if self.notify_mode == 'dashboard':
+            return False
+        if self.provider == 'none':
+            return False
+        if self.provider == 'smtp' and not all([self.smtp_host, self.smtp_username]):
+            return False
+        if self.provider in ['sendgrid', 'resend', 'mailgun', 'ses'] and not self.api_key:
+            return False
+        return True
+
+
+# ============================================================
+# MODIFICAR Client.save() para crear EmailSettings automáticamente
+# ============================================================
+# En el método save() de Client, agregar después de crear ClientSettings:
+#
+#     # Crear ClientEmailSettings si no existe
+#     if not hasattr(self, 'email_settings'):
+#         ClientEmailSettings.objects.create(client=self)
+
+
+
+

@@ -6,14 +6,14 @@ Sistema de gestión de sitios web multi-tenant con Django. Permite crear y gesti
 
 ## 📊 Estado del Proyecto
 
-**Progreso:** Cards A-C completadas + Cards 1-15 originales
+**Progreso:** Deploy a producción completado ✅
 
 ```
 ✅ Core & Backend          [████████████████] 100%
 ✅ Frontend & Dashboard    [████████████████] 100%
 ✅ Gestión Avanzada        [████████████████] 100%
 ✅ Templates por Tenant    [████████████████] 100%
-⏳ Deploy & Production     [████░░░░░░░░░░░░] 25%
+✅ Deploy & Production     [████████████████] 100%
 ```
 
 **Última actualización:** Diciembre 2025
@@ -44,15 +44,19 @@ Sistema de gestión de sitios web multi-tenant con Django. Permite crear y gesti
 - [x] App Accounts (UserProfile vinculado a tenant)
 - [x] Roles y permisos por tenant
 
-### 📄 Templates por Tenant (Cards #A-C) ⭐ NUEVO
+### 📄 Templates por Tenant (Cards #A-C)
 - [x] **Card #A:** TenantTemplateLoader dinámico
 - [x] **Card #B:** Template `_default` completo y modular
 - [x] **Card #C:** Comando `create_tenant` mejorado + estructura media
 
-### ⏳ Pendiente
-- [ ] **Card #D:** Preparar Deploy
-- [ ] **Card #E:** Deploy a Render
-- [ ] **Card #F:** Configurar Dominio Producción
+### 🚀 Deploy (Card #D) ✅ COMPLETADO
+- [x] **Card #D:** Deploy a Render
+  - [x] Template loader robusto (maneja SafeString)
+  - [x] Middleware con fallback HTML (sin dependencia de templates)
+  - [x] Comando `setup_production` idempotente
+  - [x] Build.sh limpio (solo preparación)
+  - [x] Test local de producción
+  - [x] Variables de entorno documentadas
 
 ---
 
@@ -96,40 +100,15 @@ Sistema de gestión de sitios web multi-tenant con Django. Permite crear y gesti
 │                                                                 │
 │  1. Parámetro ?tenant=slug    (desarrollo)                     │
 │  2. Dominio exacto            servelec.cl → Client Servelec    │
-│  3. Wildcard subdomain        servelec.tuapp.cl → Servelec     │
-│  4. Localhost                 → DEFAULT_TENANT_SLUG            │
+│  3. DEFAULT_TENANT_SLUG       Fallback configurado             │
+│  4. HTML amigable             Si no encuentra nada             │
 │                                                                 │
 │  Tabla Domain:                                                  │
-│  ├── servelec.cl (primary)                                     │
-│  ├── www.servelec.cl (alias)                                   │
-│  └── servelec.tuapp.cl (subdomain auto)                        │
+│  ├── servelec-ingenieria.cl (primary)                          │
+│  ├── saasmvp-kajv.onrender.com (subdomain)                     │
+│  ├── localhost (development)                                    │
+│  └── 127.0.0.1 (development)                                   │
 │                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Tres Interfaces
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  SUPERADMIN → /superadmin/                                      │
-│  - Crear/gestionar tenants (CRUD completo)                     │
-│  - Ver TODOS los datos                                         │
-│  - Gestión de dominios                                         │
-│  - Puede acceder a cualquier tenant                            │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│  CLIENTE STAFF → /superadmin/ (filtrado)                       │
-│  - Solo ve SU tenant                                           │
-│  - NO ve módulo "Tenants"                                      │
-│  - CRUD de su contenido                                        │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│  PÚBLICO → /                                                    │
-│  - Sitio web del cliente                                       │
-│  - Template según tenant (o _default)                          │
-│  - Datos desde DB filtrados por tenant                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -139,92 +118,27 @@ Sistema de gestión de sitios web multi-tenant con Django. Permite crear y gesti
 
 ### Backend
 - **Django 5.2+** - Framework web
-- **PostgreSQL / SQLite** - Base de datos
+- **PostgreSQL** - Base de datos (producción)
+- **SQLite** - Base de datos (desarrollo)
 - **Python 3.11+** - Lenguaje
+- **Gunicorn** - Servidor WSGI (producción)
+- **WhiteNoise** - Archivos estáticos
 
 ### Frontend
 - **Tailwind CSS 3.x** - Framework CSS (CDN)
 - **HTMX 1.9+** - Interactividad sin JS complejo
 - **Alpine.js 3.x** - Estado reactivo ligero
 
-### Características
-- ✅ Templates personalizables por tenant
-- ✅ Multi-dominio por tenant
-- ✅ Sistema de permisos (Superuser vs Staff)
-- ✅ WhiteNoise para archivos estáticos/media
-- ✅ Preparado para Cloudinary (campos en ClientSettings)
-- ✅ Sin npm/webpack (CDN directo)
-
----
-
-## 📁 Estructura del Proyecto
-
-```
-SaaSMVP/
-├── config/
-│   ├── settings/
-│   │   ├── base.py              # TenantTemplateLoader configurado
-│   │   ├── development.py
-│   │   └── production.py
-│   └── urls.py
-│
-├── apps/
-│   ├── tenants/
-│   │   ├── models.py            # Client, ClientSettings, Domain
-│   │   ├── middleware.py        # TenantMiddleware + thread-local
-│   │   ├── template_loader.py   # TenantTemplateLoader ⭐
-│   │   ├── context_processors.py
-│   │   ├── admin.py
-│   │   ├── templatetags/
-│   │   │   └── tenant_tags.py   # {% tenant_static %}, {% tenant_media %}
-│   │   └── management/commands/
-│   │       └── create_tenant.py # Comando mejorado ⭐
-│   │
-│   ├── website/
-│   │   ├── models.py            # Section, Service, Testimonial, Contact
-│   │   ├── views.py
-│   │   └── templatetags/
-│   │       └── website_tags.py  # {% get_section %}, {% get_services %}
-│   │
-│   └── accounts/
-│       ├── models.py            # UserProfile (vincula user ↔ tenant)
-│       ├── admin.py             # CustomUserAdmin
-│       └── mixins.py            # TenantAdminMixin
-│
-├── templates/
-│   ├── base.html                # Base global
-│   ├── tenants/                 # ⭐ NUEVO: Templates por tenant
-│   │   ├── _default/            # Template base para todos
-│   │   │   └── landing/
-│   │   │       └── home.html    # Hero, About, Services, Contact
-│   │   ├── servelec/            # (opcional) Personalizado
-│   │   └── neblita/             # (opcional) Personalizado
-│   │
-│   ├── components/
-│   ├── dashboard/
-│   ├── auth/
-│   ├── partials/
-│   └── errors/
-│
-├── media/
-│   └── tenants/                 # ⭐ NUEVO: Media por tenant
-│       ├── servelec/
-│       │   ├── images/
-│       │   └── documents/
-│       └── neblita/
-│
-└── static/
-```
+### Deploy
+- **Render.com** - Hosting
+- **PostgreSQL (Render)** - Base de datos
+- **SSL automático** - Certificados HTTPS
 
 ---
 
 ## 🚀 Instalación y Setup
 
-### Requisitos
-- Python 3.11+
-- PostgreSQL (opcional, usa SQLite en dev)
-
-### Instalación
+### Desarrollo Local
 
 ```bash
 # 1. Clonar repositorio
@@ -233,51 +147,64 @@ cd SaaSMVP
 
 # 2. Crear virtualenv
 python -m venv env
-source env/bin/activate  # Windows: env\Scripts\activate
+env\Scripts\activate  # Windows
+source env/bin/activate  # Linux/Mac
 
 # 3. Instalar dependencias
 pip install -r requirements.txt
 
-# 4. Configurar variables de entorno
-cp .env.example .env
+# 4. Configurar .env
+copy .env.example .env
 # Editar .env con tus configuraciones
 
 # 5. Migraciones
 python manage.py migrate
 
-# 6. Crear superusuario
-python manage.py createsuperuser
+# 6. Crear tenant inicial
+python manage.py setup_production --domain=localhost --tenant=servelec
 
-# 7. Crear carpetas necesarias
-mkdir -p templates/tenants/_default/landing
-mkdir -p media/tenants
-
-# 8. Iniciar servidor
+# 7. Iniciar servidor
 python manage.py runserver
 ```
 
----
-
-## 📖 Uso
-
-### Crear Tenant Completo (Nuevo Comando)
+### Test de Producción Local
 
 ```bash
-# Básico
-python manage.py create_tenant "Mi Empresa" miempresa.cl
+# Windows
+test_production.bat
 
-# Con opciones
+# Linux/Mac
+chmod +x test_production.sh
+./test_production.sh
+```
+
+### URLs de Acceso
+- **Sitio público:** http://127.0.0.1:8000/
+- **Admin:** http://127.0.0.1:8000/superadmin/
+- **Dashboard:** http://127.0.0.1:8000/dashboard/
+
+---
+
+## 📖 Management Commands
+
+### setup_production
+Configura datos iniciales para producción (idempotente):
+```bash
+python manage.py setup_production
+python manage.py setup_production --domain=miapp.com --tenant=miempresa
+```
+
+### create_tenant
+Crea un nuevo tenant completo:
+```bash
+python manage.py create_tenant "Mi Empresa" miempresa.cl
 python manage.py create_tenant "Mi Empresa" miempresa.cl \
     --email=admin@miempresa.cl \
     --password=secreto123 \
-    --phone="+56912345678" \
-    --color=#ff6600 \
-    --extra-domain=www.miempresa.cl \
-    --copy-templates
+    --color=#ff6600
 ```
 
-**Opciones disponibles:**
-
+### Opciones de create_tenant:
 | Opción | Descripción | Default |
 |--------|-------------|---------|
 | `--email` | Email del admin | admin@example.com |
@@ -289,81 +216,117 @@ python manage.py create_tenant "Mi Empresa" miempresa.cl \
 | `--copy-templates` | Copiar _default a tenant | False |
 | `--no-content` | No crear contenido inicial | False |
 
-**Crea automáticamente:**
-- ✅ Client + ClientSettings
-- ✅ Dominios (principal + extras + subdominio)
-- ✅ Usuario admin vinculado al tenant
-- ✅ Carpeta media/tenants/{slug}/
-- ✅ 3 secciones (hero, about, contact)
-- ✅ 3 servicios de ejemplo
+---
 
-### Probar en Desarrollo
+## 🚀 Deploy a Render
 
+### Variables de Entorno Requeridas
+
+| Variable | Valor | Descripción |
+|----------|-------|-------------|
+| `SECRET_KEY` | (generada) | Clave secreta Django |
+| `DEBUG` | `False` | Siempre False en producción |
+| `DJANGO_SETTINGS_MODULE` | `config.settings.production` | Settings de producción |
+| `DATABASE_URL` | (automática) | Conexión a PostgreSQL |
+| `DEFAULT_TENANT_SLUG` | `servelec` | Tenant por defecto |
+| `ALLOWED_HOSTS` | `localhost,127.0.0.1` | Hosts permitidos |
+
+### Proceso de Deploy
+
+1. **Push a GitHub:**
 ```bash
-# Visitar con parámetro tenant
-http://127.0.0.1:8000/?tenant=mi-empresa
-
-# O configurar DEFAULT_TENANT_SLUG en settings
-http://127.0.0.1:8000/
+git add .
+git commit -m "deploy: production ready"
+git push origin main
 ```
 
-### Personalizar Templates
+2. **En Render Dashboard:**
+   - Manual Deploy → Clear build cache & deploy
 
-```bash
-# 1. Copiar _default a tu tenant
-xcopy /E /I templates\tenants\_default templates\tenants\mi-empresa
+3. **Verificar logs:**
+```
+✅ BUILD COMPLETADO
+✅ SETUP COMPLETADO
+```
 
-# 2. Editar templates en templates/tenants/mi-empresa/
-# 3. El TenantTemplateLoader usará automáticamente los personalizados
+4. **Agregar dominios personalizados:**
+   - Settings → Custom Domains
+   - Agregar: `servelec-ingenieria.cl`
+   - Configurar DNS (CNAME)
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+SaaSMVP/
+├── apps/
+│   ├── tenants/
+│   │   ├── template_loader.py   # Robusto, maneja SafeString
+│   │   ├── middleware.py        # HTML fallback si no hay tenant
+│   │   ├── models.py            # Client, ClientSettings, Domain
+│   │   └── management/commands/
+│   │       ├── create_tenant.py
+│   │       └── setup_production.py
+│   ├── website/
+│   │   ├── models.py            # Section, Service, Testimonial
+│   │   └── views.py
+│   └── accounts/
+│       └── models.py            # UserProfile
+│
+├── config/settings/
+│   ├── base.py                  # Settings base con loaders
+│   ├── development.py           # Desarrollo
+│   └── production.py            # Producción
+│
+├── templates/
+│   ├── tenants/
+│   │   └── _default/            # Template base
+│   │       └── landing/
+│   │           └── home.html
+│   ├── base.html
+│   ├── dashboard/
+│   └── auth/
+│
+├── build.sh                     # Script de build para Render
+├── test_production.bat          # Test local (Windows)
+├── test_production.sh           # Test local (Linux/Mac)
+├── requirements.txt
+└── render.yaml
 ```
 
 ---
 
 ## 🔐 Sistema de Permisos
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    MATRIZ DE PERMISOS                           │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  SUPERUSER (is_superuser=True)                                 │
-│  ├── Ve módulo "Tenants" ✅                                    │
-│  ├── Ve TODOS los usuarios ✅                                  │
-│  ├── Ve TODO el contenido ✅                                   │
-│  ├── Puede acceder a cualquier ?tenant= ✅                     │
-│  └── CRUD completo en todo ✅                                  │
-│                                                                 │
-│  STAFF DE TENANT (is_staff=True + profile.client)              │
-│  ├── NO ve módulo "Tenants" ❌                                 │
-│  ├── Solo ve usuarios de SU tenant ✅                          │
-│  ├── Solo ve contenido de SU tenant ✅                         │
-│  ├── NO puede acceder a otros tenants ❌                       │
-│  └── CRUD solo de su contenido ✅                              │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Rol | Acceso Admin | Ve Tenants | Ve Todo | CRUD |
+|-----|--------------|------------|---------|------|
+| **Superuser** | ✅ | ✅ | ✅ | ✅ Todo |
+| **Staff Tenant** | ✅ (filtrado) | ❌ | Solo su tenant | ✅ Su contenido |
+| **Usuario Normal** | ❌ | ❌ | Solo público | ❌ |
 
 ---
 
-## 🗺️ Roadmap
+## 🗺️ Roadmap Completado
 
-### ✅ Fase 1: MVP Core (Completado)
+### ✅ Fase 1: MVP Core
 - Multi-tenancy funcional
 - Frontend moderno y responsive
 - Dashboard cliente completo
 - Management commands
 - Autenticación y permisos
 
-### ✅ Fase 2: Templates por Tenant (Completado)
+### ✅ Fase 2: Templates por Tenant
 - TenantTemplateLoader
 - Template _default modular
 - Estructura media por tenant
 - Comando create_tenant mejorado
 
-### ⏳ Fase 3: Deploy (En progreso)
-- [ ] **Card #D:** Preparar Deploy
-- [ ] **Card #E:** Deploy a Render
-- [ ] **Card #F:** Configurar Dominio
+### ✅ Fase 3: Deploy
+- Build.sh robusto
+- Setup de producción idempotente
+- Test local de producción
+- Deploy a Render funcional
 
 ### 🔮 Fase 4: Futuras Mejoras
 - [ ] Cloudinary para imágenes
@@ -373,6 +336,7 @@ xcopy /E /I templates\tenants\_default templates\tenants\mi-empresa
 - [ ] Blog system
 - [ ] Multi-idioma
 - [ ] API REST
+- [ ] Pagos y suscripciones
 
 ---
 
@@ -384,4 +348,14 @@ xcopy /E /I templates\tenants\_default templates\tenants\mi-empresa
 
 ---
 
-**🚀 Templates por Tenant completados - Siguiente: Deploy a Producción**
+## 🎉 Estado Actual
+
+**MVP COMPLETADO Y DEPLOYADO** 
+
+- ✅ Sistema multi-tenant funcionando
+- ✅ Templates personalizables por tenant
+- ✅ Deploy a Render operativo
+- ✅ Admin y Dashboard funcionales
+- ✅ Gestión de dominios múltiples
+
+**URL Producción:** https://saasmvp-kajv.onrender.com

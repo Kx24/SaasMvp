@@ -1,0 +1,173 @@
+{% comment %}
+Template: templates/emails/contact_notification.html
+Email HTML enviado al cliente cuando recibe un nuevo contacto.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo contacto</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: {% if settings %}{{ settings.primary_color }}{% else %}#2563eb{% endif %};
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .content {
+            padding: 24px;
+        }
+        .field {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+        }
+        .field:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .field-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .field-value {
+            font-size: 16px;
+            color: #333;
+        }
+        .message-box {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 8px;
+            white-space: pre-wrap;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        .footer a {
+            color: {% if settings %}{{ settings.primary_color }}{% else %}#2563eb{% endif %};
+            text-decoration: none;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: {% if settings %}{{ settings.primary_color }}{% else %}#2563eb{% endif %}20;
+            color: {% if settings %}{{ settings.primary_color }}{% else %}#2563eb{% endif %};
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .meta {
+            font-size: 12px;
+            color: #999;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📬 Nuevo Contacto</h1>
+            <p>Has recibido un mensaje desde tu sitio web</p>
+        </div>
+        
+        <div class="content">
+            <div class="field">
+                <div class="field-label">Nombre</div>
+                <div class="field-value">{{ contact.name }}</div>
+            </div>
+            
+            <div class="field">
+                <div class="field-label">Email</div>
+                <div class="field-value">
+                    <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+                </div>
+            </div>
+            
+            {% if contact.phone %}
+            <div class="field">
+                <div class="field-label">Teléfono</div>
+                <div class="field-value">
+                    <a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if contact.company %}
+            <div class="field">
+                <div class="field-label">Empresa</div>
+                <div class="field-value">{{ contact.company }}</div>
+            </div>
+            {% endif %}
+            
+            {% if contact.subject %}
+            <div class="field">
+                <div class="field-label">Asunto</div>
+                <div class="field-value">{{ contact.subject }}</div>
+            </div>
+            {% endif %}
+            
+            <div class="field">
+                <div class="field-label">Mensaje</div>
+                <div class="message-box">{{ contact.message }}</div>
+            </div>
+            
+            <div class="meta">
+                <strong>Recibido:</strong> {{ contact.created_at|date:"d/m/Y H:i" }}<br>
+                {% if contact.ip_address %}
+                <strong>IP:</strong> {{ contact.ip_address }}
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>
+                Este mensaje fue enviado desde el formulario de contacto de<br>
+                <strong>{{ client.name }}</strong>
+            </p>
+            <p>
+                <a href="{{ client.get_absolute_url }}/dashboard/contacts/">
+                    Ver en Dashboard →
+                </a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

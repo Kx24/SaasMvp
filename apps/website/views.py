@@ -1,6 +1,7 @@
 """
 Views para la aplicación website
-CORREGIDO - Sin duplicados, usando modelos correctos
+================================
+LIMPIO - Sin duplicados, con EmailDispatcher integrado
 """
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -8,6 +9,24 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from .models import Section, Service, Testimonial, ContactSubmission
 from .forms import SectionForm, ServiceForm, ContactForm
+import logging
+import json
+
+logger = logging.getLogger(__name__)
+
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def get_client_ip(request):
+    """Obtiene la IP real del cliente considerando proxies."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR', '')
+    return ip[:45] if ip else None
 
 
 # ============================================================
@@ -22,15 +41,15 @@ def home(request):
     sections = Section.objects.filter(
         client=request.client,
         is_active=True
-    ).exclude(section_type='service')  # Excluir si hay alguna vieja
+    ).exclude(section_type='service')
     
-    # Obtener servicios del modelo Service (NO de Section)
+    # Obtener servicios del modelo Service
     services = Service.objects.filter(
         client=request.client,
         is_active=True
     ).order_by('order')
     
-    # Organizar secciones por tipo para fácil acceso en template
+    # Organizar secciones por tipo
     sections_dict = {s.section_type: s for s in sections}
     
     context = {
@@ -45,6 +64,83 @@ def home(request):
 
 
 # ============================================================
+# FORMULARIO DE CONTACTO PÚBLICO
+# ============================================================
+
+def contact_submit(request):
+    """
+    Procesar formulario de contacto público.
+    
+    Flujo:
+    1. Crear ContactSubmission en DB (siempre)
+    2. Llamar a EmailDispatcher según configuración del tenant
+    3. Retornar respuesta al usuario
+    """
+    if request.method != 'POST':
+        return redirect('home')
+    
+    # Verificar que hay un cliente asociado
+    if not hasattr(request, 'client') or not request.client:
+        messages.error(request, 'Error de configuración. Intenta más tarde.')
+        return redirect('home')
+    
+    # 1. Crear registro en base de datos (SIEMPRE)
+    contact = ContactSubmission.objects.create(
+        client=request.client,
+        name=request.POST.get('name', '').strip(),
+        email=request.POST.get('email', '').strip(),
+        phone=request.POST.get('phone', '').strip(),
+        company=request.POST.get('company', '').strip(),
+        subject=request.POST.get('subject', '').strip(),
+        message=request.POST.get('message', '').strip(),
+        ip_address=get_client_ip(request),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+    )
+    
+    logger.info(
+        f"[Contact] New submission #{contact.id} for {request.client.slug} "
+        f"from {contact.email}"
+    )
+    
+    # 2. Dispatch de notificación según configuración
+    try:
+        from apps.tenants.services.email_dispatcher import EmailDispatcher
+        dispatcher = EmailDispatcher(request.client)
+        result = dispatcher.send_contact_notification(contact)
+        
+        logger.info(
+            f"[Contact] Dispatch result for #{contact.id}: "
+            f"{result.status.value} (email_sent={result.email_sent})"
+        )
+        
+    except Exception as e:
+        logger.error(f"[Contact] Dispatch error for #{contact.id}: {e}", exc_info=True)
+    
+    # 3. Respuesta al usuario
+    messages.success(
+        request, 
+        '¡Gracias por contactarnos! Te responderemos pronto.'
+    )
+    
+    # Si es HTMX, retornar partial
+    if request.headers.get('HX-Request'):
+        return render(request, 'partials/contact_success.html', {
+            'contact': contact
+        })
+    
+    return redirect('home')
+
+
+# ============================================================
+# LOGIN MODAL (HTMX)
+# ============================================================
+
+def login_modal(request):
+    """Devuelve el modal de login para HTMX."""
+    return render(request, 'auth/login_modal.html')
+
+
+# ============================================================
 # DASHBOARD PRINCIPAL
 # ============================================================
 
@@ -53,12 +149,8 @@ def dashboard(request):
     """
     Dashboard principal del cliente.
     """
-    # Contar servicios (del modelo Service)
-    services_count = Service.objects.filter(
-        client=request.client
-    ).count()
+    services_count = Service.objects.filter(client=request.client).count()
     
-    # Contactos recientes
     recent_contacts = ContactSubmission.objects.filter(
         client=request.client,
         status='new'
@@ -79,7 +171,7 @@ def dashboard(request):
 
 
 # ============================================================
-# DASHBOARD - SECCIONES (hero, about, contact)
+# DASHBOARD - SECCIONES
 # ============================================================
 
 @login_required(login_url='/auth/login/')
@@ -87,12 +179,10 @@ def dashboard_sections(request):
     """
     Lista de secciones editables (hero, about, contact) + servicios
     """
-    # Secciones fijas (NO incluye 'service' type)
     sections = Section.objects.filter(
         client=request.client
     ).exclude(section_type='service').order_by('order')
     
-    # Servicios del modelo Service
     services = Service.objects.filter(
         client=request.client
     ).order_by('order')
@@ -108,7 +198,7 @@ def dashboard_sections(request):
 @login_required(login_url='/auth/login/')
 def edit_section_dashboard(request, section_id):
     """
-    Editar una sección desde el dashboard (hero, about, contact)
+    Editar una sección desde el dashboard
     """
     section = get_object_or_404(Section, id=section_id, client=request.client)
 
@@ -132,26 +222,22 @@ def edit_section_dashboard(request, section_id):
 
 
 # ============================================================
-# DASHBOARD - SERVICIOS CRUD (usando modelo Service)
+# DASHBOARD - SERVICIOS CRUD
 # ============================================================
 
 @login_required(login_url='/auth/login/')
 def create_service(request):
-    """
-    Crear un nuevo servicio (usa modelo Service, NO Section)
-    """
+    """Crear un nuevo servicio"""
     if request.method == 'POST':
-        # Crear servicio manualmente para control total
         service = Service.objects.create(
             client=request.client,
-            name=request.POST.get('title', ''),  # El form usa 'title' pero el modelo usa 'name'
+            name=request.POST.get('title', ''),
             description=request.POST.get('description', ''),
             icon=request.POST.get('icon', '⚡'),
             price_text=request.POST.get('price_text', ''),
             is_active=request.POST.get('is_active') == 'on',
         )
         
-        # Manejar imagen
         if request.FILES.get('image'):
             service.image = request.FILES['image']
             service.save()
@@ -168,9 +254,7 @@ def create_service(request):
 
 @login_required(login_url='/auth/login/')
 def edit_service_dashboard(request, service_id):
-    """
-    Editar un servicio existente (usa modelo Service)
-    """
+    """Editar un servicio existente"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
     
     if request.method == 'POST':
@@ -197,9 +281,7 @@ def edit_service_dashboard(request, service_id):
 
 @login_required(login_url='/auth/login/')
 def delete_service_dashboard(request, service_id):
-    """
-    Eliminar un servicio (usa modelo Service)
-    """
+    """Eliminar un servicio"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
     
     if request.method == 'POST':
@@ -216,7 +298,7 @@ def delete_service_dashboard(request, service_id):
 
 
 # ============================================================
-# SERVICIOS - AJAX (toggle active, featured, reorder)
+# SERVICIOS - AJAX
 # ============================================================
 
 @login_required(login_url='/auth/login/')
@@ -251,7 +333,6 @@ def toggle_service_featured(request, service_id):
 def reorder_services(request):
     """Reordenar servicios (drag & drop)"""
     if request.method == 'POST':
-        import json
         data = json.loads(request.body)
         order_data = data.get('order', [])
 
@@ -276,16 +357,16 @@ def reorder_services(request):
 
 
 # ============================================================
-# EDICIÓN INLINE (HTMX) - Secciones
+# EDICIÓN INLINE (HTMX)
 # ============================================================
 
 @login_required(login_url='/auth/login/')
 def edit_section(request, section_id):
-    """Editar una sección con HTMX."""
+    """Editar sección con HTMX"""
     section = get_object_or_404(Section, id=section_id, client=request.client)
     
     if request.method == 'POST':
-        form = SectionForm(request.POST, request.FILES, instance=section)
+        form = SectionForm(request.POST, instance=section)
         if form.is_valid():
             form.save()
             
@@ -308,7 +389,7 @@ def edit_section(request, section_id):
 
 @login_required(login_url='/auth/login/')
 def cancel_edit_section(request, section_id):
-    """Cancelar edición de sección."""
+    """Cancelar edición de sección"""
     section = get_object_or_404(Section, id=section_id, client=request.client)
     return render(request, 'partials/section_display.html', {
         'section': section,
@@ -316,17 +397,13 @@ def cancel_edit_section(request, section_id):
     })
 
 
-# ============================================================
-# EDICIÓN INLINE (HTMX) - Servicios
-# ============================================================
-
 @login_required(login_url='/auth/login/')
 def edit_service(request, service_id):
-    """Editar un servicio con HTMX."""
+    """Editar servicio con HTMX"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
     
     if request.method == 'POST':
-        form = ServiceForm(request.POST, request.FILES, instance=service)
+        form = ServiceForm(request.POST, instance=service)
         if form.is_valid():
             form.save()
             
@@ -349,9 +426,9 @@ def edit_service(request, service_id):
 
 @login_required(login_url='/auth/login/')
 def add_service(request):
-    """Agregar un nuevo servicio con HTMX."""
+    """Agregar servicio con HTMX"""
     if request.method == 'POST':
-        form = ServiceForm(request.POST, request.FILES)
+        form = ServiceForm(request.POST)
         if form.is_valid():
             service = form.save(commit=False)
             service.client = request.client
@@ -375,7 +452,7 @@ def add_service(request):
 
 @login_required(login_url='/auth/login/')
 def delete_service(request, service_id):
-    """Eliminar un servicio con HTMX."""
+    """Eliminar servicio con HTMX"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
     
     if request.method == 'POST':
@@ -394,7 +471,7 @@ def delete_service(request, service_id):
 
 @login_required(login_url='/auth/login/')
 def cancel_edit_service(request, service_id):
-    """Cancelar edición de servicio."""
+    """Cancelar edición de servicio"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
     return render(request, 'partials/service_card.html', {
         'service': service,
@@ -408,7 +485,7 @@ def cancel_edit_service(request, service_id):
 
 @login_required(login_url='/auth/login/')
 def dashboard_testimonials(request):
-    """Lista de todos los testimonios del cliente."""
+    """Lista de testimonios"""
     testimonials = Testimonial.objects.filter(
         client=request.client
     ).order_by('-created_at')
@@ -426,7 +503,7 @@ def dashboard_testimonials(request):
 
 @login_required(login_url='/auth/login/')
 def dashboard_contacts(request):
-    """Lista de mensajes de contacto recibidos."""
+    """Lista de mensajes de contacto"""
     contacts = ContactSubmission.objects.filter(
         client=request.client
     ).order_by('-created_at')
@@ -445,7 +522,7 @@ def dashboard_contacts(request):
 
 @login_required(login_url='/auth/login/')
 def mark_contact_read(request, contact_id):
-    """Marcar un contacto como leído."""
+    """Marcar contacto como leído"""
     if request.method == 'POST':
         contact = get_object_or_404(
             ContactSubmission,
@@ -460,7 +537,7 @@ def mark_contact_read(request, contact_id):
 
 @login_required(login_url='/auth/login/')
 def mark_contact_replied(request, contact_id):
-    """Marcar un contacto como respondido."""
+    """Marcar contacto como respondido"""
     if request.method == 'POST':
         contact = get_object_or_404(
             ContactSubmission,
@@ -471,58 +548,3 @@ def mark_contact_replied(request, contact_id):
         messages.success(request, 'Contacto marcado como respondido')
     
     return redirect('dashboard_contacts')
-
-
-# ============================================================
-# FORMULARIO DE CONTACTO PÚBLICO
-# ============================================================
-
-def contact_submit(request):
-    """Procesa el formulario de contacto."""
-    if request.method == 'POST':
-        form = ContactForm(request.POST)
-        
-        if form.is_valid():
-            contact = form.save(commit=False)
-            contact.client = request.client
-            contact.ip_address = get_client_ip(request)
-            contact.user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
-            contact.save()
-            
-            if request.headers.get('HX-Request'):
-                return render(request, 'partials/contact_success.html', {
-                    'contact': contact
-                })
-            
-            messages.success(request, '¡Mensaje enviado correctamente! Te contactaremos pronto.')
-            return redirect('home')
-        else:
-            if request.headers.get('HX-Request'):
-                return render(request, 'partials/contact_form.html', {
-                    'form': form
-                })
-            
-            messages.error(request, 'Por favor corrige los errores en el formulario.')
-            return render(request, 'landing/home.html', {'form': form})
-    
-    form = ContactForm()
-    return render(request, 'partials/contact_form.html', {'form': form})
-
-
-def get_client_ip(request):
-    """Helper para obtener la IP del cliente"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-
-
-# ============================================================
-# LOGIN MODAL (HTMX)
-# ============================================================
-
-def login_modal(request):
-    """Devuelve el modal de login para HTMX."""
-    return render(request, 'auth/login_modal.html')
