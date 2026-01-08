@@ -5,12 +5,18 @@ Arquitectura:
 - Client: El tenant/cliente principal
 - Domain: Múltiples dominios por cliente (subdominios + custom domains)
 - ClientSettings: Configuración de branding, SEO, etc.
+- ClientEmailSettings: Configuración de email por tenant
+- FormConfig: Configuración de formulario de contacto por tenant
 """
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
 
+
+# ==============================================================================
+# CLIENT - Modelo principal del tenant
+# ==============================================================================
 
 class Client(models.Model):
     """
@@ -118,6 +124,7 @@ class Client(models.Model):
         return f"{self.name} ({self.slug})"
     
     def save(self, *args, **kwargs):
+        # Auto-generar slug si no existe
         if not self.slug:
             self.slug = slugify(self.name)
         
@@ -125,16 +132,11 @@ class Client(models.Model):
         if not self.company_name:
             self.company_name = self.name
             
+        # Guardar el cliente primero
         super().save(*args, **kwargs)
         
-        # Crear ClientSettings si no existe
-        if not hasattr(self, 'settings'):
-            ClientSettings.objects.create(client=self)
-            
-        # AGREGAR: Crear ClientEmailSettings si no existe
-        if not hasattr(self, 'email_settings'):
-            from .models import ClientEmailSettings  # Import local para evitar circular
-            ClientEmailSettings.objects.create(client=self)
+        # NO crear settings aquí - lo hace signals.py
+        # Esto evita duplicación
     
     @property
     def primary_domain(self):
@@ -155,6 +157,10 @@ class Client(models.Model):
             return f"https://{self.primary_domain.domain}"
         return None
 
+
+# ==============================================================================
+# DOMAIN - Dominios asociados a un cliente
+# ==============================================================================
 
 class Domain(models.Model):
     """
@@ -253,23 +259,21 @@ class Domain(models.Model):
         base_domain = getattr(settings, 'BASE_DOMAIN', 'tuapp.cl')
         if self.domain.endswith(f'.{base_domain}'):
             self.domain_type = 'subdomain'
-            self.is_verified = True  # Subdominios propios están verificados
         else:
             self.domain_type = 'custom'
         
         super().save(*args, **kwargs)
-    
-    def generate_verification_token(self):
-        """Genera un token único para verificación DNS"""
-        import secrets
-        self.verification_token = secrets.token_hex(32)
-        self.save(update_fields=['verification_token'])
-        return self.verification_token
 
+
+# ==============================================================================
+# CLIENT SETTINGS - Configuración de branding y SEO
+# ==============================================================================
 
 class ClientSettings(models.Model):
     """
-    Configuraciones de branding, SEO y features por cliente.
+    Configuración y branding del cliente.
+    
+    OneToOne con Client - cada cliente tiene exactamente una configuración.
     """
     
     client = models.OneToOneField(
@@ -279,42 +283,19 @@ class ClientSettings(models.Model):
     )
     
     # ==================== BRANDING ====================
-    company_name = models.CharField(
-        max_length=200,
-        blank=True,
-        help_text="Nombre a mostrar en el sitio"
-    )
+    logo = models.ImageField(upload_to='clients/logos/', blank=True, null=True)
+    favicon = models.ImageField(upload_to='clients/favicons/', blank=True, null=True)
     
-    logo = models.ImageField(
-        upload_to='clients/logos/',
-        blank=True,
-        null=True
-    )
+    primary_color = models.CharField(max_length=7, default='#3B82F6')
+    secondary_color = models.CharField(max_length=7, default='#1E40AF')
     
-    favicon = models.ImageField(
-        upload_to='clients/favicons/',
-        blank=True,
-        null=True
-    )
+    font_family = models.CharField(max_length=100, default='Inter, sans-serif')
     
-    primary_color = models.CharField(
-        max_length=7,
-        default='#2563eb',
-        help_text="Color primario HEX"
-    )
+    # ==================== INFORMACIÓN ====================
+    company_name = models.CharField(max_length=200, blank=True)
+    tagline = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
     
-    secondary_color = models.CharField(
-        max_length=7,
-        default='#1e40af',
-        help_text="Color secundario HEX"
-    )
-    
-    font_family = models.CharField(
-        max_length=100,
-        default='Inter, sans-serif'
-    )
-    
-    # ==================== CONTACTO ====================
     contact_email = models.EmailField(blank=True)
     contact_phone = models.CharField(max_length=20, blank=True)
     address = models.TextField(blank=True)
@@ -358,7 +339,9 @@ class ClientSettings(models.Model):
         super().save(*args, **kwargs)
 
 
-# ==================== Configuración de Email ====================
+# ==============================================================================
+# CLIENT EMAIL SETTINGS - Configuración de email
+# ==============================================================================
 
 class ClientEmailSettings(models.Model):
     """
@@ -368,9 +351,6 @@ class ClientEmailSettings(models.Model):
     - SMTP propio (ej: Zoho, Gmail, etc.)
     - Provider externo (SendGrid, Resend, etc.)
     - Solo dashboard (sin email)
-    
-    El formulario de contacto NO decide nada, solo emite eventos.
-    Este modelo define el CONTRATO de cómo se procesan.
     """
     
     # ==================== PROVIDERS ====================
@@ -391,7 +371,7 @@ class ClientEmailSettings(models.Model):
     
     # ==================== RELACIÓN ====================
     client = models.OneToOneField(
-        'Client',
+        Client,
         on_delete=models.CASCADE,
         related_name='email_settings'
     )
@@ -529,7 +509,6 @@ class ClientEmailSettings(models.Model):
         """Retorna lista de emails a notificar."""
         if self.notify_emails:
             return [e.strip() for e in self.notify_emails.strip().split('\n') if e.strip()]
-        # Fallback al email de contacto del cliente
         if self.client.contact_email:
             return [self.client.contact_email]
         return []
@@ -555,15 +534,203 @@ class ClientEmailSettings(models.Model):
         return True
 
 
-# ============================================================
-# MODIFICAR Client.save() para crear EmailSettings automáticamente
-# ============================================================
-# En el método save() de Client, agregar después de crear ClientSettings:
-#
-#     # Crear ClientEmailSettings si no existe
-#     if not hasattr(self, 'email_settings'):
-#         ClientEmailSettings.objects.create(client=self)
+# ==============================================================================
+# FORM CONFIG - Configuración de formulario de contacto
+# ==============================================================================
 
-
-
-
+class FormConfig(models.Model):
+    """
+    Configuración del formulario de contacto por tenant.
+    
+    Cada tenant puede activar/desactivar campos y personalizarlos.
+    """
+    
+    client = models.OneToOneField(
+        Client,
+        on_delete=models.CASCADE,
+        related_name='form_config'
+    )
+    
+    # ==================== CAMPOS BÁSICOS (siempre visibles) ====================
+    # Nombre - siempre requerido
+    name_label = models.CharField(
+        max_length=50, 
+        default='Nombre completo',
+        help_text="Etiqueta del campo nombre"
+    )
+    name_placeholder = models.CharField(
+        max_length=100, 
+        default='Tu nombre',
+        blank=True
+    )
+    
+    # Email - siempre requerido
+    email_label = models.CharField(
+        max_length=50, 
+        default='Email',
+    )
+    email_placeholder = models.CharField(
+        max_length=100, 
+        default='tu@email.com',
+        blank=True
+    )
+    
+    # Mensaje - siempre requerido
+    message_label = models.CharField(
+        max_length=50, 
+        default='Mensaje',
+    )
+    message_placeholder = models.CharField(
+        max_length=200, 
+        default='¿En qué podemos ayudarte?',
+        blank=True
+    )
+    message_rows = models.IntegerField(
+        default=4,
+        help_text="Número de filas del textarea"
+    )
+    
+    # ==================== CAMPOS OPCIONALES ====================
+    
+    # Teléfono
+    show_phone = models.BooleanField(default=True, help_text="Mostrar campo teléfono")
+    phone_required = models.BooleanField(default=False, help_text="¿Es obligatorio?")
+    phone_label = models.CharField(max_length=50, default='Teléfono')
+    phone_placeholder = models.CharField(max_length=100, default='+56 9 1234 5678', blank=True)
+    
+    # Empresa/Compañía
+    show_company = models.BooleanField(default=False, help_text="Mostrar campo empresa")
+    company_required = models.BooleanField(default=False)
+    company_label = models.CharField(max_length=50, default='Empresa')
+    company_placeholder = models.CharField(max_length=100, default='Tu empresa', blank=True)
+    
+    # Asunto (dropdown)
+    show_subject = models.BooleanField(default=True, help_text="Mostrar selector de asunto")
+    subject_required = models.BooleanField(default=False)
+    subject_label = models.CharField(max_length=50, default='Asunto')
+    subject_options = models.TextField(
+        default='Consulta general\nSolicitar cotización\nSoporte técnico\nOtro',
+        help_text="Opciones del dropdown, una por línea"
+    )
+    
+    # Dirección
+    show_address = models.BooleanField(default=False, help_text="Mostrar campo dirección")
+    address_required = models.BooleanField(default=False)
+    address_label = models.CharField(max_length=50, default='Dirección')
+    address_placeholder = models.CharField(max_length=100, default='Tu dirección', blank=True)
+    
+    # Ciudad/Comuna
+    show_city = models.BooleanField(default=False, help_text="Mostrar campo ciudad")
+    city_required = models.BooleanField(default=False)
+    city_label = models.CharField(max_length=50, default='Ciudad/Comuna')
+    city_placeholder = models.CharField(max_length=100, default='', blank=True)
+    
+    # Presupuesto
+    show_budget = models.BooleanField(default=False, help_text="Mostrar selector de presupuesto")
+    budget_required = models.BooleanField(default=False)
+    budget_label = models.CharField(max_length=50, default='Presupuesto estimado')
+    budget_options = models.TextField(
+        default='Menos de $100.000\n$100.000 - $500.000\n$500.000 - $1.000.000\nMás de $1.000.000\nNo definido',
+        help_text="Opciones del dropdown, una por línea",
+        blank=True
+    )
+    
+    # Urgencia
+    show_urgency = models.BooleanField(default=False, help_text="Mostrar selector de urgencia")
+    urgency_required = models.BooleanField(default=False)
+    urgency_label = models.CharField(max_length=50, default='Urgencia')
+    urgency_options = models.TextField(
+        default='Normal\nUrgente\nMuy urgente (24h)',
+        help_text="Opciones del dropdown, una por línea",
+        blank=True
+    )
+    
+    # Cómo nos conociste
+    show_source = models.BooleanField(default=False, help_text="Mostrar ¿Cómo nos conociste?")
+    source_required = models.BooleanField(default=False)
+    source_label = models.CharField(max_length=50, default='¿Cómo nos conociste?')
+    source_options = models.TextField(
+        default='Google\nRedes sociales\nRecomendación\nOtro',
+        help_text="Opciones del dropdown, una por línea",
+        blank=True
+    )
+    
+    # ==================== CONFIGURACIÓN DEL FORMULARIO ====================
+    
+    submit_button_text = models.CharField(
+        max_length=50, 
+        default='Enviar mensaje',
+        help_text="Texto del botón de envío"
+    )
+    
+    success_message = models.TextField(
+        default='¡Gracias por contactarnos! Te responderemos a la brevedad.',
+        help_text="Mensaje mostrado después de enviar"
+    )
+    
+    privacy_text = models.CharField(
+        max_length=200,
+        default='Al enviar, aceptas nuestra política de privacidad.',
+        blank=True,
+        help_text="Texto de privacidad bajo el botón"
+    )
+    
+    # ==================== METADATA ====================
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Configuración de Formulario'
+        verbose_name_plural = 'Configuraciones de Formularios'
+    
+    def __str__(self):
+        return f"FormConfig - {self.client.name}"
+    
+    def get_subject_options_list(self):
+        """Retorna lista de opciones de asunto."""
+        if self.subject_options:
+            return [opt.strip() for opt in self.subject_options.strip().split('\n') if opt.strip()]
+        return []
+    
+    def get_budget_options_list(self):
+        """Retorna lista de opciones de presupuesto."""
+        if self.budget_options:
+            return [opt.strip() for opt in self.budget_options.strip().split('\n') if opt.strip()]
+        return []
+    
+    def get_urgency_options_list(self):
+        """Retorna lista de opciones de urgencia."""
+        if self.urgency_options:
+            return [opt.strip() for opt in self.urgency_options.strip().split('\n') if opt.strip()]
+        return []
+    
+    def get_source_options_list(self):
+        """Retorna lista de opciones de fuente."""
+        if self.source_options:
+            return [opt.strip() for opt in self.source_options.strip().split('\n') if opt.strip()]
+        return []
+    
+    def get_active_fields(self):
+        """Retorna lista de campos activos para el formulario."""
+        fields = ['name', 'email']  # Siempre presentes
+        
+        if self.show_phone:
+            fields.append('phone')
+        if self.show_company:
+            fields.append('company')
+        if self.show_subject:
+            fields.append('subject')
+        if self.show_address:
+            fields.append('address')
+        if self.show_city:
+            fields.append('city')
+        if self.show_budget:
+            fields.append('budget')
+        if self.show_urgency:
+            fields.append('urgency')
+        if self.show_source:
+            fields.append('source')
+        
+        fields.append('message')  # Siempre al final
+        
+        return fields

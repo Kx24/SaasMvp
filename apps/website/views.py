@@ -11,6 +11,12 @@ from .models import Section, Service, Testimonial, ContactSubmission
 from .forms import SectionForm, ServiceForm, ContactForm
 import logging
 import json
+from django.utils import timezone
+from datetime import timedelta
+
+# Importar modelos
+from apps.website.models import Section, Service, ContactSubmission
+
 
 logger = logging.getLogger(__name__)
 
@@ -147,26 +153,44 @@ def login_modal(request):
 @login_required(login_url='/auth/login/')
 def dashboard(request):
     """
-    Dashboard principal del cliente.
-    """
-    services_count = Service.objects.filter(client=request.client).count()
+    Vista principal del dashboard.
     
+    Muestra métricas, accesos rápidos y actividad reciente.
+    """
+    client = request.client
+    today = timezone.now().date()
+    
+    # Métricas
+    total_contacts = ContactSubmission.objects.filter(client=client).count()
+    contacts_today = ContactSubmission.objects.filter(
+        client=client,
+        created_at__date=today
+    ).count()
+    
+    total_services = Service.objects.filter(client=client, is_active=True).count()
+    total_sections = Section.objects.filter(client=client, is_active=True).count()
+    
+    # Contactos recientes (últimos 5)
     recent_contacts = ContactSubmission.objects.filter(
-        client=request.client,
-        status='new'
+        client=client
     ).order_by('-created_at')[:5]
     
+    # Contactos no leídos (si tienes campo is_read)
+    unread_contacts = ContactSubmission.objects.filter(
+        client=client,
+        is_read=False
+    ).count() if hasattr(ContactSubmission, 'is_read') else 0
+    
     context = {
-        'client': request.client,
-        'sections_count': Section.objects.filter(client=request.client).count(),
-        'services_count': services_count,
-        'contacts_count': ContactSubmission.objects.filter(client=request.client).count(),
-        'new_contacts': ContactSubmission.objects.filter(
-            client=request.client,
-            status='new'
-        ).count(),
+        'client': client,
+        'total_contacts': total_contacts,
+        'contacts_today': contacts_today,
+        'total_services': total_services,
+        'total_sections': total_sections,
         'recent_contacts': recent_contacts,
+        'unread_contacts': unread_contacts,
     }
+    
     return render(request, 'dashboard/index.html', context)
 
 

@@ -1,0 +1,239 @@
+<!-- 
+Formulario de Contacto Dinámico
+===============================
+
+Este template lee la configuración de FormConfig del tenant
+y renderiza solo los campos activos.
+
+Ubicación: templates/partials/contact_form_dynamic.html
+-->
+
+{% load website_tags %}
+
+<form method="post" 
+      action="{% url 'contact_submit' %}" 
+      class="space-y-5"
+      x-data="{ submitting: false }">
+    
+    {% csrf_token %}
+    
+    {# Obtener configuración del formulario #}
+    {% get_form_config as form_config %}
+    
+    {# ==================== FILA 1: Nombre + Email/Teléfono ==================== #}
+    <div class="grid md:grid-cols-2 gap-4">
+        {# Nombre (siempre visible) #}
+        <div>
+            <label for="name" class="block text-sm font-medium text-slate-700 mb-2">
+                {{ form_config.name_label|default:"Nombre completo" }} *
+            </label>
+            <input type="text" 
+                   name="name" 
+                   id="name" 
+                   required
+                   placeholder="{{ form_config.name_placeholder|default:'Tu nombre' }}"
+                   class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+        </div>
+        
+        {# Email (siempre visible) #}
+        <div>
+            <label for="email" class="block text-sm font-medium text-slate-700 mb-2">
+                {{ form_config.email_label|default:"Email" }} *
+            </label>
+            <input type="email" 
+                   name="email" 
+                   id="email" 
+                   required
+                   placeholder="{{ form_config.email_placeholder|default:'tu@email.com' }}"
+                   class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+        </div>
+    </div>
+    
+    {# ==================== FILA 2: Teléfono + Empresa (opcionales) ==================== #}
+    {% if form_config.show_phone or form_config.show_company %}
+    <div class="grid md:grid-cols-2 gap-4">
+        {% if form_config.show_phone %}
+        <div>
+            <label for="phone" class="block text-sm font-medium text-slate-700 mb-2">
+                {{ form_config.phone_label|default:"Teléfono" }}
+                {% if form_config.phone_required %}*{% else %}<span class="text-slate-400 font-normal">(opcional)</span>{% endif %}
+            </label>
+            <input type="tel" 
+                   name="phone" 
+                   id="phone"
+                   {% if form_config.phone_required %}required{% endif %}
+                   placeholder="{{ form_config.phone_placeholder|default:'+56 9 1234 5678' }}"
+                   class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+        </div>
+        {% endif %}
+        
+        {% if form_config.show_company %}
+        <div>
+            <label for="company" class="block text-sm font-medium text-slate-700 mb-2">
+                {{ form_config.company_label|default:"Empresa" }}
+                {% if form_config.company_required %}*{% else %}<span class="text-slate-400 font-normal">(opcional)</span>{% endif %}
+            </label>
+            <input type="text" 
+                   name="company" 
+                   id="company"
+                   {% if form_config.company_required %}required{% endif %}
+                   placeholder="{{ form_config.company_placeholder|default:'Tu empresa' }}"
+                   class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {# ==================== Dirección + Ciudad (opcionales) ==================== #}
+    {% if form_config.show_address or form_config.show_city %}
+    <div class="grid md:grid-cols-2 gap-4">
+        {% if form_config.show_address %}
+        <div>
+            <label for="address" class="block text-sm font-medium text-slate-700 mb-2">
+                {{ form_config.address_label|default:"Dirección" }}
+                {% if form_config.address_required %}*{% else %}<span class="text-slate-400 font-normal">(opcional)</span>{% endif %}
+            </label>
+            <input type="text" 
+                   name="address" 
+                   id="address"
+                   {% if form_config.address_required %}required{% endif %}
+                   placeholder="{{ form_config.address_placeholder|default:'Tu dirección' }}"
+                   class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+        </div>
+        {% endif %}
+        
+        {% if form_config.show_city %}
+        <div>
+            <label for="city" class="block text-sm font-medium text-slate-700 mb-2">
+                {{ form_config.city_label|default:"Ciudad/Comuna" }}
+                {% if form_config.city_required %}*{% else %}<span class="text-slate-400 font-normal">(opcional)</span>{% endif %}
+            </label>
+            <input type="text" 
+                   name="city" 
+                   id="city"
+                   {% if form_config.city_required %}required{% endif %}
+                   placeholder="{{ form_config.city_placeholder|default:'' }}"
+                   class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {# ==================== Asunto (opcional) ==================== #}
+    {% if form_config.show_subject %}
+    <div>
+        <label for="subject" class="block text-sm font-medium text-slate-700 mb-2">
+            {{ form_config.subject_label|default:"Asunto" }}
+            {% if form_config.subject_required %}*{% else %}<span class="text-slate-400 font-normal">(opcional)</span>{% endif %}
+        </label>
+        <select name="subject" 
+                id="subject"
+                {% if form_config.subject_required %}required{% endif %}
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none bg-white">
+            <option value="">Selecciona una opción</option>
+            {% for option in form_config.get_subject_options_list %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    
+    {# ==================== Presupuesto + Urgencia (opcionales) ==================== #}
+    {% if form_config.show_budget or form_config.show_urgency %}
+    <div class="grid md:grid-cols-2 gap-4">
+        {% if form_config.show_budget %}
+        <div>
+            <label for="budget" class="block text-sm font-medium text-slate-700 mb-2">
+                {{ form_config.budget_label|default:"Presupuesto estimado" }}
+                {% if form_config.budget_required %}*{% else %}<span class="text-slate-400 font-normal">(opcional)</span>{% endif %}
+            </label>
+            <select name="budget" 
+                    id="budget"
+                    {% if form_config.budget_required %}required{% endif %}
+                    class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none bg-white">
+                <option value="">Selecciona una opción</option>
+                {% for option in form_config.get_budget_options_list %}
+                <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        
+        {% if form_config.show_urgency %}
+        <div>
+            <label for="urgency" class="block text-sm font-medium text-slate-700 mb-2">
+                {{ form_config.urgency_label|default:"Urgencia" }}
+                {% if form_config.urgency_required %}*{% else %}<span class="text-slate-400 font-normal">(opcional)</span>{% endif %}
+            </label>
+            <select name="urgency" 
+                    id="urgency"
+                    {% if form_config.urgency_required %}required{% endif %}
+                    class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none bg-white">
+                <option value="">Selecciona una opción</option>
+                {% for option in form_config.get_urgency_options_list %}
+                <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {# ==================== ¿Cómo nos conociste? (opcional) ==================== #}
+    {% if form_config.show_source %}
+    <div>
+        <label for="source" class="block text-sm font-medium text-slate-700 mb-2">
+            {{ form_config.source_label|default:"¿Cómo nos conociste?" }}
+            {% if form_config.source_required %}*{% else %}<span class="text-slate-400 font-normal">(opcional)</span>{% endif %}
+        </label>
+        <select name="source" 
+                id="source"
+                {% if form_config.source_required %}required{% endif %}
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none bg-white">
+            <option value="">Selecciona una opción</option>
+            {% for option in form_config.get_source_options_list %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    
+    {# ==================== Mensaje (siempre visible) ==================== #}
+    <div>
+        <label for="message" class="block text-sm font-medium text-slate-700 mb-2">
+            {{ form_config.message_label|default:"Mensaje" }} *
+        </label>
+        <textarea name="message" 
+                  id="message" 
+                  rows="{{ form_config.message_rows|default:4 }}" 
+                  required
+                  placeholder="{{ form_config.message_placeholder|default:'¿En qué podemos ayudarte?' }}"
+                  class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none resize-none"></textarea>
+    </div>
+    
+    {# ==================== Botón Submit ==================== #}
+    <button type="submit"
+            :disabled="submitting"
+            @click="submitting = true"
+            class="w-full px-8 py-4 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition-all disabled:opacity-70 inline-flex items-center justify-center gap-2">
+        <span x-show="!submitting">
+            {{ form_config.submit_button_text|default:"Enviar mensaje" }}
+        </span>
+        <span x-show="submitting" x-cloak class="inline-flex items-center gap-2">
+            <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Enviando...
+        </span>
+    </button>
+    
+    {# ==================== Texto de privacidad ==================== #}
+    {% if form_config.privacy_text %}
+    <p class="text-xs text-slate-500 text-center">
+        {{ form_config.privacy_text }}
+    </p>
+    {% endif %}
+</form>
+
+<style>[x-cloak] { display: none !important; }</style>

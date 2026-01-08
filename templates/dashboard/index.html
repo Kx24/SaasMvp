@@ -1,127 +1,203 @@
 {% extends 'dashboard/base.html' %}
 
 {% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Resumen de tu sitio{% endblock %}
 
 {% block content %}
-<div>
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p class="text-gray-600 mt-2">Bienvenido, {{ user.username }}</p>
-    </div>
 
-    <!-- Estadísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Secciones -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Secciones</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ sections_count }}</p>
-                </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <span class="text-2xl">📄</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Servicios -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Servicios</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ services_count }}</p>
-                </div>
-                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <span class="text-2xl">🛠️</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Contactos -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Contactos</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ contacts_count }}</p>
-                </div>
-                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <span class="text-2xl">💬</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Nuevos Contactos -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Nuevos</p>
-                    <p class="text-3xl font-bold text-orange-600">{{ new_contacts }}</p>
-                </div>
-                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <span class="text-2xl">🔔</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Acciones Rápidas -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">⚡ Acciones Rápidas</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a href="{% url 'dashboard_sections' %}" 
-               class="flex flex-col items-center gap-2 p-4 border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-blue-50 transition">
-                <span class="text-3xl">📄</span>
-                <span class="text-sm font-semibold text-gray-700">Editar Secciones</span>
-            </a>
-            
-            <a href="{% url 'create_service' %}" 
-               class="flex flex-col items-center gap-2 p-4 border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-blue-50 transition">
-                <span class="text-3xl">➕</span>
-                <span class="text-sm font-semibold text-gray-700">Nuevo Servicio</span>
-            </a>
-            
-            <a href="{% url 'dashboard_contacts' %}" 
-               class="flex flex-col items-center gap-2 p-4 border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-blue-50 transition">
-                <span class="text-3xl">💬</span>
-                <span class="text-sm font-semibold text-gray-700">Ver Contactos</span>
-            </a>
-            
-            <a href="{% url 'home' %}" target="_blank"
-               class="flex flex-col items-center gap-2 p-4 border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-blue-50 transition">
-                <span class="text-3xl">🌐</span>
-                <span class="text-sm font-semibold text-gray-700">Ver Sitio</span>
-            </a>
-        </div>
-    </div>
-
-    <!-- Contactos Recientes -->
-    {% if new_contacts > 0 %}
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    
+    <!-- Contactos -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold text-gray-900">📧 Contactos Recientes</h2>
-            <a href="{% url 'dashboard_contacts' %}" class="text-primary hover:text-secondary font-semibold text-sm">
-                Ver todos →
-            </a>
-        </div>
-        
-        <div class="space-y-3">
-            {% for contact in recent_contacts|slice:":5" %}
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div class="flex-1">
-                    <p class="font-semibold text-gray-900">{{ contact.name }}</p>
-                    <p class="text-sm text-gray-600">{{ contact.email }}</p>
-                </div>
-                <div class="text-right">
-                    <span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
-                        Nuevo
-                    </span>
-                    <p class="text-xs text-gray-500 mt-1">{{ contact.created_at|date:"d/m/Y" }}</p>
-                </div>
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);">
+                <svg class="w-6 h-6" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
             </div>
-            {% endfor %}
+            <span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                {% if contacts_today > 0 %}+{{ contacts_today }} hoy{% else %}--{% endif %}
+            </span>
+        </div>
+        <p class="text-2xl font-bold text-slate-900">{{ total_contacts|default:0 }}</p>
+        <p class="text-sm text-slate-500">Contactos totales</p>
+    </div>
+    
+    <!-- Servicios -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-slate-900">{{ total_services|default:0 }}</p>
+        <p class="text-sm text-slate-500">Servicios activos</p>
+    </div>
+    
+    <!-- Secciones -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                </svg>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-slate-900">{{ total_sections|default:0 }}</p>
+        <p class="text-sm text-slate-500">Secciones</p>
+    </div>
+    
+    <!-- Estado del sitio -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-slate-900">{% if client.is_active %}Activo{% else %}Inactivo{% endif %}</p>
+        <p class="text-sm text-slate-500">Estado del sitio</p>
+    </div>
+</div>
+
+<!-- Quick Actions & Recent Activity -->
+<div class="grid lg:grid-cols-3 gap-6">
+    
+    <!-- Quick Actions -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl border border-slate-200 p-6">
+            <h3 class="font-semibold text-slate-900 mb-4">Acciones rápidas</h3>
+            <div class="space-y-3">
+                <a href="{% url 'dashboard_sections' %}" 
+                   class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 transition-colors group">
+                    <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition-colors">
+                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-900">Editar secciones</p>
+                        <p class="text-xs text-slate-500">Modifica el contenido</p>
+                    </div>
+                </a>
+                
+                <a href="{% url 'add_service_dashboard' %}" 
+                   class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 transition-colors group">
+                    <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-900">Agregar servicio</p>
+                        <p class="text-xs text-slate-500">Nuevo servicio o producto</p>
+                    </div>
+                </a>
+                
+                <a href="{% url 'dashboard_contacts' %}" 
+                   class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 transition-colors group">
+                    <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-900">Ver contactos</p>
+                        <p class="text-xs text-slate-500">Mensajes recibidos</p>
+                    </div>
+                </a>
+                
+                <a href="{% url 'home' %}" target="_blank"
+                   class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 transition-colors group">
+                    <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-900">Ver sitio web</p>
+                        <p class="text-xs text-slate-500">Abrir en nueva pestaña</p>
+                    </div>
+                </a>
+            </div>
         </div>
     </div>
-    {% endif %}
+    
+    <!-- Recent Contacts -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl border border-slate-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-slate-900">Últimos contactos</h3>
+                <a href="{% url 'dashboard_contacts' %}" class="text-sm font-medium hover:underline" style="color: var(--primary);">
+                    Ver todos →
+                </a>
+            </div>
+            
+            {% if recent_contacts %}
+            <div class="space-y-3">
+                {% for contact in recent_contacts %}
+                <div class="flex items-start gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                        <span class="text-sm font-medium text-slate-600">{{ contact.name|slice:":1"|upper }}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-medium text-slate-900 truncate">{{ contact.name }}</p>
+                            <span class="text-xs text-slate-500">{{ contact.created_at|timesince }} atrás</span>
+                        </div>
+                        <p class="text-sm text-slate-500 truncate">{{ contact.email }}</p>
+                        <p class="text-sm text-slate-600 mt-1 line-clamp-1">{{ contact.message|truncatechars:80 }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <p class="text-sm text-slate-500">Aún no hay contactos</p>
+                <p class="text-xs text-slate-400 mt-1">Los mensajes aparecerán aquí</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
+<!-- Site Info Card -->
+<div class="mt-6 bg-white rounded-xl border border-slate-200 p-6">
+    <h3 class="font-semibold text-slate-900 mb-4">Información del sitio</h3>
+    <div class="grid md:grid-cols-3 gap-6">
+        <div>
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Dominio</p>
+            <p class="text-sm font-medium text-slate-900">
+                {% if client.primary_domain %}
+                {{ client.primary_domain.domain }}
+                {% else %}
+                No configurado
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Template</p>
+            <p class="text-sm font-medium text-slate-900">{{ client.get_template_display }}</p>
+        </div>
+        <div>
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Colores</p>
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full border border-slate-200" style="background: {{ client.settings.primary_color }};"></div>
+                <div class="w-6 h-6 rounded-full border border-slate-200" style="background: {{ client.settings.secondary_color }};"></div>
+                <span class="text-sm text-slate-600">{{ client.settings.primary_color }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

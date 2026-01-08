@@ -1,46 +1,60 @@
 """
 Signals para automatizar la creación de objetos relacionados.
 
-Cuando se crea un Client, automáticamente se crea su ClientSettings.
-Esto evita errores de "Client has no settings".
+Cuando se crea un Client, automáticamente se crean:
+- ClientSettings
+- ClientEmailSettings
+- FormConfig
+
+Usa get_or_create para evitar duplicados.
 """
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Client, ClientSettings
+from .models import Client, ClientSettings, ClientEmailSettings, FormConfig
 
 
 @receiver(post_save, sender=Client)
-def create_client_settings(sender, instance, created, **kwargs):
+def create_client_related_objects(sender, instance, created, **kwargs):
     """
     Signal que se ejecuta después de guardar un Client.
     
-    Si es un Client nuevo (created=True), crea sus ClientSettings
-    automáticamente con valores por defecto.
+    Crea ClientSettings, ClientEmailSettings y FormConfig si no existen.
+    Usa get_or_create para ser idempotente (evita duplicados).
+    """
+    # Crear o obtener ClientSettings
+    settings, settings_created = ClientSettings.objects.get_or_create(
+        client=instance,
+        defaults={
+            'primary_color': '#3B82F6',
+            'secondary_color': '#1E40AF',
+            'font_family': 'Inter, sans-serif',
+            'company_name': instance.company_name or instance.name,
+        }
+    )
     
-    Args:
-        sender: El modelo que envió la señal (Client)
-        instance: La instancia del Client que se guardó
-        created: True si es nuevo, False si es actualización
-        **kwargs: Otros parámetros del signal
-    """
-    if created:
-        # Cliente nuevo, crear sus settings
-        ClientSettings.objects.create(
-            client=instance,
-            primary_color='#3B82F6',  # Azul Tailwind por defecto
-            secondary_color='#1E40AF',
-            font_family='Inter, sans-serif'
-        )
-        print(f"✅ ClientSettings creado automáticamente para {instance.name}")
-
-
-@receiver(post_save, sender=Client)
-def save_client_settings(sender, instance, **kwargs):
-    """
-    Signal que garantiza que el Client siempre tenga settings.
+    if settings_created:
+        print(f"✅ ClientSettings creado para {instance.name}")
     
-    Si por alguna razón no existen settings, los crea.
-    Esto es una red de seguridad adicional.
-    """
-    if not hasattr(instance, 'settings'):
-        ClientSettings.objects.create(client=instance)
+    # Crear o obtener ClientEmailSettings
+    email_settings, email_created = ClientEmailSettings.objects.get_or_create(
+        client=instance,
+        defaults={
+            'provider': 'none',
+            'notify_mode': 'dashboard',
+        }
+    )
+    
+    if email_created:
+        print(f"✅ ClientEmailSettings creado para {instance.name}")
+    
+    # Crear o obtener FormConfig
+    form_config, form_created = FormConfig.objects.get_or_create(
+        client=instance,
+        defaults={
+            'show_phone': True,
+            'show_subject': True,
+        }
+    )
+    
+    if form_created:
+        print(f"✅ FormConfig creado para {instance.name}")

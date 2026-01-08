@@ -1,9 +1,14 @@
 <!DOCTYPE html>
-<html lang="es" x-data="{ sidebarOpen: true }">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dashboard{% endblock %} - {{ client.settings.company_name }}</title>
+    <title>{% block title %}Dashboard{% endblock %} | {{ client.name }}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,162 +19,233 @@
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     
-    <!-- Configurar colores dinámicos -->
+    <!-- Configuración Tailwind con colores del tenant -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '{{ client.settings.primary_color|default:"#2563eb" }}',
-                        secondary: '{{ client.settings.secondary_color|default:"#1e40af" }}',
-                    }
+                        primary: '{{ client.settings.primary_color|default:"#3B82F6" }}',
+                        secondary: '{{ client.settings.secondary_color|default:"#1E40AF" }}',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
                 }
             }
         }
     </script>
+    
+    <style>
+        :root {
+            --primary: {{ client.settings.primary_color|default:"#3B82F6" }};
+            --secondary: {{ client.settings.secondary_color|default:"#1E40AF" }};
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        /* Sidebar active state */
+        .nav-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .nav-item:hover:not(.active) {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Top Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-40">
-        <div class="px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <!-- Left: Logo y toggle -->
-                <div class="flex items-center gap-4">
-                    <!-- Sidebar toggle -->
-                    <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-gray-700">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
-                    
-                    <!-- Logo -->
-                    <div class="flex items-center gap-2">
-                        {% if client.settings.logo %}
-                        <img src="{{ client.settings.logo.url }}" alt="{{ client.settings.company_name }}" class="h-8 w-auto">
-                        {% endif %}
-                        <span class="text-lg font-bold text-gray-900">
-                            {{ client.settings.company_name }}
-                        </span>
-                    </div>
+<body class="bg-slate-50 min-h-screen" x-data="{ sidebarOpen: false }">
+    
+    <!-- Mobile Header -->
+    <header class="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200 px-4 py-3">
+        <div class="flex items-center justify-between">
+            <button @click="sidebarOpen = true" class="p-2 rounded-lg hover:bg-slate-100">
+                <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <span class="font-semibold text-slate-900">{{ client.name }}</span>
+            <a href="{% url 'home' %}" class="p-2 rounded-lg hover:bg-slate-100" title="Ver sitio">
+                <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+            </a>
+        </div>
+    </header>
+    
+    <!-- Sidebar Overlay (Mobile) -->
+    <div x-show="sidebarOpen" 
+         x-transition:enter="transition-opacity ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="sidebarOpen = false"
+         class="fixed inset-0 z-40 bg-black/50 lg:hidden"
+         x-cloak>
+    </div>
+    
+    <!-- Sidebar -->
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+           class="fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0">
+        
+        <!-- Logo/Brand -->
+        <div class="p-6 border-b border-slate-200">
+            <div class="flex items-center gap-3">
+                {% if client.settings.logo %}
+                <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-8 w-auto">
+                {% else %}
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style="background: var(--primary);">
+                    {{ client.name|slice:":1"|upper }}
                 </div>
-                
-                <!-- Right: User menu -->
-                <div class="flex items-center gap-4">
-                    <!-- Ver sitio -->
-                    <a href="{% url 'home' %}" 
-                       class="px-4 py-2 text-sm text-gray-700 hover:text-primary transition"
-                       target="_blank">
-                        🌐 Ver Sitio
-                    </a>
-                    
-                    <!-- Superadmin: Acceso a Admin -->
-                    {% if user.is_superuser or user.is_staff %}
-                    <a href="/superadmin/" 
-                       class="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
-                       target="_blank">
-                        🔧 Admin
-                    </a>
-                    {% endif %}
-                    
-                    <!-- Usuario -->
-                    <div class="flex items-center gap-3 pl-4 border-l border-gray-200">
-                        <span class="text-sm text-gray-700">
-                            👤 {{ user.username }}
-                        </span>
-                        
-                        <!-- Logout -->
-                        <a href="{% url 'client_logout' %}" 
-                           class="px-4 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
-                            Cerrar Sesión
-                        </a>
-                    </div>
+                {% endif %}
+                <div>
+                    <h1 class="font-semibold text-slate-900 text-sm">{{ client.name }}</h1>
+                    <p class="text-xs text-slate-500">Dashboard</p>
                 </div>
             </div>
         </div>
-    </nav>
-    
-    <!-- Sidebar + Content -->
-    <div class="flex pt-16">
-        <!-- Sidebar -->
-        <aside 
-            x-show="sidebarOpen"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="transform -translate-x-full"
-            x-transition:enter-end="transform translate-x-0"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="transform translate-x-0"
-            x-transition:leave-end="transform -translate-x-full"
-            class="fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-gray-200 overflow-y-auto z-30"
-        >
-            <nav class="p-4 space-y-2">
-                <!-- Dashboard Home -->
-                <a href="{% url 'dashboard' %}" 
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-primary hover:text-white transition {% if request.path == '/dashboard/' %}bg-primary text-white{% endif %}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                    </svg>
-                    Dashboard
-                </a>
-                
-                <!-- Secciones (incluye todo: hero, about, servicios, contact) -->
-                <a href="{% url 'dashboard_sections' %}" 
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-primary hover:text-white transition {% if 'sections' in request.path %}bg-primary text-white{% endif %}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
-                    </svg>
-                    Secciones
-                </a>
-                
-                <!-- Contactos -->
-                <a href="{% url 'dashboard_contacts' %}" 
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-primary hover:text-white transition {% if 'contacts' in request.path %}bg-primary text-white{% endif %}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
-                    Contactos
-                </a>
-            </nav>
-        </aside>
         
-        <!-- Main Content -->
-        <main 
-            :class="sidebarOpen ? 'ml-64' : 'ml-0'"
-            class="flex-1 p-8 transition-all duration-200"
-        >
+        <!-- Navigation -->
+        <nav class="p-4 space-y-1">
+            <p class="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Principal</p>
+            
+            <a href="{% url 'dashboard' %}" 
+               class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'dashboard' %}active{% else %}text-slate-700{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                Inicio
+            </a>
+            
+            <p class="px-3 py-2 mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Contenido</p>
+            
+            <a href="{% url 'dashboard_sections' %}" 
+               class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if 'sections' in request.path %}active{% else %}text-slate-700{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                </svg>
+                Secciones
+            </a>
+            
+            <a href="{% url 'dashboard_contacts' %}" 
+               class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if 'contacts' in request.path %}active{% else %}text-slate-700{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                Contactos
+                {% if unread_contacts %}
+                <span class="ml-auto px-2 py-0.5 text-xs font-medium rounded-full text-white" style="background: var(--primary);">
+                    {{ unread_contacts }}
+                </span>
+                {% endif %}
+            </a>
+            
+            {% if client.settings.enable_testimonials %}
+            <a href="{% url 'dashboard_testimonials' %}" 
+               class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if 'testimonials' in request.path %}active{% else %}text-slate-700{% endif %}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                Testimonios
+            </a>
+            {% endif %}
+            
+            <p class="px-3 py-2 mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Configuración</p>
+            
+            <a href="#" 
+               class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 transition-colors opacity-50 cursor-not-allowed">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                Ajustes
+                <span class="ml-auto text-xs text-slate-400">Pronto</span>
+            </a>
+        </nav>
+        
+        <!-- User/Footer -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 bg-white">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center">
+                    <span class="text-sm font-medium text-slate-600">{{ user.username|slice:":1"|upper }}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-900 truncate">{{ user.username }}</p>
+                    <p class="text-xs text-slate-500 truncate">{{ user.email }}</p>
+                </div>
+                <a href="{% url 'client_logout' %}" class="p-2 rounded-lg hover:bg-slate-100 text-slate-500" title="Cerrar sesión">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="lg:pl-64 pt-16 lg:pt-0 min-h-screen">
+        <!-- Top Bar -->
+        <div class="hidden lg:flex items-center justify-between px-8 py-4 bg-white border-b border-slate-200">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900">{% block page_title %}Dashboard{% endblock %}</h2>
+                <p class="text-sm text-slate-500">{% block page_subtitle %}Bienvenido de vuelta{% endblock %}</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="{% url 'home' %}" target="_blank" 
+                   class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                    Ver sitio
+                </a>
+            </div>
+        </div>
+        
+        <!-- Page Content -->
+        <div class="p-6 lg:p-8">
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="px-4 py-3 rounded-lg border {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-800{% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %} flex items-center justify-between">
+                    <span class="text-sm">{{ message }}</span>
+                    <button onclick="this.parentElement.remove()" class="text-current opacity-50 hover:opacity-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
             {% block content %}{% endblock %}
-        </main>
-    </div>
+        </div>
+    </main>
     
-    <!-- Modal Container -->
-    <div id="modal-container"></div>
-    
-    <!-- Toast Container -->
-    <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2"></div>
-    
-    <!-- Toast Function -->
-    <script>
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
-            
-            toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
-            toast.textContent = message;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.remove('translate-x-full');
-            }, 100);
-            
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-        
-        // Exponer globalmente
-        window.showToast = showToast;
-    </script>
+    <style>[x-cloak] { display: none !important; }</style>
 </body>
 </html>
