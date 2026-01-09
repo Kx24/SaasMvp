@@ -153,6 +153,7 @@
 <!-- ============================================== -->
 <!-- SERVICES SECTION - Stripe Cards -->
 <!-- ============================================== -->
+
 <section id="servicios" class="py-24 bg-white relative">
     <!-- Section header -->
     <div class="max-w-7xl mx-auto px-6 lg:px-8 mb-16">
@@ -174,32 +175,53 @@
         {% if services %}
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for service in services %}
-            <div class="stripe-card rounded-2xl p-8 fade-up" style="animation-delay: {{ forloop.counter0 }}00ms;">
-                <!-- Icon -->
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center mb-6">
-                    <span class="text-3xl">{{ service.icon }}</span>
+            <div class="stripe-card rounded-2xl overflow-hidden fade-up group" style="animation-delay: {{ forloop.counter0 }}00ms;">
+                
+                <!-- Imagen del servicio (si existe) -->
+                {% if service.image %}
+                <div class="relative h-48 overflow-hidden">
+                    <img src="{{ service.image.url }}" 
+                         alt="{{ service.name }}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                    
+                    {% if service.is_featured %}
+                    <span class="absolute top-4 right-4 px-3 py-1 bg-accent text-white text-xs font-semibold rounded-full">
+                        Destacado
+                    </span>
+                    {% endif %}
                 </div>
-                
-                <!-- Content -->
-                <h3 class="font-display text-xl font-bold text-slate-900 mb-3">
-                    {{ service.name }}
-                </h3>
-                
-                <p class="text-slate-600 mb-6 line-clamp-3">
-                    {{ service.description }}
-                </p>
-                
-                {% if service.price_text %}
-                <p class="text-primary font-semibold mb-4">{{ service.price_text }}</p>
                 {% endif %}
                 
-                <!-- Learn more link -->
-                <a href="#contacto" class="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all group">
-                    Más información
-                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                    </svg>
-                </a>
+                <div class="p-8">
+                    <!-- Icon (solo si NO hay imagen) -->
+                    {% if not service.image and service.icon %}
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <span class="text-3xl">{{ service.icon }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Content -->
+                    <h3 class="font-display text-xl font-bold text-slate-900 mb-3 group-hover:text-primary transition-colors">
+                        {{ service.name }}
+                    </h3>
+                    
+                    <p class="text-slate-600 mb-6 line-clamp-3">
+                        {{ service.description }}
+                    </p>
+                    
+                    {% if service.price_text %}
+                    <p class="text-primary font-semibold mb-4">{{ service.price_text }}</p>
+                    {% endif %}
+                    
+                    <!-- Learn more link -->
+                    <a href="#contacto" class="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all group/link">
+                        Más información
+                        <svg class="w-4 h-4 group-hover/link:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </a>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -210,7 +232,6 @@
         {% endif %}
     </div>
 </section>
-
 
 <!-- ============================================== -->
 <!-- FEATURES/ABOUT SECTION -->
