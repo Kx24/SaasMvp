@@ -1,7 +1,7 @@
-<!-- Navbar - Servicios Eléctricos -->
-<nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" 
-     x-data="{ 
-        mobileMenuOpen: false, 
+<!-- Navbar - Servelec Ingeniería (Verde) -->
+<nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+     x-data="{
+        mobileMenuOpen: false,
         scrolled: false,
         init() {
             window.addEventListener('scroll', () => {
@@ -9,37 +9,35 @@
             });
         }
      }"
-     :class="scrolled ? 'bg-white/95 backdrop-blur-xl shadow-sm border-b border-amber-100' : 'bg-transparent'">
-    
+     :class="scrolled ? 'bg-white/95 backdrop-blur-xl shadow-sm border-b border-green-100' : 'bg-white/80 backdrop-blur-sm'">
+
     <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="flex justify-between items-center h-20">
-            
-            <!-- Logo -->
-            <a href="{% url 'home' %}" class="flex items-center gap-3 group">
+
+            <!-- Logo (sin nombre al lado) -->
+            <a href="{% url 'home' %}" class="flex items-center">
                 {% if client.settings.logo %}
-                <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-10 w-auto">
+                <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-12 w-auto">
                 {% else %}
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg">
-                    <span class="text-white text-xl bolt-icon">⚡</span>
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center shadow-lg">
+                    <span class="text-white text-xl">⚡</span>
                 </div>
+                <span class="ml-3 font-display font-bold text-xl text-slate-900">{{ client.name }}</span>
                 {% endif %}
-                <span class="font-display font-bold text-xl text-slate-900 group-hover:text-amber-600 transition-colors">
-                    {{ client.name }}
-                </span>
             </a>
 
             <!-- Desktop Navigation -->
             <div class="hidden lg:flex items-center gap-1">
-                <a href="{% url 'home' %}" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition-all">
+                <a href="{% url 'home' %}" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all">
                     Inicio
                 </a>
-                <a href="#servicios" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition-all">
+                <a href="#servicios" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all">
                     Servicios
                 </a>
-                <a href="#about" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition-all">
+                <a href="#about" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all">
                     Nosotros
                 </a>
-                <a href="#contacto" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition-all">
+                <a href="#contacto" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all">
                     Contacto
                 </a>
             </div>
@@ -47,25 +45,41 @@
             <!-- Desktop CTA -->
             <div class="hidden lg:flex items-center gap-3">
                 {% if client.settings.contact_phone %}
-                <a href="tel:{{ client.settings.contact_phone }}" class="flex items-center gap-2 text-slate-600 hover:text-amber-600 transition">
+                <a href="tel:{{ client.settings.contact_phone }}" class="flex items-center gap-2 text-slate-600 hover:text-green-600 transition">
                     <span>📞</span>
                     <span class="text-sm font-medium">{{ client.settings.contact_phone }}</span>
                 </a>
                 {% endif %}
-                
+
                 {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}" class="px-5 py-2.5 text-sm font-semibold text-white btn-electric rounded-full">
+                    <!-- Usuario autenticado -->
+                    <span class="text-sm text-slate-500">{{ user.username }}</span>
+                    
+                    <a href="{% url 'dashboard' %}" 
+                       class="px-5 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-full transition-colors shadow-md">
                         Dashboard
                     </a>
+                    
+                    <a href="{% url 'client_logout' %}" 
+                       class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition">
+                        Salir
+                    </a>
                 {% else %}
-                    <a href="#contacto" class="px-5 py-2.5 text-sm font-semibold text-white btn-electric rounded-full inline-flex items-center gap-2">
-                        <span class="bolt-icon">⚡</span> Cotizar
+                    <!-- Usuario NO autenticado -->
+                    <a href="{% url 'client_login' %}" 
+                       class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-green-600 transition">
+                        Iniciar Sesión
+                    </a>
+                    
+                    <a href="#contacto" 
+                       class="px-5 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-full transition-colors shadow-md inline-flex items-center gap-2">
+                        <span>⚡</span> Cotizar
                     </a>
                 {% endif %}
             </div>
 
             <!-- Mobile menu button -->
-            <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-lg hover:bg-amber-50 transition">
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-lg hover:bg-green-50 transition">
                 <svg x-show="!mobileMenuOpen" class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
@@ -80,32 +94,52 @@
     <div x-show="mobileMenuOpen" x-cloak
          x-transition
          @click.away="mobileMenuOpen = false"
-         class="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-amber-100 shadow-lg">
-        
+         class="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-green-100 shadow-lg">
+
         <div class="max-w-7xl mx-auto px-6 py-6 space-y-2">
-            <a href="{% url 'home' %}" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-amber-50 transition">
+            <a href="{% url 'home' %}" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-green-50 transition">
                 Inicio
             </a>
-            <a href="#servicios" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-amber-50 transition">
+            <a href="#servicios" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-green-50 transition">
                 Servicios
             </a>
-            <a href="#about" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-amber-50 transition">
+            <a href="#about" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-green-50 transition">
                 Nosotros
             </a>
-            <a href="#contacto" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-amber-50 transition">
+            <a href="#contacto" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-green-50 transition">
                 Contacto
             </a>
-            
-            <div class="pt-4 mt-4 border-t border-amber-100">
+
+            <div class="pt-4 mt-4 border-t border-green-100">
                 {% if client.settings.contact_phone %}
-                <a href="tel:{{ client.settings.contact_phone }}" class="block px-4 py-3 text-amber-600 font-medium">
+                <a href="tel:{{ client.settings.contact_phone }}" class="block px-4 py-3 text-green-600 font-medium">
                     📞 {{ client.settings.contact_phone }}
                 </a>
                 {% endif %}
-                
-                <a href="#contacto" @click="mobileMenuOpen = false" class="block mt-2 px-4 py-3 text-center text-white font-semibold btn-electric rounded-xl">
-                    ⚡ Solicitar Cotización
-                </a>
+
+                {% if user.is_authenticated %}
+                    <p class="px-4 py-2 text-sm text-slate-500">👤 {{ user.username }}</p>
+                    
+                    <a href="{% url 'dashboard' %}" @click="mobileMenuOpen = false" 
+                       class="block mt-2 px-4 py-3 text-center text-white font-semibold bg-green-600 hover:bg-green-700 rounded-xl transition">
+                        Dashboard
+                    </a>
+                    
+                    <a href="{% url 'client_logout' %}" 
+                       class="block mt-2 px-4 py-3 text-center text-slate-600 font-medium bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                        Cerrar Sesión
+                    </a>
+                {% else %}
+                    <a href="{% url 'client_login' %}" @click="mobileMenuOpen = false"
+                       class="block mt-2 px-4 py-3 text-center text-slate-700 font-medium bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                        Iniciar Sesión
+                    </a>
+                    
+                    <a href="#contacto" @click="mobileMenuOpen = false" 
+                       class="block mt-2 px-4 py-3 text-center text-white font-semibold bg-green-600 hover:bg-green-700 rounded-xl transition">
+                        ⚡ Solicitar Cotización
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>

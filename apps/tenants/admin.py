@@ -26,11 +26,12 @@ class ClientSettingsInline(admin.StackedInline):
     model = ClientSettings
     extra = 0
     max_num = 1
+    can_delete = False
     
     fieldsets = (
         ('Branding', {
             'fields': (
-                ('logo', 'favicon'),
+                ('logo', 'logo_footer', 'favicon'),
                 ('primary_color', 'secondary_color'),
                 'font_family',
             )
@@ -81,6 +82,7 @@ class ClientEmailSettingsInline(admin.StackedInline):
     model = ClientEmailSettings
     extra = 0
     max_num = 1
+    can_delete = False
     
     fieldsets = (
         ('Configuración General', {
@@ -131,6 +133,7 @@ class FormConfigInline(admin.StackedInline):
     model = FormConfig
     extra = 0
     max_num = 1
+    can_delete = False
     
     fieldsets = (
         ('Campos Básicos', {
