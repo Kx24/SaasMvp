@@ -145,16 +145,6 @@ CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY', default='')
 CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default='')
 CLOUDINARY_SECURE = config('CLOUDINARY_SECURE', default=True, cast=bool)
 
-# Configurar Cloudinary cuando Django esté listo
-def configure_cloudinary():
-    import cloudinary
-    cloudinary.config(
-        cloud_name=CLOUDINARY_CLOUD_NAME,
-        api_key=CLOUDINARY_API_KEY,
-        api_secret=CLOUDINARY_API_SECRET,
-        secure=CLOUDINARY_SECURE
-    )
-
 # Estructura de carpetas por tenant
 CLOUDINARY_FOLDERS = {
     'sections': 'sections',
