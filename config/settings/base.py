@@ -10,6 +10,10 @@ import os
 from pathlib import Path
 from decouple import config
 import dj_database_url
+from decouple import config
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # =============================================================================
 # PATHS
@@ -73,6 +77,8 @@ INSTALLED_APPS = [
     'apps.tenants',
     'apps.website',
     'apps.accounts',
+    'cloudinary',
+    'cloudinary_storage',  # Opcional, solo si usas como storage backend
 ]
 
 # =============================================================================
@@ -131,6 +137,86 @@ TEMPLATES = [
         },
     },
 ]
+# =============================================================================
+# CLOUDINARY CONFIGURATION
+# Documentación: /docs/CLOUDINARY.md
+# =============================================================================
+
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='')
+CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY', default='')
+CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default='')
+CLOUDINARY_SECURE = config('CLOUDINARY_SECURE', default=True, cast=bool)
+
+# Configurar SDK de Cloudinary
+cloudinary.config(
+    cloud_name=CLOUDINARY_CLOUD_NAME,
+    api_key=CLOUDINARY_API_KEY,
+    api_secret=CLOUDINARY_API_SECRET,
+    secure=CLOUDINARY_SECURE
+)
+
+# Estructura de carpetas por tenant
+CLOUDINARY_FOLDERS = {
+    'sections': 'sections',
+    'services': 'services',
+    'testimonials': 'testimonials',
+    'branding': 'branding',
+    'gallery': 'gallery',
+}
+
+# Presets de transformación
+CLOUDINARY_PRESETS = {
+    'thumbnail': {
+        'crop': 'fill',
+        'width': 300,
+        'height': 200,
+        'format': 'auto',
+        'quality': 'auto',
+    },
+    'hero': {
+        'crop': 'fill',
+        'width': 1200,
+        'height': 600,
+        'format': 'auto',
+        'quality': 'auto',
+    },
+    'service_card': {
+        'crop': 'fill',
+        'width': 400,
+        'height': 300,
+        'format': 'auto',
+        'quality': 'auto',
+    },
+    'logo': {
+        'crop': 'fit',
+        'width': 200,
+        'height': 80,
+        'format': 'auto',
+    },
+    'avatar': {
+        'crop': 'fill',
+        'width': 100,
+        'height': 100,
+        'format': 'auto',
+        'quality': 'auto',
+        'radius': 'max',
+    },
+}
+
+# Límites por defecto para tenants
+CLOUDINARY_DEFAULT_LIMITS = {
+    'max_media_items': 50,
+    'max_media_size_mb': 100,
+    'max_file_size_mb': 10,
+    'allowed_formats': ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
+}
+
+# Umbrales de alerta
+CLOUDINARY_ALERT_THRESHOLDS = {
+    'warning': 70,
+    'critical': 85,
+    'block': 95,
+}
 
 # =============================================================================
 # DATABASE

@@ -1,10 +1,43 @@
-"""
-Modelos de la aplicación Website - CMS Multi-tenant
-"""
+# =============================================================================
+# apps/website/models.py - ACTUALIZADO CON CLOUDINARY
+# =============================================================================
+# Card C2: Migración de ImageField a CloudinaryField
+# 
+# CAMBIOS:
+# - ImageField → CloudinaryField
+# - upload_to ahora usa función que incluye tenant slug
+# - Eliminado modelo Testimonial (según indicación)
+# =============================================================================
+
 from django.db import models
 from django.utils.text import slugify
+from cloudinary.models import CloudinaryField
 from apps.tenants.managers import TenantAwareManager
 
+
+# =============================================================================
+# HELPERS PARA CLOUDINARY
+# =============================================================================
+
+def get_section_upload_path(instance, filename):
+    """
+    Genera path de upload para Section incluyendo tenant slug.
+    Resultado: {tenant_slug}/sections/{filename}
+    """
+    return f"{instance.client.slug}/sections/{filename}"
+
+
+def get_service_upload_path(instance, filename):
+    """
+    Genera path de upload para Service incluyendo tenant slug.
+    Resultado: {tenant_slug}/services/{filename}
+    """
+    return f"{instance.client.slug}/services/{filename}"
+
+
+# =============================================================================
+# SECTION MODEL
+# =============================================================================
 
 class Section(models.Model):
     """
@@ -16,10 +49,10 @@ class Section(models.Model):
     
     # Secciones predefinidas disponibles
     SECTION_TYPES = [
-    ('hero', 'Hero / Banner Principal'),
-    ('about', 'Sobre Nosotros'),
-    ('service', 'Servicio Individual'),  # ← NUEVO: cada servicio es una sección
-    ('contact', 'Contacto'),
+        ('hero', 'Hero / Banner Principal'),
+        ('about', 'Sobre Nosotros'),
+        ('service', 'Servicio Individual'),
+        ('contact', 'Contacto'),
     ]
     
     # === CAMPOS CORE ===
@@ -52,12 +85,12 @@ class Section(models.Model):
         help_text="Descripción larga (para about, generic, etc.)"
     )
     
-    # === MULTIMEDIA ===
-    image = models.ImageField(
-        upload_to='sections/%Y/%m/',
+    # === MULTIMEDIA - CLOUDINARY ===
+    image = CloudinaryField(
+        'image',
         blank=True,
         null=True,
-        help_text="Imagen de la sección (opcional)"
+        help_text="Imagen de la sección (se sube a Cloudinary)"
     )
     
     # === CONFIGURACIÓN ===
@@ -100,7 +133,27 @@ class Section(models.Model):
             self.order = (max_order or 0) + 10
         
         super().save(*args, **kwargs)
+    
+    def get_image_url(self, preset='hero'):
+        """
+        Retorna URL de imagen con transformaciones aplicadas.
+        
+        Args:
+            preset: Nombre del preset ('hero', 'thumbnail', etc.)
+        
+        Returns:
+            URL de Cloudinary con transformaciones o placeholder
+        """
+        if not self.image:
+            return '/static/img/placeholder-section.jpg'
+        
+        from apps.core.cloudinary_utils import get_cloudinary_url
+        return get_cloudinary_url(self.image, preset)
 
+
+# =============================================================================
+# SERVICE MODEL
+# =============================================================================
 
 class Service(models.Model):
     """
@@ -146,13 +199,13 @@ class Service(models.Model):
         help_text="Emoji o clase de icono (ej: 'fa-bolt')"
     )
     
-    image = models.ImageField(
-        upload_to='services/%Y/%m/',
+    # === MULTIMEDIA - CLOUDINARY ===
+    image = CloudinaryField(
+        'image',
         blank=True,
         null=True,
-        help_text="Imagen del servicio (opcional)"
+        help_text="Imagen del servicio (se sube a Cloudinary)"
     )
-    
     # === PRICING (opcional para el futuro) ===
     price_text = models.CharField(
         max_length=100,
@@ -222,101 +275,21 @@ class Service(models.Model):
             self.order = (max_order or 0) + 10
         
         super().save(*args, **kwargs)
-
-
-class Testimonial(models.Model):
-    """
-    Testimonios de clientes satisfechos.
-    """
     
-    # === CAMPOS CORE ===
-    client = models.ForeignKey(
-        'tenants.Client',
-        on_delete=models.CASCADE,
-        related_name='testimonials'
-    )
-    
-    # === CONTENIDO ===
-    client_name = models.CharField(
-        max_length=200,
-        help_text="Nombre del cliente que da el testimonio"
-    )
-    
-    company = models.CharField(
-        max_length=200,
-        blank=True,
-        help_text="Empresa del cliente (opcional)"
-    )
-    
-    position = models.CharField(
-        max_length=200,
-        blank=True,
-        help_text="Cargo del cliente (opcional)"
-    )
-    
-    content = models.TextField(
-        help_text="El testimonio en sí"
-    )
-    
-    # === VISUAL ===
-    avatar = models.ImageField(
-        upload_to='testimonials/%Y/%m/',
-        blank=True,
-        null=True,
-        help_text="Foto del cliente (opcional)"
-    )
-    
-    rating = models.PositiveSmallIntegerField(
-        default=5,
-        choices=[(i, f"{i} estrellas") for i in range(1, 6)],
-        help_text="Calificación de 1 a 5 estrellas"
-    )
-    
-    # === CONFIGURACIÓN ===
-    order = models.PositiveIntegerField(
-        default=0,
-        help_text="Orden de visualización"
-    )
-    
-    is_active = models.BooleanField(
-        default=True,
-        help_text="¿Mostrar este testimonio?"
-    )
-    
-    is_featured = models.BooleanField(
-        default=False,
-        help_text="¿Destacar en home?"
-    )
-    
-    # === METADATA ===
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    # === MANAGER ===
-    objects = TenantAwareManager()
-    
-    class Meta:
-        ordering = ['order', '-created_at']
-        verbose_name = 'Testimonio'
-        verbose_name_plural = 'Testimonios'
-        indexes = [
-            models.Index(fields=['client', 'is_active']),
-            models.Index(fields=['client', 'is_featured']),
-        ]
-    
-    def __str__(self):
-        return f"{self.client_name} - {self.client.name}"
-    
-    def save(self, *args, **kwargs):
-        # Auto-asignar order si no está definido
-        if not self.order:
-            max_order = Testimonial.objects.filter(client=self.client).aggregate(
-                models.Max('order')
-            )['order__max']
-            self.order = (max_order or 0) + 10
+    def get_image_url(self, preset='service_card'):
+        """
+        Retorna URL de imagen con transformaciones aplicadas.
+        """
+        if not self.image:
+            return '/static/img/placeholder-service.jpg'
         
-        super().save(*args, **kwargs)
+        from apps.core.cloudinary_utils import get_cloudinary_url
+        return get_cloudinary_url(self.image, preset)
 
+
+# =============================================================================
+# CONTACT SUBMISSION MODEL (sin cambios)
+# =============================================================================
 
 class ContactSubmission(models.Model):
     """

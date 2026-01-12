@@ -1,22 +1,21 @@
-"""
-Views para la aplicación website
-================================
-LIMPIO - Sin duplicados, con EmailDispatcher integrado
-"""
+# =============================================================================
+# apps/website/views.py - ACTUALIZADO CON TEMPLATES POR TENANT
+# =============================================================================
+# Usa slug del cliente para resolver templates
+# =============================================================================
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
-from .models import Section, Service, Testimonial, ContactSubmission
+from .models import Section, Service, ContactSubmission
 from .forms import SectionForm, ServiceForm, ContactForm
 import logging
 import json
 from django.utils import timezone
-from datetime import timedelta
 
-# Importar modelos
-from apps.website.models import Section, Service, ContactSubmission
-
+# Importar helper de templates por tenant
+from apps.core.template_resolver import get_tenant_template, render_tenant_template
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,8 @@ def get_client_ip(request):
 
 def home(request):
     """
-    Página principal con secciones y servicios
+    Página principal con secciones y servicios.
+    Usa template específico del tenant según su slug.
     """
     # Obtener secciones (hero, about, contact)
     sections = Section.objects.filter(
@@ -66,7 +66,9 @@ def home(request):
         'services': services,
         'form': ContactForm(),
     }
-    return render(request, 'landing/home.html', context)
+    
+    # ✅ Usar template del tenant
+    return render_tenant_template(request, 'landing/home.html', context)
 
 
 # ============================================================
@@ -76,21 +78,15 @@ def home(request):
 def contact_submit(request):
     """
     Procesar formulario de contacto público.
-    
-    Flujo:
-    1. Crear ContactSubmission en DB (siempre)
-    2. Llamar a EmailDispatcher según configuración del tenant
-    3. Retornar respuesta al usuario
     """
     if request.method != 'POST':
         return redirect('home')
     
-    # Verificar que hay un cliente asociado
     if not hasattr(request, 'client') or not request.client:
         messages.error(request, 'Error de configuración. Intenta más tarde.')
         return redirect('home')
     
-    # 1. Crear registro en base de datos (SIEMPRE)
+    # Crear registro en base de datos
     contact = ContactSubmission.objects.create(
         client=request.client,
         name=request.POST.get('name', '').strip(),
@@ -108,7 +104,7 @@ def contact_submit(request):
         f"from {contact.email}"
     )
     
-    # 2. Dispatch de notificación según configuración
+    # Dispatch de notificación según configuración
     try:
         from apps.tenants.services.email_dispatcher import EmailDispatcher
         dispatcher = EmailDispatcher(request.client)
@@ -122,7 +118,7 @@ def contact_submit(request):
     except Exception as e:
         logger.error(f"[Contact] Dispatch error for #{contact.id}: {e}", exc_info=True)
     
-    # 3. Respuesta al usuario
+    # Respuesta al usuario
     messages.success(
         request, 
         '¡Gracias por contactarnos! Te responderemos pronto.'
@@ -130,9 +126,8 @@ def contact_submit(request):
     
     # Si es HTMX, retornar partial
     if request.headers.get('HX-Request'):
-        return render(request, 'partials/contact_success.html', {
-            'contact': contact
-        })
+        template = get_tenant_template(request, 'components/contact_success.html')
+        return render(request, template, {'contact': contact})
     
     return redirect('home')
 
@@ -154,8 +149,6 @@ def login_modal(request):
 def dashboard(request):
     """
     Vista principal del dashboard.
-    
-    Muestra métricas, accesos rápidos y actividad reciente.
     """
     client = request.client
     today = timezone.now().date()
@@ -175,12 +168,6 @@ def dashboard(request):
         client=client
     ).order_by('-created_at')[:5]
     
-    # Contactos no leídos (si tienes campo is_read)
-    unread_contacts = ContactSubmission.objects.filter(
-        client=client,
-        is_read=False
-    ).count() if hasattr(ContactSubmission, 'is_read') else 0
-    
     context = {
         'client': client,
         'total_contacts': total_contacts,
@@ -188,10 +175,10 @@ def dashboard(request):
         'total_services': total_services,
         'total_sections': total_sections,
         'recent_contacts': recent_contacts,
-        'unread_contacts': unread_contacts,
     }
     
-    return render(request, 'dashboard/index.html', context)
+    # Dashboard usa template del tenant si existe
+    return render_tenant_template(request, 'dashboard/index.html', context)
 
 
 # ============================================================
@@ -216,7 +203,7 @@ def dashboard_sections(request):
         'sections': sections,
         'services': services,
     }
-    return render(request, 'dashboard/sections.html', context)
+    return render_tenant_template(request, 'dashboard/sections.html', context)
 
 
 @login_required(login_url='/auth/login/')
@@ -238,95 +225,95 @@ def edit_section_dashboard(request, section_id):
     else:
         form = SectionForm(instance=section)
 
-    return render(request, 'dashboard/edit_section.html', {
+    context = {
         'client': request.client,
         'section': section,
         'form': form,
-    })
+    }
+    return render_tenant_template(request, 'dashboard/edit_section.html', context)
 
 
 # ============================================================
-# DASHBOARD - SERVICIOS CRUD
+# DASHBOARD - SERVICIOS
 # ============================================================
 
 @login_required(login_url='/auth/login/')
-def create_service(request):
-    """Crear un nuevo servicio"""
-    if request.method == 'POST':
-        service = Service.objects.create(
-            client=request.client,
-            name=request.POST.get('title', ''),
-            description=request.POST.get('description', ''),
-            icon=request.POST.get('icon', '⚡'),
-            price_text=request.POST.get('price_text', ''),
-            is_active=request.POST.get('is_active') == 'on',
-        )
-        
-        if request.FILES.get('image'):
-            service.image = request.FILES['image']
-            service.save()
-        
-        messages.success(request, f'Servicio "{service.name}" creado correctamente')
-        return redirect('dashboard_sections')
+def dashboard_services(request):
+    """Lista de servicios"""
+    services = Service.objects.filter(
+        client=request.client
+    ).order_by('order')
     
     context = {
         'client': request.client,
-        'action': 'Crear',
+        'services': services,
     }
-    return render(request, 'dashboard/service_form.html', context)
+    return render_tenant_template(request, 'dashboard/services.html', context)
+
+
+@login_required(login_url='/auth/login/')
+def create_service_dashboard(request):
+    """Crear servicio desde dashboard"""
+    if request.method == 'POST':
+        form = ServiceForm(request.POST, request.FILES)
+        if form.is_valid():
+            service = form.save(commit=False)
+            service.client = request.client
+            service.save()
+            messages.success(request, f'Servicio "{service.name}" creado correctamente')
+            return redirect('dashboard_services')
+    else:
+        form = ServiceForm()
+    
+    context = {
+        'client': request.client,
+        'form': form,
+    }
+    return render_tenant_template(request, 'dashboard/create_service.html', context)
 
 
 @login_required(login_url='/auth/login/')
 def edit_service_dashboard(request, service_id):
-    """Editar un servicio existente"""
+    """Editar servicio desde dashboard"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
     
     if request.method == 'POST':
-        service.name = request.POST.get('title', service.name)
-        service.description = request.POST.get('description', '')
-        service.icon = request.POST.get('icon', '⚡')
-        service.price_text = request.POST.get('price_text', '')
-        service.is_active = request.POST.get('is_active') == 'on'
-        
-        if request.FILES.get('image'):
-            service.image = request.FILES['image']
-        
-        service.save()
-        messages.success(request, f'Servicio "{service.name}" actualizado correctamente')
-        return redirect('dashboard_sections')
+        form = ServiceForm(request.POST, request.FILES, instance=service)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Servicio "{service.name}" actualizado correctamente')
+            return redirect('dashboard_services')
+    else:
+        form = ServiceForm(instance=service)
     
     context = {
         'client': request.client,
         'service': service,
-        'action': 'Editar',
+        'form': form,
     }
-    return render(request, 'dashboard/service_form.html', context)
+    return render_tenant_template(request, 'dashboard/edit_service.html', context)
 
 
 @login_required(login_url='/auth/login/')
 def delete_service_dashboard(request, service_id):
-    """Eliminar un servicio"""
+    """Eliminar servicio desde dashboard"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
     
     if request.method == 'POST':
-        service_name = service.name
+        name = service.name
         service.delete()
-        messages.success(request, f'Servicio "{service_name}" eliminado correctamente')
-        return redirect('dashboard_sections')
+        messages.success(request, f'Servicio "{name}" eliminado')
+        return redirect('dashboard_services')
     
     context = {
         'client': request.client,
         'service': service,
     }
-    return render(request, 'dashboard/service_confirm_delete.html', context)
+    return render_tenant_template(request, 'dashboard/delete_service.html', context)
 
-
-# ============================================================
-# SERVICIOS - AJAX
-# ============================================================
 
 @login_required(login_url='/auth/login/')
-def toggle_service_active(request, service_id):
+def toggle_service(request, service_id):
     """Activar / desactivar un servicio"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
     service.is_active = not service.is_active
@@ -395,7 +382,8 @@ def edit_section(request, section_id):
             form.save()
             
             if request.headers.get('HX-Request'):
-                return render(request, 'partials/section_display.html', {
+                template = get_tenant_template(request, 'partials/section_display.html')
+                return render(request, template, {
                     'section': section,
                     'can_edit': True
                 })
@@ -405,7 +393,8 @@ def edit_section(request, section_id):
     else:
         form = SectionForm(instance=section)
     
-    return render(request, 'partials/section_edit.html', {
+    template = get_tenant_template(request, 'partials/section_edit.html')
+    return render(request, template, {
         'form': form,
         'section': section
     })
@@ -415,7 +404,8 @@ def edit_section(request, section_id):
 def cancel_edit_section(request, section_id):
     """Cancelar edición de sección"""
     section = get_object_or_404(Section, id=section_id, client=request.client)
-    return render(request, 'partials/section_display.html', {
+    template = get_tenant_template(request, 'partials/section_display.html')
+    return render(request, template, {
         'section': section,
         'can_edit': True
     })
@@ -432,7 +422,8 @@ def edit_service(request, service_id):
             form.save()
             
             if request.headers.get('HX-Request'):
-                return render(request, 'partials/service_card.html', {
+                template = get_tenant_template(request, 'partials/service_card.html')
+                return render(request, template, {
                     'service': service,
                     'can_edit': True
                 })
@@ -442,7 +433,8 @@ def edit_service(request, service_id):
     else:
         form = ServiceForm(instance=service)
     
-    return render(request, 'partials/service_edit.html', {
+    template = get_tenant_template(request, 'partials/service_edit.html')
+    return render(request, template, {
         'form': form,
         'service': service
     })
@@ -459,7 +451,8 @@ def add_service(request):
             service.save()
             
             if request.headers.get('HX-Request'):
-                return render(request, 'partials/service_card.html', {
+                template = get_tenant_template(request, 'partials/service_card.html')
+                return render(request, template, {
                     'service': service,
                     'can_edit': True
                 })
@@ -469,7 +462,8 @@ def add_service(request):
     else:
         form = ServiceForm()
     
-    return render(request, 'partials/service_add.html', {
+    template = get_tenant_template(request, 'partials/service_add.html')
+    return render(request, template, {
         'form': form
     })
 
@@ -488,7 +482,8 @@ def delete_service(request, service_id):
         messages.success(request, 'Servicio eliminado correctamente')
         return redirect('home')
     
-    return render(request, 'partials/service_delete_confirm.html', {
+    template = get_tenant_template(request, 'partials/service_delete_confirm.html')
+    return render(request, template, {
         'service': service
     })
 
@@ -497,28 +492,11 @@ def delete_service(request, service_id):
 def cancel_edit_service(request, service_id):
     """Cancelar edición de servicio"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
-    return render(request, 'partials/service_card.html', {
+    template = get_tenant_template(request, 'partials/service_card.html')
+    return render(request, template, {
         'service': service,
         'can_edit': True
     })
-
-
-# ============================================================
-# DASHBOARD - TESTIMONIOS
-# ============================================================
-
-@login_required(login_url='/auth/login/')
-def dashboard_testimonials(request):
-    """Lista de testimonios"""
-    testimonials = Testimonial.objects.filter(
-        client=request.client
-    ).order_by('-created_at')
-    
-    context = {
-        'client': request.client,
-        'testimonials': testimonials,
-    }
-    return render(request, 'dashboard/testimonials.html', context)
 
 
 # ============================================================
@@ -541,7 +519,7 @@ def dashboard_contacts(request):
         'contacts': contacts,
         'status_filter': status_filter,
     }
-    return render(request, 'dashboard/contacts.html', context)
+    return render_tenant_template(request, 'dashboard/contacts.html', context)
 
 
 @login_required(login_url='/auth/login/')
@@ -572,3 +550,8 @@ def mark_contact_replied(request, contact_id):
         messages.success(request, 'Contacto marcado como respondido')
     
     return redirect('dashboard_contacts')
+# =============================================================================
+# ALIAS PARA COMPATIBILIDAD CON urls.py
+# =============================================================================
+create_service = create_service_dashboard
+toggle_service_active = toggle_service
