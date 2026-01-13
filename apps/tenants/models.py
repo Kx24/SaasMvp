@@ -12,6 +12,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
+from cloudinary.models import CloudinaryField
 
 
 # ==============================================================================
@@ -283,26 +284,26 @@ class ClientSettings(models.Model):
     )
     
     # ==================== BRANDING ====================
-    logo = models.ImageField(
-        upload_to='clients/logos/',
+# CAMBIO: Usamos CloudinaryField para gestionar las imágenes correctamente
+    logo = CloudinaryField(
+        verbose_name='Logo principal',
         blank=True,
         null=True,
-        verbose_name='Logo principal'
-    )
-    logo_footer = models.ImageField(
-        upload_to='clients/logos/',
-        blank=True,
-        null=True,
-        verbose_name='Logo footer (blanco)',
-        help_text='Logo alternativo para el footer, preferiblemente en blanco'
-    )
-    favicon = models.ImageField(
-        upload_to='clients/favicons/',
-        blank=True,
-        null=True,
-        verbose_name='Favicon'
     )
 
+    logo_footer = CloudinaryField(
+        verbose_name='Logo footer (blanco)',
+        blank=True,
+        null=True,
+        help_text='Logo alternativo para el footer',
+    )
+
+    favicon = CloudinaryField(
+        verbose_name='Favicon',
+        blank=True,
+        null=True,
+    )
+    
     primary_color = models.CharField(max_length=7, default='#3B82F6')
     secondary_color = models.CharField(max_length=7, default='#1E40AF')
     font_family = models.CharField(max_length=100, default='Inter, sans-serif')

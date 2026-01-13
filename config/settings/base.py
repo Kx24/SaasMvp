@@ -253,6 +253,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # WhiteNoise para servir archivos estáticos
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# AGREGAR ESTO PARA ARREGLAR LA CARGA DE IMÁGENES
+# Esto asegura que cualquier ImageField use Cloudinary si no usas CloudinaryField explícitamente
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 # =============================================================================
 # SESSIONS
 # =============================================================================

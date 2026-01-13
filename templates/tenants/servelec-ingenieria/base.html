@@ -34,9 +34,11 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#16a34a',    /* green-600 */
-                        secondary: '#15803d',  /* green-700 */
-                        accent: '#22c55e',     /* green-500 */
+                        // Usamos los colores de la BD. Si no existen, usa los verdes por defecto de Servelec.
+                        primary: '{{ client.settings.primary_color|default:"#16a34a" }}',
+                        secondary: '{{ client.settings.secondary_color|default:"#15803d" }}',
+                        // Puedes crear un campo 'accent_color' en tu modelo o derivarlo aquí
+                        accent: '{{ client.settings.accent_color|default:"#22c55e" }}', 
                     },
                     fontFamily: {
                         'sans': ['Inter', 'system-ui', 'sans-serif'],
@@ -48,11 +50,14 @@
     </script>
     
     <style>
+        /* Vinculamos las variables CSS a las variables de Django también */
         :root {
-            --primary: #16a34a;
-            --secondary: #15803d;
-            --accent: #22c55e;
-            --primary-light: #dcfce7;
+            --primary: {{ client.settings.primary_color|default:"#16a34a" }};
+            --secondary: {{ client.settings.secondary_color|default:"#15803d" }};
+            --accent: {{ client.settings.accent_color|default:"#22c55e" }};
+            /* Nota: --primary-light es difícil de calcular dinámicamente en template sin un filtro custom, 
+               así que lo dejaremos estático o usaremos una opacidad */
+            --primary-light: #dcfce7; 
         }
         
         body {

@@ -31,9 +31,9 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '{{ client.settings.primary_color|default:"#0ea5e9" }}',
-                        secondary: '{{ client.settings.secondary_color|default:"#f0f9ff" }}',
-                        accent: '#6366f1',
+                        primary: '{{ client.settings.primary_color|default:"#0ea5e9" }}', // Azul
+                        secondary: '#0284c7', // Un azul más oscuro para los hovers (Hardcoded o campo nuevo)
+                        surface: '{{ client.settings.secondary_color|default:"#f0f9ff" }}', // Usar esto para los fondos claros
                     },
                     fontFamily: {
                         'display': ['Space Grotesk', 'system-ui', 'sans-serif'],

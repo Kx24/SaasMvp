@@ -92,7 +92,11 @@ class TenantTemplateLoader(FilesystemLoader):
         # ============================================================
         if tenant_slug:
             try:
+                # Normalizar slug (una sola vez, de forma segura)
+                tenant_slug = str(tenant_slug).strip().lower()
+
                 tenant_path = base_dir / tenant_slug / template_name
+
                 if tenant_path.exists() and tenant_path.is_file():
                     logger.debug(f"[TenantLoader] Found: {tenant_path}")
                     yield Origin(
@@ -101,8 +105,11 @@ class TenantTemplateLoader(FilesystemLoader):
                         loader=self,
                     )
                     return
+
             except Exception as e:
-                logger.debug(f"[TenantLoader] Error checking tenant path: {e}")
+                logger.debug(
+                    f"[TenantLoader] Error checking tenant path for tenant={tenant_slug}: {e}"
+                )
         
         # ============================================================
         # 2. BUSCAR EN _DEFAULT
