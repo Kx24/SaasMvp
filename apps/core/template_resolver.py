@@ -1,106 +1,54 @@
 # =============================================================================
-# apps/core/template_resolver.py
+# apps/core/template_resolver.py - ARQUITECTURA THEMES (NIVEL 3)
 # =============================================================================
-# Helper para resolver templates por tenant usando SLUG (no ID)
-# 
-# Orden de búsqueda:
-# 1. tenants/{slug}/...        (template específico del cliente)
-# 2. tenants/_default/...      (template por defecto)
-# 3. {path original}           (fallback)
+# Este helper ya NO calcula rutas manualmente (ej: tenants/{slug}).
+# Simplemente pasa el nombre del template a Django, y deja que el
+# TenantTemplateLoader (configurado en settings) decida si cargar
+# el tema Marketing, Electricidad o Default.
 # =============================================================================
 
-from django.template import TemplateDoesNotExist
-from django.template.loader import get_template
-import logging
-
-logger = logging.getLogger(__name__)
-
+from django.shortcuts import render
 
 def get_tenant_template(request, template_path):
     """
-    Resuelve el template correcto para el tenant actual.
+    Retorna el nombre del template limpio.
     
-    Args:
-        request: HttpRequest con request.client
-        template_path: Ruta relativa del template (ej: 'landing/home.html')
+    En la nueva arquitectura, ya no necesitamos transformar 
+    'home.html' a 'tenants/slug/home.html'.
     
-    Returns:
-        Ruta del template a usar
+    El TenantTemplateLoader interceptará 'home.html' y buscará 
+    en la carpeta del tema correcto automáticamente.
     
-    Ejemplo:
-        # Si request.client.slug = 'servelec-ingenieria'
-        get_tenant_template(request, 'landing/home.html')
-        # Busca en orden:
-        # 1. tenants/servelec-ingenieria/landing/home.html
-        # 2. tenants/_default/landing/home.html
-        # 3. landing/home.html
+    Mantenemos esta función por compatibilidad con las vistas existentes.
     """
-    if not hasattr(request, 'client') or not request.client:
-        logger.warning("get_tenant_template: No client in request, using default")
-        return template_path
-    
-    slug = request.client.slug
-    
-    # Lista de templates a probar (en orden de prioridad)
-    templates_to_try = [
-        f"tenants/{slug}/{template_path}",      # Específico del tenant
-        f"tenants/_default/{template_path}",    # Default
-        template_path,                           # Fallback original
-    ]
-    
-    for template_name in templates_to_try:
-        try:
-            get_template(template_name)
-            logger.debug(f"Template resolved: {template_name}")
-            return template_name
-        except TemplateDoesNotExist:
-            continue
-    
-    # Si ninguno existe, retornar el original (Django mostrará error)
-    logger.warning(f"No template found for {slug}/{template_path}, using: {template_path}")
     return template_path
 
 
 def render_tenant_template(request, template_path, context=None):
     """
-    Shortcut para renderizar template de tenant.
+    Renderiza un template delegando la búsqueda al sistema de Loaders de Django.
     
-    Uso:
-        from apps.core.template_resolver import render_tenant_template
+    Args:
+        request: HttpRequest (necesario para que el Loader detecte el tenant)
+        template_path: Ruta relativa genérica (ej: 'landing/home.html')
+        context: Diccionario de datos
         
-        def home(request):
-            context = {'services': services}
-            return render_tenant_template(request, 'landing/home.html', context)
+    El flujo es:
+    1. View llama a render_tenant_template(req, 'landing/home.html')
+    2. Django llama a TenantTemplateLoader.get_template('landing/home.html')
+    3. Loader verifica: ¿Es Andesscale? -> busca en templates/marketing/
+    4. Si no, ¿Qué tema tiene el cliente? -> busca en templates/themes/{tema}/
     """
-    from django.shortcuts import render
-    
-    resolved_template = get_tenant_template(request, template_path)
-    return render(request, resolved_template, context or {})
+    return render(request, template_path, context or {})
 
 
 class TenantTemplateMixin:
     """
-    Mixin para Class-Based Views que resuelve templates por tenant.
+    Mixin para Class-Based Views.
     
-    Uso:
-        class HomeView(TenantTemplateMixin, TemplateView):
-            template_name = 'landing/home.html'
+    Ya no necesita inyectar prefijos de tenants. Simplemente retorna
+    el nombre del template original y deja que el Loader haga el trabajo.
     """
     
     def get_template_names(self):
-        """
-        Retorna lista de templates a probar.
-        Django usa el primero que encuentre.
-        """
-        base_template = self.template_name
-        
-        if not hasattr(self.request, 'client') or not self.request.client:
-            return [base_template]
-        
-        slug = self.request.client.slug
-        
-        return [
-            f"tenants/{slug}/{base_template}",
-            f"tenants/_default/{base_template}",
-            base_template,
-        ]
+        return [self.template_name]

@@ -10,6 +10,16 @@ CREATE USER saas_user WITH PASSWORD '12345';
 GRANT ALL PRIVILEGES ON DATABASE saas_mvp_dev TO saas_user;
 \q
 
+Datos conexión a render DB
+*server
+dpg-d51mqcggjchc73enrgq0-a.oregon-postgres.render.com
+*DB
+saasmvp_db
+*usuario
+saasmvp_user
+*Pass
+0N5UdoRilBDn4RTs3HfJfAbFy0oYjXNJ
+
 superusuario django
 admin
 admin@saaslandingmvp.local

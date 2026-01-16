@@ -57,4 +57,61 @@ apps/
 │   │
 │   └── migrations/
 │
-└── __init__.py
+|__ __init__.py
+|
+├── templates/
+│   ├── auth/
+│   ├── components/
+│   ├── dashboard/
+│   │   ├── base.html
+│   │   ├── contact.html
+│   │   ├── edit_section.html
+│   │   ├── index.html
+│   │   ├── sections.html
+│   │   ├── service_confirm_delete.html
+│   │   ├── service_form-html
+|   │   ├── services.html
+│   ├── emails/
+│   ├── errors/
+│   ├── landing/
+│   │   ├── home.html
+│   ├── partials/
+│   ├── tenants/
+│   │   ├── _default/
+│   │   |    ├── components/
+│   │   |    |   ├── about.html
+│   │   |    |   ├── contact.html
+│   │   |    |   ├── footer.html
+│   │   |    |   ├── hero.html
+│   │   |    |   ├── navbar.html
+│   │   |    |   ├── services.html
+│   │   |    ├── dashboard/
+│   │   |    ├── landing/
+│   │   |    |   ├── home.html
+│   │   |    ├── base.html
+│   │   └── andesscale/
+│   │   |    ├── components/
+│   │   |    |   ├── about.html
+│   │   |    |   ├── contact.html
+│   │   |    |   ├── footer.html
+│   │   |    |   ├── hero.html
+│   │   |    |   ├── navbar.html
+│   │   |    |   ├── services.html
+│   │   |    ├── dashboard/
+│   │   |    ├── landing/
+│   │   |    |   ├── home.html
+│   │   |    ├── base.html
+│   │   ├── servelec-ingenieria/
+│   │   |    ├── components/
+│   │   |    |   ├── about.html
+│   │   |    |   ├── contact.html
+│   │   |    |   ├── footer.html
+│   │   |    |   ├── hero.html
+│   │   |    |   ├── navbar.html
+│   │   |    |   ├── services.html
+│   │   |    ├── dashboard/
+│   │   |    ├── landing/
+│   │   |    |   ├── home.html
+│   │   |    ├── base.html
+│   ├── base.html
+│   ├── /

@@ -14,19 +14,9 @@ from django.utils.text import slugify
 from django.core.validators import MinValueValidator
 from cloudinary.models import CloudinaryField
 
-
 # ==============================================================================
-# CLIENT - Modelo principal del tenant
-# ==============================================================================
-
 class Client(models.Model):
-    """
-    Representa un cliente/tenant del sistema.
-    
-    Cada cliente puede tener MÚLTIPLES dominios asociados.
-    """
-    
-    # ==================== IDENTIFICACIÓN ====================
+    # ... (Campos de identificación y empresa se mantienen igual) ...
     name = models.CharField(
         max_length=100,
         help_text="Nombre interno del cliente (ej: 'Servelec Ingeniería')"
@@ -38,73 +28,52 @@ class Client(models.Model):
         help_text="Identificador único (ej: 'servelec-ingenieria')"
     )
     
-    # ==================== INFORMACIÓN EMPRESA ====================
     company_name = models.CharField(
         max_length=200,
         blank=True,
         help_text="Nombre legal/comercial de la empresa"
     )
     
-    contact_email = models.EmailField(
-        blank=True,
-        help_text="Email principal de contacto"
-    )
+    contact_email = models.EmailField(blank=True, help_text="Email principal")
+    contact_phone = models.CharField(max_length=20, blank=True, help_text="Teléfono")
     
-    contact_phone = models.CharField(
-        max_length=20,
-        blank=True,
-        help_text="Teléfono de contacto"
-    )
+    # ==================== NIVEL 3: TEMAS Y PLANES ====================
     
-    # ==================== TEMPLATE ====================
-    TEMPLATE_CHOICES = [
-        ('electricidad', 'Electricidad/Servicios Técnicos'),
-        ('construccion', 'Construcción'),
-        ('servicios_profesionales', 'Servicios Profesionales'),
-        ('portafolio', 'Portafolio Personal'),
-        ('custom', 'Personalizado'),
+    # Estas opciones deben coincidir con las carpetas en templates/themes/
+    THEME_CHOICES = [
+        ('default', 'Tema Base (Lanzamiento Rápido)'),
+        ('electricidad', 'Electricidad (Servelec)'),
+        ('industrial', 'Industrial / Maquinaria'),
     ]
     
     template = models.CharField(
         max_length=50,
-        choices=TEMPLATE_CHOICES,
-        default='custom',
-        help_text="Template base aplicado"
+        choices=THEME_CHOICES,
+        default='default',
+        help_text="Carpeta del tema visual a utilizar"
+    )
+
+    # Nuevo: Estrategia de monetización
+    PLAN_CHOICES = [
+        ('essential', 'Plan Básico (Solo tema default)'),
+        ('pro', 'Plan Pro (Selección de temas + Logo)'),
+        ('enterprise', 'Plan Enterprise (Diseño a medida)'),
+    ]
+    
+    plan = models.CharField(
+        max_length=20, 
+        choices=PLAN_CHOICES, 
+        default='basic',
+        help_text="Nivel de suscripción del cliente"
     )
     
-    # ==================== ESTADO ====================
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Si está inactivo, muestra mensaje de mantenimiento"
-    )
-    
-    setup_completed = models.BooleanField(
-        default=False,
-        help_text="¿Completó la configuración inicial?"
-    )
-    
-    # ==================== BILLING ====================
-    setup_fee_paid = models.BooleanField(
-        default=False,
-        help_text="¿Pagó el fee de setup?"
-    )
-    
-    monthly_fee = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0.00,
-        help_text="Tarifa mensual en CLP"
-    )
-    
-    last_payment_date = models.DateField(
-        null=True,
-        blank=True
-    )
-    
-    next_payment_due = models.DateField(
-        null=True,
-        blank=True
-    )
+    # ==================== ESTADO Y BILLING ====================
+    is_active = models.BooleanField(default=True)
+    setup_completed = models.BooleanField(default=False)
+    setup_fee_paid = models.BooleanField(default=False)
+    monthly_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    last_payment_date = models.DateField(null=True, blank=True)
+    next_payment_due = models.DateField(null=True, blank=True)
     
     # ==================== LÍMITES ====================
     max_images = models.IntegerField(default=100)
@@ -114,7 +83,7 @@ class Client(models.Model):
     # ==================== METADATA ====================
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    notes = models.TextField(blank=True, help_text="Notas internas")
+    notes = models.TextField(blank=True)
     
     class Meta:
         ordering = ['-created_at']
@@ -125,20 +94,13 @@ class Client(models.Model):
         return f"{self.name} ({self.slug})"
     
     def save(self, *args, **kwargs):
-        # Auto-generar slug si no existe
         if not self.slug:
             self.slug = slugify(self.name)
-        
-        # Asegurar company_name tenga valor
         if not self.company_name:
             self.company_name = self.name
-            
-        # Guardar el cliente primero
         super().save(*args, **kwargs)
-        
-        # NO crear settings aquí - lo hace signals.py
-        # Esto evita duplicación
-    
+
+   
     @property
     def primary_domain(self):
         """Retorna el dominio primario del cliente"""

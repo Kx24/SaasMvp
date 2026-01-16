@@ -41,10 +41,7 @@ DEFAULT_TENANT_SLUG = config('DEFAULT_TENANT_SLUG', default=None)
 # =============================================================================
 
 # Hosts básicos
-ALLOWED_HOSTS = config(
-    'ALLOWED_HOSTS', 
-    default='localhost,127.0.0.1'
-).split(',')
+ALLOWED_HOSTS = ['*']
 
 # Agregar wildcard para subdominios en producción
 if not DEBUG and BASE_DOMAIN != 'localhost':
