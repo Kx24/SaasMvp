@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración completada | Andesscale{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-lg mx-auto px-4">
+        
+        <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+            
+            <!-- Icono -->
+            <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            
+            <!-- Mensaje -->
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                ¡Ya tienes tu sitio configurado!
+            </h1>
+            <p class="text-gray-600 mb-6">
+                La configuración de este sitio ya fue completada anteriormente.
+            </p>
+            
+            {% if client %}
+            <!-- Info del sitio -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <p class="font-medium text-gray-900">{{ client.name }}</p>
+                <a 
+                    href="{{ client.get_absolute_url }}" 
+                    target="_blank"
+                    class="text-blue-600 hover:underline text-sm"
+                >
+                    {{ client.get_absolute_url }}
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Acciones -->
+            <div class="space-y-3">
+                {% if client %}
+                <a 
+                    href="{{ client.get_absolute_url }}"
+                    target="_blank"
+                    class="block w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+                >
+                    Ver mi sitio web
+                </a>
+                {% endif %}
+                
+                <a 
+                    href="/dashboard/"
+                    class="block w-full py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
+                >
+                    Ir al panel de administración
+                </a>
+            </div>
+            
+            <p class="text-sm text-gray-500 mt-6">
+                ¿No puedes acceder? 
+                <a href="mailto:soporte@andesscale.cl" class="text-blue-600 hover:underline">
+                    Contacta a soporte
+                </a>
+            </p>
+            
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

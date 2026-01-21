@@ -49,6 +49,24 @@ class UserProfile(models.Model):
         default='editor',
         help_text="Rol del usuario en el tenant"
     )
+
+    # Agregar al modelo UserProfile existente:
+
+    invitation_token = models.UUIDField(
+        null=True,
+        blank=True,
+        unique=True,
+    )
+
+    invitation_expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    invited_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)

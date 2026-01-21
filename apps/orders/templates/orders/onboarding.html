@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+{% load static %}
+{% load website_tags %}
+{% block title %}Configura tu sitio web | {{ plan.name }} | Andesscale{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8 md:py-12">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">¡Configura tu sitio web!</h1>
+            <p class="mt-2 text-gray-600">Solo faltan unos datos para dejar todo listo</p>
+        </div>
+        
+        <!-- Step Indicator -->
+        <div class="flex items-center justify-center mb-8">
+            <!-- Step 1: Completado -->
+            <div class="flex items-center text-green-600">
+                <span class="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-semibold">
+                    ✓
+                </span>
+                <span class="ml-2 text-sm font-medium hidden sm:inline">Pago</span>
+            </div>
+            
+            <div class="w-12 md:w-20 h-0.5 bg-green-600 mx-2 md:mx-4"></div>
+            
+            <!-- Step 2: Activo -->
+            <div class="flex items-center text-blue-600">
+                <span class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold">
+                    2
+                </span>
+                <span class="ml-2 text-sm font-medium hidden sm:inline">Configuración</span>
+            </div>
+            
+            <div class="w-12 md:w-20 h-0.5 bg-gray-300 mx-2 md:mx-4"></div>
+            
+            <!-- Step 3: Pendiente -->
+            <div class="flex items-center text-gray-400">
+                <span class="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center text-sm font-semibold">
+                    3
+                </span>
+                <span class="ml-2 text-sm font-medium hidden sm:inline">¡Listo!</span>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <p class="font-semibold text-green-800">Pago confirmado</p>
+                    <p class="text-sm text-green-700">
+                        {{ plan.name }} · Orden #{{ order.order_number }} · {{ order.email }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mensajes de error -->
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p class="text-sm text-red-700">{{ message }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Formulario -->
+        <form method="post" enctype="multipart/form-data" id="onboarding-form" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Sección 1: Datos de la Empresa -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <span class="mr-2">📋</span> Datos de tu empresa
+                    </h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <!-- Nombre de empresa -->
+                    <div>
+                        <label for="id_company_name" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre de tu empresa <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="company_name" 
+                            id="id_company_name"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            placeholder="Ej: Constructora del Sur SpA"
+                            value="{{ form.company_name.value|default:'' }}"
+                            required
+                        >
+                        {% if form.company_name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.company_name.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">Este nombre aparecerá en tu sitio web</p>
+                    </div>
+                    
+                    <!-- Slug / Identificador -->
+                    <div>
+                        <label for="id_slug" class="block text-sm font-medium text-gray-700 mb-1">
+                            Identificador único
+                        </label>
+                        <input 
+                            type="text" 
+                            name="slug" 
+                            id="id_slug"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            placeholder="constructora-sur"
+                            value="{{ form.slug.value|default:'' }}"
+                            pattern="[a-z0-9\-]+"
+                        >
+                        {% if form.slug.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.slug.errors.0 }}</p>
+                        {% endif %}
+                        
+                        <!-- Preview del subdominio -->
+                        <div class="mt-2 flex items-center bg-gray-100 rounded-lg px-4 py-2.5">
+                            <span class="text-sm text-gray-600">Tu sitio: </span>
+                            <span class="text-sm font-mono ml-1">
+                                <span class="text-blue-600 font-semibold" id="slug-preview">tu-empresa</span>.andesscale.cl
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección 2: Branding -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <span class="mr-2">🎨</span> Branding
+                    </h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <!-- Logo -->
+                    <div>
+                        <label for="id_logo" class="block text-sm font-medium text-gray-700 mb-1">
+                            Logo de tu empresa
+                        </label>
+                        <input 
+                            type="file" 
+                            name="logo" 
+                            id="id_logo"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            accept="image/*"
+                        >
+                        <p class="mt-1 text-sm text-gray-500">Formato PNG o JPG. Tamaño recomendado: 200x80 px</p>
+                    </div>
+                    
+                    <!-- Colores -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_primary_color" class="block text-sm font-medium text-gray-700 mb-1">
+                                Color principal
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                <input 
+                                    type="color" 
+                                    name="primary_color" 
+                                    id="id_primary_color"
+                                    class="w-12 h-10 rounded-lg border border-gray-300 cursor-pointer"
+                                    value="{{ form.primary_color.value|default:'#2563eb' }}"
+                                >
+                                <input 
+                                    type="text" 
+                                    id="primary_color_text"
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono bg-gray-50"
+                                    value="{{ form.primary_color.value|default:'#2563eb' }}"
+                                    readonly
+                                >
+                            </div>
+                        </div>
+                        <div>
+                            <label for="id_secondary_color" class="block text-sm font-medium text-gray-700 mb-1">
+                                Color secundario
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                <input 
+                                    type="color" 
+                                    name="secondary_color" 
+                                    id="id_secondary_color"
+                                    class="w-12 h-10 rounded-lg border border-gray-300 cursor-pointer"
+                                    value="{{ form.secondary_color.value|default:'#1e40af' }}"
+                                >
+                                <input 
+                                    type="text" 
+                                    id="secondary_color_text"
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono bg-gray-50"
+                                    value="{{ form.secondary_color.value|default:'#1e40af' }}"
+                                    readonly
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección 3: Tema Visual -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <span class="mr-2">🖼️</span> Diseño de tu sitio
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {% for value, label in form.template.field.choices %}
+                        <label class="relative cursor-pointer group">
+                            <input 
+                                type="radio" 
+                                name="template" 
+                                value="{{ value }}"
+                                class="peer sr-only"
+                                {% if form.template.value == value or forloop.first and not form.template.value %}checked{% endif %}
+                            >
+                            <div class="p-4 border-2 border-gray-200 rounded-xl transition-all peer-checked:border-blue-500 peer-checked:bg-blue-50 group-hover:border-gray-300">
+                                <div class="font-medium text-gray-900 text-sm">
+                                    {{ label }}
+                                </div>
+                            </div>
+                            <div class="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full items-center justify-center hidden peer-checked:flex">
+                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección 4: Contacto -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <span class="mr-2">📞</span> Información de contacto
+                    </h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Teléfono -->
+                        <div>
+                            <label for="id_contact_phone" class="block text-sm font-medium text-gray-700 mb-1">
+                                Teléfono
+                            </label>
+                            <input 
+                                type="tel" 
+                                name="contact_phone" 
+                                id="id_contact_phone"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                placeholder="+56 9 1234 5678"
+                                value="{{ form.contact_phone.value|default:'' }}"
+                            >
+                        </div>
+                        
+                        <!-- WhatsApp -->
+                        <div>
+                            <label for="id_whatsapp_number" class="block text-sm font-medium text-gray-700 mb-1">
+                                WhatsApp
+                            </label>
+                            <input 
+                                type="tel" 
+                                name="whatsapp_number" 
+                                id="id_whatsapp_number"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                placeholder="56912345678"
+                                value="{{ form.whatsapp_number.value|default:'' }}"
+                            >
+                            <p class="mt-1 text-sm text-gray-500">Solo números, con código de país</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Email (solo lectura) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Email de contacto
+                        </label>
+                        <input 
+                            type="email" 
+                            class="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-gray-600 cursor-not-allowed"
+                            value="{{ order.email }}"
+                            disabled
+                        >
+                        <p class="mt-1 text-sm text-gray-500">Este es el email asociado a tu compra</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección 5: Contenido inicial (opcional) -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <span class="mr-2">✍️</span> Contenido inicial 
+                        <span class="text-gray-400 font-normal text-sm ml-2">(opcional)</span>
+                    </h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <!-- Eslogan -->
+                    <div>
+                        <label for="id_tagline" class="block text-sm font-medium text-gray-700 mb-1">
+                            Eslogan o descripción corta
+                        </label>
+                        <input 
+                            type="text" 
+                            name="tagline" 
+                            id="id_tagline"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            placeholder="Ej: Soluciones eléctricas para tu hogar"
+                            value="{{ form.tagline.value|default:'' }}"
+                            maxlength="200"
+                        >
+                    </div>
+                    
+                    <!-- Descripción -->
+                    <div>
+                        <label for="id_about_text" class="block text-sm font-medium text-gray-700 mb-1">
+                            Descripción de tu empresa
+                        </label>
+                        <textarea 
+                            name="about_text" 
+                            id="id_about_text"
+                            rows="4"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                            placeholder="Cuéntanos brevemente sobre tu empresa... (puedes editarlo después)"
+                        >{{ form.about_text.value|default:'' }}</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit Button -->
+            <div>
+                <button 
+                    type="submit" 
+                    id="btn-submit"
+                    class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                >
+                    <span id="btn-text">🚀 Crear mi sitio web</span>
+                    <svg id="btn-spinner" class="hidden animate-spin ml-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+                
+                <p class="text-center text-sm text-gray-500 mt-4">
+                    Podrás editar toda esta información después desde tu panel de administración
+                </p>
+            </div>
+            
+        </form>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const companyNameInput = document.getElementById('id_company_name');
+    const slugInput = document.getElementById('id_slug');
+    const slugPreview = document.getElementById('slug-preview');
+    const form = document.getElementById('onboarding-form');
+    const submitBtn = document.getElementById('btn-submit');
+    const btnText = document.getElementById('btn-text');
+    const btnSpinner = document.getElementById('btn-spinner');
+    
+    // Color pickers sync
+    const primaryColor = document.getElementById('id_primary_color');
+    const primaryColorText = document.getElementById('primary_color_text');
+    const secondaryColor = document.getElementById('id_secondary_color');
+    const secondaryColorText = document.getElementById('secondary_color_text');
+    
+    if (primaryColor && primaryColorText) {
+        primaryColor.addEventListener('input', function() {
+            primaryColorText.value = this.value;
+        });
+    }
+    
+    if (secondaryColor && secondaryColorText) {
+        secondaryColor.addEventListener('input', function() {
+            secondaryColorText.value = this.value;
+        });
+    }
+    
+    // Auto-generar slug desde nombre de empresa
+    let autoGenerateSlug = true;
+    
+    if (companyNameInput) {
+        companyNameInput.addEventListener('input', function() {
+            if (autoGenerateSlug) {
+                const slug = generateSlug(this.value);
+                slugInput.value = slug;
+                updateSlugPreview(slug);
+            }
+        });
+    }
+    
+    // Detectar edición manual del slug
+    if (slugInput) {
+        slugInput.addEventListener('input', function() {
+            autoGenerateSlug = false;
+            updateSlugPreview(this.value);
+        });
+        
+        // Si ya tiene valor al cargar, actualizar preview
+        if (slugInput.value) {
+            updateSlugPreview(slugInput.value);
+        }
+    }
+    
+    function generateSlug(text) {
+        return text
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .substring(0, 50);
+    }
+    
+    function updateSlugPreview(slug) {
+        if (slugPreview) {
+            slugPreview.textContent = slug || 'tu-empresa';
+        }
+    }
+    
+    // Prevenir doble submit y mostrar loading
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            submitBtn.disabled = true;
+            btnText.textContent = 'Creando tu sitio...';
+            btnSpinner.classList.remove('hidden');
+        });
+    }
+});
+</script>
+{% endblock %}

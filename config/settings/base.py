@@ -30,8 +30,8 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # MULTI-TENANT CONFIGURATION
 # =============================================================================
 
-# Dominio base para subdominios automáticos (ej: tenant.tuapp.cl)
-BASE_DOMAIN = config('BASE_DOMAIN', default='localhost')
+# Dominio base para subdominios
+BASE_DOMAIN = config('BASE_DOMAIN', default='andesscale.cl')
 
 # Tenant por defecto cuando no se detecta ninguno
 DEFAULT_TENANT_SLUG = config('DEFAULT_TENANT_SLUG', default=None)
@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "django.contrib.humanize",
     
     # Third party
     'django_extensions',
@@ -74,6 +75,7 @@ INSTALLED_APPS = [
     'apps.accounts',
     'cloudinary',
     'cloudinary_storage',  # Opcional, solo si usas como storage backend
+    'apps.orders',
 ]
 
 # =============================================================================
@@ -339,6 +341,27 @@ LOGGING = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# Cuando un usuario no logueado intenta entrar a una zona protegida, mándalo aquí:
+LOGIN_URL = '/superadmin/login/'  
+
+# Opcional: A dónde ir después de loguearse si no hay 'next'
+LOGIN_REDIRECT_URL = '/superadmin/nuevo/'
+
+
+
+
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+
+# ==============================================================================
+# MERCADO PAGO
+# ==============================================================================
+
+MP_PUBLIC_KEY = config('MP_PUBLIC_KEY', default='')
+MP_ACCESS_TOKEN = config('MP_ACCESS_TOKEN', default='')
+MP_WEBHOOK_SECRET = config('MP_WEBHOOK_SECRET', default='')
+MP_SANDBOX = config('MP_SANDBOX', default=True, cast=bool)
+
+# URL base para enlaces
+BASE_URL = config('BASE_URL', default='http://localhost:8000')

@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% block title %}Checkout - {{ plan.name }} | Andesscale{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos para el formulario de MP */
+    #cardPaymentBrick_container {
+        min-height: 300px;
+    }
+    
+    .mp-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+    
+    .mp-loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #e5e7eb;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .checkout-error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        display: none;
+    }
+    
+    .checkout-error.show {
+        display: block;
+    }
+    
+    .btn-pay {
+        width: 100%;
+        padding: 14px 24px;
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .btn-pay:hover:not(:disabled) {
+        background: #1d4ed8;
+    }
+    
+    .btn-pay:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+    
+    .btn-pay.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .btn-pay.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin-left: -10px;
+        margin-top: -10px;
+        border: 2px solid #ffffff;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Finalizar Compra</h1>
+            <p class="mt-2 text-gray-600">Estás a un paso de tener tu sitio web profesional</p>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Resumen del Plan -->
+            <div class="bg-white rounded-lg shadow-sm p-6 h-fit">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Resumen de tu pedido</h2>
+                
+                <div class="border-b pb-4 mb-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-medium text-gray-900">{{ plan.name }}</h3>
+                            <p class="text-sm text-gray-500">{{ plan.tagline }}</p>
+                        </div>
+                        <span class="text-lg font-bold text-gray-900">
+                            ${{ plan.price|floatformat:0|intcomma }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Features del plan -->
+                <div class="space-y-2 mb-4">
+                    <p class="text-sm font-medium text-gray-700">Incluye:</p>
+                    <ul class="space-y-1">
+                        {% for feature in plan.get_features_list %}
+                        <li class="flex items-center text-sm text-gray-600">
+                            <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            {{ feature }}
+                        </li>
+                        {% empty %}
+                        <li class="flex items-center text-sm text-gray-600">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Sitio web profesional
+                        </li>
+                        <li class="flex items-center text-sm text-gray-600">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Hosting por 1 año
+                        </li>
+                        <li class="flex items-center text-sm text-gray-600">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Soporte incluido
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <!-- Total -->
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-semibold text-gray-900">Total a pagar</span>
+                        <span class="text-2xl font-bold text-blue-600">
+                            ${{ plan.price|floatformat:0|intcomma }} CLP
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Pago único · Incluye IVA</p>
+                </div>
+                
+                <!-- Garantía -->
+                <div class="mt-6 bg-green-50 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <p class="text-sm font-medium text-green-800">Garantía de satisfacción</p>
+                            <p class="text-xs text-green-600 mt-1">2 meses de garantía incluidos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Formulario de Pago -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Datos de pago</h2>
+                
+                <!-- Error message -->
+                <div id="checkout-error" class="checkout-error">
+                    <p id="error-message"></p>
+                </div>
+                
+                <!-- Email -->
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="tu@email.com"
+                    >
+                    <p class="text-xs text-gray-500 mt-1">
+                        Recibirás las instrucciones de acceso en este email
+                    </p>
+                </div>
+                
+                <!-- Nombre (opcional) -->
+                <div class="mb-4">
+                    <label for="payer_name" class="block text-sm font-medium text-gray-700 mb-1">
+                        Nombre completo
+                    </label>
+                    <input 
+                        type="text" 
+                        id="payer_name" 
+                        name="payer_name"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Juan Pérez"
+                    >
+                </div>
+                
+                <!-- Mercado Pago Brick Container -->
+                <div id="cardPaymentBrick_container" class="mb-4">
+                    <div class="mp-loading">
+                        <div class="mp-loading-spinner"></div>
+                    </div>
+                </div>
+                
+                <!-- Botón de pago -->
+                <button 
+                    type="button"
+                    id="btn-pay"
+                    class="btn-pay"
+                    disabled
+                >
+                    Pagar ${{ plan.price|floatformat:0|intcomma }} CLP
+                </button>
+                
+                <!-- Seguridad -->
+                <div class="mt-4 flex items-center justify-center text-sm text-gray-500">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Pago seguro con Mercado Pago
+                </div>
+                
+                <!-- Métodos de pago aceptados -->
+                <div class="mt-4 flex items-center justify-center space-x-2">
+                    <img src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/badge.svg" alt="Mercado Pago" class="h-8">
+                </div>
+            </div>
+            
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SDK de Mercado Pago -->
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuración
+    const MP_PUBLIC_KEY = '{{ mp_public_key }}';
+    const PLAN_SLUG = '{{ plan.slug }}';
+    const PLAN_PRICE = {{ plan.price }};
+    
+    // Elementos DOM
+    const emailInput = document.getElementById('email');
+    const payerNameInput = document.getElementById('payer_name');
+    const btnPay = document.getElementById('btn-pay');
+    const errorDiv = document.getElementById('checkout-error');
+    const errorMessage = document.getElementById('error-message');
+    
+    // Estado
+    let cardFormData = null;
+    let isProcessing = false;
+    
+    // Verificar que tenemos la public key
+    if (!MP_PUBLIC_KEY) {
+        showError('Error de configuración. Por favor contacta a soporte.');
+        return;
+    }
+    
+    // Inicializar Mercado Pago
+    const mp = new MercadoPago(MP_PUBLIC_KEY, {
+        locale: 'es-CL'
+    });
+    
+    // Crear Card Payment Brick
+    const bricksBuilder = mp.bricks();
+    
+    bricksBuilder.create('cardPayment', 'cardPaymentBrick_container', {
+        initialization: {
+            amount: PLAN_PRICE
+        },
+        customization: {
+            visual: {
+                style: {
+                    theme: 'default',
+                    customVariables: {
+                        formBackgroundColor: '#ffffff',
+                        baseColor: '#2563eb'
+                    }
+                }
+            },
+            paymentMethods: {
+                maxInstallments: 1,  // Sin cuotas para pago único
+                types: {
+                    excluded: ['ticket', 'bank_transfer', 'atm']  // Solo tarjetas
+                }
+            }
+        },
+        callbacks: {
+            onReady: () => {
+                // Brick listo
+                btnPay.disabled = false;
+                console.log('[MP] Brick ready');
+            },
+            onSubmit: (formData) => {
+                // Guardar datos del formulario
+                cardFormData = formData;
+                return new Promise((resolve, reject) => {
+                    // Procesar pago
+                    processPayment(formData)
+                        .then(resolve)
+                        .catch(reject);
+                });
+            },
+            onError: (error) => {
+                console.error('[MP] Brick error:', error);
+                showError('Error en el formulario de pago. Verifica los datos.');
+            }
+        }
+    });
+    
+    // Click en botón de pago
+    btnPay.addEventListener('click', function() {
+        if (isProcessing) return;
+        
+        // Validar email
+        const email = emailInput.value.trim();
+        if (!email || !isValidEmail(email)) {
+            showError('Por favor ingresa un email válido');
+            emailInput.focus();
+            return;
+        }
+        
+        hideError();
+        
+        // El Brick se encarga del submit
+        // Esto dispara el callback onSubmit
+        const cardForm = document.querySelector('#cardPaymentBrick_container form');
+        if (cardForm) {
+            cardForm.dispatchEvent(new Event('submit', { bubbles: true }));
+        }
+    });
+    
+    // Procesar pago
+    async function processPayment(formData) {
+        if (isProcessing) return;
+        
+        isProcessing = true;
+        btnPay.classList.add('loading');
+        btnPay.disabled = true;
+        hideError();
+        
+        try {
+            const email = emailInput.value.trim();
+            const payerName = payerNameInput.value.trim();
+            
+            const payload = {
+                token: formData.token,
+                payment_method_id: formData.payment_method_id,
+                installments: formData.installments || 1,
+                email: email,
+                plan_slug: PLAN_SLUG,
+                payer_name: payerName
+            };
+            
+            console.log('[Checkout] Enviando pago...', payload);
+            
+            const response = await fetch('/checkout/process/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await response.json();
+            
+            console.log('[Checkout] Respuesta:', result);
+            
+            if (result.success) {
+                // Éxito - redirigir
+                window.location.href = result.redirect_url;
+            } else {
+                // Error
+                showError(result.error || 'Error procesando el pago');
+                isProcessing = false;
+                btnPay.classList.remove('loading');
+                btnPay.disabled = false;
+            }
+            
+        } catch (error) {
+            console.error('[Checkout] Error:', error);
+            showError('Error de conexión. Por favor intenta nuevamente.');
+            isProcessing = false;
+            btnPay.classList.remove('loading');
+            btnPay.disabled = false;
+        }
+    }
+    
+    // Helpers
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorDiv.classList.add('show');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    function hideError() {
+        errorDiv.classList.remove('show');
+    }
+    
+    function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}

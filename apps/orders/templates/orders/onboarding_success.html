@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}¡Tu sitio está listo! | Andesscale{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-2xl mx-auto px-4">
+        
+        <!-- Card de éxito -->
+        <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+            
+            <!-- Icono de éxito -->
+            <div class="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            
+            <!-- Mensaje principal -->
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                🎉 ¡Tu sitio web está listo!
+            </h1>
+            <p class="text-gray-600 mb-8">
+                Has completado la configuración exitosamente
+            </p>
+            
+            <!-- URL del sitio -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                <p class="text-sm text-blue-700 mb-2">Tu sitio web está disponible en:</p>
+                <a 
+                    href="{{ site_url }}" 
+                    target="_blank"
+                    class="text-xl font-semibold text-blue-600 hover:text-blue-800 break-all"
+                >
+                    {{ site_url }}
+                </a>
+                <p class="text-xs text-blue-500 mt-2">
+                    (Abre en nueva pestaña)
+                </p>
+            </div>
+            
+            <!-- Detalles -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-8 text-left">
+                <h3 class="font-medium text-gray-900 mb-3">Resumen de tu configuración:</h3>
+                <div class="space-y-2 text-sm text-gray-600">
+                    <p><span class="font-medium">Empresa:</span> {{ client.name }}</p>
+                    <p><span class="font-medium">Plan:</span> {{ order.plan.name }}</p>
+                    <p><span class="font-medium">Tema:</span> {{ client.template|title }}</p>
+                    <p><span class="font-medium">Email:</span> {{ order.email }}</p>
+                </div>
+            </div>
+            
+            <!-- Próximos pasos -->
+            <div class="border-t pt-6 mb-8">
+                <h3 class="font-medium text-gray-900 mb-4">📧 Próximos pasos</h3>
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
+                    <p class="text-sm text-yellow-800">
+                        <strong>Revisa tu email</strong> ({{ order.email }})
+                    </p>
+                    <p class="text-sm text-yellow-700 mt-2">
+                        Te hemos enviado un enlace para configurar tu contraseña y acceder 
+                        al panel de administración de tu sitio.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="space-y-3">
+                <a 
+                    href="{{ site_url }}" 
+                    target="_blank"
+                    class="block w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+                >
+                    Ver mi sitio web →
+                </a>
+                
+                <p class="text-sm text-gray-500">
+                    El acceso al panel de administración estará disponible 
+                    una vez que configures tu contraseña
+                </p>
+            </div>
+            
+        </div>
+        
+        <!-- Ayuda -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-500">
+                ¿Tienes dudas? Escríbenos a 
+                <a href="mailto:soporte@andesscale.cl" class="text-blue-600 hover:underline">
+                    soporte@andesscale.cl
+                </a>
+            </p>
+        </div>
+        
+        <!-- Tips -->
+        <div class="mt-8 bg-white rounded-lg shadow p-6">
+            <h3 class="font-medium text-gray-900 mb-4">💡 Tips para empezar</h3>
+            <ul class="space-y-3 text-sm text-gray-600">
+                <li class="flex items-start">
+                    <span class="text-green-500 mr-2">✓</span>
+                    <span>Personaliza el contenido de tu sitio desde el panel de administración</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-500 mr-2">✓</span>
+                    <span>Agrega tus servicios y testimonios de clientes</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-500 mr-2">✓</span>
+                    <span>Conecta tu dominio propio cuando estés listo (te ayudamos)</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-500 mr-2">✓</span>
+                    <span>Comparte tu sitio en redes sociales</span>
+                </li>
+            </ul>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

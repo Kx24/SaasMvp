@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Error en el pago | Andesscale{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Card de error -->
+        <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+            
+            <!-- Ícono de error -->
+            <div class="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </div>
+            
+            <!-- Mensaje principal -->
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                No pudimos procesar tu pago
+            </h1>
+            <p class="text-gray-600 mb-6">
+                Hubo un problema al procesar tu tarjeta. No se ha realizado ningún cargo.
+            </p>
+            
+            <!-- Posibles causas -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                <h3 class="font-medium text-gray-900 mb-2">Posibles causas:</h3>
+                <ul class="space-y-1 text-sm text-gray-600">
+                    <li>• Fondos insuficientes</li>
+                    <li>• Datos de tarjeta incorrectos</li>
+                    <li>• Tarjeta vencida o bloqueada</li>
+                    <li>• Límite de compra excedido</li>
+                </ul>
+            </div>
+            
+            <!-- Acciones -->
+            <div class="space-y-3">
+                <a 
+                    href="javascript:history.back()"
+                    class="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition"
+                >
+                    Intentar nuevamente
+                </a>
+                <p class="text-sm text-gray-500">
+                    o prueba con otro método de pago
+                </p>
+            </div>
+            
+            <!-- Soporte -->
+            <div class="border-t pt-6 mt-6">
+                <p class="text-sm text-gray-500">
+                    ¿El problema persiste? Contáctanos en 
+                    <a href="mailto:soporte@andesscale.cl" class="text-primary-600 hover:underline">
+                        soporte@andesscale.cl
+                    </a>
+                </p>
+            </div>
+            
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

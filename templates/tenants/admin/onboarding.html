@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Nuevo Cliente | SuperAdmin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+        
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-extrabold text-slate-900">Dar de alta nuevo Cliente</h2>
+            <p class="mt-2 text-sm text-slate-600">
+                Esto creará el Tenant, configurará el dominio y desplegará el sitio base inmediatamente.
+            </p>
+        </div>
+
+        <div class="bg-white py-8 px-6 shadow rounded-lg sm:px-10 border border-slate-200">
+            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+                    <div class="flex">
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">{{ form.non_field_errors.0 }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div>
+                    <h3 class="text-lg font-medium leading-6 text-slate-900 border-b pb-2 mb-4">🏢 Datos del Cliente</h3>
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        
+                        <div class="sm:col-span-3">
+                            <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-slate-700">Nombre Empresa</label>
+                            <div class="mt-1">
+                                {{ form.name }}
+                            </div>
+                            <style>input[type="text"], input[type="email"], input[type="url"], select { width: 100%; border-radius: 0.375rem; border: 1px solid #cbd5e1; padding: 0.5rem; }</style>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label for="{{ form.slug.id_for_label }}" class="block text-sm font-medium text-slate-700">Slug (ID Interno)</label>
+                            <div class="mt-1">
+                                {{ form.slug }}
+                            </div>
+                            <p class="mt-1 text-xs text-slate-500">Sin espacios, ej: mi-empresa</p>
+                        </div>
+
+                        <div class="sm:col-span-6">
+                            <label for="{{ form.domain.id_for_label }}" class="block text-sm font-medium text-slate-700">Dominio Real</label>
+                            <div class="mt-1 flex rounded-md shadow-sm">
+                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-slate-500 sm:text-sm">https://</span>
+                                {{ form.domain }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <h3 class="text-lg font-medium leading-6 text-slate-900 border-b pb-2 mb-4">🎨 Diseño y Marca</h3>
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        
+                        <div class="sm:col-span-6">
+                            <label class="block text-sm font-medium text-slate-700">Plantilla Visual</label>
+                            <div class="mt-1">
+                                {{ form.template }}
+                            </div>
+                            <p class="mt-1 text-xs text-slate-500">Define la estructura del sitio (HTML/CSS).</p>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label class="block text-sm font-medium text-slate-700">Color Primario</label>
+                            <div class="mt-1 flex items-center gap-2">
+                                {{ form.primary_color }}
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label class="block text-sm font-medium text-slate-700">Color Secundario</label>
+                            <div class="mt-1 flex items-center gap-2">
+                                {{ form.secondary_color }}
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-6">
+                            <label class="block text-sm font-medium text-slate-700">Logo</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-md">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="text-sm text-slate-600">
+                                        {{ form.logo }}
+                                    </div>
+                                    <p class="text-xs text-slate-500">PNG, JPG hasta 2MB</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <h3 class="text-lg font-medium leading-6 text-slate-900 border-b pb-2 mb-4">📞 Contacto Público</h3>
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                        <div class="sm:col-span-3">
+                            <label class="block text-sm font-medium text-slate-700">WhatsApp</label>
+                            <div class="mt-1">
+                                {{ form.whatsapp_number }}
+                            </div>
+                        </div>
+                        <div class="sm:col-span-3">
+                            <label class="block text-sm font-medium text-slate-700">Email Visible</label>
+                            <div class="mt-1">
+                                {{ form.contact_email }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-5">
+                    <div class="flex justify-end">
+                        <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto">
+                            🚀 Crear Tenant y Desplegar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

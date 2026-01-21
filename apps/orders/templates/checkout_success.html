@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}¡Pago Exitoso! | Andesscale{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Card de éxito -->
+        <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+            
+            <!-- Ícono de éxito -->
+            <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            
+            <!-- Mensaje principal -->
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                ¡Pago recibido exitosamente!
+            </h1>
+            <p class="text-gray-600 mb-6">
+                Tu orden <strong>{{ order.order_number }}</strong> ha sido procesada.
+            </p>
+            
+            <!-- Detalles de la orden -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                <h3 class="font-medium text-gray-900 mb-2">Detalles de tu compra:</h3>
+                <div class="space-y-1 text-sm text-gray-600">
+                    <p><span class="font-medium">Plan:</span> {{ order.plan.name }}</p>
+                    <p><span class="font-medium">Monto:</span> ${{ order.amount|floatformat:0 }} CLP</p>
+                    <p><span class="font-medium">Email:</span> {{ order.email }}</p>
+                </div>
+            </div>
+            
+            <!-- Instrucciones -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+                <h3 class="font-medium text-blue-900 mb-2">
+                    📧 Revisa tu email
+                </h3>
+                <p class="text-sm text-blue-700">
+                    Hemos enviado un enlace a <strong>{{ order.email }}</strong> para que 
+                    configures tu sitio web. El enlace expira en 72 horas.
+                </p>
+            </div>
+            
+            <!-- Botón de onboarding directo (si hay URL) -->
+            {% if onboarding_url %}
+            <div class="mb-6">
+                <p class="text-sm text-gray-500 mb-3">
+                    También puedes comenzar ahora:
+                </p>
+                <a 
+                    href="{{ onboarding_url }}"
+                    class="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition"
+                >
+                    Configurar mi sitio web
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Soporte -->
+            <div class="border-t pt-6">
+                <p class="text-sm text-gray-500">
+                    ¿Tienes dudas? Escríbenos a 
+                    <a href="mailto:soporte@andesscale.cl" class="text-primary-600 hover:underline">
+                        soporte@andesscale.cl
+                    </a>
+                </p>
+            </div>
+            
+        </div>
+        
+        <!-- Próximos pasos -->
+        <div class="mt-8">
+            <h2 class="text-lg font-medium text-gray-900 mb-4 text-center">
+                ¿Qué sigue?
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white rounded-lg p-4 text-center">
+                    <div class="text-2xl mb-2">1️⃣</div>
+                    <p class="text-sm text-gray-600">Revisa tu email y haz click en el enlace</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 text-center">
+                    <div class="text-2xl mb-2">2️⃣</div>
+                    <p class="text-sm text-gray-600">Completa los datos de tu empresa</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 text-center">
+                    <div class="text-2xl mb-2">3️⃣</div>
+                    <p class="text-sm text-gray-600">¡Tu sitio estará listo en minutos!</p>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

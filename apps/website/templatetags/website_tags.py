@@ -133,6 +133,28 @@ def get_form_config(context):
         form_config = FormConfig.objects.create(client=client)
         return form_config
 
+@register.filter
+def split(value, sep=" "):
+    """
+    Uso: {{ text|split:" - " }} -> lista
+    """
+    if value is None:
+        return []
+    return str(value).split(sep)
+
+@register.filter
+def first(value):
+    try:
+        return value[0]
+    except Exception:
+        return ""
+
+@register.filter
+def last(value):
+    try:
+        return value[-1]
+    except Exception:
+        return ""
 
 class DefaultFormConfig:
     """

@@ -1,6 +1,5 @@
 """
 URLs principales del proyecto
-Django Admin ahora en /superadmin/
 """
 from django.contrib import admin
 from django.urls import path, include
@@ -8,14 +7,30 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    # Django Admin - SOLO para superadmin
+    # 1. URLs de Tenants (Custom Superadmin) - PRIORIDAD ALTA
+    # Las ponemos primero para que 'superadmin/nuevo/' no sea "comido" por el admin de Django
+    path('', include('apps.tenants.urls')),
+
+    # 2. Django Admin (Panel clásico) - PRIORIDAD MEDIA
+    # Ahora vive en /superadmin/, pero solo responderá si no hubo coincidencia arriba
     path('superadmin/', admin.site.urls),
     
-    # Auth URLs para clientes
+    # 3. Auth URLs para clientes
     path('auth/', include('apps.website.auth_urls')),  # Login/Logout custom
     
-    # Website URLs (incluye dashboard)
+    # 4. Website URLs (Catch-all) - PRIORIDAD BAJA
+    # Al final porque suele tener rutas genéricas
     path('', include('apps.website.urls')),
+
+    # Orders & Checkout
+    path('checkout/', include('apps.orders.urls', namespace='orders')),
+    
+    # Webhooks (sin namespace para URLs públicas simples)
+    path('webhook/', include('apps.orders.urls_webhooks')),
+
+    # ===== ONBOARDINGS =====
+    path('onboarding/', include('apps.orders.urls_onboarding')),
+    # ========================================
 ]
 
 # Servir media files en desarrollo

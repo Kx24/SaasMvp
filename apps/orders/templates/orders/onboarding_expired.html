@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Enlace expirado | Andesscale{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-lg mx-auto px-4">
+        
+        <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+            
+            <!-- Icono -->
+            <div class="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            
+            <!-- Mensaje -->
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                El enlace ha expirado
+            </h1>
+            <p class="text-gray-600 mb-6">
+                {{ message|default:"Tu enlace de configuración ha expirado. Los enlaces son válidos por 72 horas." }}
+            </p>
+            
+            {% if order %}
+            <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left text-sm">
+                <p><span class="font-medium">Orden:</span> {{ order.order_number }}</p>
+                <p><span class="font-medium">Email:</span> {{ order.email }}</p>
+            </div>
+            {% endif %}
+            
+            <!-- Qué hacer -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+                <h3 class="font-medium text-blue-900 mb-2">¿Qué puedo hacer?</h3>
+                <p class="text-sm text-blue-700">
+                    Contáctanos y te enviaremos un nuevo enlace de configuración 
+                    a tu email.
+                </p>
+            </div>
+            
+            <!-- Acciones -->
+            <div class="space-y-3">
+                <a 
+                    href="mailto:soporte@andesscale.cl?subject=Solicito%20nuevo%20enlace%20de%20onboarding&body=Hola,%0A%0AMi%20enlace%20de%20configuración%20ha%20expirado.%0A%0AOrden:%20{{ order.order_number|default:'N/A' }}%0AEmail:%20{{ order.email|default:'N/A' }}%0A%0APor%20favor%20envíenme%20un%20nuevo%20enlace.%0A%0AGracias."
+                    class="block w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+                >
+                    Solicitar nuevo enlace
+                </a>
+                
+                <a 
+                    href="/"
+                    class="block w-full py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
+                >
+                    Ir al inicio
+                </a>
+            </div>
+            
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

@@ -63,7 +63,7 @@ class Client(models.Model):
     plan = models.CharField(
         max_length=20, 
         choices=PLAN_CHOICES, 
-        default='basic',
+        default='essential',
         help_text="Nivel de suscripción del cliente"
     )
     
