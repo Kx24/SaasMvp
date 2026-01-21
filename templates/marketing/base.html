@@ -44,7 +44,7 @@
         }
     </script>
     
-    <!-- Estilos personalizados estilo Stripe -->
+    <!-- Estilos personalizados estilo Stripe mejorados -->
     <style>
         :root {
             --primary: {{ client.settings.primary_color|default:"#0ea5e9" }};
@@ -53,71 +53,126 @@
             --gradient-mid: #6366f1;
             --gradient-end: #a855f7;
         }
-        
+
+        * {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Inter', system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
         }
-        
-        /* Stripe-style gradient mesh background */
+
+        /* Stripe-style gradient mesh background mejorado */
         .stripe-gradient {
-            background: 
-                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14, 165, 233, 0.15), transparent),
-                radial-gradient(ellipse 60% 40% at 100% 0%, rgba(99, 102, 241, 0.1), transparent),
-                radial-gradient(ellipse 50% 30% at 0% 100%, rgba(168, 85, 247, 0.08), transparent),
-                linear-gradient(to bottom, var(--secondary), #ffffff);
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14, 165, 233, 0.18), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 0%, rgba(99, 102, 241, 0.12), transparent),
+                radial-gradient(ellipse 50% 30% at 0% 100%, rgba(168, 85, 247, 0.1), transparent),
+                linear-gradient(135deg, var(--secondary) 0%, rgba(240, 249, 255, 0.5) 50%, #ffffff 100%);
         }
-        
-        /* Grid pattern overlay */
+
+        /* Grid pattern overlay mejorado */
         .stripe-grid {
-            background-image: 
-                linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
+            background-image:
+                linear-gradient(rgba(14, 165, 233, 0.04) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, rgba(14, 165, 233, 0.04) 1.5px, transparent 1.5px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
         }
-        
-        /* Glow effect */
+
+        /* Glow effects mejorados */
         .glow-primary {
-            box-shadow: 0 0 60px -15px var(--primary);
+            box-shadow:
+                0 0 40px -10px var(--primary),
+                0 0 80px -20px var(--primary);
         }
-        
-        /* Smooth animations */
+
+        .glow-soft {
+            box-shadow:
+                0 10px 40px -10px rgba(14, 165, 233, 0.3),
+                0 0 0 1px rgba(14, 165, 233, 0.05);
+        }
+
+        /* Animaciones suaves mejoradas */
         .animate-float {
-            animation: float 6s ease-in-out infinite;
+            animation: float 8s ease-in-out infinite;
         }
-        
+
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+            0%, 100% {
+                transform: translateY(0px) translateX(0px);
+            }
+            25% {
+                transform: translateY(-15px) translateX(10px);
+            }
+            50% {
+                transform: translateY(-25px) translateX(0px);
+            }
+            75% {
+                transform: translateY(-15px) translateX(-10px);
+            }
         }
-        
+
         .animate-pulse-slow {
-            animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            animation: pulse-soft 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
-        
-        /* Stripe-style card */
+
+        @keyframes pulse-soft {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        /* Rotate animation para decoraciones */
+        .animate-spin-slow {
+            animation: spin-slow 20s linear infinite;
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Stripe-style card mejorada con glassmorphism */
         .stripe-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(14, 165, 233, 0.1);
-            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(14, 165, 233, 0.08);
+            box-shadow:
+                0 4px 24px -6px rgba(14, 165, 233, 0.08),
+                0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
         .stripe-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px -15px rgba(14, 165, 233, 0.2);
-            border-color: rgba(14, 165, 233, 0.2);
+            transform: translateY(-6px) scale(1.01);
+            box-shadow:
+                0 24px 48px -12px rgba(14, 165, 233, 0.18),
+                0 0 0 1px rgba(14, 165, 233, 0.1),
+                0 0 0 3px rgba(14, 165, 233, 0.03);
+            border-color: rgba(14, 165, 233, 0.15);
         }
-        
-        /* Button styles */
+
+        /* Button styles mejorados */
         .btn-stripe {
             background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
-            transition: all 0.3s ease;
+            box-shadow:
+                0 4px 14px -4px var(--primary),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
         }
-        
+
         .btn-stripe::before {
             content: '';
             position: absolute;
@@ -125,58 +180,138 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s ease;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
         .btn-stripe:hover::before {
             left: 100%;
         }
-        
+
         .btn-stripe:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px -10px var(--primary);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow:
+                0 12px 32px -8px var(--primary),
+                0 0 0 1px rgba(255, 255, 255, 0.2) inset;
         }
-        
-        /* Text gradient */
+
+        .btn-stripe:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Text gradient mejorado */
         .text-gradient {
-            background: linear-gradient(135deg, var(--primary), #6366f1, #a855f7);
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 50%, #a855f7 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            background-size: 200% 200%;
+            animation: gradient-shift 8s ease infinite;
         }
-        
-        /* Decorative lines */
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Decorative lines mejoradas */
         .stripe-line {
             height: 4px;
             background: linear-gradient(90deg, var(--primary), #6366f1, #a855f7);
             border-radius: 2px;
+            box-shadow: 0 2px 12px -2px var(--primary);
         }
-        
-        /* Scroll animations */
+
+        /* Scroll animations mejoradas */
         .fade-up {
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.6s ease-out;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
         .fade-up.visible {
             opacity: 1;
             transform: translateY(0);
         }
-        
-        /* Custom scrollbar */
+
+        .fade-in {
+            opacity: 0;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+        }
+
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scale-in.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Custom scrollbar mejorado */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
         }
-        
+
         ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: #f8fafc;
         }
-        
+
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(var(--primary), #6366f1);
-            border-radius: 4px;
+            background: linear-gradient(180deg, var(--primary), #6366f1);
+            border-radius: 5px;
+            border: 2px solid #f8fafc;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #6366f1, var(--primary));
+        }
+
+        /* Efectos de resplandor para texto */
+        .text-glow {
+            text-shadow:
+                0 0 20px rgba(14, 165, 233, 0.3),
+                0 0 40px rgba(14, 165, 233, 0.1);
+        }
+
+        /* Efecto parallax sutil */
+        .parallax-slow {
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Backdrop blur moderno */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Mejora para inputs y forms */
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow:
+                0 0 0 3px rgba(14, 165, 233, 0.1),
+                0 4px 12px -2px rgba(14, 165, 233, 0.15);
+        }
+
+        /* Shimmer effect para loading states */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
         }
     </style>
 </head>
