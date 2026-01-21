@@ -4,17 +4,28 @@
 {% block content %}
 
 <!-- ============================================== -->
-<!-- HERO SECTION - Stripe Style -->
+<!-- HERO SECTION - Stripe Style Mejorado -->
 <!-- ============================================== -->
 {% get_section 'hero' as hero %}
-<section id="hero" class="relative min-h-screen flex items-center stripe-gradient stripe-grid overflow-hidden">
-    
-    <!-- Decorative Elements -->
+<section id="hero" class="relative min-h-screen flex items-center stripe-gradient stripe-grid overflow-hidden"
+         x-data="{ mouseX: 0, mouseY: 0 }"
+         @mousemove="mouseX = $event.clientX / window.innerWidth; mouseY = $event.clientY / window.innerHeight">
+
+    <!-- Decorative Elements con Parallax -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <!-- Floating orbs -->
-        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float"></div>
-        <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-float" style="animation-delay: -2s;"></div>
-        <div class="absolute top-1/2 right-1/3 w-64 h-64 bg-purple-400/10 rounded-full blur-3xl animate-float" style="animation-delay: -4s;"></div>
+        <!-- Floating orbs con parallax mejorado -->
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/12 rounded-full blur-3xl animate-float transition-transform duration-1000 ease-out"
+             :style="`transform: translate(${mouseX * 30}px, ${mouseY * 30}px)`"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-400/10 rounded-full blur-3xl animate-float transition-transform duration-1000 ease-out"
+             style="animation-delay: -2s;"
+             :style="`transform: translate(${mouseX * -20}px, ${mouseY * -20}px)`"></div>
+        <div class="absolute top-1/2 right-1/3 w-64 h-64 bg-purple-400/12 rounded-full blur-3xl animate-float transition-transform duration-1000 ease-out"
+             style="animation-delay: -4s;"
+             :style="`transform: translate(${mouseX * 40}px, ${mouseY * 40}px)`"></div>
+        <!-- Elementos decorativos adicionales -->
+        <div class="absolute top-1/3 right-1/4 w-2 h-2 bg-primary rounded-full animate-pulse-slow opacity-60"></div>
+        <div class="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse-slow opacity-50" style="animation-delay: -1s;"></div>
+        <div class="absolute top-2/3 left-1/5 w-2 h-2 bg-purple-400 rounded-full animate-pulse-slow opacity-40" style="animation-delay: -3s;"></div>
     </div>
     
     <div class="relative max-w-7xl mx-auto px-6 lg:px-8 pt-32 pb-20">
@@ -54,16 +65,19 @@
                 
                 <!-- CTAs -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start fade-up" style="animation-delay: 0.3s;">
-                    <a href="#contacto" 
-                       class="group px-8 py-4 text-white font-semibold btn-stripe rounded-full inline-flex items-center justify-center gap-2">
+                    <a href="#contacto"
+                       class="group px-8 py-4 text-white font-semibold btn-stripe rounded-full inline-flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95 transition-all duration-300">
                         Comenzar ahora
-                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                         </svg>
                     </a>
-                    <a href="#servicios" 
-                       class="px-8 py-4 text-slate-700 font-semibold bg-white/80 backdrop-blur-sm hover:bg-white border border-slate-200 rounded-full inline-flex items-center justify-center gap-2 transition-all hover:shadow-lg">
+                    <a href="#servicios"
+                       class="group px-8 py-4 text-slate-700 font-semibold glass-effect hover:bg-white border border-slate-200/60 hover:border-slate-300 rounded-full inline-flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 transform hover:scale-105 active:scale-95">
                         Ver servicios
+                        <svg class="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
                     </a>
                 </div>
                 
@@ -175,52 +189,65 @@
         {% if services %}
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for service in services %}
-            <div class="stripe-card rounded-2xl overflow-hidden fade-up group" style="animation-delay: {{ forloop.counter0 }}00ms;">
-                
+            <div class="stripe-card rounded-2xl overflow-hidden fade-up group cursor-pointer" style="animation-delay: {{ forloop.counter0 }}00ms;"
+                 x-data="{ hover: false }"
+                 @mouseenter="hover = true"
+                 @mouseleave="hover = false">
+
                 <!-- Imagen del servicio (si existe) -->
                 {% if service.image %}
                 <div class="relative h-48 overflow-hidden">
-                    <img src="{{ service.image.url }}" 
+                    <img src="{{ service.image.url }}"
                          alt="{{ service.name }}"
-                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                    
+                         class="w-full h-full object-cover transition-all duration-700"
+                         :class="hover ? 'scale-110 brightness-110' : 'scale-100'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent transition-opacity duration-300"
+                         :class="hover ? 'opacity-70' : 'opacity-100'"></div>
+
                     {% if service.is_featured %}
-                    <span class="absolute top-4 right-4 px-3 py-1 bg-accent text-white text-xs font-semibold rounded-full">
+                    <span class="absolute top-4 right-4 px-3 py-1.5 glass-effect text-primary text-xs font-semibold rounded-full backdrop-blur-md shadow-lg border border-white/30 transition-transform duration-300"
+                          :class="hover ? 'scale-110' : 'scale-100'">
                         Destacado
                     </span>
                     {% endif %}
                 </div>
                 {% endif %}
                 
-                <div class="p-8">
+                <div class="p-8 relative">
                     <!-- Icon (solo si NO hay imagen) -->
                     {% if not service.image and service.icon %}
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                        <span class="text-3xl">{{ service.icon }}</span>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-400/10 flex items-center justify-center mb-6 transition-all duration-500 shadow-sm"
+                         :class="hover ? 'scale-110 shadow-lg shadow-primary/20 rotate-3' : 'scale-100'">
+                        <span class="text-3xl transition-transform duration-500"
+                              :class="hover ? 'scale-110' : 'scale-100'">{{ service.icon }}</span>
                     </div>
                     {% endif %}
-                    
+
                     <!-- Content -->
-                    <h3 class="font-display text-xl font-bold text-slate-900 mb-3 group-hover:text-primary transition-colors">
+                    <h3 class="font-display text-xl font-bold text-slate-900 mb-3 transition-all duration-300"
+                        :class="hover ? 'text-primary' : 'text-slate-900'">
                         {{ service.name }}
                     </h3>
-                    
-                    <p class="text-slate-600 mb-6 line-clamp-3">
+
+                    <p class="text-slate-600 mb-6 line-clamp-3 leading-relaxed">
                         {{ service.description }}
                     </p>
-                    
+
                     {% if service.price_text %}
-                    <p class="text-primary font-semibold mb-4">{{ service.price_text }}</p>
+                    <p class="text-primary font-semibold mb-4 text-lg">{{ service.price_text }}</p>
                     {% endif %}
-                    
+
                     <!-- Learn more link -->
-                    <a href="#contacto" class="inline-flex items-center gap-2 text-primary font-medium hover:gap-3 transition-all group/link">
-                        Más información
-                        <svg class="w-4 h-4 group-hover/link:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="#contacto" class="inline-flex items-center gap-2 text-primary font-medium transition-all duration-300 group/link hover:gap-4">
+                        <span>Más información</span>
+                        <svg class="w-4 h-4 transition-all duration-300 group-hover/link:translate-x-1 group-hover/link:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                         </svg>
                     </a>
+
+                    <!-- Decorative corner -->
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-3xl opacity-0 transition-opacity duration-300"
+                         :class="hover ? 'opacity-100' : 'opacity-0'"></div>
                 </div>
             </div>
             {% endfor %}
@@ -343,31 +370,43 @@
 <!-- ============================================== -->
 <!-- CTA SECTION -->
 <!-- ============================================== -->
-<section class="py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
-    <!-- Background effects -->
+<section class="py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden"
+         x-data="{ mouseX: 0, mouseY: 0 }"
+         @mousemove="mouseX = $event.clientX / window.innerWidth; mouseY = $event.clientY / window.innerHeight">
+    <!-- Background effects con parallax -->
     <div class="absolute inset-0">
-        <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-3xl"></div>
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-float transition-transform duration-1000"
+             :style="`transform: translate(${mouseX * 50}px, ${mouseY * 50}px)`"></div>
+        <div class="absolute bottom-0 right-1/4 w-80 h-80 bg-indigo-400/20 rounded-full blur-3xl animate-float transition-transform duration-1000"
+             style="animation-delay: -3s;"
+             :style="`transform: translate(${mouseX * -30}px, ${mouseY * -30}px)`"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
     </div>
-    
+
+    <!-- Grid overlay -->
+    <div class="absolute inset-0 stripe-grid opacity-10"></div>
+
     <div class="relative max-w-4xl mx-auto px-6 lg:px-8 text-center fade-up">
-        <h2 class="font-display text-4xl md:text-5xl font-bold text-white mb-6">
-            ¿Listo para <span class="text-gradient">transformar</span> tu negocio?
+        <h2 class="font-display text-4xl md:text-5xl font-bold text-white mb-6 text-glow">
+            ¿Listo para <span class="text-gradient bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">transformar</span> tu negocio?
         </h2>
-        <p class="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
+        <p class="text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
             Agenda una consulta gratuita y descubre cómo podemos ayudarte a alcanzar tus objetivos.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#contacto" 
-               class="px-8 py-4 bg-white text-slate-900 font-semibold rounded-full hover:bg-slate-100 transition inline-flex items-center justify-center gap-2 group">
+            <a href="#contacto"
+               class="group px-8 py-4 bg-white text-slate-900 font-semibold rounded-full hover:bg-slate-50 transition-all duration-300 inline-flex items-center justify-center gap-2 shadow-xl shadow-white/10 hover:shadow-2xl hover:shadow-white/20 hover:scale-105 active:scale-95">
                 Agendar consulta
-                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                 </svg>
             </a>
-            <a href="#servicios" 
-               class="px-8 py-4 text-white font-semibold border border-white/30 rounded-full hover:bg-white/10 transition">
+            <a href="#servicios"
+               class="group px-8 py-4 text-white font-semibold border border-white/30 rounded-full hover:bg-white/10 hover:border-white/50 transition-all duration-300 backdrop-blur-sm hover:scale-105 active:scale-95 inline-flex items-center justify-center gap-2">
                 Ver servicios
+                <svg class="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
             </a>
         </div>
     </div>
