@@ -17,13 +17,12 @@
             <div class="lg:col-span-1">
                 <a href="{% url 'home' %}" class="flex items-center gap-3 mb-6">
                     {% if client.settings.logo %}
-                    <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-8 w-auto brightness-200">
+                    <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-14 w-auto brightness-200">
                     {% else %}
                     <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                         <span class="text-white font-display font-bold">{{ client.name|slice:":1"|upper }}</span>
                     </div>
                     {% endif %}
-                    <span class="font-display font-bold text-lg text-white">{{ client.name }}</span>
                 </a>
                 <p class="text-sm text-slate-500 mb-6 max-w-xs">
                     Soluciones tecnológicas que impulsan el crecimiento de tu negocio.

@@ -365,3 +365,25 @@ MP_SANDBOX = config('MP_SANDBOX', default=True, cast=bool)
 
 # URL base para enlaces
 BASE_URL = config('BASE_URL', default='http://localhost:8000')
+
+
+# ==============================================================================
+# EMAIL CONFIGURATION
+# ==============================================================================
+
+# Desarrollo: usar consola (no envía emails reales)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Producción: usar SMTP real
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+# EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+# Remitente por defecto
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Andesscale <no-reply@andesscale.cl>')
+
+# Email de soporte
+SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='soporte@andesscale.cl')

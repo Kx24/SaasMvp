@@ -20,16 +20,13 @@
             <!-- Logo -->
             <a href="{% url 'home' %}" class="flex items-center gap-3 group">
                 {% if client.settings.logo %}
-                <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-9 w-auto">
+                <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-14 w-auto">
                 {% else %}
                 <!-- Logo placeholder con gradiente -->
                 <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                     <span class="text-white font-display font-bold text-lg">{{ client.name|slice:":1"|upper }}</span>
                 </div>
                 {% endif %}
-                <span class="font-display font-bold text-xl text-slate-900 group-hover:text-primary transition-colors">
-                    {{ client.name }}
-                </span>
             </a>
 
             <!-- Desktop Navigation -->

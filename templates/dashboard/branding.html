@@ -1,0 +1,374 @@
+{% extends 'dashboard/base.html' %}
+{% load cloudinary %}
+
+{% block title %}Personalizar sitio{% endblock %}
+{% block page_title %}Personalizar{% endblock %}
+{% block page_subtitle %}Colores, logo e información de tu empresa{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+
+    <form method="post" enctype="multipart/form-data" id="branding-form">
+        {% csrf_token %}
+
+        <div class="space-y-5">
+
+            <!-- ===== IDENTIDAD VISUAL ===== -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <h2 class="text-sm font-semibold text-slate-700">Identidad visual</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Logo y colores de tu empresa</p>
+                </div>
+                <div class="p-6 space-y-6">
+
+                    <!-- Logo principal -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Logo principal</label>
+                        <p class="text-xs text-slate-500 mb-4">Aparece en la barra de navegación. PNG con fondo transparente recomendado.</p>
+
+                        <div class="flex items-start gap-5">
+                            <!-- Preview logo actual -->
+                            <div class="w-24 h-20 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0" id="logo-preview-wrap">
+                                {% if settings.logo %}
+                                    <img
+                                        id="logo-preview-img"
+                                        src="{% cloudinary_url settings.logo width=192 height=160 crop="fit" quality="auto" fetch_format="auto" %}"
+                                        alt="Logo actual"
+                                        class="max-w-full max-h-full object-contain p-2"
+                                    >
+                                {% else %}
+                                    <div id="logo-placeholder" class="flex flex-col items-center text-slate-300">
+                                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <p class="text-xs mt-1">Sin logo</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <input type="file" name="logo" id="logo-upload" accept="image/*" class="hidden">
+                                <label for="logo-upload"
+                                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg cursor-pointer transition-colors border border-slate-200 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                    {% if settings.logo %}Cambiar logo{% else %}Subir logo{% endif %}
+                                </label>
+                                <p class="text-xs text-slate-500">PNG, SVG o JPG. Máx 2MB.</p>
+                                <p class="text-xs text-slate-400 mt-1" id="logo-file-name"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logo footer -->
+                    <div class="pt-4 border-t border-slate-100">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Logo footer <span class="text-slate-400 font-normal">(opcional)</span></label>
+                        <p class="text-xs text-slate-500 mb-4">Versión blanca del logo para el pie de página oscuro.</p>
+
+                        <div class="flex items-start gap-5">
+                            <div class="w-24 h-20 rounded-lg border border-slate-200 bg-slate-700 flex items-center justify-center overflow-hidden flex-shrink-0" id="logo-footer-preview-wrap">
+                                {% if settings.logo_footer %}
+                                    <img
+                                        id="logo-footer-preview-img"
+                                        src="{% cloudinary_url settings.logo_footer width=192 height=160 crop="fit" quality="auto" fetch_format="auto" %}"
+                                        alt="Logo footer"
+                                        class="max-w-full max-h-full object-contain p-2"
+                                    >
+                                {% else %}
+                                    <div id="logo-footer-placeholder" class="flex flex-col items-center text-slate-500">
+                                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <p class="text-xs mt-1">Sin logo</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <input type="file" name="logo_footer" id="logo-footer-upload" accept="image/*" class="hidden">
+                                <label for="logo-footer-upload"
+                                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg cursor-pointer transition-colors border border-slate-200 mb-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                    {% if settings.logo_footer %}Cambiar{% else %}Subir{% endif %}
+                                </label>
+                                <p class="text-xs text-slate-400" id="logo-footer-file-name"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colores -->
+                    <div class="pt-4 border-t border-slate-100">
+                        <label class="block text-sm font-medium text-slate-700 mb-4">Colores de marca</label>
+                        <div class="grid grid-cols-2 gap-5">
+                            <div>
+                                <p class="text-xs font-medium text-slate-600 mb-2">Color primario</p>
+                                <p class="text-xs text-slate-500 mb-3">Botones, links y elementos principales</p>
+                                <div class="flex items-center gap-3">
+                                    <input type="color" name="primary_color" id="primary-color"
+                                        value="{{ settings.primary_color|default:'#3B82F6' }}"
+                                        class="w-10 h-10 rounded-lg border border-slate-200 cursor-pointer p-0.5">
+                                    <input type="text" name="primary_color_text" id="primary-color-text"
+                                        value="{{ settings.primary_color|default:'#3B82F6' }}"
+                                        placeholder="#3B82F6"
+                                        class="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm font-mono focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition"
+                                        maxlength="7">
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-slate-600 mb-2">Color secundario</p>
+                                <p class="text-xs text-slate-500 mb-3">Variante más oscura del primario</p>
+                                <div class="flex items-center gap-3">
+                                    <input type="color" name="secondary_color" id="secondary-color"
+                                        value="{{ settings.secondary_color|default:'#1E40AF' }}"
+                                        class="w-10 h-10 rounded-lg border border-slate-200 cursor-pointer p-0.5">
+                                    <input type="text" name="secondary_color_text" id="secondary-color-text"
+                                        value="{{ settings.secondary_color|default:'#1E40AF' }}"
+                                        placeholder="#1E40AF"
+                                        class="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm font-mono focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition"
+                                        maxlength="7">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview de colores en vivo -->
+                        <div class="mt-4 p-4 rounded-lg border border-slate-100 bg-slate-50">
+                            <p class="text-xs text-slate-500 mb-3">Vista previa</p>
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <button type="button" id="preview-btn-primary"
+                                    class="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                                    style="background-color: {{ settings.primary_color|default:'#3B82F6' }}">
+                                    Botón principal
+                                </button>
+                                <button type="button" id="preview-btn-secondary"
+                                    class="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                                    style="background-color: {{ settings.secondary_color|default:'#1E40AF' }}">
+                                    Botón secundario
+                                </button>
+                                <a href="#" id="preview-link"
+                                    class="text-sm font-medium"
+                                    style="color: {{ settings.primary_color|default:'#3B82F6' }}">
+                                    Ver más →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ===== INFORMACIÓN DE LA EMPRESA ===== -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <h2 class="text-sm font-semibold text-slate-700">Información de la empresa</h2>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Nombre de la empresa</label>
+                        <input type="text" name="company_name"
+                            value="{{ settings.company_name|default:'' }}"
+                            placeholder="Ej: Servelec Ingeniería"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Tagline / Slogan</label>
+                        <input type="text" name="tagline"
+                            value="{{ settings.tagline|default:'' }}"
+                            placeholder="Ej: Soluciones eléctricas de alta calidad"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Email de contacto</label>
+                        <input type="email" name="contact_email"
+                            value="{{ settings.contact_email|default:'' }}"
+                            placeholder="contacto@tuempresa.cl"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Teléfono</label>
+                        <input type="text" name="contact_phone"
+                            value="{{ settings.contact_phone|default:'' }}"
+                            placeholder="+56 9 1234 5678"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Dirección</label>
+                        <input type="text" name="address"
+                            value="{{ settings.address|default:'' }}"
+                            placeholder="Ej: Av. Providencia 1234, Santiago"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ===== REDES SOCIALES ===== -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <h2 class="text-sm font-semibold text-slate-700">Redes sociales</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Solo completa las que usas</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        </div>
+                        <input type="url" name="facebook_url" value="{{ settings.facebook_url|default:'' }}" placeholder="https://facebook.com/tuempresa" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-pink-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        </div>
+                        <input type="url" name="instagram_url" value="{{ settings.instagram_url|default:'' }}" placeholder="https://instagram.com/tuempresa" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-blue-700" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                        </div>
+                        <input type="url" name="linkedin_url" value="{{ settings.linkedin_url|default:'' }}" placeholder="https://linkedin.com/company/tuempresa" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                        </div>
+                        <input type="text" name="whatsapp_number" value="{{ settings.whatsapp_number|default:'' }}" placeholder="+56912345678" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ===== SEO ===== -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <h2 class="text-sm font-semibold text-slate-700">SEO básico</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Cómo aparece tu sitio en Google</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-medium text-slate-600">Título para buscadores</label>
+                            <span class="text-xs text-slate-400" id="meta-title-count">{{ settings.meta_title|length }}/60</span>
+                        </div>
+                        <input type="text" name="meta_title" id="meta-title"
+                            value="{{ settings.meta_title|default:'' }}"
+                            placeholder="Ej: Servelec Ingeniería - Instalaciones Eléctricas"
+                            maxlength="60"
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-medium text-slate-600">Descripción para buscadores</label>
+                            <span class="text-xs text-slate-400" id="meta-desc-count">{{ settings.meta_description|length }}/160</span>
+                        </div>
+                        <textarea name="meta_description" id="meta-description" rows="3"
+                            maxlength="160"
+                            placeholder="Breve descripción de tu empresa para que aparezca en Google..."
+                            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm resize-none"
+                        >{{ settings.meta_description|default:'' }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex items-center gap-3 mt-6">
+            <button type="submit" class="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                Guardar cambios
+            </button>
+            <a href="{% url 'home' %}" target="_blank" class="flex items-center gap-2 px-4 py-3 text-sm text-slate-500 hover:text-slate-700 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                Ver sitio
+            </a>
+        </div>
+
+    </form>
+</div>
+
+<script>
+// =============================================
+// Sync color picker <-> text input
+// =============================================
+function syncColor(pickerId, textId, previewId) {
+    const picker = document.getElementById(pickerId);
+    const text = document.getElementById(textId);
+    const preview = previewId ? document.getElementById(previewId) : null;
+
+    picker.addEventListener('input', function() {
+        text.value = this.value;
+        if (preview) preview.style.backgroundColor = this.value;
+        updateColorPreviews();
+    });
+    text.addEventListener('input', function() {
+        if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
+            picker.value = this.value;
+            if (preview) preview.style.backgroundColor = this.value;
+            updateColorPreviews();
+        }
+    });
+}
+
+function updateColorPreviews() {
+    const primary = document.getElementById('primary-color-text').value;
+    const secondary = document.getElementById('secondary-color-text').value;
+    const btnPrimary = document.getElementById('preview-btn-primary');
+    const btnSecondary = document.getElementById('preview-btn-secondary');
+    const link = document.getElementById('preview-link');
+    if (btnPrimary && /^#[0-9A-Fa-f]{6}$/.test(primary)) btnPrimary.style.backgroundColor = primary;
+    if (btnSecondary && /^#[0-9A-Fa-f]{6}$/.test(secondary)) btnSecondary.style.backgroundColor = secondary;
+    if (link && /^#[0-9A-Fa-f]{6}$/.test(primary)) link.style.color = primary;
+}
+
+syncColor('primary-color', 'primary-color-text');
+syncColor('secondary-color', 'secondary-color-text');
+
+// =============================================
+// Preview logo en tiempo real
+// =============================================
+function setupImagePreview(inputId, previewImgId, placeholderId, wrapId) {
+    const input = document.getElementById(inputId);
+    const fileNameEl = document.getElementById(inputId.replace('-upload', '-file-name'));
+    if (!input) return;
+    input.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (fileNameEl) fileNameEl.textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            let img = document.getElementById(previewImgId);
+            const placeholder = document.getElementById(placeholderId);
+            if (!img) {
+                img = document.createElement('img');
+                img.id = previewImgId;
+                img.className = 'max-w-full max-h-full object-contain p-2';
+                img.alt = 'Logo';
+                const wrap = document.getElementById(wrapId);
+                if (wrap) wrap.appendChild(img);
+            }
+            img.src = ev.target.result;
+            img.style.display = 'block';
+            if (placeholder) placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+setupImagePreview('logo-upload', 'logo-preview-img', 'logo-placeholder', 'logo-preview-wrap');
+setupImagePreview('logo-footer-upload', 'logo-footer-preview-img', 'logo-footer-placeholder', 'logo-footer-preview-wrap');
+
+// =============================================
+// Contador SEO
+// =============================================
+const metaTitleInput = document.getElementById('meta-title');
+const metaTitleCount = document.getElementById('meta-title-count');
+const metaDescInput = document.getElementById('meta-description');
+const metaDescCount = document.getElementById('meta-desc-count');
+
+if (metaTitleInput) {
+    metaTitleInput.addEventListener('input', function() {
+        metaTitleCount.textContent = this.value.length + '/60';
+        metaTitleCount.className = this.value.length > 55 ? 'text-xs text-amber-500' : 'text-xs text-slate-400';
+    });
+}
+if (metaDescInput) {
+    metaDescInput.addEventListener('input', function() {
+        metaDescCount.textContent = this.value.length + '/160';
+        metaDescCount.className = this.value.length > 150 ? 'text-xs text-amber-500' : 'text-xs text-slate-400';
+    });
+}
+</script>
+
+{% endblock %}

@@ -30,7 +30,11 @@ urlpatterns = [
 
     # ===== ONBOARDINGS =====
     path('onboarding/', include('apps.orders.urls_onboarding')),
+
+    # ===== AGREGAR ESTA LÍNEA (Card A6) =====
+    path('auth/', include('apps.accounts.urls', namespace='accounts')),
     # ========================================
+
 ]
 
 # Servir media files en desarrollo

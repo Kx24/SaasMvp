@@ -229,6 +229,27 @@ class ClientAdmin(admin.ModelAdmin):
         FormConfigInline,
     ]
     
+    
+    def save_formset(self, request, form, formset, change):
+        model = formset.model
+        if model in (ClientSettings, ClientEmailSettings, FormConfig):
+            client = form.instance
+            instances = formset.save(commit=False)
+            for obj in instances:
+                obj.client = client
+                try:
+                    obj.save()
+                except Exception:
+                    fields = {
+                        f.name: getattr(obj, f.name)
+                        for f in obj._meta.fields
+                        if f.name not in ('id', 'client_id', 'client')
+                    }
+                    model.objects.filter(client=client).update(**fields)
+            formset.save_m2m()
+        else:
+            super().save_formset(request, form, formset, change)
+
     fieldsets = (
         ('Identificación', {
             'fields': (

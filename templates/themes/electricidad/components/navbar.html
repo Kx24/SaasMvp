@@ -1,148 +1,167 @@
-<!-- Navbar - Servelec Ingeniería (Verde) -->
-<nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-     x-data="{
-        mobileMenuOpen: false,
-        scrolled: false,
-        init() {
-            window.addEventListener('scroll', () => {
-                this.scrolled = window.scrollY > 20;
-            });
-        }
-     }"
-     :class="scrolled ? 'bg-white/95 backdrop-blur-xl shadow-sm border-b border-green-100' : 'bg-white/80 backdrop-blur-sm'">
+<!-- Navbar — colores desde variables CSS del tenant -->
+<style>
+    .nav-link {
+        color: #475569;
+        transition: color 0.15s, background 0.15s;
+        padding: 0.375rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .nav-link:hover {
+        color: var(--primary);
+        background: color-mix(in srgb, var(--primary) 8%, transparent);
+    }
+    .nav-cta {
+        background: var(--primary);
+        color: #fff;
+        padding: 0.625rem 1.25rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent);
+    }
+    .nav-cta:hover {
+        opacity: 0.88;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent);
+    }
+    .nav-scrolled {
+        background: rgba(255,255,255,0.95) !important;
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .mobile-link {
+        display: block;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        font-weight: 500;
+        color: #334155;
+        transition: background 0.15s, color 0.15s;
+    }
+    .mobile-link:hover {
+        background: color-mix(in srgb, var(--primary) 8%, transparent);
+        color: var(--primary);
+    }
+    [x-cloak] { display: none !important; }
+</style>
+
+<nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/80 backdrop-blur-sm"
+     id="main-nav"
+     x-data="{ mobileMenuOpen: false }"
+     x-init="
+         window.addEventListener('scroll', () => {
+             $el.classList.toggle('nav-scrolled', window.scrollY > 20);
+         })
+     ">
 
     <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="flex justify-between items-center h-20">
 
-            <!-- Logo (sin nombre al lado) -->
+            <!-- Logo -->
             <a href="{% url 'home' %}" class="flex items-center">
                 {% if client.settings.logo %}
                 <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-12 w-auto">
                 {% else %}
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center shadow-lg">
-                    <span class="text-white text-xl">⚡</span>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow"
+                     style="background: var(--primary);">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
                 </div>
                 <span class="ml-3 font-display font-bold text-xl text-slate-900">{{ client.name }}</span>
                 {% endif %}
             </a>
 
-            <!-- Desktop Navigation -->
+            <!-- Desktop Nav -->
             <div class="hidden lg:flex items-center gap-1">
-                <a href="{% url 'home' %}" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all">
-                    Inicio
-                </a>
-                <a href="#servicios" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all">
-                    Servicios
-                </a>
-                <a href="#about" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all">
-                    Nosotros
-                </a>
-                <a href="#contacto" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all">
-                    Contacto
-                </a>
+                <a href="{% url 'home' %}" class="nav-link">Inicio</a>
+                <a href="#servicios" class="nav-link">Servicios</a>
+                <a href="#about" class="nav-link">Nosotros</a>
+                <a href="#contacto" class="nav-link">Contacto</a>
             </div>
 
-            <!-- Desktop CTA -->
-            <div class="hidden lg:flex items-center gap-3">
+            <!-- Desktop Actions -->
+            <div class="hidden lg:flex items-center gap-4">
                 {% if client.settings.contact_phone %}
-                <a href="tel:{{ client.settings.contact_phone }}" class="flex items-center gap-2 text-slate-600 hover:text-green-600 transition">
-                    <span>📞</span>
-                    <span class="text-sm font-medium">{{ client.settings.contact_phone }}</span>
+                <a href="tel:{{ client.settings.contact_phone }}"
+                   class="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 6.75z"/>
+                    </svg>
+                    {{ client.settings.contact_phone }}
                 </a>
                 {% endif %}
 
                 {% if user.is_authenticated %}
-                    <!-- Usuario autenticado -->
-                    <span class="text-sm text-slate-500">{{ user.username }}</span>
-                    
-                    <a href="{% url 'dashboard' %}" 
-                       class="px-5 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-full transition-colors shadow-md">
-                        Dashboard
-                    </a>
-                    
-                    <a href="{% url 'client_logout' %}" 
-                       class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition">
-                        Salir
-                    </a>
+                    <span class="text-sm text-slate-400">{{ user.username }}</span>
+                    <a href="{% url 'dashboard' %}" class="nav-cta">Dashboard</a>
+                    <a href="{% url 'client_logout' %}" class="nav-link">Salir</a>
                 {% else %}
-                    <!-- Usuario NO autenticado -->
-                    <a href="{% url 'client_login' %}" 
-                       class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-green-600 transition">
-                        Iniciar Sesión
-                    </a>
-                    
-                    <a href="#contacto" 
-                       class="px-5 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-full transition-colors shadow-md inline-flex items-center gap-2">
-                        <span>⚡</span> Cotizar
-                    </a>
+                    <a href="{% url 'client_login' %}" class="nav-link">Iniciar sesión</a>
+                    <a href="#contacto" class="nav-cta">Cotizar</a>
                 {% endif %}
             </div>
 
-            <!-- Mobile menu button -->
-            <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-lg hover:bg-green-50 transition">
+            <!-- Mobile toggle -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen"
+                    class="lg:hidden p-2 rounded-lg hover:bg-slate-100 transition">
                 <svg x-show="!mobileMenuOpen" class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
                 <svg x-show="mobileMenuOpen" x-cloak class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
     </div>
 
-    <!-- Mobile menu -->
+    <!-- Mobile Menu -->
     <div x-show="mobileMenuOpen" x-cloak
          x-transition
          @click.away="mobileMenuOpen = false"
-         class="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-green-100 shadow-lg">
+         class="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b shadow-lg"
+         style="border-color: color-mix(in srgb, var(--primary) 12%, transparent);">
+        <div class="max-w-7xl mx-auto px-6 py-5 space-y-1">
+            <a href="{% url 'home' %}" @click="mobileMenuOpen = false" class="mobile-link">Inicio</a>
+            <a href="#servicios" @click="mobileMenuOpen = false" class="mobile-link">Servicios</a>
+            <a href="#about" @click="mobileMenuOpen = false" class="mobile-link">Nosotros</a>
+            <a href="#contacto" @click="mobileMenuOpen = false" class="mobile-link">Contacto</a>
 
-        <div class="max-w-7xl mx-auto px-6 py-6 space-y-2">
-            <a href="{% url 'home' %}" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-green-50 transition">
-                Inicio
-            </a>
-            <a href="#servicios" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-green-50 transition">
-                Servicios
-            </a>
-            <a href="#about" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-green-50 transition">
-                Nosotros
-            </a>
-            <a href="#contacto" @click="mobileMenuOpen = false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-green-50 transition">
-                Contacto
-            </a>
-
-            <div class="pt-4 mt-4 border-t border-green-100">
+            <div class="pt-3 mt-3 space-y-2" style="border-top: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);">
                 {% if client.settings.contact_phone %}
-                <a href="tel:{{ client.settings.contact_phone }}" class="block px-4 py-3 text-green-600 font-medium">
-                    📞 {{ client.settings.contact_phone }}
+                <a href="tel:{{ client.settings.contact_phone }}"
+                   class="mobile-link font-semibold"
+                   style="color: var(--primary);">
+                    {{ client.settings.contact_phone }}
                 </a>
                 {% endif %}
 
                 {% if user.is_authenticated %}
-                    <p class="px-4 py-2 text-sm text-slate-500">👤 {{ user.username }}</p>
-                    
-                    <a href="{% url 'dashboard' %}" @click="mobileMenuOpen = false" 
-                       class="block mt-2 px-4 py-3 text-center text-white font-semibold bg-green-600 hover:bg-green-700 rounded-xl transition">
+                    <a href="{% url 'dashboard' %}" @click="mobileMenuOpen = false"
+                       class="block text-center py-3 rounded-xl font-semibold text-white transition hover:opacity-88"
+                       style="background: var(--primary);">
                         Dashboard
                     </a>
-                    
-                    <a href="{% url 'client_logout' %}" 
-                       class="block mt-2 px-4 py-3 text-center text-slate-600 font-medium bg-slate-100 hover:bg-slate-200 rounded-xl transition">
-                        Cerrar Sesión
+                    <a href="{% url 'client_logout' %}"
+                       class="block text-center py-3 rounded-xl font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+                        Cerrar sesión
                     </a>
                 {% else %}
                     <a href="{% url 'client_login' %}" @click="mobileMenuOpen = false"
-                       class="block mt-2 px-4 py-3 text-center text-slate-700 font-medium bg-slate-100 hover:bg-slate-200 rounded-xl transition">
-                        Iniciar Sesión
+                       class="block text-center py-3 rounded-xl font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
+                        Iniciar sesión
                     </a>
-                    
-                    <a href="#contacto" @click="mobileMenuOpen = false" 
-                       class="block mt-2 px-4 py-3 text-center text-white font-semibold bg-green-600 hover:bg-green-700 rounded-xl transition">
-                        ⚡ Solicitar Cotización
+                    <a href="#contacto" @click="mobileMenuOpen = false"
+                       class="block text-center py-3 rounded-xl font-semibold text-white transition hover:opacity-88"
+                       style="background: var(--primary);">
+                        Solicitar cotización
                     </a>
                 {% endif %}
             </div>
         </div>
     </div>
 </nav>
-
-<style>[x-cloak] { display: none !important; }</style>

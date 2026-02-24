@@ -1,0 +1,83 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Nuevo mensaje de contacto{% endblock %}
+
+{% block content %}
+<!-- Icono -->
+<div class="text-center" style="margin-bottom: 24px;">
+    <div style="width: 64px; height: 64px; background-color: #eff6ff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+        <span style="font-size: 32px;">📬</span>
+    </div>
+</div>
+
+<h1 class="text-center">Nuevo mensaje de contacto</h1>
+
+<p class="text-center">
+    Has recibido un nuevo mensaje a través de tu sitio web <strong>{{ client.name }}</strong>.
+</p>
+
+<!-- Datos del contacto -->
+<div class="info-box">
+    <h3 style="margin: 0 0 16px; font-size: 16px; color: #111827;">Datos del contacto</h3>
+    
+    <dl class="details-list" style="margin: 0;">
+        {% if contact.name %}
+        <dt>Nombre</dt>
+        <dd>{{ contact.name }}</dd>
+        {% endif %}
+        
+        <dt>Email</dt>
+        <dd>
+            <a href="mailto:{{ contact.email }}" style="color: #2563eb;">{{ contact.email }}</a>
+        </dd>
+        
+        {% if contact.phone %}
+        <dt>Teléfono</dt>
+        <dd>
+            <a href="tel:{{ contact.phone }}" style="color: #2563eb;">{{ contact.phone }}</a>
+        </dd>
+        {% endif %}
+        
+        {% if contact.subject %}
+        <dt>Asunto</dt>
+        <dd>{{ contact.subject }}</dd>
+        {% endif %}
+    </dl>
+</div>
+
+<!-- Mensaje -->
+<div style="margin: 24px 0;">
+    <h3 style="margin: 0 0 12px; font-size: 16px; color: #111827;">Mensaje</h3>
+    <div style="background-color: #f9fafb; border-left: 4px solid #2563eb; padding: 16px; border-radius: 0 8px 8px 0;">
+        <p style="margin: 0; white-space: pre-wrap; color: #374151;">{{ contact.message }}</p>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="text-center" style="margin: 32px 0;">
+    <a href="mailto:{{ contact.email }}?subject=Re: Contacto desde {{ client.name }}" class="btn" style="color: #ffffff;">
+        Responder por email
+    </a>
+    
+    {% if contact.phone %}
+    <p style="margin-top: 12px;">
+        <a href="tel:{{ contact.phone }}" style="color: #2563eb; text-decoration: none;">
+            📞 Llamar al {{ contact.phone }}
+        </a>
+    </p>
+    {% endif %}
+</div>
+
+<p class="text-small text-center" style="margin-top: 24px; color: #9ca3af;">
+    Este mensaje fue enviado desde el formulario de contacto de tu sitio web.
+</p>
+{% endblock %}
+
+{% block footer %}
+<p>
+    Sitio: <a href="https://{{ client.slug }}.andesscale.cl">{{ client.name }}</a>
+</p>
+<p class="text-muted" style="margin-top: 16px;">
+    © {% now "Y" %} {{ company_name }}. Todos los derechos reservados.
+</p>
+{% endblock %}

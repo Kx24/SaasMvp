@@ -1,0 +1,17 @@
+{% comment %}
+  Partial: confirmación de envío de formulario.
+  Incluido desde home.html cuando enviado=True.
+{% endcomment %}
+
+<section class="py-20 px-6 text-center bg-neutral">
+  <div class="max-w-xl mx-auto">
+    <h1 class="text-4xl font-bold text-servelec-dark mb-4">¡Gracias por tu mensaje!</h1>
+    <p class="text-servelec-primary text-lg mb-6">
+      Tu información fue enviada correctamente. Nos pondremos en contacto contigo pronto.
+    </p>
+    <a href="{% url 'website:home' %}"
+       class="inline-block bg-servelec-primary text-servelec-neutral px-6 py-3 rounded-lg hover:bg-green-800 transition">
+      Volver al inicio
+    </a>
+  </div>
+</section>

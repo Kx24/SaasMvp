@@ -1,0 +1,98 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}¡Bienvenido a Andesscale!{% endblock %}
+
+{% block content %}
+<!-- Icono de bienvenida -->
+<div class="text-center" style="margin-bottom: 24px;">
+    <div style="width: 64px; height: 64px; background-color: #eff6ff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+        <span style="font-size: 32px;">🎉</span>
+    </div>
+</div>
+
+<h1 class="text-center">¡Bienvenido a Andesscale!</h1>
+
+<p class="text-center">
+    Hola{{ user.first_name|yesno:", ," }} <strong>{{ user.first_name|default:user.email }}</strong>,<br>
+    Tu sitio web <strong>{{ client.name }}</strong> ha sido creado exitosamente.
+</p>
+
+<!-- Info del sitio -->
+<div class="success-box text-center">
+    <p style="margin: 0 0 8px; font-size: 14px; color: #065f46;">Tu sitio está disponible en:</p>
+    <a href="{{ site_url }}" style="font-size: 18px; font-weight: 600; color: #059669; text-decoration: none;">
+        {{ site_url }}
+    </a>
+</div>
+
+<!-- CTA Principal -->
+<div class="text-center" style="margin: 32px 0;">
+    <p style="margin-bottom: 8px; font-weight: 500;">
+        Para acceder a tu panel de administración, primero configura tu contraseña:
+    </p>
+    <a href="{{ set_password_url }}" class="btn" style="color: #ffffff;">
+        🔐 Configurar mi contraseña
+    </a>
+</div>
+
+<div class="warning-box">
+    <p style="margin: 0; font-size: 14px;">
+        <strong>⏰ Importante:</strong> Este enlace es válido por <strong>7 días</strong>.
+    </p>
+</div>
+
+<!-- Qué puedes hacer -->
+<h2 style="margin-top: 32px;">¿Qué puedes hacer desde tu panel?</h2>
+
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%;">
+    <tr>
+        <td style="padding: 8px 0;">
+            <span style="color: #059669; margin-right: 8px;">✓</span>
+            Editar el contenido de tu sitio (textos, imágenes)
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 8px 0;">
+            <span style="color: #059669; margin-right: 8px;">✓</span>
+            Agregar y gestionar tus servicios
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 8px 0;">
+            <span style="color: #059669; margin-right: 8px;">✓</span>
+            Ver los mensajes de contacto recibidos
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 8px 0;">
+            <span style="color: #059669; margin-right: 8px;">✓</span>
+            Personalizar colores y branding
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 8px 0;">
+            <span style="color: #059669; margin-right: 8px;">✓</span>
+            Conectar tu dominio propio (cuando estés listo)
+        </td>
+    </tr>
+</table>
+
+<!-- Resumen -->
+<div class="info-box" style="margin-top: 24px;">
+    <h3 style="margin: 0 0 12px; font-size: 16px; color: #111827;">Resumen de tu cuenta</h3>
+    <dl class="details-list" style="margin: 0;">
+        <dt>Empresa</dt>
+        <dd>{{ client.name }}</dd>
+        
+        <dt>Email</dt>
+        <dd>{{ user.email }}</dd>
+        
+        <dt>URL del sitio</dt>
+        <dd><a href="{{ site_url }}" style="color: #2563eb;">{{ site_url }}</a></dd>
+    </dl>
+</div>
+
+<p class="text-small text-center" style="margin-top: 32px;">
+    ¿Necesitas ayuda? Estamos aquí para asistirte en cada paso.
+</p>
+{% endblock %}

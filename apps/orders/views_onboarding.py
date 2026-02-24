@@ -27,6 +27,12 @@ from apps.tenants.models import Client, Domain, ClientSettings
 from apps.website.models import Section
 from apps.accounts.models import UserProfile
 
+from apps.orders.services.email_service import (
+    send_payment_success_email,
+    send_welcome_email,
+    send_site_ready_email,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -345,13 +351,22 @@ def process_onboarding(order: Order, data: dict) -> tuple:
     logger.info(f"[Onboarding] Orden completada: {order.order_number}")
     
     # =========================================================================
-    # 8. TODO: ENVIAR EMAILS
+    # 8. ENVIAR EMAILS
     # =========================================================================
     
-    # TODO Card A6: Enviar email de bienvenida
-    # send_welcome_email(client, user, profile.invitation_token)
+    # Email de bienvenida con link para configurar contraseña
+    try:
+        send_welcome_email(client, user, str(profile.invitation_token))
+        logger.info(f"[Onboarding] Email de bienvenida enviado a: {user.email}")
+    except Exception as e:
+        logger.error(f"[Onboarding] Error enviando email de bienvenida: {e}")
     
-    # TODO Card A6: Enviar email para configurar contraseña
-    # send_set_password_email(user, profile.invitation_token)
+    # Email de sitio listo (opcional, puede enviarse después)
+    try:
+        send_site_ready_email(client, user)
+        logger.info(f"[Onboarding] Email de sitio listo enviado a: {user.email}")
+    except Exception as e:
+        logger.error(f"[Onboarding] Error enviando email de sitio listo: {e}")
     
-    return client, user
+    return client, user  
+    

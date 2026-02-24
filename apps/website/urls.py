@@ -3,7 +3,9 @@ URLs para la aplicación website
 Incluye: home, dashboard, auth (se importa desde auth_urls), y edición inline
 """
 from django.urls import path, include
+from apps.website.views import dashboard_branding
 from . import views
+
 
 urlpatterns = [
     # ============================================================
@@ -17,6 +19,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('dashboard/sections/', views.dashboard_sections, name='dashboard_sections'),
     path('dashboard/contacts/', views.dashboard_contacts, name='dashboard_contacts'),
+    path('dashboard/branding/', dashboard_branding, name='dashboard_branding'),
     
     # ============================================================
     # ACCIONES DE CONTACTOS (desde dashboard)

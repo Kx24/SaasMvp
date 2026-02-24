@@ -1,187 +1,200 @@
 {% extends 'dashboard/base.html' %}
+{% load cloudinary %}
 
-{% block title %}Secciones y Servicios{% endblock %}
+{% block title %}Contenido del sitio{% endblock %}
+{% block page_title %}Contenido{% endblock %}
+{% block page_subtitle %}Edita las secciones y servicios de tu sitio{% endblock %}
 
 {% block content %}
-<div>
-    <!-- Header -->
-    <div class="mb-8 flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Contenido del Sitio</h1>
-            <p class="text-gray-600 mt-2">Gestiona las secciones y servicios de tu sitio web</p>
+
+<!-- Header con acciones -->
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-2">
+        <span class="text-sm text-slate-500">{{ sections|length }} sección{{ sections|length|pluralize:"es" }}</span>
+        <span class="text-slate-300">·</span>
+        <span class="text-sm text-slate-500">{{ services|length }} servicio{{ services|length|pluralize:"s" }}</span>
+    </div>
+    <div class="flex items-center gap-3">
+        <a href="{% url 'home' %}" target="_blank"
+           class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            Ver sitio
+        </a>
+    </div>
+</div>
+
+<!-- ========================================================
+     SECCIONES (hero, about, contact)
+     ======================================================== -->
+<div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-slate-900">Secciones del sitio</h2>
+        <p class="text-xs text-slate-500">Edita el contenido de cada bloque de tu página</p>
+    </div>
+
+    {% if sections %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for section in sections %}
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 transition-colors group">
+
+            <!-- Imagen o placeholder -->
+            <div class="h-32 bg-slate-100 overflow-hidden relative">
+                {% if section.image %}
+                    <img
+                        src="{% cloudinary_url section.image width=400 height=200 crop="fill" quality="auto" fetch_format="auto" %}"
+                        alt="{{ section.title }}"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    >
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        {% if section.section_type == 'hero' %}
+                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                        {% elif section.section_type == 'about' %}
+                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+                        {% elif section.section_type == 'contact' %}
+                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        {% else %}
+                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"/></svg>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <!-- Badge de tipo -->
+                <div class="absolute top-3 left-3">
+                    <span class="bg-black/60 text-white text-xs px-2 py-1 rounded-full font-medium backdrop-blur-sm">
+                        {{ section.get_section_type_display }}
+                    </span>
+                </div>
+
+                <!-- Badge estado -->
+                {% if not section.is_active %}
+                <div class="absolute top-3 right-3">
+                    <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">Oculta</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Contenido de la card -->
+            <div class="p-4">
+                <h3 class="font-semibold text-slate-900 truncate">{{ section.title }}</h3>
+                {% if section.subtitle %}
+                    <p class="text-sm text-slate-500 mt-0.5 truncate">{{ section.subtitle }}</p>
+                {% elif section.description %}
+                    <p class="text-sm text-slate-500 mt-0.5 truncate">{{ section.description|truncatechars:60 }}</p>
+                {% else %}
+                    <p class="text-sm text-slate-400 mt-0.5 italic">Sin contenido</p>
+                {% endif %}
+
+                <div class="flex items-center gap-2 mt-4">
+                    <a href="{% url 'edit_section_dashboard' section.id %}"
+                       class="flex-1 text-center py-2 text-sm font-medium text-white rounded-lg transition-colors"
+                       style="background-color: var(--primary, #3B82F6);">
+                        Editar
+                    </a>
+                    {% if section.is_active %}
+                    <span class="flex items-center gap-1 text-xs text-green-600 bg-green-50 border border-green-200 px-2 py-2 rounded-lg">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+                        Activa
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <a href="{% url 'create_service' %}" 
-           class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold">
-            ➕ Nuevo Servicio
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl border border-slate-200 p-8 text-center">
+        <p class="text-slate-500">No hay secciones configuradas.</p>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- ========================================================
+     SERVICIOS
+     ======================================================== -->
+<div>
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-slate-900">Servicios</h2>
+        <a href="{% url 'create_service' %}"
+           class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm"
+           style="background-color: var(--primary, #3B82F6);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Agregar servicio
         </a>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- SECCIONES FIJAS (Hero, About, Contact) -->
-    <!-- ============================================================ -->
-    <div class="mb-10">
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            📄 Secciones del Sitio
-        </h2>
-        
-        {% if sections %}
-        <div class="grid gap-4">
-            {% for section in sections %}
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-3 mb-3">
-                            <span class="text-2xl">
-                                {% if section.section_type == 'hero' %}🏠
-                                {% elif section.section_type == 'about' %}ℹ️
-                                {% elif section.section_type == 'contact' %}📧
-                                {% else %}📝{% endif %}
-                            </span>
-                            <h3 class="text-lg font-bold text-gray-900">
-                                {{ section.get_section_type_display }}
-                            </h3>
-                            {% if section.is_active %}
-                                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                                    ✓ Activo
-                                </span>
-                            {% else %}
-                                <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">
-                                    Inactivo
-                                </span>
-                            {% endif %}
-                        </div>
+    {% if services %}
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        {% for service in services %}
+        <div class="flex items-center gap-4 px-5 py-4 {% if not forloop.last %}border-b border-slate-100{% endif %} hover:bg-slate-50 transition-colors group">
 
-                        <div class="space-y-1 text-sm">
-                            <p><span class="font-medium text-gray-500">Título:</span> {{ section.title }}</p>
-                            {% if section.subtitle %}
-                            <p><span class="font-medium text-gray-500">Subtítulo:</span> {{ section.subtitle|truncatewords:15 }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
+            <!-- Icono / imagen -->
+            <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 flex items-center justify-center">
+                {% if service.image %}
+                    <img
+                        src="{% cloudinary_url service.image width=96 height=96 crop="fill" quality="auto" fetch_format="auto" %}"
+                        alt="{{ service.name }}"
+                        class="w-full h-full object-cover"
+                    >
+                {% else %}
+                    <span class="text-2xl">{{ service.icon|default:"⚙️" }}</span>
+                {% endif %}
+            </div>
 
-                    <a href="{% url 'edit_section_dashboard' section.id %}" 
-                       class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition font-semibold text-sm">
-                        ✏️ Editar
-                    </a>
+            <!-- Nombre y descripción -->
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                    <h3 class="font-semibold text-slate-900 truncate">{{ service.name }}</h3>
+                    {% if service.is_featured %}
+                    <span class="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0">Destacado</span>
+                    {% endif %}
+                    {% if not service.is_active %}
+                    <span class="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0">Oculto</span>
+                    {% endif %}
                 </div>
+                <p class="text-sm text-slate-500 mt-0.5 truncate">{{ service.description|truncatechars:80 }}</p>
+                {% if service.price_text %}
+                <p class="text-xs text-slate-400 mt-0.5">{{ service.price_text }}</p>
+                {% endif %}
             </div>
-            {% endfor %}
+
+            <!-- Acciones -->
+            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                <a href="{% url 'edit_service_dashboard' service.id %}"
+                   class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                    Editar
+                </a>
+                <form method="post" action="{% url 'delete_service_dashboard' service.id %}" onsubmit="return confirm('¿Eliminar {{ service.name }}?')">
+                    {% csrf_token %}
+                    <button type="submit" class="px-3 py-1.5 text-xs font-medium text-red-600 bg-white border border-red-100 rounded-lg hover:bg-red-50 transition-colors">
+                        Eliminar
+                    </button>
+                </form>
+            </div>
+
+            <!-- Drag handle (visual, para futura funcionalidad) -->
+            <div class="text-slate-300 flex-shrink-0 cursor-grab">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
+            </div>
+
         </div>
-        {% else %}
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800">
-            ⚠️ No hay secciones creadas. Ejecuta el comando de seed para crear las secciones iniciales.
-        </div>
-        {% endif %}
+        {% endfor %}
     </div>
-
-    <!-- ============================================================ -->
-    <!-- SERVICIOS (Dinámicos, modelo Service) -->
-    <!-- ============================================================ -->
-    <div>
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            ⚡ Servicios
-            <span class="text-sm font-normal text-gray-500">({{ services|length }} total)</span>
-        </h2>
-        
-        {% if services %}
-        <div class="grid gap-4">
-            {% for service in services %}
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-3 mb-3">
-                            <span class="text-3xl">{{ service.icon|default:"⚡" }}</span>
-                            <h3 class="text-lg font-bold text-gray-900">{{ service.name }}</h3>
-                            
-                            {% if service.is_featured %}
-                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">
-                                    ⭐ Destacado
-                                </span>
-                            {% endif %}
-                            
-                            {% if service.is_active %}
-                                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                                    ✓ Activo
-                                </span>
-                            {% else %}
-                                <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">
-                                    Inactivo
-                                </span>
-                            {% endif %}
-                        </div>
-
-                        <div class="space-y-1 text-sm">
-                            {% if service.description %}
-                            <p class="text-gray-700">{{ service.description|truncatewords:20 }}</p>
-                            {% endif %}
-                            
-                            {% if service.price_text %}
-                            <p><span class="font-medium text-gray-500">Precio:</span> 
-                               <span class="text-primary font-semibold">{{ service.price_text }}</span>
-                            </p>
-                            {% endif %}
-                        </div>
-
-                        {% if service.image %}
-                        <div class="mt-3">
-                            <img src="{{ service.image.url }}" alt="{{ service.name }}" 
-                                 class="w-32 h-20 object-cover rounded-lg border border-gray-200">
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="flex flex-col gap-2">
-                        <a href="{% url 'edit_service_dashboard' service.id %}" 
-                           class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition font-semibold text-center text-sm">
-                            ✏️ Editar
-                        </a>
-                        <form method="post" action="{% url 'delete_service_dashboard' service.id %}" 
-                              onsubmit="return confirm('¿Eliminar este servicio?');">
-                            {% csrf_token %}
-                            <button type="submit"
-                                    class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold text-center text-sm">
-                                🗑️ Eliminar
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
+    {% else %}
+    <div class="bg-white rounded-xl border border-dashed border-slate-300 p-10 text-center">
+        <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
         </div>
-        {% else %}
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-            <div class="text-6xl mb-4">🛠️</div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">No hay servicios creados</h3>
-            <p class="text-gray-600 mb-6">Agrega los servicios que ofrece tu empresa</p>
-            <a href="{% url 'create_service' %}" 
-               class="inline-block px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold">
-                ➕ Crear Primer Servicio
-            </a>
-        </div>
-        {% endif %}
+        <p class="text-sm font-medium text-slate-700 mb-1">Aún no tienes servicios</p>
+        <p class="text-sm text-slate-500 mb-4">Los servicios aparecen como tarjetas en tu sitio web</p>
+        <a href="{% url 'create_service' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg"
+           style="background-color: var(--primary, #3B82F6);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Agregar primer servicio
+        </a>
     </div>
-
-    <!-- Ayuda -->
-    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 class="text-lg font-semibold text-blue-900 mb-3">💡 Guía Rápida</h3>
-        <div class="grid md:grid-cols-2 gap-4 text-blue-800">
-            <div>
-                <h4 class="font-semibold mb-1">📄 Secciones</h4>
-                <ul class="text-sm space-y-1">
-                    <li>• <strong>Hero:</strong> Banner principal de tu sitio</li>
-                    <li>• <strong>Sobre Nosotros:</strong> Información de tu empresa</li>
-                    <li>• <strong>Contacto:</strong> Información de contacto</li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="font-semibold mb-1">⚡ Servicios</h4>
-                <ul class="text-sm space-y-1">
-                    <li>• Puedes crear múltiples servicios</li>
-                    <li>• Cada servicio tiene su ícono y precio</li>
-                    <li>• Los servicios destacados aparecen primero</li>
-                </ul>
-            </div>
-        </div>
-    </div>
+    {% endif %}
 </div>
+
 {% endblock %}

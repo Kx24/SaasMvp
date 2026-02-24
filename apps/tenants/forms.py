@@ -1,7 +1,43 @@
 # apps/tenants/forms.py
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Client, Domain
+from .models import Client, Domain, ClientSettings
+
+class BrandingForm(forms.ModelForm):
+    """
+    Formulario para editar branding del cliente desde el dashboard.
+    Campos: logo, logo_footer, colores, info empresa, redes, SEO.
+    """
+
+    class Meta:
+        model = ClientSettings
+        fields = [
+            # Logos
+            'logo',
+            'logo_footer',
+            # Colores
+            'primary_color',
+            'secondary_color',
+            # Información
+            'company_name',
+            'tagline',
+            'contact_email',
+            'contact_phone',
+            'address',
+            # Redes sociales
+            'facebook_url',
+            'instagram_url',
+            'linkedin_url',
+            'whatsapp_number',
+            # SEO
+            'meta_title',
+            'meta_description',
+        ]
+        widgets = {
+            'primary_color': forms.TextInput(attrs={'type': 'color'}),
+            'secondary_color': forms.TextInput(attrs={'type': 'color'}),
+        }
+
 
 class TenantOnboardingForm(forms.Form):
     # --- 1. DATOS DE ACCESO Y DOMINIO ---

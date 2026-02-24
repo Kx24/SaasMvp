@@ -10,6 +10,8 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from .models import Section, Service, ContactSubmission
 from .forms import SectionForm, ServiceForm, ContactForm
+from apps.tenants.forms import BrandingForm
+from apps.tenants.models import ClientSettings
 import logging
 import json
 from django.utils import timezone
@@ -180,6 +182,33 @@ def dashboard(request):
     # Dashboard usa template del tenant si existe
     return render_tenant_template(request, 'dashboard/index.html', context)
 
+@login_required(login_url='/auth/login/')
+def dashboard_branding(request):
+    """
+    Vista de personalización: colores, logo, info empresa, redes sociales, SEO.
+    """
+    client = request.client
+
+    # Obtener o crear settings del cliente
+    settings_obj, created = ClientSettings.objects.get_or_create(client=client)
+
+    if request.method == 'POST':
+        form = BrandingForm(request.POST, request.FILES, instance=settings_obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Cambios guardados correctamente')
+            return redirect('dashboard_branding')
+        else:
+            messages.error(request, 'Revisa los campos con errores')
+    else:
+        form = BrandingForm(instance=settings_obj)
+
+    context = {
+        'client': client,
+        'settings': settings_obj,
+        'form': form,
+    }
+    return render(request, 'dashboard/branding.html', context)
 
 # ============================================================
 # DASHBOARD - SECCIONES

@@ -22,6 +22,7 @@ from django.db import transaction
 
 from .models import Plan, Order, PaymentLog
 from .services.mercadopago_service import MercadoPagoService, MercadoPagoError
+from .services.email_service import send_payment_success_email  # Card A6
 
 logger = logging.getLogger(__name__)
 
@@ -187,6 +188,17 @@ def process_payment_view(request):
                         f"[Checkout] Pago aprobado: {order.order_number} - "
                         f"MP ID: {result['payment_id']}"
                     )
+                    
+                    # =========================================================
+                    # CARD A6: ENVIAR EMAIL DE PAGO EXITOSO
+                    # =========================================================
+                    try:
+                        send_payment_success_email(order)
+                        logger.info(f"[Checkout] Email de pago exitoso enviado a: {order.email}")
+                    except Exception as e:
+                        # No fallar el proceso si el email falla
+                        logger.error(f"[Checkout] Error enviando email de pago: {e}")
+                    # =========================================================
                     
                     # URL de éxito
                     success_url = f"/checkout/success/{order.uuid}/"
@@ -396,7 +408,15 @@ def mercadopago_webhook_view(request):
                 order.mark_as_paid(data_id, payment_data.get('raw_response', {}))
                 logger.info(f"[MP Webhook] Orden marcada como pagada: {order.order_number}")
                 
-                # TODO: Enviar email de confirmación (Card A6)
+                # =========================================================
+                # CARD A6: ENVIAR EMAIL DE PAGO EXITOSO (desde webhook)
+                # =========================================================
+                try:
+                    send_payment_success_email(order)
+                    logger.info(f"[MP Webhook] Email de pago exitoso enviado a: {order.email}")
+                except Exception as e:
+                    logger.error(f"[MP Webhook] Error enviando email de pago: {e}")
+                # =========================================================
             
             elif payment_status == 'rejected':
                 order.status = 'failed'
@@ -439,3 +459,4 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+

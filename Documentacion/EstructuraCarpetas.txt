@@ -17,31 +17,80 @@ project_root/
 │       ├── base.py               # Settings compartidos
 │       ├── development.py        # Local
 │       └── production.py         # Render
+│       ├── development.py               
+│       └── cloudinary_setting.py             
 │
 ├── apps/                         # 🎯 Apps por DOMINIO (negocio)
 │   │
 │   ├── tenants/                  # 🏢 Multi-tenancy (core)
 │   │   ├── __init__.py
-│   │   ├── models.py             # Client model
-│   │   ├── admin.py
-│   │   ├── middleware.py         # TenantMiddleware
-│   │   ├── managers.py           # TenantManager
-│   │   ├── views.py              # Admin de tenants (tu uso)
-│   │   ├── urls.py
+│   │   ├── admin.py            
+│   │   ├── apps.py
+│   │   ├── context_processors.py        
+│   │   ├── forms.py           
+│   │   ├── managers.py              
+│   │   ├── middleware.py
+│   │   ├── models.py             
+│   │   ├── signals.py
+│   │   ├── template_loader.py      
+│   │   ├── test.py         
+│   │   ├── urls.py              
+│   │   ├── views.py
 │   │   └── management/
-│   │       └── commands/
-│   │           └── create_client.py
-│   │
+│   │   |    └── __init__.py
+│   │   |    └── commands/
+│   │   |        └── check_cloudinary.py
+│   │   |        └── cloudinary_usage.py
+│   │   |        └── create_localhost_client.py
+│   │   |        └── create_tenant.py
+│   │   |        └── list_tenants.py
+│   │   |        └── provision_tenant.py
+│   │   |        └── scriptsAislamiento.py
+│   │   |        └── setup_cloudinary.py
+│   │   |        └── setup_dev_env.py
+│   │   |        └── setup_production.py
+│   │   |        └── test_isolation.py
+│   │   |        └── update_domain.py
+│   │   |        └── __init__.py
+│   │   ├── migrations/
+│   │   |    ├── __init__.py
+│   │   |    ├──0001_initial.py
+│   │   |    ├──0002_domain_remove_client_tenants_cli_domain_420a5e_idx_and_more.py
+│   │   |    ├──0003_clientmailsettings.py
+│   │   |    ├──0004_clientsettings_description_clientsettings_tagline_and_more.py
+│   │   |    ├──0005_formconfig.py
+│   │   |    ├──0006_clientsettings_logo_footer_and_more.py
+│   │   |    ├──0007_alter_clientsettings_favicon_and_more.py
+│   │   |    ├──0008_client_plan_alter_client_contact_email_email_and_more.py
+│   │   |    └──0009_alter_client_plan.py
+│   │   ├── services/
+│   │   |    ├──__init__.py
+│   │   |    └──email_dispatcher.py
+│   │   ├── templates/
+│   │   |    └── tenants/
+│   │   |        └──debug.html
+│   │   └── templates_tags/
+│   │       └──__init__.py
+│   │       └──tenant_tags.py
 │   ├── website/                  # 🌐 Landing pages públicas
 │   │   ├── __init__.py
 │   │   ├── models.py             # Section, Service, Testimonial
 │   │   ├── admin.py              # CMS admin
 │   │   ├── views.py              # HomeView, ServicesView
 │   │   ├── urls.py
-│   │   ├── managers.py           # TenantAwareManager
 │   │   ├── forms.py              # ContactForm
+│   │   ├── auth_urls.py              
+│   │   ├── auth_views.py
 │   │   └── templatetags/
-│   │       └── website_tags.py   # {% get_section %}
+│   │   |    └── website_tags.py   # {% get_section %}
+│   │   |    └── cloudinary_tags.py  
+│   │   └── migrations/
+│   │       └── 0001_initial.py   
+│   │       └── 0002_add_section_description.py    
+│   │       └── 0003_add_full_description.py    
+│   │       └── 0004_alter_section_section_type.py    
+│   │       └── 0005_migrate_to_cloudinary.py 
+│   │       └── 0006_delete_testimonial.py       
 │   │
 │   ├── accounts/                 # 👤 Usuarios (clientes que editan)
 │   │   ├── __init__.py
@@ -49,37 +98,146 @@ project_root/
 │   │   ├── admin.py
 │   │   ├── views.py              # Login, logout
 │   │   └── urls.py
-│   │
+│   │   ├── apps.py
+│   │   ├── forms.py              # Login, logout
+│   │   └── mixins.py
+│   │   └── migrations/
+│   │       └── __init__.py 
+│   │       └── 0001_initial.py 
+│   │       └── 0002_userprofile_invitation_expires_at_and_more.py 
 │   └── core/                     # 🛠️ Utilidades compartidas
+│   |   ├── __init__.py
+│   |    ├── admin.py           
+│   |    ├── apps.py            
+│   |    ├── cloudinary_utils.py
+│   |    └── managers.py            
+│   |    ├── models.py             
+│   |    └── template_resolver.py              
+│   └── orders/                     # 🛠️ Utilidades compartidas
 │       ├── __init__.py
-│       ├── models.py             # BaseModel (timestamps, etc)
-│       ├── utils.py              # Helpers
-│       ├── validators.py
-│       └── mixins.py             # TenantRequiredMixin
-│
+│       ├── admin.py           
+│       ├── apps.py            
+│       ├── forms.py
+│       └── models.py            
+│       ├── signals.py      
+│       ├── urls_onboarding.py            
+│       ├── urls_webhooks.py
+│       └── urls.py            
+│       ├── views_onboarding.py        
+│       ├── views.py              
+│       └── managements/
+│       |   └── __init__.py 
+│       |   └── commands/
+│       | 	└── __init__.py
+│       | 	└── setup_plans.py  
+│       └── migrations/
+│       |   └── __init__.py 
+│       |   └── 0001_initial.py 
+│       └── services/
+│       |   └── __init__.py 
+│       |   └── email_service.py 
+│       |   └── mercadopago_service.py 
+│       |   └── order_processor.py 
+│       └── templates/
+│          └── orders/
+│          |	└── checkout.html
+│          |	└── onboarding_completed.html
+│          |	└── onboarding_expired.html
+│          |	└── onboarding_invalid.html
+│          |	└── onboarding_success.html
+│          |	└── onboarding.html
+│          └── checkout_error.html
+│          └── checkout_success.html
+│       
+│        
 ├── templates/                    # Templates globales
 │   ├── base.html                 # Base template
+│   ├── accounts/
+│   │   ├── login.html
+│   │   ├── request_password_reset.html
+│   │   ├── set_password_expired.html
+│   │   ├── set_password_invalid.html
+│   │   └── set_password.html
+│   ├── auth/
+│   │   ├── login_modal.html
+│   │   └── login.html
 │   ├── components/
 │   │   ├── footer.html
 │   │   ├── navbar.html
+│   ├── emails/
+│   │   ├── base_email.html
+│   │   ├── contact_confirmation.html
+│   │   ├── contact_confirmation.txt
+│   │   ├── contact_notification.html
+│   │   ├── contact_notification.txt
+│   │   ├── contact_received.html
+│   │   ├── payment_success.html
+│   │   ├── set_password.html
+│   │   └── site_ready.html
+│   │   ├── token_expiring.html
+│   │   └── welcome.html
 │   ├── auth/
 │   │   ├── login.html
-│   │   ├── login_modal.html
+│   │   └── login_modal.html
 │   ├── errors/
 │   │   ├── 404.html
 │   │   ├── access_denied.html
 │   │   └── tenant_not_found.html
 │   │   └── payment_required.html
-│   ├── partials/                  
+│   ├── partials/   
+│   │   ├── contact_form_dynamic.html             
+│   │   ├── tenant_css.html               
 │   │   ├── contact_form.html             
 │   │   ├── contact_success.html
 │   │   ├── sections_display.html
-│   │   └── sections_edit.html
-│   │   └── service_card.html
-│   │   └── service_delete_confirm.html
+│   │   ├── sections_edit.html
+│   │   ├── service_card.html
+│   │   ├── service_delete_confirm.html
 │   │   └── service_edit.html
 │   ├── landing/                 
-│   │   ├── home.html
+│   │   └── home.html
+│   ├── marketing/    #locacion pagina principal             
+│   │   └── components/ 
+│   │   |     └── about.html
+│   │   |     └── contact.html
+│   │   |     └── footer.html
+│   │   |     └── hero.html
+│   │   |     └── navbar.html
+│   │   └── landing/  
+│   │   |     └── home.html
+│   │   └── base.html     
+│   │
+│   ├── tenant/                 
+│   │   └── admin/ 
+│   │         └── onboarding.html
+│   │         └── tenant_list.html
+│   ├── themes/                 
+│   │   └── default/
+│   │   |	└── components/ 
+│   │   |	|	└── about.html
+│   │   |	|	└── contact.html
+│   │   |	|	└── footer.html
+│   │   |	|	└── hero.html
+│   │   |	|	└── navbar.html
+│   │   |	|	└── service.html
+│   │   |	└── landing/ 
+│   │   |	|	└── home.html
+│   │   |	└──base.html
+│   │   |	
+│   │   └── electricidad/
+│   │   	└── components/ 
+│   │   	|	└── about.html
+│   │   	|	└── contact.html
+│   │   	|	└── footer.html
+│   │   	|	└── hero.html
+│   │   	|	└── navbar.html
+│   │   	|	└── service.html
+│   │   	└── landing/ 
+│   │   	|	└── home.html
+│   │   	└──base.html
+│   │
+│   │
+│   │
 │   └── dashboard/              
 │       ├── base.html
 │       ├── contacts.html
@@ -88,7 +246,7 @@ project_root/
 │       ├── sections.html
 │       ├── service_confirm_delete.html
 │       ├── service_form.html
-│       ├── service.html
+│       └── service.html
 ├── static/                       # Assets estáticos
 │   ├── css/
 │   │   ├── input.css             # Tailwind source
@@ -112,10 +270,13 @@ project_root/
 │       ├── seed_data.json
 │       └── preview.png
 │
-├── scripts/                      # Scripts de automatización
-│   ├── provision_client.py       # Crear cliente completo
-│   ├── backup_tenant.py
-│   └── migrate_from_wordpress.py
+├── scripts/                      
+│   ├── migrate_domains.py       
+│   ├── scripts_limpieza.py
+│   └── seed_fernando.py
+│   ├── setup_domains.py       
+│   └── test_multi_tenant.py
+│    
 │
 └── docs/                         # Documentación
     ├── SETUP.md

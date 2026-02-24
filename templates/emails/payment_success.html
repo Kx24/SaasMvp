@@ -1,0 +1,114 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Pago Confirmado - {{ plan.name }}{% endblock %}
+
+{% block content %}
+<!-- Icono de éxito -->
+<div class="text-center" style="margin-bottom: 24px;">
+    <div style="width: 64px; height: 64px; background-color: #ecfdf5; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+        <span style="font-size: 32px;">✅</span>
+    </div>
+</div>
+
+<h1 class="text-center">¡Pago confirmado!</h1>
+
+<p class="text-center">
+    Hemos recibido tu pago correctamente. Ya puedes configurar tu sitio web.
+</p>
+
+<!-- Detalles de la orden -->
+<div class="info-box">
+    <dl class="details-list">
+        <dt>Orden</dt>
+        <dd>#{{ order.order_number }}</dd>
+        
+        <dt>Plan</dt>
+        <dd>{{ plan.name }}</dd>
+        
+        <dt>Monto pagado</dt>
+        <dd>${{ order.amount|floatformat:0 }} CLP</dd>
+        
+        <dt>Email</dt>
+        <dd>{{ order.email }}</dd>
+    </dl>
+</div>
+
+<!-- CTA Principal -->
+<div class="text-center" style="margin: 32px 0;">
+    <p style="margin-bottom: 16px;">
+        <strong>Siguiente paso:</strong> Configura tu sitio web
+    </p>
+    <a href="{{ onboarding_url }}" class="btn btn-success" style="color: #ffffff;">
+        🚀 Configurar mi sitio web
+    </a>
+</div>
+
+<!-- Advertencia de tiempo -->
+<div class="warning-box">
+    <p style="margin: 0; font-size: 14px;">
+        <strong>⏰ Importante:</strong> Este enlace es válido por <strong>{{ token_expires_hours }} horas</strong>. 
+        Después de ese tiempo, necesitarás contactarnos para obtener uno nuevo.
+    </p>
+</div>
+
+<!-- Próximos pasos -->
+<h2 style="margin-top: 32px;">¿Qué sigue?</h2>
+
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%;">
+    <tr>
+        <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                    <td style="width: 32px; vertical-align: top;">
+                        <span style="display: inline-block; width: 24px; height: 24px; background-color: #2563eb; color: white; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: bold;">1</span>
+                    </td>
+                    <td style="padding-left: 12px;">
+                        <strong style="color: #111827;">Configura tu sitio</strong>
+                        <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">
+                            Ingresa los datos de tu empresa, elige colores y tema
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                    <td style="width: 32px; vertical-align: top;">
+                        <span style="display: inline-block; width: 24px; height: 24px; background-color: #2563eb; color: white; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: bold;">2</span>
+                    </td>
+                    <td style="padding-left: 12px;">
+                        <strong style="color: #111827;">Configura tu contraseña</strong>
+                        <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">
+                            Te enviaremos un email para crear tu acceso al panel
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 12px 0;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                    <td style="width: 32px; vertical-align: top;">
+                        <span style="display: inline-block; width: 24px; height: 24px; background-color: #2563eb; color: white; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: bold;">3</span>
+                    </td>
+                    <td style="padding-left: 12px;">
+                        <strong style="color: #111827;">¡Tu sitio está listo!</strong>
+                        <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">
+                            Personaliza el contenido desde tu panel de administración
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<p class="text-small text-center" style="margin-top: 32px;">
+    Si no realizaste esta compra, por favor contáctanos inmediatamente.
+</p>
+{% endblock %}

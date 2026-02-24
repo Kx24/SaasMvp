@@ -1,0 +1,56 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Tu enlace expira pronto{% endblock %}
+
+{% block content %}
+<!-- Icono -->
+<div class="text-center" style="margin-bottom: 24px;">
+    <div style="width: 64px; height: 64px; background-color: #fffbeb; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+        <span style="font-size: 32px;">⏰</span>
+    </div>
+</div>
+
+<h1 class="text-center">Tu enlace expira pronto</h1>
+
+<p class="text-center">
+    Te recordamos que tu enlace para configurar tu sitio web expira en 
+    <strong>{{ hours_remaining }} horas</strong>.
+</p>
+
+<!-- Alerta -->
+<div class="warning-box text-center">
+    <p style="margin: 0; font-size: 16px; color: #92400e;">
+        <strong>⚠️ No pierdas tu acceso</strong><br>
+        <span style="font-size: 14px;">Después de este tiempo necesitarás contactarnos para un nuevo enlace.</span>
+    </p>
+</div>
+
+<!-- Detalles de la orden -->
+<div class="info-box">
+    <dl class="details-list">
+        <dt>Orden</dt>
+        <dd>#{{ order.order_number }}</dd>
+        
+        <dt>Plan</dt>
+        <dd>{{ plan.name }}</dd>
+        
+        <dt>Email</dt>
+        <dd>{{ order.email }}</dd>
+    </dl>
+</div>
+
+<!-- CTA Principal -->
+<div class="text-center" style="margin: 32px 0;">
+    <a href="{{ onboarding_url }}" class="btn" style="color: #ffffff;">
+        🚀 Configurar mi sitio ahora
+    </a>
+</div>
+
+<p class="text-small text-center">
+    Si ya completaste la configuración, puedes ignorar este mensaje.
+</p>
+
+<p class="text-small text-center" style="margin-top: 24px;">
+    ¿Tienes problemas? Responde a este email y te ayudamos.
+</p>
+{% endblock %}
