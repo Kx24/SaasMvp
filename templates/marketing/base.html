@@ -6,26 +6,20 @@
     <title>{% block title %}{{ client.settings.meta_title|default:client.settings.company_name }}{% endblock %}</title>
     <meta name="description" content="{{ client.settings.meta_description|default:'' }}">
     
-    <!-- Favicon -->
     {% if client.settings.favicon %}
     <link rel="icon" href="{{ client.settings.favicon.url }}">
     {% endif %}
     
-    <!-- Google Fonts - Stripe usa fonts similares -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
-    <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     
-    <!-- Configuración Tailwind con colores del tenant -->
     <script>
         tailwind.config = {
             theme: {
@@ -44,7 +38,6 @@
         }
     </script>
     
-    <!-- Estilos personalizados estilo Stripe mejorados -->
     <style>
         :root {
             --primary: {{ client.settings.primary_color|default:"#0ea5e9" }};
@@ -316,10 +309,11 @@
     </style>
 </head>
 <body class="bg-white text-slate-800">
-    <!-- Navbar -->
+
+    <canvas id="globalCanvas" class="fixed inset-0 w-full h-full pointer-events-none -z-10 opacity-60"></canvas>
+
     {% include 'components/navbar.html' %}
     
-    <!-- Mensajes Django con estilo Stripe -->
     {% if messages %}
     <div class="fixed top-20 right-4 z-50 space-y-2" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
         {% for message in messages %}
@@ -346,18 +340,14 @@
     </div>
     {% endif %}
     
-    <!-- Contenido Principal -->
     <main>
         {% block content %}{% endblock %}
     </main>
     
-    <!-- Footer -->
     {% include 'components/footer.html' %}
     
-    <!-- Modal Container para HTMX -->
     <div id="modal-container"></div>
     
-    <!-- Scroll Animation Script -->
     <script>
         // Intersection Observer for scroll animations
         const observerOptions = {
@@ -387,6 +377,168 @@
                     });
                 }
             });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('globalCanvas');
+            if (!canvas) return; // Validación de seguridad
+
+            const ctx = canvas.getContext('2d');
+
+            // Ajustar el canvas al tamaño del viewport completo
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            resize();
+            window.addEventListener('resize', () => {
+                resize();
+                initGrid();
+            });
+
+            /* ===============================
+               CONFIGURACIÓN DE LA MALLA
+            =============================== */
+            const SPACING = 70; // Espaciado entre nodos
+            const MAX_CONNECTION_DIST = 110; // Distancia máxima para trazar línea
+            const PULSE_INTERVAL = 2200; // Milisegundos entre cada pulso
+
+            let nodes = [];
+            let pulses = [];
+
+            /* ===============================
+               ORIGEN DEL PULSO (Centro pantalla)
+            =============================== */
+            function getEmitter() {
+                // Buscamos el elemento del logo por su ID
+                const logoElement = document.getElementById('logo-principal');
+                
+                if (logoElement) {
+                    // Obtenemos su posición y dimensiones en la pantalla
+                    const rect = logoElement.getBoundingClientRect();
+                    
+                    // Retornamos el centro exacto del logo
+                    return {
+                        x: rect.left + (rect.width / 2),
+                        y: rect.top + (rect.height / 2)
+                    };
+                }
+
+                // Fallback de seguridad: Si por alguna razón no encuentra el logo,
+                // que el pulso inicie desde el centro de la pantalla.
+                return {
+                    x: canvas.width * 0.5,
+                    y: canvas.height * 0.5
+                };
+            }
+
+            /* ===============================
+               INICIALIZACIÓN DE LA MALLA
+            =============================== */
+            function initGrid() {
+                nodes = [];
+                const cols = Math.ceil(canvas.width / SPACING);
+                const rows = Math.ceil(canvas.height / SPACING);
+
+                for (let x = 0; x <= cols; x++) {
+                    for (let y = 0; y <= rows; y++) {
+                        let baseX = x * SPACING;
+                        let baseY = y * SPACING;
+                        nodes.push({
+                            baseX,
+                            baseY,
+                            x: baseX,
+                            y: baseY,
+                            active: 0
+                        });
+                    }
+                }
+            }
+
+            initGrid();
+
+            /* ===============================
+               GENERADOR DE PULSOS
+            =============================== */
+            function spawnPulse() {
+                const emitter = getEmitter();
+                pulses.push({
+                    x: emitter.x,
+                    y: emitter.y,
+                    radius: 0,
+                    speed: 1.5,
+                    maxRadius: Math.max(canvas.width, canvas.height)
+                });
+            }
+
+            setInterval(spawnPulse, PULSE_INTERVAL);
+
+            /* ===============================
+               BUCLE PRINCIPAL DE ANIMACIÓN
+            =============================== */
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // === 1. Actualizar Pulsos ===
+                pulses = pulses.filter(p => p.radius < p.maxRadius);
+                for (const pulse of pulses) {
+                    pulse.radius += pulse.speed;
+                }
+
+                // === 2. Actualizar Nodos (Interacción con los pulsos) ===
+                for (const node of nodes) {
+                    node.x = node.baseX;
+                    node.y = node.baseY;
+                    node.active *= 0.92; // Fricción para que se apaguen suavemente
+
+                    for (const pulse of pulses) {
+                        let dx = node.baseX - pulse.x;
+                        let dy = node.baseY - pulse.y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+                        let diff = Math.abs(dist - pulse.radius);
+
+                        if (diff < 40) {
+                            let force = (1 - diff / 40);
+                            // Desplaza el nodo visualmente al pasar la onda
+                            if (dist !== 0) {
+                                node.x += (dx/dist) * force * 8;
+                                node.y += (dy/dist) * force * 8;
+                            }
+                            node.active = Math.max(node.active, force);
+                        }
+                    }
+                }
+
+                // === 3. Dibujar Conexiones ===
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        let dx = nodes[i].x - nodes[j].x;
+                        let dy = nodes[i].y - nodes[j].y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+
+                        // Si están suficientemente cerca, se dibuja la línea
+                        if (dist < MAX_CONNECTION_DIST) {
+                            let alphaBase = 0.08;
+                            let alphaPulse = (nodes[i].active + nodes[j].active) * 0.35;
+
+                            ctx.beginPath();
+                            ctx.moveTo(nodes[i].x, nodes[i].y);
+                            ctx.lineTo(nodes[j].x, nodes[j].y);
+
+                            // Tono azul que reacciona con la onda del pulso
+                            ctx.strokeStyle = `rgba(29, 78, 216, ${alphaBase + alphaPulse})`;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(draw);
+            }
+
+            draw();
         });
     </script>
 </body>

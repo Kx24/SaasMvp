@@ -243,9 +243,36 @@ def edit_section_dashboard(request, section_id):
     section = get_object_or_404(Section, id=section_id, client=request.client)
 
     if request.method == 'POST':
-        form = SectionForm(request.POST, request.FILES, instance=section)
+        form = SectionForm(request.POST, instance=section)
         if form.is_valid():
-            form.save()
+            section = form.save(commit=False)
+
+            # --- Eliminar imagen ---
+            if request.POST.get('clear_image') and section.image:
+                try:
+                    import cloudinary.uploader
+                    cloudinary.uploader.destroy(str(section.image))
+                except Exception as e:
+                    logger.warning(f"[Section] No se pudo eliminar imagen de Cloudinary: {e}")
+                section.image = None
+
+            # --- Subir nueva imagen ---
+            elif 'image' in request.FILES:
+                try:
+                    import cloudinary.uploader
+                    uploaded_file = request.FILES['image']
+                    folder = f"{request.client.slug}/sections"
+                    result = cloudinary.uploader.upload(
+                        uploaded_file,
+                        folder=folder,
+                        resource_type="image"
+                    )
+                    section.image = result['public_id']
+                except Exception as e:
+                    logger.error(f"[Section] Error subiendo imagen a Cloudinary: {e}")
+                    messages.error(request, 'Error al subir la imagen. Los demás cambios sí fueron guardados.')
+
+            section.save()
             messages.success(
                 request,
                 f'Sección "{section.get_section_type_display()}" actualizada correctamente'
@@ -284,37 +311,82 @@ def dashboard_services(request):
 def create_service_dashboard(request):
     """Crear servicio desde dashboard"""
     if request.method == 'POST':
-        form = ServiceForm(request.POST, request.FILES)
+        form = ServiceForm(request.POST)
         if form.is_valid():
             service = form.save(commit=False)
             service.client = request.client
+
+            # --- Subir imagen manualmente ---
+            if 'image' in request.FILES:
+                try:
+                    import cloudinary.uploader
+                    uploaded_file = request.FILES['image']
+                    folder = f"{request.client.slug}/services"
+                    result = cloudinary.uploader.upload(
+                        uploaded_file,
+                        folder=folder,
+                        resource_type="image"
+                    )
+                    service.image = result['public_id']
+                except Exception as e:
+                    logger.error(f"[Service] Error subiendo imagen a Cloudinary: {e}")
+                    messages.error(request, 'Error al subir la imagen. El servicio fue creado sin imagen.')
+
             service.save()
             messages.success(request, f'Servicio "{service.name}" creado correctamente')
-            return redirect('dashboard_services')
+            return redirect('dashboard_sections')
     else:
         form = ServiceForm()
-    
+
     context = {
         'client': request.client,
         'form': form,
     }
-    return render_tenant_template(request, 'dashboard/create_service.html', context)
+    return render_tenant_template(request, 'dashboard/edit_service.html', context)
 
 
 @login_required(login_url='/auth/login/')
 def edit_service_dashboard(request, service_id):
     """Editar servicio desde dashboard"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
-    
+
     if request.method == 'POST':
-        form = ServiceForm(request.POST, request.FILES, instance=service)
+        # Excluimos 'image' del form para manejarlo manualmente (evita bug con TemporaryUploadedFile en Cloudinary)
+        form = ServiceForm(request.POST, instance=service)
         if form.is_valid():
-            form.save()
+            service = form.save(commit=False)
+
+            # --- Eliminar imagen ---
+            if request.POST.get('clear_image') and service.image:
+                try:
+                    import cloudinary.uploader
+                    cloudinary.uploader.destroy(str(service.image))
+                except Exception as e:
+                    logger.warning(f"[Service] No se pudo eliminar imagen de Cloudinary: {e}")
+                service.image = None
+
+            # --- Subir nueva imagen ---
+            elif 'image' in request.FILES:
+                try:
+                    import cloudinary.uploader
+                    uploaded_file = request.FILES['image']
+                    folder = f"{request.client.slug}/services"
+                    result = cloudinary.uploader.upload(
+                        uploaded_file,
+                        folder=folder,
+                        resource_type="image"
+                    )
+                    service.image = result['public_id']
+                except Exception as e:
+                    logger.error(f"[Service] Error subiendo imagen a Cloudinary: {e}")
+                    messages.error(request, 'Error al subir la imagen. Los demás cambios sí fueron guardados.')
+
+            service.save()
             messages.success(request, f'Servicio "{service.name}" actualizado correctamente')
-            return redirect('dashboard_services')
+            return redirect('dashboard_sections')
     else:
         form = ServiceForm(instance=service)
-    
+
     context = {
         'client': request.client,
         'service': service,
@@ -332,7 +404,7 @@ def delete_service_dashboard(request, service_id):
         name = service.name
         service.delete()
         messages.success(request, f'Servicio "{name}" eliminado')
-        return redirect('dashboard_services')
+        return redirect('dashboard_sections')
     
     context = {
         'client': request.client,
