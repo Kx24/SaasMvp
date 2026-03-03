@@ -195,6 +195,7 @@ class Service(models.Model):
     # === VISUAL ===
     icon = models.CharField(
         max_length=50,
+        blank=True,
         default='⚡',
         help_text="Emoji o clase de icono (ej: 'fa-bolt')"
     )

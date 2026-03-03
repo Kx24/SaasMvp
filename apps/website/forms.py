@@ -50,15 +50,11 @@ class ServiceForm(forms.ModelForm):
     """
     class Meta:
         model = Service
-        fields = ['name', 'icon', 'description', 'full_description', 'image', 'price_text', 'is_active', 'is_featured']
+        fields = ['name', 'description', 'full_description', 'image', 'price_text', 'is_active', 'is_featured']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
                 'placeholder': 'Nombre del servicio'
-            }),
-            'icon': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
-                'placeholder': 'Emoji o clase de icono (ej: 💼 o fa-briefcase)'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
@@ -87,7 +83,6 @@ class ServiceForm(forms.ModelForm):
         }
         labels = {
             'name': 'Nombre del Servicio',
-            'icon': 'Ícono',
             'description': 'Descripción Breve',
             'full_description': 'Descripción Completa',
             'image': 'Imagen',
@@ -139,4 +134,3 @@ class ContactForm(forms.ModelForm):
             'subject': 'Asunto',
             'message': 'Mensaje'
         }
-
