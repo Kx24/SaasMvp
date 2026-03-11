@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ client.settings.meta_title|default:client.settings.company_name|default:"AndesScale" }}{% endblock %}</title>
+    <meta name="description" content="{{ client.settings.meta_description|default:'Soluciones digitales escalables' }}">
+
+    {% if client.settings.favicon %}
+    <link rel="icon" href="{{ client.settings.favicon.url }}">
+    {% endif %}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary:   '{{ client.settings.primary_color|default:"#0ea5e9" }}',
+                        secondary: '#0284c7',
+                        surface:   '{{ client.settings.secondary_color|default:"#f0f9ff" }}',
+                        accent:    '#a855f7',
+                    },
+                    fontFamily: {
+                        'display': ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        'body':    ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --primary:        {{ client.settings.primary_color|default:"#0ea5e9" }};
+            --secondary:      {{ client.settings.secondary_color|default:"#f0f9ff" }};
+            --gradient-start: #0ea5e9;
+            --gradient-mid:   #6366f1;
+            --gradient-end:   #a855f7;
+        }
+        * { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        .stripe-gradient {
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14,165,233,0.18), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 0%, rgba(99,102,241,0.12), transparent),
+                radial-gradient(ellipse 50% 30% at 0% 100%, rgba(168,85,247,0.1), transparent),
+                linear-gradient(135deg, var(--secondary) 0%, rgba(240,249,255,0.5) 50%, #ffffff 100%);
+        }
+        .stripe-grid {
+            background-image:
+                linear-gradient(rgba(14,165,233,0.04) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, rgba(14,165,233,0.04) 1.5px, transparent 1.5px);
+            background-size: 50px 50px;
+            background-position: -1px -1px;
+        }
+        .stripe-card {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(14,165,233,0.08);
+            box-shadow: 0 4px 24px -6px rgba(14,165,233,0.08), 0 0 0 1px rgba(255,255,255,0.5) inset;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .stripe-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 24px 48px -12px rgba(14,165,233,0.18), 0 0 0 1px rgba(14,165,233,0.1);
+            border-color: rgba(14,165,233,0.15);
+        }
+        .btn-stripe {
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            box-shadow: 0 4px 14px -4px var(--primary), 0 0 0 1px rgba(255,255,255,0.1) inset;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            position: relative; overflow: hidden;
+        }
+        .btn-stripe::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s cubic-bezier(0.4,0,0.2,1);
+        }
+        .btn-stripe:hover::before { left: 100%; }
+        .btn-stripe:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 32px -8px var(--primary), 0 0 0 1px rgba(255,255,255,0.2) inset; }
+        .btn-stripe:active { transform: translateY(0) scale(0.98); }
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 200%;
+            animation: gradient-shift 8s ease infinite;
+        }
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50%       { background-position: 100% 50%; }
+        }
+        .stripe-line { height: 4px; background: linear-gradient(90deg, var(--primary), #6366f1, #a855f7); border-radius: 2px; }
+        .glass-effect { background: rgba(255,255,255,0.7); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); }
+        .animate-float { animation: float 8s ease-in-out infinite; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            25%       { transform: translateY(-15px) translateX(10px); }
+            50%       { transform: translateY(-25px) translateX(0px); }
+            75%       { transform: translateY(-15px) translateX(-10px); }
+        }
+        .animate-pulse-slow { animation: pulse-soft 6s cubic-bezier(0.4,0,0.6,1) infinite; }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.8; transform: scale(1.05); }
+        }
+        .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .text-glow { text-shadow: 0 0 40px rgba(14,165,233,0.4), 0 0 80px rgba(99,102,241,0.2); }
+        [x-cloak] { display: none !important; }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-white text-slate-900">
+
+    {# Canvas global — malla de nodos reactiva al logo, visible en toda la página #}
+    <canvas id="globalCanvas"
+            class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-40"
+            aria-hidden="true"></canvas>
+
+    {% include "andesscale/components/navbar.html" %}
+
+    {% if messages %}
+    <div class="fixed top-24 right-6 z-50 space-y-2 max-w-sm">
+        {% for message in messages %}
+        <div x-data="{ show: true }" x-show="show" x-transition
+             class="flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-800{% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% else %}bg-white border-slate-200 text-slate-700{% endif %}">
+            <span class="text-sm font-medium">{{ message }}</span>
+            <button @click="show = false" class="ml-2 text-slate-400 hover:text-slate-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "andesscale/components/footer.html" %}
+
+    <div id="modal-container"></div>
+
+    {# Botón scroll-to-top global #}
+    <div x-data="{ showScroll: false }"
+         @scroll.window="showScroll = (window.pageYOffset > 500)"
+         class="fixed bottom-8 right-8 z-50 transition-all duration-500 ease-in-out"
+         :class="showScroll ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'">
+        <button @click="window.scrollTo({top:0,behavior:'smooth'})"
+                aria-label="Volver arriba"
+                class="group p-3.5 bg-white/80 backdrop-blur-md text-primary rounded-2xl shadow-xl border border-slate-200/60 hover:border-primary/40 hover:bg-primary/5 hover:-translate-y-1 transition-all duration-300">
+            <svg class="w-6 h-6 group-hover:-translate-y-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+            </svg>
+        </button>
+    </div>
+
+    {% if client.settings.google_analytics_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ client.settings.google_analytics_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ client.settings.google_analytics_id }}');
+    </script>
+    {% endif %}
+
+    <script>
+        const _observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+        document.querySelectorAll('.fade-up').forEach(el => _observer.observe(el));
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+
+    <script src="{% static 'js/clients/andesscale/canvas_global.js' %}" defer></script>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>

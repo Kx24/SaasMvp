@@ -1,16 +1,20 @@
 """
-TenantTemplateLoader - Carga templates por TEMA (Theme-based)
-=============================================================
-Orden de búsqueda:
+TenantTemplateLoader - Carga templates por CLIENTE
+===================================================
+Nueva estructura (un directorio por cliente/marca):
 
-  Andesscale:
-    1. templates/marketing/{template_name}
-    2. templates/{template_name}          ← fallback global (base.html, etc.)
+  AndesScale (marca propia):
+    1. templates/andesscale/{template_name}
+    2. templates/{template_name}              ← fallback global
 
-  Clientes (tenant con theme):
-    1. templates/themes/{theme}/{template_name}
-    2. templates/themes/default/{template_name}
-    3. templates/{template_name}          ← fallback global
+  Clientes (tenant con slug o template configurado):
+    1. templates/{tenant.slug}/{template_name}     ← carpeta del cliente
+    2. templates/default/{template_name}           ← fallback genérico
+    3. templates/{template_name}                   ← fallback global
+
+Ejemplos:
+  servelec  → templates/servelec/landing/home.html
+  andesscale → templates/andesscale/landing/home.html
 
 Compatible con Django 5.2+
 """
@@ -27,20 +31,20 @@ logger = logging.getLogger(__name__)
 class TenantTemplateLoader(BaseLoader):
 
     def get_template_sources(self, template_name):
-        # 1. Sanitizar — SafeString no es compatible con pathlib /
+        # Sanitizar — SafeString no es compatible con pathlib
         if not template_name:
             return
         template_name = str(template_name).strip()
         if not template_name:
             return
 
-        # 2. Ruta base de templates del proyecto
+        # Ruta base de templates del proyecto
         try:
             base_dir = Path(str(settings.BASE_DIR)) / 'templates'
         except Exception:
             return
 
-        # 3. Obtener tenant actual (thread-local del middleware)
+        # Obtener tenant actual (thread-local del middleware)
         tenant = None
         try:
             from .middleware import get_current_tenant
@@ -48,23 +52,32 @@ class TenantTemplateLoader(BaseLoader):
         except Exception as e:
             logger.debug(f"[ThemeLoader] No tenant: {e}")
 
-        # 4. Construir lista de rutas candidatas en orden de prioridad
+        # Construir candidatos según el tenant
         if tenant and tenant.slug == 'andesscale':
+            # Marca propia — usa su propia carpeta
             candidates = [
-                base_dir / 'marketing' / template_name,
+                base_dir / 'andesscale' / template_name,
                 base_dir / template_name,
             ]
+        elif tenant:
+            # Cliente — usa slug como nombre de carpeta
+            # Si tiene un campo 'template' configurado, ese tiene prioridad
+            client_folder = tenant.slug
+            if hasattr(tenant, 'template') and tenant.template:
+                client_folder = tenant.template.strip().lower()
+
+            candidates = [
+                base_dir / client_folder / template_name,   # ej: templates/servelec/landing/home.html
+                base_dir / 'default'    / template_name,   # fallback genérico
+                base_dir / template_name,                   # fallback global (base.html, errors/, etc.)
+            ]
         else:
-            theme = 'default'
-            if tenant and hasattr(tenant, 'template') and tenant.template:
-                theme = tenant.template.strip().lower()
+            # Sin tenant (admin de Django, rutas internas, etc.)
+            candidates = [
+                base_dir / template_name,
+            ]
 
-            candidates = [base_dir / 'themes' / theme / template_name]
-            if theme != 'default':
-                candidates.append(base_dir / 'themes' / 'default' / template_name)
-            candidates.append(base_dir / template_name)
-
-        # 5. Yield solo las rutas que existen
+        # Yield solo las rutas que existen
         for path in candidates:
             if path.exists():
                 logger.debug(f"[ThemeLoader] Found: {path}")

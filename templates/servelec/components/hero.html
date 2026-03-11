@@ -1,0 +1,83 @@
+{% load website_tags %}
+
+{% get_section 'hero' as hero %}
+
+<section id="hero" class="relative min-h-[80vh] flex items-center overflow-hidden" style="background:#0b2818;">
+    ...
+
+
+    {# Canvas animado — controlado por canvas_electric.js #}
+    <canvas id="electricCanvas" class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
+
+    {# Orbs de luz difusa — decorativos, pointer-events desactivados #}
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div class="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full opacity-30"
+             style="background:radial-gradient(circle, #1a5c32 0%, transparent 70%);"></div>
+        <div class="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full opacity-20"
+             style="background:radial-gradient(circle, #2d7a45 0%, transparent 70%);"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full opacity-10"
+             style="background:radial-gradient(ellipse, #3a9e5a 0%, transparent 60%);"></div>
+    </div>
+
+    {# Overlay de legibilidad #}
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true"
+         style="background:linear-gradient(to right, rgba(11,40,24,0.85) 40%, rgba(11,40,24,0.3) 100%);"></div>
+
+    {# Línea decorativa izquierda #}
+    <div class="absolute left-0 top-0 bottom-0 w-0.5 opacity-40" aria-hidden="true"
+         style="background:linear-gradient(to bottom, transparent, #1DB954, transparent);"></div>
+
+    <div class="relative max-w-7xl mx-auto px-6 lg:px-8 pt-36 pb-24">
+        <div class="max-w-3xl">
+
+            <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] mb-6 fade-up"
+                style="animation-delay:0.1s; letter-spacing:-0.02em;">
+                {% if hero %}
+                    {{ hero.title }}
+                {% else %}
+                    Bienvenido<br>
+                    <span style="color:#1DB954;">Soluciones</span><br>
+                    Profesionales al <br>servicio de la industria.
+                {% endif %}
+            </h1>
+
+            <p class="text-lg md:text-xl mb-4 max-w-xl fade-up"
+               style="animation-delay:0.2s; color:rgba(255,255,255,0.65);">
+                {% if hero and hero.subtitle %}
+                    {{ hero.subtitle }}
+                {% else %}
+                
+                {% endif %}
+            </p>
+
+            {% if hero and hero.description %}
+            <p class="text-base mb-10 max-w-xl fade-up"
+               style="animation-delay:0.25s; color:rgba(255,255,255,0.45);">
+                {{ hero.description }}
+            </p>
+            {% endif %}
+
+            <div class="flex flex-col sm:flex-row gap-4 fade-up" style="animation-delay:0.3s;">
+                <a href="#contacto"
+                   class="group px-8 py-4 font-black text-white rounded-lg inline-flex items-center justify-center gap-3 transition-all duration-300 hover:opacity-90 hover:-translate-y-0.5"
+                   style="background:#1DB954; color:#0b2818;">
+                    Solicitar cotización
+                    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
+                </a>
+                <a href="#servicios"
+                   class="group px-8 py-4 font-bold rounded-lg inline-flex items-center justify-center gap-2 transition-all duration-300"
+                   style="color:white; border:1.5px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.06);">
+                    Ver servicios
+                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{# Nota: el script canvas_electric.js se carga desde home.html via {% block extra_js %} #}

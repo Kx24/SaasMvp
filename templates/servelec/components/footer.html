@@ -1,0 +1,130 @@
+<!-- Footer — colores desde variables CSS del tenant -->
+<footer style="background: #0b2818; color: rgba(255,255,255,0.85);">
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-16">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
+
+            <!-- Brand -->
+            <div class="lg:col-span-2">
+                <a href="{% url 'home' %}" class="inline-block mb-6">
+                    {% if client.settings.logo_footer %}
+                    <img src="{{ client.settings.logo_footer.url }}" alt="{{ client.name }}" class="h-28 w-auto">
+                    {% elif client.settings.logo %}
+                    <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-24 w-auto brightness-0 invert">
+                    {% else %}
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center"
+                         style="background: var(--primary);">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    {% endif %}
+                </a>
+
+                <p class="mb-6 max-w-md text-sm leading-relaxed" style="color: rgba(255,255,255,0.45);">
+                    {{ client.settings.description|default:"Servicios eléctricos profesionales. Ingeniería que impulsa procesos seguros y eficientes." }}
+                </p>
+
+                <!-- Redes sociales -->
+                <div class="flex gap-3">
+                    {% if client.settings.facebook_url %}
+                    <a href="{{ client.settings.facebook_url }}" target="_blank"
+                       class="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
+                       style="background: rgba(255,255,255,0.07);"
+                       onmouseover="this.style.background='var(--primary)'"
+                       onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+
+                    {% if client.settings.instagram_url %}
+                    <a href="{{ client.settings.instagram_url }}" target="_blank"
+                       class="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
+                       style="background: rgba(255,255,255,0.07);"
+                       onmouseover="this.style.background='var(--primary)'"
+                       onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+
+                    {% if client.settings.whatsapp_number %}
+                    <a href="https://wa.me/{{ client.settings.whatsapp_number }}" target="_blank"
+                       class="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
+                       style="background: rgba(255,255,255,0.07);"
+                       onmouseover="this.style.background='var(--primary)'"
+                       onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606z"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Navegación -->
+            <div>
+                <h4 class="font-semibold text-white text-sm mb-5 uppercase tracking-wider">Navegación</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="{% url 'home' %}" class="transition hover:opacity-100 opacity-50 hover:underline" style="color:rgba(255,255,255,0.6);">Inicio</a></li>
+                    <li><a href="#servicios" class="transition hover:opacity-100 opacity-50 hover:underline" style="color:rgba(255,255,255,0.6);">Servicios</a></li>
+                    <li><a href="#about" class="transition hover:opacity-100 opacity-50 hover:underline" style="color:rgba(255,255,255,0.6);">Nosotros</a></li>
+                    <li><a href="#contacto" class="transition hover:opacity-100 opacity-50 hover:underline" style="color:rgba(255,255,255,0.6);">Contacto</a></li>
+                </ul>
+            </div>
+
+            <!-- Ubicación -->
+            <div>
+                <h4 class="font-semibold text-white text-sm mb-5 uppercase tracking-wider">
+                    Ubicación
+                </h4>
+
+                <div class="flex items-center gap-3 text-sm"
+                     style="color:rgba(255,255,255,0.6);">
+
+                    <svg class="w-5 h-5 flex-shrink-0"
+                         fill="none"
+                         stroke="currentColor"
+                         viewBox="0 0 24 24"
+                         stroke-width="2">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
+
+                    </svg>
+
+                    <span>Puerto Montt · Región de Los Lagos</span>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div style="border-top: 1px solid rgba(255,255,255,0.07);">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-3">
+            <p class="text-xs" style="color:rgba(255,255,255,0.3);">
+                © {% now "Y" %} {{ client.name }}-Ingeniería. Todos los derechos reservados.
+            </p>
+            <p class="text-xs" style="color:rgba(255,255,255,0.2);">
+                Desarrollado por
+                <a href="https://andesscale.com" target="_blank"
+                   class="transition"
+                   style="color: var(--primary);"
+                   onmouseover="this.style.opacity='0.7'"
+                   onmouseout="this.style.opacity='1'">
+                    Andesscale
+                </a>
+            </p>
+        </div>
+    </div>
+</footer>

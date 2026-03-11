@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
 from cloudinary.models import CloudinaryField
+from apps.core.cloudinary_utils import cloudinary_upload_path
 
 # ==============================================================================
 class Client(models.Model):
@@ -246,15 +247,18 @@ class ClientSettings(models.Model):
     )
     
     # ==================== BRANDING ====================
-# CAMBIO: Usamos CloudinaryField para gestionar las imágenes correctamente
+    # CAMBIO: Usamos CloudinaryField para gestionar las imágenes correctamente
+    # Estructura en Cloudinary: tenants/{tenant_slug}/branding/
     logo = CloudinaryField(
         verbose_name='Logo principal',
+        folder=cloudinary_upload_path('branding'),
         blank=True,
         null=True,
     )
 
     logo_footer = CloudinaryField(
         verbose_name='Logo footer (blanco)',
+        folder=cloudinary_upload_path('branding'),
         blank=True,
         null=True,
         help_text='Logo alternativo para el footer',
@@ -262,6 +266,7 @@ class ClientSettings(models.Model):
 
     favicon = CloudinaryField(
         verbose_name='Favicon',
+        folder=cloudinary_upload_path('branding'),
         blank=True,
         null=True,
     )
@@ -316,6 +321,29 @@ class ClientSettings(models.Model):
         if not self.company_name and self.client:
             self.company_name = self.client.company_name or self.client.name
         super().save(*args, **kwargs)
+
+        # ==================== HELPERS ====================
+
+    def get_logo_url(self, preset='logo'):
+        """Retorna URL del logo con transformación aplicada."""
+        if not self.logo:
+            return None
+        from apps.core.cloudinary_utils import get_cloudinary_url
+        return get_cloudinary_url(self.logo, preset)
+
+    def get_logo_footer_url(self, preset='logo_footer'):
+        """Retorna URL del logo del footer."""
+        if not self.logo_footer:
+            return self.get_logo_url(preset)  # Fallback al logo principal
+        from apps.core.cloudinary_utils import get_cloudinary_url
+        return get_cloudinary_url(self.logo_footer, preset)
+
+    def get_favicon_url(self):
+        """Retorna URL del favicon (64x64)."""
+        if not self.favicon:
+            return None
+        from apps.core.cloudinary_utils import get_cloudinary_url
+        return get_cloudinary_url(self.favicon, 'favicon')    
 
 
 # ==============================================================================

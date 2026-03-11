@@ -1,0 +1,36 @@
+{% extends "servelec/base.html" %}
+{% load website_tags static %}
+
+{# ============================================================
+   SERVELEC — home.html
+   Orquesta las secciones. No contiene HTML propio.
+   Para agregar/quitar/reordenar una sección: editar solo aquí.
+   Para editar el contenido de una sección: ir a components/
+   ============================================================ #}
+
+{% block content %}
+
+    {# Sección estática — solo tú la editas #}
+    {% include "servelec/components/hero.html" %}
+
+    {# Sección dinámica — el cliente edita desde el CMS #}
+    {% include "servelec/components/services.html" %}
+
+    {# Sección estática — solo tú la editas #}
+    {% include "servelec/components/stats.html" %}
+
+    {# Sección dinámica — el cliente edita desde el CMS #}
+    {% include "servelec/components/about.html" %}
+
+    {# Sección estática — solo tú la editas #}
+    {% include "servelec/components/cta.html" %}
+
+    {# Sección dinámica — el cliente edita desde el CMS #}
+    {% include "servelec/components/contact.html" %}
+
+{% endblock %}
+
+{# Script del canvas eléctrico — solo carga en home, no en otras páginas #}
+{% block extra_js %}
+<script src="{% static 'js/clients/servelec/canvas_electric.js' %}" defer></script>
+{% endblock %}

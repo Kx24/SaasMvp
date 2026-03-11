@@ -1,0 +1,75 @@
+{% extends "andesscale/base.html" %}
+{% load website_tags static %}
+
+
+{% block content %}
+    {% include "andesscale/components/hero.html" %}
+    {% include "andesscale/components/services.html" %}
+    {% include "andesscale/components/how_we_work.html" %}
+    {% include "andesscale/components/about.html" %}
+    {% include "andesscale/components/cta.html" %}
+    {% include "andesscale/components/contact.html" %}
+{% endblock %}
+
+{% block extra_js %}
+{# Canvas del hero — solo necesario en home #}
+<script src="{% static 'js/clients/andesscale/canvas_hero.js' %}" defer></script>
+
+{# Alpine component servicios + función global — solo en home #}
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('serviciosSection', () => ({
+        active: null,
+        current: null,
+
+        open(data) {
+            if (this.active === data.id) { this.active = null; this.current = null; return; }
+            this.active = data.id;
+            this.current = data;
+            this.$nextTick(() => {
+                const panel = document.getElementById('service-detail-panel');
+                if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        },
+
+        formatText(text) {
+            if (!text) return '';
+            const lines = text.split(/\r\n|\r|\n/);
+            let html = '', inList = false;
+            for (const raw of lines) {
+                const line = raw.trim();
+                if (!line) { if (inList) { html += '</ul>'; inList = false; } continue; }
+                if (line.startsWith('-') || line.startsWith('•') || line.startsWith('*')) {
+                    if (!inList) { html += '<ul class="space-y-2 mb-4">'; inList = true; }
+                    html += '<li class="flex items-start gap-2"><span class="text-primary font-bold">›</span><span class="text-slate-700">'
+                         + line.substring(1).trim() + '</span></li>';
+                } else {
+                    if (inList) { html += '</ul>'; inList = false; }
+                    html += '<p class="mb-2 text-slate-700">' + line + '</p>';
+                }
+            }
+            if (inList) html += '</ul>';
+            return html;
+        }
+    }));
+});
+
+function openServiceDetail(btn) {
+    const card = btn.closest('[data-id]');
+    if (!card) return;
+    const id = card.dataset.id;
+    window.dispatchEvent(new CustomEvent('open-service-detail', {
+        detail: {
+            id,
+            name:             document.getElementById('svc-name-' + id)?.value || '',
+            description:      document.getElementById('svc-desc-' + id)?.value || '',
+            full_description: document.getElementById('svc-full-' + id)?.value || '',
+            price_text:       card.dataset.price,
+            icon:             card.dataset.icon,
+            image_url:        card.dataset.image,
+            is_featured:      card.dataset.featured === 'true'
+        }
+    }));
+}
+</script>
+{% endblock %}
