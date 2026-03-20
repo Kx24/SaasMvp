@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
+from django.views import View
 from .models import Section, Service, ContactSubmission
 from .forms import SectionForm, ServiceForm, ContactForm
 from apps.tenants.forms import BrandingForm
@@ -656,3 +657,18 @@ def mark_contact_replied(request, contact_id):
 # =============================================================================
 create_service = create_service_dashboard
 toggle_service_active = toggle_service
+
+# ============================================================
+# SEO - Pagekey
+# ============================================================
+class HomeView(View):
+    def get(self, request):
+            return render(request, 'themes/default/landing/home.html', {
+                'page_key': 'home',   # ← AGREGAR
+            })
+
+class ContactView(View):
+    def get(self, request):
+            return render(request, '...', {
+                'page_key': 'contact',  # ← AGREGAR
+            })    

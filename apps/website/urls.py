@@ -12,6 +12,7 @@ urlpatterns = [
     # PÁGINA PRINCIPAL
     # ============================================================
     path('', views.home, name='home'),
+
     
     # ============================================================
     # DASHBOARD (requiere login)

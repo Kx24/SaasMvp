@@ -8,17 +8,18 @@
    Cada página del cliente extiende ESTE archivo, no base.html.
    ============================================================ #}
 
-{% block title %}{{ client.settings.meta_title|default:client.name }}{% endblock %}
-{% block meta_description %}{{ client.settings.meta_description|default:"Servicios eléctricos profesionales" }}{% endblock %}
-{% block meta_keywords %}{{ client.settings.meta_keywords|default:"electricidad, instalaciones, mantención" }}{% endblock %}
+    <!-- SEO -->
+    {% load seo_tags %}
+    {% seo_tags page_key|default:"home" %}
+    {% block extra_seo %}{% endblock %}
 
-{% block favicon %}
-    {% if client.settings.favicon %}
-        <link rel="icon" href="{{ client.settings.favicon.url }}" type="image/x-icon">
-    {% else %}
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-    {% endif %}
-{% endblock %}
+    {% block favicon %}
+        {% if client.settings.favicon %}
+            <link rel="icon" href="{{ client.settings.favicon.url }}" type="image/x-icon">
+        {% else %}
+            <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+        {% endif %}
+    {% endblock %}
 
 {% block theme_styles %}
 {# Colores dinámicos desde ClientSettings — fallback a verde Servelec #}

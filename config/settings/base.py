@@ -63,7 +63,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "django.contrib.humanize",
+    'django.contrib.humanize',
+    'django.contrib.sitemaps',
     
     # Third party
     'django_extensions',
@@ -76,6 +77,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',  # Opcional, solo si usas como storage backend
     'apps.orders',
+    'apps.marketing',
 ]
 
 # =============================================================================

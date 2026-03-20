@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- SEO -->
-    <title>{% block title %}{{ client.settings.meta_title|default:client.name }}{% endblock %}</title>
-    <meta name="description" content="{{ client.settings.meta_description|default:'Soluciones profesionales' }}">
+    {% load seo_tags %}
+    {% seo_tags page_key|default:"home" %}
+    {% block extra_seo %}{% endblock %}
     
     <!-- Favicon -->
     {% if client.settings.favicon %}

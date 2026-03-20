@@ -22,6 +22,9 @@ urlpatterns = [
     # Al final porque suele tener rutas genéricas
     path('', include('apps.website.urls')),
 
+    # ===== MARKETING & SEO =====
+    path('', include('apps.marketing.urls', namespace='marketing')),
+
     # Orders & Checkout
     path('checkout/', include('apps.orders.urls', namespace='orders')),
     

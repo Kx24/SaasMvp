@@ -1,11 +1,12 @@
 {% load static %}
+{% load seo_tags %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ client.settings.meta_title|default:client.settings.company_name|default:"AndesScale" }}{% endblock %}</title>
-    <meta name="description" content="{{ client.settings.meta_description|default:'Soluciones digitales escalables' }}">
+    {% seo_tags page_key|default:"home" %}
+    {% block extra_seo %}{% endblock %}
 
     {% if client.settings.favicon %}
     <link rel="icon" href="{{ client.settings.favicon.url }}">
