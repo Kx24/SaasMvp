@@ -78,11 +78,16 @@ class SEOConfigAdmin(admin.ModelAdmin):
         (
             "✅ Verificación de Sitio",
             {
-                "fields": ("google_site_verification", "bing_site_verification"),
+                "fields": (
+                    "google_site_verification",
+                    "google_verification_file",
+                    "bing_site_verification",
+                ),
                 "classes": ("collapse",),
                 "description": (
-                    "Pega aquí el valor del meta tag de verificación de "
-                    "Google Search Console / Bing Webmaster Tools."
+                    "Método 1 (meta tag): pega solo el valor del content de Google Search Console. "
+                    "Método 2 (archivo HTML): pega solo el código sin 'google' ni '.html'. "
+                    "Ej: si Google te da 'google1a2b3c4d.html', escribe solo '1a2b3c4d'."
                 ),
             },
         ),
