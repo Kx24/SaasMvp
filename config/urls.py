@@ -18,12 +18,14 @@ urlpatterns = [
     # 3. Auth URLs para clientes
     path('auth/', include('apps.website.auth_urls')),  # Login/Logout custom
     
-    # 4. Website URLs (Catch-all) - PRIORIDAD BAJA
+    # ===== MARKETING & SEO =====
+    path('', include('apps.marketing.urls', namespace='marketing')),
+
+    # 4. Website URLs (Catch-all) - PRIORIDAD BAJA 
     # Al final porque suele tener rutas genéricas
     path('', include('apps.website.urls')),
 
-    # ===== MARKETING & SEO =====
-    path('', include('apps.marketing.urls', namespace='marketing')),
+
 
     # Orders & Checkout
     path('checkout/', include('apps.orders.urls', namespace='orders')),
