@@ -1,9 +1,31 @@
 # =============================================================================
-# apps/website/views.py - ACTUALIZADO CON TEMPLATES POR TENANT
+# apps/website/views.py — SECCIÓN REEMPLAZADA: contact_submit
 # =============================================================================
-# Usa slug del cliente para resolver templates
+# INSTRUCCIONES DE INTEGRACIÓN:
+#
+#   Reemplaza SOLO la función contact_submit en tu views.py actual.
+#   El resto del archivo (home, dashboard, edición inline, etc.) NO cambia.
+#
+#   Además agrega estas dos líneas al bloque de imports del archivo:
+#
+#       from apps.core.rate_limit import RateLimiter
+#       from django.http import JsonResponse   ← ya existe en tu views.py
+#
+# =============================================================================
+#
+# CAMBIOS RESPECTO A LA VERSIÓN ANTERIOR:
+#
+#   1. Usa ContactForm (forms.Form) en lugar de raw request.POST
+#   2. Honeypot: si website != '' → guarda con is_spam=True, responde 200 OK
+#   3. Rate limit: 3 envíos / 10 min por IP+tenant → responde JSON 429
+#   4. form_source: se asigna desde el form validado al modelo
+#   5. subject: se genera automáticamente desde get_subject_by_intent()
+#   6. Responde JSON para el fetch() del multi-step (Card #55b)
+#      y mantiene compatibilidad HTMX para los formularios actuales
+#
 # =============================================================================
 
+import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -13,20 +35,17 @@ from .models import Section, Service, ContactSubmission
 from .forms import SectionForm, ServiceForm, ContactForm
 from apps.tenants.forms import BrandingForm
 from apps.tenants.models import ClientSettings
-import logging
 import json
 from django.utils import timezone
-
-# Importar helper de templates por tenant
 from apps.core.template_resolver import get_tenant_template, render_tenant_template
-
+from apps.core.rate_limit import RateLimiter
+ 
 logger = logging.getLogger(__name__)
-
 
 # ============================================================
 # HELPERS
 # ============================================================
-
+ 
 def get_client_ip(request):
     """Obtiene la IP real del cliente considerando proxies."""
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -75,63 +94,151 @@ def home(request):
 
 
 # ============================================================
-# FORMULARIO DE CONTACTO PÚBLICO
+# FORMULARIO DE CONTACTO PÚBLICO — REESCRITO
 # ============================================================
-
+ 
 def contact_submit(request):
     """
-    Procesar formulario de contacto público.
+    Procesa el formulario de contacto público.
+ 
+    Flujo:
+        1. Solo acepta POST
+        2. Rate limit: 3 intentos / 10 min por IP+tenant
+        3. Valida con ContactForm
+        4. Honeypot: si fue activado → guarda como spam silenciosamente
+        5. Crea ContactSubmission con todos los campos mapeados
+        6. Dispatch de notificación (email / dashboard según config del tenant)
+        7. Responde JSON (para fetch() del multi-step) o HTMX partial
+ 
+    Respuestas JSON:
+        200 { "ok": true,  "message": "..." }
+        400 { "ok": false, "errors": {...} }
+        429 { "ok": false, "message": "..." }  ← rate limit
     """
     if request.method != 'POST':
         return redirect('home')
-    
+ 
     if not hasattr(request, 'client') or not request.client:
-        messages.error(request, 'Error de configuración. Intenta más tarde.')
-        return redirect('home')
-    
-    # Crear registro en base de datos
+        return JsonResponse(
+            {'ok': False, 'message': 'Error de configuración. Intenta más tarde.'},
+            status=500
+        )
+ 
+    # ------------------------------------------------------------------
+    # 1. RATE LIMITING
+    # ------------------------------------------------------------------
+    limiter = RateLimiter(request, scope='contact', limit=3, period=600)
+ 
+    if limiter.is_exceeded():
+        logger.warning(
+            f"[Contact] Rate limit exceeded for {get_client_ip(request)} "
+            f"on tenant {request.client.slug}"
+        )
+        return JsonResponse(
+            {
+                'ok': False,
+                'message': 'Demasiados intentos. Por favor espera unos minutos antes de reintentar.',
+            },
+            status=429
+        )
+ 
+    # ------------------------------------------------------------------
+    # 2. VALIDACIÓN DEL FORM
+    # ------------------------------------------------------------------
+    form = ContactForm(request.POST)
+ 
+    if not form.is_valid():
+        return JsonResponse(
+            {
+                'ok': False,
+                'errors': form.errors,
+                'message': 'Por favor revisa los campos marcados.',
+            },
+            status=400
+        )
+ 
+    # ------------------------------------------------------------------
+    # 3. HONEYPOT CHECK
+    # ------------------------------------------------------------------
+    is_spam = form.is_honeypot_triggered()
+ 
+    if is_spam:
+        logger.info(
+            f"[Contact] Honeypot triggered from {get_client_ip(request)} "
+            f"on tenant {request.client.slug} — saving silently as spam"
+        )
+ 
+    # ------------------------------------------------------------------
+    # 4. CREAR REGISTRO
+    # ------------------------------------------------------------------
+    cleaned = form.cleaned_data
+ 
     contact = ContactSubmission.objects.create(
         client=request.client,
-        name=request.POST.get('name', '').strip(),
-        email=request.POST.get('email', '').strip(),
-        phone=request.POST.get('phone', '').strip(),
-        company=request.POST.get('company', '').strip(),
-        subject=request.POST.get('subject', '').strip(),
-        message=request.POST.get('message', '').strip(),
+        name=cleaned['name'],
+        email=cleaned['email'],
+        phone=cleaned.get('phone', ''),
+        company=cleaned.get('company', ''),
+        subject=form.get_subject_by_intent(),
+        message=cleaned['message'],
+        # Nuevos campos del Card #55a:
+        form_source=cleaned.get('form_source', 'page'),
+        is_spam=is_spam,
+        # Campos existentes:
+        source='website',
+        status='spam' if is_spam else 'new',
         ip_address=get_client_ip(request),
         user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
     )
-    
+ 
     logger.info(
-        f"[Contact] New submission #{contact.id} for {request.client.slug} "
-        f"from {contact.email}"
+        f"[Contact] Submission #{contact.id} for {request.client.slug} "
+        f"from {contact.email} | source={contact.form_source} "
+        f"| intent={cleaned.get('intent', '?')} | spam={is_spam}"
     )
-    
-    # Dispatch de notificación según configuración
-    try:
-        from apps.tenants.services.email_dispatcher import EmailDispatcher
-        dispatcher = EmailDispatcher(request.client)
-        result = dispatcher.send_contact_notification(contact)
-        
-        logger.info(
-            f"[Contact] Dispatch result for #{contact.id}: "
-            f"{result.status.value} (email_sent={result.email_sent})"
-        )
-        
-    except Exception as e:
-        logger.error(f"[Contact] Dispatch error for #{contact.id}: {e}", exc_info=True)
-    
-    # Respuesta al usuario
-    messages.success(
-        request, 
-        '¡Gracias por contactarnos! Te responderemos pronto.'
-    )
-    
-    # Si es HTMX, retornar partial
+ 
+    # ------------------------------------------------------------------
+    # 5. INCREMENTAR RATE LIMIT (solo si no es spam — no penalizar al bot)
+    # ------------------------------------------------------------------
+    if not is_spam:
+        limiter.increment()
+ 
+    # ------------------------------------------------------------------
+    # 6. DISPATCH DE NOTIFICACIÓN (solo si no es spam)
+    # ------------------------------------------------------------------
+    if not is_spam:
+        try:
+            from apps.tenants.services.email_dispatcher import EmailDispatcher
+            dispatcher = EmailDispatcher(request.client)
+            result = dispatcher.send_contact_notification(contact)
+            logger.info(
+                f"[Contact] Dispatch #{contact.id}: "
+                f"{result.status.value} (email_sent={result.email_sent})"
+            )
+        except Exception as e:
+            logger.error(
+                f"[Contact] Dispatch error for #{contact.id}: {e}",
+                exc_info=True
+            )
+ 
+    # ------------------------------------------------------------------
+    # 7. RESPUESTA
+    # ------------------------------------------------------------------
+    success_message = '✅ Listo, te responderemos en menos de 24 horas.'
+ 
+    # JSON — para el fetch() del componente multi-step (Card #55b)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+       request.content_type == 'application/json' or \
+       request.headers.get('Accept') == 'application/json':
+        return JsonResponse({'ok': True, 'message': success_message})
+ 
+    # HTMX — para los formularios inline existentes
     if request.headers.get('HX-Request'):
         template = get_tenant_template(request, 'components/contact_success.html')
         return render(request, template, {'contact': contact})
-    
+ 
+    # Fallback — redirect clásico
+    messages.success(request, success_message)
     return redirect('home')
 
 

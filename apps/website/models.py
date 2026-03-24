@@ -244,47 +244,90 @@ class Service(models.Model):
 
 
 # =============================================================================
-# CONTACT SUBMISSION MODEL
+# INSTRUCCIONES DE INTEGRACIÓN:
+#
+#   Reemplaza SOLO la clase ContactSubmission en tu models.py actual.
+#   Los modelos Section, Service y el bloque de ejemplos NO cambian.
+#
+# CAMBIOS:
+#   + form_source:  choices controlados (hero/footer/page/modal)
+#   + is_spam:      bool, marcado por honeypot — no elimina, oculta
+#   + subject:      ya existía, ahora lo genera el form automáticamente
+#   + mark_as_spam: ya existía, ahora también setea is_spam=True
+#   + Índice nuevo: (client, is_spam) para queries del dashboard
 # =============================================================================
-
+ 
+ 
 class ContactSubmission(models.Model):
     """
     Mensajes de contacto recibidos del formulario del sitio.
-    Sin cambios respecto a la versión anterior.
+ 
+    form_source identifica desde qué sección llegó el mensaje.
+    is_spam es seteado por el honeypot del form — el registro se conserva
+    para auditoría pero no aparece en el dashboard normal.
     """
-
+ 
     STATUS_CHOICES = [
         ('new',     'Nuevo'),
         ('read',    'Leído'),
         ('replied', 'Respondido'),
         ('spam',    'Spam'),
     ]
-
+ 
+    FORM_SOURCE_CHOICES = [
+        ('hero',   'Hero / Banner principal'),
+        ('footer', 'Footer del sitio'),
+        ('page',   'Página de contacto'),
+        ('modal',  'Modal emergente'),
+    ]
+ 
     client = models.ForeignKey(
         'tenants.Client',
         on_delete=models.CASCADE,
         related_name='contact_submissions'
     )
-
+ 
+    # --- DATOS DEL USUARIO ---
     name    = models.CharField(max_length=200)
     email   = models.EmailField()
     phone   = models.CharField(max_length=50, blank=True)
     company = models.CharField(max_length=200, blank=True)
     subject = models.CharField(max_length=300, blank=True)
     message = models.TextField()
-
+ 
+    # --- ESTADO Y ORIGEN ---
     status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default='new'
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='new'
     )
-    source     = models.CharField(max_length=50, default='website')
+ 
+    # Campo legacy — conservado para compatibilidad
+    source = models.CharField(max_length=50, default='website')
+ 
+    # Nuevo: origen específico dentro del sitio
+    form_source = models.CharField(
+        max_length=20,
+        choices=FORM_SOURCE_CHOICES,
+        default='page',
+        help_text='Sección del sitio desde donde se envió el formulario'
+    )
+ 
+    # Nuevo: marcado por honeypot
+    is_spam = models.BooleanField(
+        default=False,
+        help_text='Marcado como spam por el honeypot. Conservado para auditoría.'
+    )
+ 
+    # --- METADATA TÉCNICA ---
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     user_agent = models.TextField(blank=True)
-
+ 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+ 
     objects = TenantAwareManager()
-
+ 
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'Mensaje de Contacto'
@@ -292,23 +335,25 @@ class ContactSubmission(models.Model):
         indexes = [
             models.Index(fields=['client', 'status']),
             models.Index(fields=['client', '-created_at']),
+            models.Index(fields=['client', 'is_spam']),   # nuevo
         ]
-
+ 
     def __str__(self):
         return f"{self.name} - {self.created_at.strftime('%d/%m/%Y')}"
-
+ 
     def mark_as_read(self):
         self.status = 'read'
         self.save(update_fields=['status', 'updated_at'])
-
+ 
     def mark_as_replied(self):
         self.status = 'replied'
         self.save(update_fields=['status', 'updated_at'])
-
+ 
     def mark_as_spam(self):
+        """Marca como spam manual desde el dashboard."""
         self.status = 'spam'
-        self.save(update_fields=['status', 'updated_at'])
-
+        self.is_spam = True
+        self.save(update_fields=['status', 'is_spam', 'updated_at'])
 
 # =============================================================================
 # EJEMPLO: MODELOS FUTUROS

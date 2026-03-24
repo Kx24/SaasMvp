@@ -18,6 +18,15 @@ services:
     region: oregon
     plan: free
     branch: main
+
+# =================================================================
+# Cron Jobs para activar digest y purga de mensajes contacto
+# =================================================================
+
+  - type: cron
+    name: contact-digest
+    schedule: "0 8 * * 1"   # Lunes 8am
+    command: python manage.py send_contact_digest
     
     # Build & Start
     buildCommand: "./build.sh"
@@ -93,3 +102,4 @@ databases:
     plan: free
     region: oregon
     # ipAllowList: []  # Permitir todas las IPs (default)
+

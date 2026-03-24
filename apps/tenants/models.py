@@ -345,7 +345,33 @@ class ClientSettings(models.Model):
         from apps.core.cloudinary_utils import get_cloudinary_url
         return get_cloudinary_url(self.favicon, 'favicon')    
 
-
+    # ==================== DIGEST & PURGA ====================
+ 
+    digest_enabled = models.BooleanField(
+        default=False,
+        help_text='Activar resumen periódico de mensajes por email',
+    )
+ 
+    digest_frequency = models.CharField(
+        max_length=10,
+        default='weekly',
+        choices=[
+            ('daily',  'Diario'),
+            ('weekly', 'Semanal'),
+        ],
+        help_text='Con qué frecuencia enviar el resumen (lunes para semanal)',
+    )
+ 
+    auto_purge_enabled = models.BooleanField(
+        default=False,
+        help_text='Eliminar mensajes leídos/respondidos antiguos automáticamente',
+    )
+ 
+    inbox_retention_days = models.PositiveIntegerField(
+        default=30,
+        help_text='Días a retener mensajes antes de purgar (mínimo 7)',
+    )
+    
 # ==============================================================================
 # CLIENT EMAIL SETTINGS - Configuración de email
 # ==============================================================================
