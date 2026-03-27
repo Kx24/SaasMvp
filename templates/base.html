@@ -55,5 +55,19 @@
     {# Scripts adicionales por página — siempre al final del body #}
     {% block extra_js %}{% endblock %}
 
+        {# Botón scroll-to-top global #}
+    <div x-data="{ showScroll: false }"
+         @scroll.window="showScroll = (window.pageYOffset > 500)"
+         class="fixed bottom-8 right-8 z-50 transition-all duration-500 ease-in-out"
+         :class="showScroll ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'">
+        <button @click="window.scrollTo({top:0,behavior:'smooth'})"
+                aria-label="Volver arriba"
+                class="group p-3.5 bg-white/80 backdrop-blur-md text-primary rounded-2xl shadow-xl border border-slate-200/60 hover:border-primary/40 hover:bg-primary/5 hover:-translate-y-1 transition-all duration-300">
+            <svg class="w-6 h-6 group-hover:-translate-y-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+            </svg>
+        </button>
+    </div>
+
 </body>
 </html>
