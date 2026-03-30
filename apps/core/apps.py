@@ -16,3 +16,22 @@ class CoreConfig(AppConfig):
             api_secret=getattr(settings, 'CLOUDINARY_API_SECRET', ''),
             secure=getattr(settings, 'CLOUDINARY_SECURE', True)
         )
+
+        from apps.core.signals_cloudinary import register_cloudinary_signals
+        register_cloudinary_signals()
+        
+
+# =============================================================================
+# NOTA IMPORTANTE
+# =============================================================================
+# register_cloudinary_signals() usa dispatch_uid únicos por modelo, por lo que
+# llamarla desde múltiples AppConfig NO duplica los signals.
+# Los dispatch_uid garantizan que cada conexión ocurra exactamente una vez:
+#
+#   dispatch_uid='cloudinary_delete_clientsettings'
+#   dispatch_uid='cloudinary_delete_section'
+#   dispatch_uid='cloudinary_delete_service'
+#   dispatch_uid='cloudinary_delete_seoconfig'
+#
+# Es seguro llamar register_cloudinary_signals() desde los tres apps.py.
+# =============================================================================

@@ -533,12 +533,20 @@ def upload_to_cloudinary(file, tenant_slug: str, resource_type: str,
     """
     Sube archivo a Cloudinary en la carpeta correcta del tenant.
 
+    Aplica optimización automática en el momento del upload:
+      - format: auto  → convierte a WebP/AVIF según soporte del navegador
+      - quality: auto → compresión óptima según contenido de la imagen
+      - width: 2000   → dimensión máxima sin upscaling (crop: limit)
+
+    Estas opciones pueden sobreescribirse pasando los mismos keys en **options.
+
     Args:
         file: Archivo a subir (file object, path o URL)
         tenant_slug: Slug del cliente (ej: 'andesscale')
         resource_type: Tipo (debe estar en VALID_RESOURCE_TYPES)
         filename: Nombre personalizado (opcional, se auto-genera si no se provee)
         **options: Opciones adicionales para cloudinary.uploader.upload()
+                   Sobreescriben los defaults de optimización si se especifican.
 
     Returns:
         Dict con resultado de Cloudinary (public_id, secure_url, width, height, etc.)
@@ -555,11 +563,20 @@ def upload_to_cloudinary(file, tenant_slug: str, resource_type: str,
         'overwrite': True,
         'unique_filename': True,
         'use_filename': bool(filename),
+        # Optimización automática en upload
+        # format='auto' + quality='auto' equivalen a lo que hace Squoosh:
+        # la imagen se almacena ya comprimida, no solo se transforma al servir.
+        'format': 'auto',
+        'quality': 'auto',
+        # Dimensión máxima: nunca se hace upscaling en imágenes pequeñas
+        'crop': 'limit',
+        'width': 2000,
     }
 
     if filename:
         upload_options['public_id'] = filename
 
+    # options puede sobreescribir cualquier default (ej: deshabilitar crop para logos)
     upload_options.update(options)
 
     logger.info(f"Upload Cloudinary → folder={folder}")

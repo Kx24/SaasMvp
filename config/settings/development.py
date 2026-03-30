@@ -7,7 +7,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# Database - SQLite para desarrollo
+# Database - Neon (configuración para desarrollo local)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
