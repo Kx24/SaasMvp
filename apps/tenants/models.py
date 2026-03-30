@@ -251,14 +251,14 @@ class ClientSettings(models.Model):
     # Estructura en Cloudinary: tenants/{tenant_slug}/branding/
     logo = CloudinaryField(
         verbose_name='Logo principal',
-        folder=cloudinary_upload_path('branding'),
+        folder='branding',
         blank=True,
         null=True,
     )
 
     logo_footer = CloudinaryField(
         verbose_name='Logo footer (blanco)',
-        folder=cloudinary_upload_path('branding'),
+        folder='branding',
         blank=True,
         null=True,
         help_text='Logo alternativo para el footer',
@@ -266,7 +266,7 @@ class ClientSettings(models.Model):
 
     favicon = CloudinaryField(
         verbose_name='Favicon',
-        folder=cloudinary_upload_path('branding'),
+        folder='branding',
         blank=True,
         null=True,
     )
