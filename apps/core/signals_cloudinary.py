@@ -24,6 +24,7 @@ import logging
 from cloudinary import CloudinaryResource
 from apps.core.cloudinary_utils import delete_from_cloudinary
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -136,7 +137,7 @@ def register_cloudinary_signals():
 
     # apps.website
     try:
-        from apps.website.models import Section, Service
+        from apps.website.models import Section, Service, GalleryItem
         post_delete.connect(
             delete_cloudinary_assets_on_delete,
             sender=Section,
@@ -147,9 +148,14 @@ def register_cloudinary_signals():
             sender=Service,
             dispatch_uid='cloudinary_delete_service',
         )
-        logger.debug("[Cloudinary] Signals conectados: Section, Service")
+        post_delete.connect(
+            delete_cloudinary_assets_on_delete,
+            sender=GalleryItem,
+            dispatch_uid='cloudinary_delete_galleryitem',
+        )
+        logger.debug("[Cloudinary] Signals conectados: Section, Service, GalleryItem")
     except ImportError:
-        logger.warning("[Cloudinary] No se pudo importar Section o Service")
+        logger.warning("[Cloudinary] No se pudo importar Section, Service o GalleryItem")
 
     # apps.marketing
     try:

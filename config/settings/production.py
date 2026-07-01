@@ -10,8 +10,10 @@ Características:
 - Logging optimizado
 
 Usar con: DJANGO_SETTINGS_MODULE=config.settings.production
-"""
 
+Configuración de producción — Django Multi-Tenant SaaS
+config/settings/production.py
+"""
 from .base import *
 import os
 import dj_database_url
@@ -19,49 +21,67 @@ import dj_database_url
 # ==============================================================================
 # SEGURIDAD
 # ==============================================================================
-
-#DEBUG = False
-
-# SECRET_KEY debe estar en variable de entorno
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY environment variable is required in production")
 
 # ==============================================================================
-# ALLOWED_HOSTS - Multi-Tenant Dinámico
+# DOMINIOS — FUENTE ÚNICA DE VERDAD (CSRF-04)
+# ==============================================================================
+# Todos los hosts de tenants se declaran por entorno y se parsean UNA sola vez.
+# De este set derivan ALLOWED_HOSTS y CSRF_TRUSTED_ORIGINS → nunca divergen,
+# sin variables muertas. Pensado para sobrevivir una migración de infra:
+# si cambias de Render a otra plataforma, solo ajustas las env vars.
+#
+#   BASE_DOMAIN    → dominio raíz del SaaS (ej. andesscale.com)
+#   TENANT_DOMAINS → dominios de tenants, separados por coma
+#   EXTRA_DOMAINS  → dominios legacy/adicionales, separados por coma
+# Para cada dominio se registra apex + www automáticamente.
 # ==============================================================================
 
-# Hosts base (siempre permitidos)
-ALLOWED_HOSTS = [
-    '.onrender.com',      # Cualquier subdominio de Render
-    'localhost',
-    '127.0.0.1',
-]
+def _split_env(name):
+    raw = os.environ.get(name, '') or ''
+    return [d.strip().lower() for d in raw.split(',') if d.strip()]
 
-# Dominio de Render automático
+def _with_www_variants(hosts):
+    expanded = set()
+    for h in hosts:
+        if not h:
+            continue
+        expanded.add(h)
+        expanded.add(h[4:] if h.startswith('www.') else f'www.{h}')
+    return expanded
+
+BASE_DOMAIN = (os.environ.get('BASE_DOMAIN', '') or '').strip().lower()
+
+_tenant_hosts = set()
+if BASE_DOMAIN:
+    _tenant_hosts.add(BASE_DOMAIN)
+_tenant_hosts.update(_split_env('TENANT_DOMAINS'))
+_tenant_hosts.update(_split_env('EXTRA_DOMAINS'))
+_tenant_hosts = _with_www_variants(_tenant_hosts)
+
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+
+# ---- ALLOWED_HOSTS ----
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+ALLOWED_HOSTS.extend(sorted(_tenant_hosts))
 
-# Dominio base del SaaS (para subdominios wildcard)
-BASE_DOMAIN = os.environ.get('BASE_DOMAIN', '')
-if BASE_DOMAIN:
-    ALLOWED_HOSTS.append(BASE_DOMAIN)
-    ALLOWED_HOSTS.append(f'.{BASE_DOMAIN}')  # Wildcard: *.tudominio.cl
+# ---- CSRF_TRUSTED_ORIGINS ----
+# Orígenes HTTPS explícitos (sin wildcards → no confiamos en subdominios
+# arbitrarios). Render aparte.
+CSRF_TRUSTED_ORIGINS = [f'https://{h}' for h in sorted(_tenant_hosts)]
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
 
-# Dominios adicionales desde variable de entorno (separados por coma)
-# Ejemplo: EXTRA_DOMAINS=servelec-ingenieria.cl,www.servelec-ingenieria.cl,otro.cl
-EXTRA_DOMAINS = os.environ.get('EXTRA_DOMAINS', '')
-if EXTRA_DOMAINS:
-    for domain in EXTRA_DOMAINS.split(','):
-        domain = domain.strip()
-        if domain:
-            ALLOWED_HOSTS.append(domain)
+# Tenant por defecto cuando no se detecta ninguno
+DEFAULT_TENANT_SLUG = os.environ.get('DEFAULT_TENANT_SLUG', 'servelec')
 
 # ==============================================================================
 # BASE DE DATOS
 # ==============================================================================
-
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
@@ -71,82 +91,57 @@ DATABASES = {
 }
 
 # ==============================================================================
-# STATIC FILES - WhiteNoise
+# STATIC / MEDIA
 # ==============================================================================
-
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# WhiteNoise para servir archivos estáticos eficientemente
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Asegurar que WhiteNoise está en middleware (debe estar después de SecurityMiddleware)
-# Ya debería estar en base.py, pero verificamos
 if 'whitenoise.middleware.WhiteNoiseMiddleware' not in MIDDLEWARE:
-    # Insertar después de SecurityMiddleware
     security_index = MIDDLEWARE.index('django.middleware.security.SecurityMiddleware')
     MIDDLEWARE.insert(security_index + 1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-
-# ==============================================================================
-# MEDIA FILES
-# ==============================================================================
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Nota: En producción, considera usar Cloudinary para media files
-# WhiteNoise NO sirve media files en producción por defecto
-# Para MVP, puedes habilitar con WHITENOISE_USE_FINDERS pero no es recomendado
-
 # ==============================================================================
 # SEGURIDAD HTTPS
 # ==============================================================================
-
-# Forzar HTTPS
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Cookies seguras
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-# Headers de seguridad
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
-# HSTS (HTTP Strict Transport Security)
-SECURE_HSTS_SECONDS = 31536000  # 1 año
+SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 # ==============================================================================
-# CSRF - Dominios confiables
+# AISLAMIENTO DE COOKIES POR TENANT (CSRF-04 / requisito de ciberseguridad)
 # ==============================================================================
+# Cookies host-only: cada tenant (andesscale.com, servelec-ingenieria.cl, ...)
+# tiene SUS propias cookies de sesión y CSRF. NUNCA fijar *_COOKIE_DOMAIN a un
+# valor compartido tipo '.andesscale.com': rompería el CSRF de los demás
+# tenants y filtraría sesión entre dominios. Aislamiento absoluto por diseño.
+CSRF_COOKIE_DOMAIN = None
+SESSION_COOKIE_DOMAIN = None
 
-CSRF_TRUSTED_ORIGINS = []
+# SameSite=Lax: viaja en navegación top-level (incluye el POST same-site del
+# login) pero no en requests cross-site → mitiga CSRF y aísla terceros.
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
 
-# Agregar dominio de Render
-if RENDER_EXTERNAL_HOSTNAME:
-    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
-
-# Agregar dominio base
-if BASE_DOMAIN:
-    CSRF_TRUSTED_ORIGINS.append(f'https://{BASE_DOMAIN}')
-    CSRF_TRUSTED_ORIGINS.append(f'https://*.{BASE_DOMAIN}')
-
-# Agregar dominios extra
-if EXTRA_DOMAINS:
-    for domain in EXTRA_DOMAINS.split(','):
-        domain = domain.strip()
-        if domain:
-            CSRF_TRUSTED_ORIGINS.append(f'https://{domain}')
+# Token CSRF por cookie, legible por el form (no HttpOnly).
+CSRF_COOKIE_HTTPONLY = False
 
 # ==============================================================================
-# EMAIL - Configuración de producción
+# EMAIL
 # ==============================================================================
-
-# Usar variables de entorno para email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.zoho.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
@@ -155,72 +150,12 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-
-# Si no hay configuración de email, usar console backend
 if not EMAIL_HOST_USER:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # ==============================================================================
-# TENANT SETTINGS
+# CACHE
 # ==============================================================================
-
-# Dominio base para subdominios automáticos
-# Ejemplo: si BASE_DOMAIN=miapp.cl, un tenant "demo" será demo.miapp.cl
-BASE_DOMAIN = os.environ.get('BASE_DOMAIN', 'onrender.com')
-
-# Tenant por defecto cuando no se detecta ninguno
-DEFAULT_TENANT_SLUG = os.environ.get('DEFAULT_TENANT_SLUG', 'servelec')
-
-# ==============================================================================
-# LOGGING
-# ==============================================================================
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '[{levelname}] {asctime} {name} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '[{levelname}] {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'django.request': {
-            'handlers': ['console'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-        'apps.tenants': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
-}
-
-# ==============================================================================
-# CACHE (Opcional - mejora performance)
-# ==============================================================================
-
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -229,8 +164,27 @@ CACHES = {
 }
 
 # ==============================================================================
-# DEBUG EN PRODUCCIÓN (temporal, solo para debugging)
+# LOGGING
 # ==============================================================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {'format': '[{levelname}] {asctime} {name} {message}', 'style': '{'},
+        'simple': {'format': '[{levelname}] {message}', 'style': '{'},
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'verbose'},
+    },
+    'root': {'handlers': ['console'], 'level': 'INFO'},
+    'loggers': {
+        'django': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'django.request': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
+        'apps.tenants': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+    },
+}
 
-# Si necesitas debug temporal en producción:
+# ==============================================================================
+# DEBUG (temporal — desactivar tras cerrar el bug)
+# ==============================================================================
 DEBUG = os.environ.get('DEBUG_PRODUCTION', 'False').lower() == 'true'

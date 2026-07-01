@@ -31,8 +31,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.views import View
-from .models import Section, Service, ContactSubmission
-from .forms import SectionForm, ServiceForm, ContactForm
+from django.urls import reverse
+from .models import Section, Service, ContactSubmission, GalleryItem
+from .forms import SectionForm, ServiceForm, ContactForm, GalleryItemForm
 from apps.tenants.forms import BrandingForm
 from apps.tenants.models import ClientSettings
 import json
@@ -779,3 +780,293 @@ class ContactView(View):
             return render(request, '...', {
                 'page_key': 'contact',  # ← AGREGAR
             })    
+    
+# ============================================================
+# DASHBOARD - GALERÍA
+# ============================================================
+
+@login_required(login_url='/auth/login/')
+def dashboard_gallery(request):
+    """
+    Vista de galería de imágenes del sitio.
+    Solo gestiona gallery_type='gallery' — portada tiene su propia vista.
+    """
+    client = request.client
+    settings = getattr(client, 'settings', None)
+
+    if not settings or not settings.enable_gallery:
+        messages.error(request, 'El módulo de imágenes no está activado para este sitio.')
+        return redirect('dashboard')
+
+    gallery_items = list(
+        GalleryItem.objects.filter(
+            client=client,
+            gallery_type='gallery',
+        ).order_by('order', 'created_at')
+    )
+
+    gallery_limit = settings.gallery_images_limit
+
+    context = {
+        'client':           client,
+        'gallery_items':    gallery_items,
+        'gallery_limit':    gallery_limit,
+        'gallery_at_limit': len(gallery_items) >= gallery_limit,
+        'gallery_used':     len(gallery_items),
+        'form':             GalleryItemForm(),
+    }
+    return render(request, 'dashboard/gallery.html', context)
+ 
+ 
+@login_required(login_url='/auth/login/')
+def gallery_item_add(request):
+    """
+    Subir nueva imagen. Maneja image manualmente via Cloudinary —
+    GalleryItemForm excluye image para evitar conflicto con CloudinaryField.
+    """
+    client = request.client
+    settings = getattr(client, 'settings', None)
+
+    if not settings or not settings.enable_gallery:
+        messages.error(request, 'El módulo de imágenes no está activado.')
+        return redirect('dashboard')
+
+    if request.method != 'POST':
+        return redirect('dashboard_portada')
+
+    gallery_type = request.POST.get('gallery_type', 'gallery')
+    if gallery_type not in ('hero', 'gallery'):
+        gallery_type = 'gallery'
+
+    tab = gallery_type
+
+    # Verificar límite
+    if gallery_type == 'hero':
+        count = GalleryItem.objects.filter(
+            client=client, gallery_type='hero', is_default=False
+        ).count()
+        limit = settings.hero_images_limit
+        redirect_url = 'dashboard_portada'
+    else:
+        count = GalleryItem.objects.filter(
+            client=client, gallery_type='gallery'
+        ).count()
+        limit = settings.gallery_images_limit
+        redirect_url = 'dashboard_gallery'
+
+    if count >= limit:
+        tipo = 'portada' if gallery_type == 'hero' else 'galería'
+        messages.error(request, f'Has alcanzado el límite de {limit} imágenes de {tipo}.')
+        return redirect(redirect_url)
+
+    # Verificar que viene imagen
+    if 'image' not in request.FILES:
+        messages.error(request, 'Selecciona una imagen para subir.')
+        return redirect(redirect_url)
+
+    # Subir a Cloudinary directamente
+    try:
+        import cloudinary.uploader
+        folder = f"{client.slug}/gallery"
+        result = cloudinary.uploader.upload(
+            request.FILES['image'],
+            folder=folder,
+            resource_type='image',
+            transformation=[{
+                'width': 2000,
+                'crop': 'limit',
+                'fetch_format': 'auto',
+                'quality': 'auto',
+            }],
+        )
+        public_id = result['public_id']
+    except Exception as e:
+        logger.error(f"[Gallery] Error subiendo imagen a Cloudinary: {e}")
+        messages.error(request, 'Error al subir la imagen. Intenta nuevamente.')
+        return redirect(redirect_url)
+
+    # Crear el item directamente sin pasar por GalleryItemForm
+    GalleryItem.objects.create(
+        client=client,
+        gallery_type=gallery_type,
+        image=public_id,
+        title=request.POST.get('title', '').strip(),
+        caption=request.POST.get('caption', '').strip(),
+        cta_text=request.POST.get('cta_text', '').strip(),
+        cta_url=request.POST.get('cta_url', '').strip(),
+        is_default=False,
+        is_active=True,
+    )
+
+    tipo = 'portada' if gallery_type == 'hero' else 'galería'
+    messages.success(request, f'Imagen agregada a {tipo}.')
+    return redirect(redirect_url)
+ 
+ 
+@login_required(login_url='/auth/login/')
+def gallery_item_edit(request, item_id):
+    client = request.client
+    item = get_object_or_404(GalleryItem, id=item_id, client=client)
+    redirect_url = 'dashboard_portada' if item.gallery_type == 'hero' else 'dashboard_gallery'
+
+    if request.method == 'POST':
+        item.title   = request.POST.get('title', '').strip()
+        item.caption = request.POST.get('caption', '').strip()
+        item.cta_text = request.POST.get('cta_text', '').strip()
+        item.cta_url  = request.POST.get('cta_url', '').strip()
+        try:
+            item.order = int(request.POST.get('order', item.order))
+        except ValueError:
+            pass
+
+        # Reemplazo de imagen — solo si viene archivo nuevo
+        if 'image' in request.FILES:
+            try:
+                import cloudinary.uploader
+                # Eliminar imagen anterior
+                if item.image:
+                    try:
+                        cloudinary.uploader.destroy(str(item.image))
+                    except Exception:
+                        pass
+                folder = f"{client.slug}/gallery"
+                result = cloudinary.uploader.upload(
+                    request.FILES['image'],
+                    folder=folder,
+                    resource_type='image',
+                    transformation=[{
+                        'width': 2000, 'crop': 'limit',
+                        'fetch_format': 'auto', 'quality': 'auto',
+                    }],
+                )
+                item.image = result['public_id']
+            except Exception as e:
+                logger.error(f"[Gallery] Error reemplazando imagen: {e}")
+                messages.error(request, 'Error al subir la imagen. Los demás cambios sí fueron guardados.')
+
+        item.save()
+        messages.success(request, 'Imagen actualizada correctamente.')
+        return redirect(redirect_url)
+
+    context = {
+        'client': client,
+        'item': item,
+    }
+    return render(request, 'dashboard/gallery_item_edit.html', context)
+ 
+ 
+@login_required(login_url='/auth/login/')
+def gallery_item_delete(request, item_id):
+    """
+    Eliminar ítem. Protege imágenes default contra eliminación.
+    """
+    client = request.client
+    item = get_object_or_404(GalleryItem, id=item_id, client=client)
+ 
+    if item.is_default:
+        messages.error(request, 'La imagen por defecto no puede eliminarse.')
+        return redirect('dashboard_gallery')
+ 
+    if request.method == 'POST':
+        tab = item.gallery_type
+        item.delete()
+        messages.success(request, 'Imagen eliminada.')
+        return redirect(f"/dashboard/gallery/?tab={tab}")
+ 
+    return redirect('dashboard_gallery')
+ 
+ 
+@login_required(login_url='/auth/login/')
+def gallery_item_toggle(request, item_id):
+    """
+    Activar/desactivar ítem.
+    """
+    client = request.client
+    item = get_object_or_404(GalleryItem, id=item_id, client=client)
+ 
+    if request.method == 'POST':
+        item.is_active = not item.is_active
+        item.save(update_fields=['is_active', 'updated_at'])
+        estado = 'visible' if item.is_active else 'oculta'
+        messages.success(request, f'Imagen marcada como {estado}.')
+ 
+    return redirect(f"/dashboard/gallery/?tab={item.gallery_type}")
+ 
+
+@login_required(login_url='/auth/login/')
+def dashboard_portada(request):
+    """
+    Vista de Portada: imagen de fondo del hero default + toggle show_default_hero
+    + gestión de imágenes hero del cliente.
+    """
+    client = request.client
+    settings = getattr(client, 'settings', None)
+
+    if not settings or not settings.enable_gallery:
+        messages.error(request, 'El módulo de imágenes no está activado.')
+        return redirect('dashboard')
+
+    hero_section, _ = Section.objects.get_or_create(
+        client=client,
+        section_type='hero',
+        defaults={'title': '', 'subtitle': '', 'description': '', 'order': 0}
+    )
+
+    hero_items = list(
+        GalleryItem.objects.filter(
+            client=client,
+            gallery_type='hero',
+        ).order_by('order', 'created_at')
+    )
+
+    hero_limit = settings.hero_images_limit
+    hero_used = len(hero_items)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        # ── Guardar imagen de fondo + toggle ──
+        if action == 'save_hero_config':
+            # Toggle show_default_hero
+            settings.show_default_hero = 'show_default_hero' in request.POST
+            settings.save(update_fields=['show_default_hero'])
+
+            # Imagen de fondo — manejo manual Cloudinary
+            if 'background_image' in request.FILES:
+                try:
+                    import cloudinary.uploader
+                    if hero_section.background_image:
+                        try:
+                            cloudinary.uploader.destroy(str(hero_section.background_image))
+                        except Exception:
+                            pass
+                    result = cloudinary.uploader.upload(
+                        request.FILES['background_image'],
+                        folder=f"{client.slug}/sections",
+                        resource_type='image',
+                        transformation=[{
+                            'width': 2000, 'crop': 'limit',
+                            'fetch_format': 'auto', 'quality': 'auto',
+                        }],
+                    )
+                    hero_section.background_image = result['public_id']
+                    hero_section.save(update_fields=['background_image'])
+                except Exception as e:
+                    logger.error(f"[Portada] Error subiendo background: {e}")
+                    messages.error(request, 'Error al subir la imagen de fondo.')
+                    return redirect('dashboard_portada')
+
+            messages.success(request, 'Configuración de portada guardada.')
+            return redirect('dashboard_portada')
+
+    context = {
+        'client': client,
+        'settings': settings,
+        'hero_section': hero_section,
+        'hero_items': hero_items,
+        'hero_limit': hero_limit,
+        'hero_at_limit': hero_used >= hero_limit,
+        'hero_used': hero_used,
+        'upload_form': GalleryItemForm(),
+    }
+    return render(request, 'dashboard/portada.html', context)

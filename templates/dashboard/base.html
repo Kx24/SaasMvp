@@ -35,7 +35,6 @@
 
         body { font-family: 'Inter', system-ui, sans-serif; }
 
-        /* Nav items — hover y activo con color del tenant */
         .nav-item {
             color: #64748b;
             transition: background 0.15s, color 0.15s;
@@ -52,7 +51,6 @@
             font-weight: 600;
         }
 
-        /* Botón primario */
         .btn-primary {
             background: var(--primary);
             color: #fff;
@@ -64,20 +62,17 @@
             box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 30%, transparent);
         }
 
-        /* Badge / pill con color del tenant */
         .badge-primary {
             background: color-mix(in srgb, var(--primary) 12%, transparent);
             color: var(--primary);
         }
 
-        /* Focus en inputs */
         input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--primary) !important;
             box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent) !important;
         }
 
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--primary) 50%, #ccc); border-radius: 3px; }
@@ -129,7 +124,6 @@
                     {{ client.name|slice:":1"|upper }}
                 </div>
                 {% endif %}
-                </div>
             </div>
         </div>
 
@@ -138,11 +132,11 @@
             <p class="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Principal</p>
 
             <a href="{% url 'dashboard' %}"
-               class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
-                      {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
+                    {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
                 Inicio
             </a>
@@ -150,31 +144,59 @@
             <p class="px-3 pt-4 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Contenido</p>
 
             <a href="{% url 'dashboard_branding' %}"
-               class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
-                      {% if request.resolver_match.url_name == 'dashboard_branding' %}active{% endif %}">
+            class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
+                    {% if request.resolver_match.url_name == 'dashboard_branding' %}active{% endif %}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                        d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
                 </svg>
                 Personalizar
             </a>
 
-            <a href="{% url 'dashboard_sections' %}"
-               class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
-                      {% if 'sections' in request.path %}active{% endif %}">
+            <a href="{% url 'dashboard_portada' %}"
+            class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
+                    {% if request.resolver_match.url_name == 'dashboard_portada' %}active{% endif %}
+                    {% if not client.settings.enable_gallery %}opacity-40 pointer-events-none{% endif %}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Portada
+                {% if not client.settings.enable_gallery %}
+                <span class="ml-auto text-xs text-slate-300">Off</span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'dashboard_gallery' %}"
+            class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
+                    {% if request.resolver_match.url_name == 'dashboard_gallery' %}active{% endif %}
+                    {% if not client.settings.enable_gallery %}opacity-40 pointer-events-none{% endif %}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Galería
+                {% if not client.settings.enable_gallery %}
+                <span class="ml-auto text-xs text-slate-300">Off</span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'dashboard_sections' %}"
+            class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
+                    {% if 'sections' in request.path %}active{% endif %}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
                 </svg>
                 Secciones
             </a>
 
             <a href="{% url 'dashboard_contacts' %}"
-               class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
-                      {% if 'contacts' in request.path %}active{% endif %}">
+            class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
+                    {% if 'contacts' in request.path %}active{% endif %}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
                 Contactos
                 {% if unread_contacts %}

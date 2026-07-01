@@ -1,4 +1,4 @@
-{% extends "servelec/base.html" %}
+﻿{% extends "servelec/base.html" %}
 {% load website_tags static %}
 
 {# ============================================================
@@ -21,6 +21,44 @@
 
     {# Sección dinámica — el cliente edita desde el CMS #}
     {% include "servelec/components/about.html" %}
+
+    {% comment %}
+
+        Sección dinámica — galería de imágenes
+        Solo se renderiza si:
+         1. ClientSettings.enable_gallery = True
+         2. Section(section_type='gallery', is_active=True) existe
+         3. Hay GalleryItem(gallery_type='gallery', is_active=True)
+    
+    {% endcomment %}
+    {% get_section 'gallery' as gallery_section %}
+    {% if gallery_section %}
+            {% get_gallery as gallery_items %}
+            {% if gallery_items %}
+            <section id="galeria" class="py-16 px-4 sm:px-6 lg:px-8 bg-slate-50">
+                <div class="max-w-7xl mx-auto">
+
+                    {% if gallery_section.title or gallery_section.subtitle %}
+                    <div class="text-center mb-10">
+                        {% if gallery_section.title %}
+                        <h2 class="font-display text-3xl md:text-4xl font-black text-slate-900 mb-3">
+                            {{ gallery_section.title }}
+                        </h2>
+                        {% endif %}
+                        {% if gallery_section.subtitle %}
+                        <p class="text-lg text-slate-500 max-w-2xl mx-auto">
+                            {{ gallery_section.subtitle }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% include 'components/media_collection.html' with items=gallery_items mode="grid" slot_key=gallery_section.slot_key section=gallery_section client=client cols=3 %}
+
+                </div>
+            </section>
+            {% endif %}
+        {% endif %}
 
     {# Sección estática — solo tú la editas #}
     {% include "servelec/components/cta.html" %}

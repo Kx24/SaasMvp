@@ -1,0 +1,68 @@
+{% comment %}
+================================================================================
+templates/themes/default/components/hero_overlay.html
+================================================================================
+Overlay genérico para el tema default.
+Recibe `section` desde hero.html via {% include ... with section=hero %}
+Usa CSS variables del tenant: --primary, --secondary, --accent
+================================================================================
+{% endcomment %}
+
+{# Overlay de legibilidad #}
+<div class="absolute inset-0 pointer-events-none" aria-hidden="true"
+     style="background: linear-gradient(to right, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0.3) 100%);"></div>
+
+{# Línea decorativa izquierda — usa accent del tenant #}
+<div class="absolute left-0 top-0 bottom-0 w-0.5 opacity-50" aria-hidden="true"
+     style="background: linear-gradient(to bottom, transparent, var(--accent), transparent);"></div>
+
+{# Contenido #}
+<div class="relative max-w-7xl mx-auto px-6 lg:px-8 pt-36 pb-24">
+    <div class="max-w-3xl">
+
+        <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] mb-6 fade-up"
+            style="animation-delay:0.1s; letter-spacing:-0.02em;">
+            {% if section %}
+                {{ section.title }}
+            {% else %}
+                Bienvenido<br>
+                <span style="color: var(--accent);">Soluciones</span><br>
+                Profesionales.
+            {% endif %}
+        </h1>
+
+        {% if section.subtitle %}
+        <p class="text-lg md:text-xl mb-4 max-w-xl fade-up"
+           style="animation-delay:0.2s; color:rgba(255,255,255,0.70);">
+            {{ section.subtitle }}
+        </p>
+        {% endif %}
+
+        {% if section.description %}
+        <p class="text-base mb-10 max-w-xl fade-up"
+           style="animation-delay:0.25s; color:rgba(255,255,255,0.50);">
+            {{ section.description }}
+        </p>
+        {% endif %}
+
+        <div class="flex flex-col sm:flex-row gap-4 fade-up" style="animation-delay:0.3s;">
+            <a href="#contacto"
+               class="group px-8 py-4 font-black rounded-lg inline-flex items-center justify-center gap-3 transition-all duration-300 hover:opacity-90 hover:-translate-y-0.5"
+               style="background: var(--accent); color: var(--primary);">
+                Contáctanos
+                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </a>
+            <a href="#servicios"
+               class="group px-8 py-4 font-bold rounded-lg inline-flex items-center justify-center gap-2 transition-all duration-300"
+               style="color:white; border:1.5px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.08);">
+                Ver servicios
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+
+    </div>
+</div>

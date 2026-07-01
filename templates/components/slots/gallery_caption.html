@@ -1,0 +1,25 @@
+{% comment %}
+    Slot galería — caption sobre imagen en hover.
+
+    Parámetros:
+        item → GalleryItem
+{% endcomment %}
+{% if item and item.title or item.caption %}
+<div class="absolute inset-0 flex flex-col justify-end p-4
+            opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+     style="background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%);">
+    {% if item.title %}
+    <p class="text-white font-semibold text-sm leading-snug">{{ item.title }}</p>
+    {% endif %}
+    {% if item.caption %}
+    <p class="text-white text-xs mt-1 opacity-80">{{ item.caption }}</p>
+    {% endif %}
+    {% if item.cta_text and item.cta_url %}
+    <a href="{{ item.cta_url }}"
+       class="mt-2 text-xs font-semibold underline"
+       style="color: var(--primary);">
+        {{ item.cta_text }}
+    </a>
+    {% endif %}
+</div>
+{% endif %}

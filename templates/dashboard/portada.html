@@ -1,0 +1,246 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Portada{% endblock %}
+{% block page_title %}Portada{% endblock %}
+{% block page_subtitle %}Configura el hero principal y las imágenes de portada{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+
+    {# ── PANEL IZQUIERDO: configuración del hero default ── #}
+    <div class="bg-white rounded-2xl border border-slate-200 p-6">
+        <h3 class="text-sm font-semibold text-slate-700 mb-5">Hero principal</h3>
+
+        <form method="post"
+              action="{% url 'dashboard_portada' %}"
+              enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_hero_config">
+
+            <div class="space-y-5">
+
+                {# Imagen de fondo #}
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-2">
+                        Imagen de fondo
+                    </label>
+                    {% if hero_section.background_image %}
+                    <div class="mb-3 w-full h-32 rounded-xl overflow-hidden bg-slate-100">
+                        <img src="{{ hero_section.get_background_image_url }}"
+                             alt="Fondo actual"
+                             class="w-full h-full object-cover">
+                    </div>
+                    {% else %}
+                    <div class="mb-3 w-full h-32 rounded-xl bg-slate-100 flex items-center justify-center">
+                        <p class="text-xs text-slate-400">Sin imagen — se usa color sólido del tema</p>
+                    </div>
+                    {% endif %}
+                    <input type="file"
+                           name="background_image"
+                           accept="image/*"
+                           class="w-full text-sm text-slate-500
+                                  file:mr-3 file:py-1.5 file:px-3
+                                  file:rounded-lg file:border-0
+                                  file:text-xs file:font-medium
+                                  file:bg-slate-100 file:text-slate-700
+                                  hover:file:bg-slate-200 transition-colors">
+                    <p class="text-xs text-slate-400 mt-1">
+                        Recomendado: 1920×1080px o superior.
+                    </p>
+                </div>
+
+                {# Toggle show_default_hero #}
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                    <input type="checkbox"
+                           name="show_default_hero"
+                           id="show_default_hero"
+                           {% if settings.show_default_hero %}checked{% endif %}
+                           class="mt-0.5 w-4 h-4 rounded border-slate-300">
+                    <div>
+                        <label for="show_default_hero"
+                               class="text-sm font-medium text-slate-700 cursor-pointer">
+                            Mostrar diseño base
+                        </label>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Si está activo, el hero principal aparece junto a tus imágenes.
+                            Si lo desactivas, solo se muestran tus imágenes.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button type="submit"
+                        class="btn-primary px-5 py-2 text-sm font-medium rounded-lg">
+                    Guardar configuración
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {# ── PANEL DERECHO: imágenes hero del cliente ── #}
+    <div class="bg-white rounded-2xl border border-slate-200 p-6">
+
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-sm font-semibold text-slate-700">Imágenes de portada</h3>
+            <span class="text-xs px-2.5 py-1 rounded-full
+                {% if hero_at_limit %}bg-amber-50 text-amber-700
+                {% else %}bg-slate-100 text-slate-500{% endif %}">
+                {{ hero_used }} de {{ hero_limit }} usadas
+            </span>
+        </div>
+
+        {% if hero_items %}
+        <div class="space-y-3 mb-6">
+            {% for item in hero_items %}
+            <div class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50
+                        {% if not item.is_active %}opacity-50{% endif %}">
+
+                <div class="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-200">
+                    <img src="{{ item.get_image_url }}"
+                         alt="{{ item.title|default:'Imagen' }}"
+                         class="w-full h-full object-cover">
+                </div>
+
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-800 truncate">
+                        {{ item.title|default:"Sin título" }}
+                    </p>
+                    {% if item.caption %}
+                    <p class="text-xs text-slate-400 truncate mt-0.5">{{ item.caption }}</p>
+                    {% endif %}
+                    {% if not item.is_active %}
+                    <span class="text-xs text-slate-400">oculta</span>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center gap-1 flex-shrink-0">
+
+                    {# Toggle activo #}
+                    <form method="post" action="{% url 'gallery_item_toggle' item.id %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                                title="{% if item.is_active %}Ocultar{% else %}Mostrar{% endif %}"
+                                class="p-1.5 rounded-lg hover:bg-slate-200 transition-colors
+                                       text-slate-400 hover:text-slate-700">
+                            {% if item.is_active %}
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            {% else %}
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21"/>
+                            </svg>
+                            {% endif %}
+                        </button>
+                    </form>
+
+                    {# Editar #}
+                    <a href="{% url 'gallery_item_edit' item.id %}"
+                       title="Editar"
+                       class="p-1.5 rounded-lg hover:bg-slate-200 transition-colors
+                              text-slate-400 hover:text-slate-700">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                    </a>
+
+                    {# Eliminar #}
+                    <form method="post"
+                          action="{% url 'gallery_item_delete' item.id %}"
+                          onsubmit="return confirm('¿Eliminar esta imagen?')">
+                        {% csrf_token %}
+                        <button type="submit"
+                                title="Eliminar"
+                                class="p-1.5 rounded-lg hover:bg-red-50 transition-colors
+                                       text-slate-400 hover:text-red-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-slate-400 mb-6">
+            No hay imágenes adicionales. El hero principal siempre se muestra.
+        </p>
+        {% endif %}
+
+        {# Formulario de subida #}
+        {% if not hero_at_limit %}
+        <form method="post"
+              action="{% url 'gallery_item_add' %}"
+              enctype="multipart/form-data"
+              class="border-t border-slate-100 pt-5">
+            {% csrf_token %}
+            <input type="hidden" name="gallery_type" value="hero">
+
+            <p class="text-xs font-medium text-slate-600 mb-3">Agregar imagen</p>
+
+            <div class="space-y-3">
+                <input type="file"
+                       name="image"
+                       accept="image/*"
+                       required
+                       class="w-full text-sm text-slate-500
+                              file:mr-3 file:py-1.5 file:px-3
+                              file:rounded-lg file:border-0
+                              file:text-xs file:font-medium
+                              file:bg-slate-100 file:text-slate-700
+                              hover:file:bg-slate-200 transition-colors">
+                <input type="text"
+                       name="title"
+                       placeholder="Título (opcional)"
+                       maxlength="200"
+                       class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
+                              focus:outline-none focus:border-primary transition-colors">
+                <input type="text"
+                       name="caption"
+                       placeholder="Descripción breve (opcional)"
+                       class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
+                              focus:outline-none focus:border-primary transition-colors">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text"
+                           name="cta_text"
+                           placeholder="Texto del botón"
+                           maxlength="100"
+                           class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
+                                  focus:outline-none focus:border-primary transition-colors">
+                    <input type="text"
+                           name="cta_url"
+                           placeholder="#contacto o /servicios/"
+                           maxlength="200"
+                           class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
+                                  focus:outline-none focus:border-primary transition-colors">
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit"
+                        class="w-full btn-primary py-2 text-sm font-medium rounded-lg">
+                    Subir imagen
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="border-t border-slate-100 pt-5">
+            <p class="text-xs text-amber-600 text-center">
+                Límite de {{ hero_limit }} imágenes alcanzado.
+            </p>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

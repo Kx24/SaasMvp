@@ -109,17 +109,34 @@ CLOUDINARY_PRESETS = {
     },
 
     # --- GALERÍA ---
+    'gallery_card': {
+        'crop': 'fill', 'width': 800, 'height': 600,
+        'gravity': 'auto',
+        'quality': 'auto',
+    },
     'gallery_full': {
-        'crop': 'fill', 'width': 1200, 'height': 800,
-        'fetch_format': 'auto', 'quality': 'auto',
+        'crop': 'fill', 'width': 1920, 'height': 1080,
+        'gravity': 'auto',
+        'quality': 'auto',
     },
     'gallery_thumb': {
         'crop': 'fill', 'width': 400, 'height': 300,
-        'fetch_format': 'auto', 'quality': 'auto',
+        'quality': 'auto',
     },
     'gallery_mobile': {
         'crop': 'fill', 'width': 480, 'height': 320,
-        'fetch_format': 'auto', 'quality': 'auto',
+        'quality': 'auto',
+    },
+    # --- HEROGALLERY ---
+       'gallery_card': {
+       'width': 800, 'height': 600,
+       'crop': 'fill', 'gravity': 'auto',
+       'format': 'auto', 'quality': 'auto',
+    },
+   'gallery_full': {
+       'width': 1920, 'height': 1080,
+       'crop': 'limit',
+       'format': 'auto', 'quality': 'auto',
     },
 
     # --- CATÁLOGO ---
@@ -311,34 +328,43 @@ def cloudinary_upload_path(resource_type: str):
 def get_cloudinary_url(image_field, preset: str = 'thumbnail', **extra_options) -> str | None:
     """
     Genera URL de Cloudinary con transformaciones aplicadas.
-
+ 
     Args:
         image_field: CloudinaryField, CloudinaryResource o string (public_id)
         preset: Nombre del preset en CLOUDINARY_PRESETS
         **extra_options: Opciones adicionales que sobreescriben el preset
-
+ 
     Returns:
         URL completa de Cloudinary o None si hay error
     """
     if not image_field:
         return None
-
+ 
     if preset not in CLOUDINARY_PRESETS:
         logger.warning(f"Preset '{preset}' no encontrado, usando 'thumbnail'")
         preset = 'thumbnail'
-
+ 
     transformation = CLOUDINARY_PRESETS[preset].copy()
     transformation.update(extra_options)
-
+ 
+    # fetch_format debe pasarse como parámetro independiente a build_url,
+    # no dentro del dict de transformación — de lo contrario la SDK lo
+    # interpreta como extensión del archivo y genera URLs con .auto al final.
+    fetch_format = transformation.pop('fetch_format', None)
+ 
     try:
+        build_kwargs = {'transformation': [transformation]}
+        if fetch_format:
+            build_kwargs['fetch_format'] = fetch_format
+ 
         if hasattr(image_field, 'build_url'):
-            return image_field.build_url(**transformation)
-
+            return image_field.build_url(**build_kwargs)
+ 
         if isinstance(image_field, str):
-            return cloudinary.CloudinaryImage(image_field).build_url(**transformation)
-
+            return cloudinary.CloudinaryImage(image_field).build_url(**build_kwargs)
+ 
         return str(image_field)
-
+ 
     except Exception as e:
         logger.error(f"Error generando URL de Cloudinary: {e}")
         return None

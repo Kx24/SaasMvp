@@ -1,0 +1,130 @@
+{% load website_tags %}
+
+{% comment %}
+Componente central de medios. Reutilizable en cualquier tenant.
+
+Parámetros requeridos:
+    items    → lista de GalleryItem (puede incluir None como primer elemento)
+    mode     → "slideshow" | "grid"
+    slot_key → key del slot a renderizar (hero | gallery | profile | empty)
+
+Parámetros opcionales:
+    section  → Section del tenant (para contenido global del slot)
+    client   → Client del tenant
+    cols     → columnas del grid (2 | 3 | 4) — solo en mode=grid
+    bg_url   → URL de fondo para el slide None (hero default)
+    effects  → path del template de efectos visuales del tema (opcional)
+    overlay  → path del template de overlay del tema (opcional)
+    theme_ctas → path del template de CTAs del tema (opcional)
+{% endcomment %}
+
+{% slot_template slot_key as slot_path %}
+
+<!-- DEBUG mc: mode="{{ mode }}" items="{{ items|length }}" slot_key="{{ slot_key }}" -->
+{% if mode == "slideshow" and items %}
+<!-- DEBUG: entrando a slideshow -->
+{% else %}
+<!-- DEBUG: NO entró a slideshow -->
+{% endif %}
+
+
+{% if mode == "slideshow" and items %}
+{# ══════════════════════════════════════════
+   MODO SLIDESHOW
+   ══════════════════════════════════════════ #}
+<div
+    x-data="{
+        current: 0,
+        total: {{ items|length }},
+        init() {
+            if (this.total > 1) {
+                setInterval(() => {
+                    this.current = (this.current + 1) % this.total;
+                }, 6000);
+            }
+        }
+    }"
+    class="absolute inset-0">
+
+    {# Slides — imagen #}
+    {% for item in items %}
+    <div
+        x-show="current === {{ forloop.counter0 }}"
+        x-transition:enter="transition-opacity duration-1000"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity duration-500"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="absolute inset-0"
+        {% if not forloop.first %}x-cloak{% endif %}>
+
+        {% include 'components/media_item.html' with item=item bg_url=bg_url %}
+
+    </div>
+
+
+    {% endfor %}
+
+    {# Efectos visuales del tema (canvas, orbs, etc.) #}
+    {% if effects %}
+    {% include effects %}
+    {% endif %}
+
+    {# Overlay del tema (gradiente, línea decorativa, etc.) #}
+    {% if overlay %}
+    {% include overlay %}
+    {% endif %}
+
+    {# Slot de contenido — cambia por slide via Alpine #}
+    {% for item in items %}
+    <div x-show="current === {{ forloop.counter0 }}"
+        class="absolute inset-0"
+        {% if not forloop.first %}x-cloak{% endif %}>
+        {% include slot_path with item=item section=section client=client theme_ctas=theme_ctas %}
+    </div>
+    {% endfor %}
+
+    {# Dots de navegación #}
+    {% if items|length > 1 %}
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        {% for item in items %}
+        <button
+            @click="current = {{ forloop.counter0 }}"
+            :class="current === {{ forloop.counter0 }}
+                ? 'w-6 opacity-100'
+                : 'w-2 opacity-40 hover:opacity-70'"
+            class="h-1.5 rounded-full transition-all duration-300"
+            style="background:white;"
+            aria-label="Ir a imagen {{ forloop.counter }}">
+        </button>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+{% elif mode == "grid" and items %}
+{% comment %}
+   MODO GRID
+{% endcomment %}
+{% with ncols=cols|default:3 %}
+<div class="grid gap-4
+    {% if ncols == 2 %}grid-cols-1 sm:grid-cols-2
+    {% elif ncols == 4 %}grid-cols-2 sm:grid-cols-3 lg:grid-cols-4
+    {% else %}grid-cols-1 sm:grid-cols-2 lg:grid-cols-3{% endif %}">
+
+    {% for item in items %}
+    <div class="group relative overflow-hidden rounded-xl bg-slate-100"
+         style="aspect-ratio: 4/3;">
+
+        {% include 'components/media_item.html' with item=item %}
+        {% include slot_path with item=item section=section client=client %}
+
+    </div>
+    {% endfor %}
+
+</div>
+{% endwith %}
+
+{% endif %}

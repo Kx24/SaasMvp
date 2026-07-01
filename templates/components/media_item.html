@@ -1,0 +1,24 @@
+{% comment %}
+    Renderiza un solo item multimedia.
+
+    Parámetros:
+        item     → GalleryItem o None (None = hero default)
+        bg_url   → URL de fondo para el caso default (Section.background_image)
+        preset   → preset Cloudinary (default: 'hero')
+{% endcomment %}
+
+{% load website_tags %}
+
+{% if item %}
+    <img src="{{ item.get_image_url }}"
+         alt="{{ item.title|default:'' }}"
+         class="w-full h-full object-cover"
+         loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+{% elif bg_url %}
+    <img src="{{ bg_url }}"
+         alt=""
+         class="w-full h-full object-cover"
+         loading="eager">
+{% else %}
+    <div class="w-full h-full" style="background: var(--hero-bg, #0b2818);"></div>
+{% endif %}

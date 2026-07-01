@@ -1,0 +1,11 @@
+{% comment %}
+    Overlay visual del tema default.
+    Solo gradiente y decoración — sin texto ni CTAs.
+    El contenido va en components/slots/hero_overlay.html
+{% endcomment %}
+<div class="absolute inset-0 pointer-events-none" aria-hidden="true"
+     style="background: linear-gradient(to right, rgba(0,0,0,0.70) 40%, rgba(0,0,0,0.30) 100%);">
+</div>
+<div class="absolute left-0 top-0 bottom-0 w-0.5 opacity-50" aria-hidden="true"
+     style="background: linear-gradient(to bottom, transparent, var(--accent, #f59e0b), transparent);">
+</div>

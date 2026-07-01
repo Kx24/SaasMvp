@@ -42,9 +42,9 @@ class Client(models.Model):
     
     # Estas opciones deben coincidir con las carpetas en templates/themes/
     THEME_CHOICES = [
-        ('default', 'Tema Base (Lanzamiento Rápido)'),
-        ('electricidad', 'Electricidad (Servelec)'),
-        ('industrial', 'Industrial / Maquinaria'),
+        ('themes/default',    'Tema Base (Servicios Profesionales)'),
+        ('servelec',          'Electricidad (Servelec)'),
+        ('themes/industrial', 'Industrial / Maquinaria'),
     ]
     
     template = models.CharField(
@@ -305,7 +305,31 @@ class ClientSettings(models.Model):
     enable_blog = models.BooleanField(default=False)
     enable_testimonials = models.BooleanField(default=True)
     enable_contact_form = models.BooleanField(default=True)
+    enable_gallery = models.BooleanField(
+        default=False,
+        verbose_name='Galería de imágenes',
+        help_text='Activa el módulo de imágenes (portada y galería) para este cliente.',
+    )
+
+    show_default_hero = models.BooleanField(
+    default=True,
+    verbose_name='Mostrar diseño base en portada',
+    help_text='Muestra el hero por defecto junto a las imágenes del cliente. '
+              'Si está desactivado, solo se muestran las imágenes subidas.',
+    )
     
+    hero_images_limit = models.PositiveIntegerField(
+        default=3,
+        verbose_name='Límite de imágenes de portada',
+        help_text='Máximo de imágenes que el cliente puede subir para la portada. '
+                  'La imagen default no cuenta dentro de este límite.',
+    )
+ 
+    gallery_images_limit = models.PositiveIntegerField(
+        default=20,
+        verbose_name='Límite de imágenes de galería',
+        help_text='Máximo de imágenes que el cliente puede subir a la galería.',
+    )
     # Campo legacy para compatibilidad
     social_media = models.JSONField(default=dict, blank=True)
     

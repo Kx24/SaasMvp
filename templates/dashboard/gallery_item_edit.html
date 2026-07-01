@@ -1,0 +1,129 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Editar imagen{% endblock %}
+{% block page_title %}Editar imagen{% endblock %}
+{% block page_subtitle %}Modifica los datos de esta imagen{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    <div class="bg-white rounded-2xl border border-slate-200 p-6">
+
+        <form method="post"
+              enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {# Preview + reemplazo de imagen #}
+            <div class="mb-6">
+                <label class="block text-xs font-medium text-slate-600 mb-2">Imagen</label>
+                <div class="w-full h-48 rounded-xl overflow-hidden bg-slate-100 mb-3">
+                    <img src="{{ item.get_image_url }}"
+                         alt="{{ item.title|default:'Imagen' }}"
+                         class="w-full h-full object-cover"
+                         id="preview-img">
+                </div>
+                <input type="file"
+                       name="image"
+                       accept="image/*"
+                       class="w-full text-sm text-slate-500
+                              file:mr-3 file:py-1.5 file:px-3
+                              file:rounded-lg file:border-0
+                              file:text-xs file:font-medium
+                              file:bg-slate-100 file:text-slate-700
+                              hover:file:bg-slate-200 transition-colors"
+                       onchange="previewImage(this)">
+                <p class="text-xs text-slate-400 mt-1">
+                    Deja vacío para mantener la imagen actual.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Título</label>
+                    <input type="text"
+                           name="title"
+                           value="{{ item.title }}"
+                           placeholder="Título de la imagen (opcional)"
+                           maxlength="200"
+                           class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
+                                  focus:outline-none focus:border-primary transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Descripción</label>
+                    <textarea name="caption"
+                              rows="2"
+                              placeholder="Descripción breve (opcional)"
+                              class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
+                                     focus:outline-none focus:border-primary transition-colors resize-none">{{ item.caption }}</textarea>
+                </div>
+
+                {% if item.gallery_type == 'hero' %}
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">
+                            Texto del botón
+                        </label>
+                        <input type="text"
+                               name="cta_text"
+                               value="{{ item.cta_text }}"
+                               placeholder="Ej: Contáctanos"
+                               maxlength="100"
+                               class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
+                                      focus:outline-none focus:border-primary transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">
+                            URL del botón
+                        </label>
+                        <input type="text"
+                               name="cta_url"
+                               value="{{ item.cta_url }}"
+                               placeholder="#contacto"
+                               maxlength="200"
+                               class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
+                                      focus:outline-none focus:border-primary transition-colors">
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400">
+                    El botón solo aparece si ambos campos tienen valor.
+                </p>
+                {% endif %}
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Orden</label>
+                    <input type="number"
+                           name="order"
+                           value="{{ item.order }}"
+                           min="0"
+                           class="w-32 px-3 py-2 text-sm border border-slate-200 rounded-lg
+                                  focus:outline-none focus:border-primary transition-colors">
+                    <p class="text-xs text-slate-400 mt-1">Menor número aparece primero.</p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-between">
+                <a href="{% if item.gallery_type == 'hero' %}{% url 'dashboard_portada' %}{% else %}{% url 'dashboard_gallery' %}{% endif %}"
+                   class="text-sm text-slate-500 hover:text-slate-700 transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="btn-primary px-5 py-2 text-sm font-medium rounded-lg">
+                    Guardar cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('preview-img').src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

@@ -24,6 +24,7 @@
 
 from django import forms
 from .models import Section, Service, ContactSubmission
+from apps.website.models import GalleryItem
 
 
 # =============================================================================
@@ -33,7 +34,7 @@ from .models import Section, Service, ContactSubmission
 class SectionForm(forms.ModelForm):
     class Meta:
         model = Section
-        fields = ['title', 'subtitle', 'description', 'image', 'is_active']
+        fields = ['title', 'subtitle', 'description', 'image', 'background_image', 'is_active']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
@@ -52,6 +53,11 @@ class SectionForm(forms.ModelForm):
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
                 'accept': 'image/*'
             }),
+            'background_image': forms.FileInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent',
+                'accept': 'image/*'
+            }),
+
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary'
             }),
@@ -61,6 +67,7 @@ class SectionForm(forms.ModelForm):
             'subtitle': 'Subtítulo',
             'description': 'Descripción',
             'image': 'Imagen',
+            'background_image': 'Imagen de fondo',
             'is_active': '¿Mostrar esta sección?'
         }
 
@@ -279,3 +286,48 @@ class ContactForm(forms.Form):
         }
         intent = self.cleaned_data.get('intent', 'general')
         return intent_labels.get(intent, 'Contacto desde el sitio')
+    
+    # -------------------------------------------------------------------------
+    # GALLERYITEMFORMS — formulario para ítems de galería (usado en dashboard)
+    # -------------------------------------------------------------------------   
+
+class GalleryItemForm(forms.ModelForm):
+    """
+    Formulario para subir y editar ítems de galería desde el dashboard.
+    El campo client se asigna en la vista, no en el form.
+    """
+ 
+    class Meta:
+        model = GalleryItem
+        fields = ['image', 'title', 'caption', 'order', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'placeholder': 'Título de la imagen (opcional)',
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none',
+            }),
+            'caption': forms.Textarea(attrs={
+                'placeholder': 'Descripción breve (opcional)',
+                'rows': 2,
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none resize-none',
+            }),
+            'order': forms.NumberInput(attrs={
+                'min': 0,
+                'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none',
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 rounded',
+            }),
+        }
+        labels = {
+            'image':     'Imagen',
+            'title':     'Título',
+            'caption':   'Descripción',
+            'order':     'Orden',
+            'is_active': 'Activa',
+        }
+ 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Imagen no requerida en edición (solo en creación)
+        if self.instance and self.instance.pk:
+            self.fields['image'].required = False

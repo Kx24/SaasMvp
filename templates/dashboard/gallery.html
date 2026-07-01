@@ -1,0 +1,86 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Galería{% endblock %}
+{% block page_title %}Galería de imágenes{% endblock %}
+{% block page_subtitle %}Administra las imágenes que aparecen en la sección galería del sitio{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    {# ── PANEL IZQUIERDO: formulario de subida ── #}
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 sticky top-6">
+
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-sm font-semibold text-slate-700">Agregar imagen</h3>
+                <span class="text-xs px-2.5 py-1 rounded-full
+                    {% if gallery_at_limit %}bg-amber-50 text-amber-700
+                    {% else %}bg-slate-100 text-slate-500{% endif %}">
+                    {{ gallery_used }} de {{ gallery_limit }} usadas
+                </span>
+            </div>
+
+            {% if gallery_at_limit %}
+            <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+                Has alcanzado el límite de {{ gallery_limit }} imágenes.
+                Elimina una para poder subir otra.
+            </div>
+            {% else %}
+            <form method="post"
+                  action="{% url 'gallery_item_add' %}"
+                  enctype="multipart/form-data"
+                  class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="gallery_type" value="gallery">
+
+                {% include 'dashboard/partials/gallery_upload_area.html' %}
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">
+                        Título <span class="text-slate-400">(opcional)</span>
+                    </label>
+                    {{ form.title }}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">
+                        Descripción <span class="text-slate-400">(opcional)</span>
+                    </label>
+                    {{ form.caption }}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Orden</label>
+                    {{ form.order }}
+                    <p class="text-xs text-slate-400 mt-1">Menor número aparece primero.</p>
+                </div>
+
+                <button type="submit"
+                        class="w-full btn-primary py-2.5 px-4 rounded-lg text-sm font-semibold">
+                    Subir imagen
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
+    </div>
+
+    {# ── PANEL DERECHO: grid de imágenes ── #}
+    <div class="lg:col-span-2">
+
+        {% if gallery_items %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {% for item in gallery_items %}
+            {% include 'dashboard/partials/gallery_item_card.html' with item=item %}
+            {% endfor %}
+        </div>
+        {% else %}
+        {% include 'dashboard/partials/gallery_empty.html' with
+            message="No hay imágenes en la galería"
+            hint="Sube tu primera imagen usando el formulario" %}
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}

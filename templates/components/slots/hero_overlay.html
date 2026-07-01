@@ -1,0 +1,68 @@
+{% comment %}
+    Slot hero — overlay de contenido sobre imagen de portada.
+
+    Parámetros:
+        item     → GalleryItem activo o None (None = slide default)
+        section  → Section hero del tenant
+        client   → Client del tenant
+{% endcomment %}
+<div class="relative max-w-7xl mx-auto px-6 lg:px-8 pt-36 pb-24">
+    <div class="max-w-3xl">
+
+        {# Título #}
+        <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-black text-white
+                    leading-[1.05] mb-6"
+            style="letter-spacing:-0.02em;">
+            {% if item and item.title %}
+                {{ item.title }}
+            {% elif section and section.title %}
+                {{ section.title }}
+            {% else %}
+                {{ client.settings.company_name|default:client.name }}
+            {% endif %}
+        </h1>
+
+        {# Subtítulo / caption #}
+        {% if item and item.caption %}
+        <p class="text-lg md:text-xl mb-6 max-w-xl"
+           style="color:rgba(255,255,255,0.70);">
+            {{ item.caption }}
+        </p>
+        {% elif section and section.subtitle %}
+        <p class="text-lg md:text-xl mb-6 max-w-xl"
+           style="color:rgba(255,255,255,0.70);">
+            {{ section.subtitle }}
+        </p>
+        {% endif %}
+
+        {# Descripción — solo en slide default #}
+        {% if not item and section and section.description %}
+        <p class="text-base mb-10 max-w-xl"
+           style="color:rgba(255,255,255,0.45);">
+            {{ section.description }}
+        </p>
+        {% endif %}
+
+        {# CTA #}
+
+        <div class="flex flex-col sm:flex-row gap-4 mt-8">
+            {% if item and item.cta_text and item.cta_url %}
+            <a href="{{ item.cta_url }}"
+            class="group px-8 py-4 font-black rounded-lg inline-flex items-center
+                    justify-center gap-3 transition-all duration-300
+                    hover:opacity-90 hover:-translate-y-0.5"
+            style="background: var(--primary); color:#fff;">
+                {{ item.cta_text }}
+                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </a>
+            {% elif theme_ctas %}
+            {% include theme_ctas %}
+            {% endif %}
+        </div>
+
+    </div>
+</div>

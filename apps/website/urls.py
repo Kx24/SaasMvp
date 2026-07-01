@@ -21,6 +21,7 @@ urlpatterns = [
     path('dashboard/sections/', views.dashboard_sections, name='dashboard_sections'),
     path('dashboard/contacts/', views.dashboard_contacts, name='dashboard_contacts'),
     path('dashboard/branding/', dashboard_branding, name='dashboard_branding'),
+    path('dashboard/portada/', views.dashboard_portada, name='dashboard_portada'),
     
     # ============================================================
     # ACCIONES DE CONTACTOS (desde dashboard)
@@ -69,5 +70,10 @@ urlpatterns = [
     path('dashboard/service/<int:service_id>/toggle-active/', views.toggle_service_active, name='toggle_service_active'),
     path('dashboard/service/<int:service_id>/toggle-featured/', views.toggle_service_featured, name='toggle_service_featured'),
     path('dashboard/services/reorder/', views.reorder_services, name='reorder_services'),
+    path('dashboard/gallery/', views.dashboard_gallery, name='dashboard_gallery'), #Lineas galería
+    path('dashboard/gallery/add/', views.gallery_item_add, name='gallery_item_add'),
+    path('dashboard/gallery/<int:item_id>/edit/', views.gallery_item_edit, name='gallery_item_edit'),
+    path('dashboard/gallery/<int:item_id>/delete/', views.gallery_item_delete, name='gallery_item_delete'),
+    path('dashboard/gallery/<int:item_id>/toggle/', views.gallery_item_toggle, name='gallery_item_toggle'),
 
 ]

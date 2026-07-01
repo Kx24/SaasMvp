@@ -1,0 +1,207 @@
+{% load website_tags %}
+
+{% get_hero_images as hero_images %}
+
+{% if hero_images %}
+{% comment %}
+   MODO SLIDESHOW — imágenes subidas por el cliente
+   Reemplaza título, descripción y CTA globales
+{% endcomment %}
+<div
+    x-data="{
+        current: 0,
+        total: {{ hero_images|length }},
+        slides: [
+            {% for item in hero_images %}
+            {
+                is_default: {{ item|yesno:'false,true' }},
+                cta_text: '{% if item %}{{ item.cta_text|escapejs }}{% endif %}',
+                cta_url:  '{% if item %}{{ item.cta_url|escapejs }}{% endif %}',
+                title:    '{% if item %}{{ item.title|escapejs }}{% endif %}',
+                caption:  '{% if item %}{{ item.caption|escapejs }}{% endif %}'
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        init() {
+            if (this.total > 1) {
+                setInterval(() => {
+                    this.current = (this.current + 1) % this.total;
+                }, 6000);
+            }
+        },
+        get active() { return this.slides[this.current]; }
+    }"
+    class="absolute inset-0">
+
+    {# Slides #}
+    {% for item in hero_images %}
+    <div
+        x-show="current === {{ forloop.counter0 }}"
+        x-transition:enter="transition-opacity duration-1000"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity duration-500"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="absolute inset-0"
+        {% if not forloop.first %}x-cloak{% endif %}>
+
+        {% if item %}
+        {# Imagen del cliente #}
+        <img src="{{ item.get_image_url }}"
+            alt="{{ item.title|default:'Portada' }}"
+            class="w-full h-full object-cover">
+        {% else %}
+        {# Hero default — fondo desde Section.background_image #}
+        {% with bg=section.get_background_image_url %}
+        {% if bg %}
+        <img src="{{ bg }}"
+            alt="Portada principal"
+            class="w-full h-full object-cover">
+        {% else %}
+        <div class="w-full h-full" style="background:#0b2818;"></div>
+        {% endif %}
+        {% endwith %}
+        {% endif %}
+
+    </div>
+    {% endfor %}
+
+    {# Dots — solo si hay más de un slide #}
+    {% if hero_images|length > 1 %}
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        {% for item in hero_images %}
+        <button
+            @click="current = {{ forloop.counter0 }}"
+            :class="current === {{ forloop.counter0 }}
+                ? 'w-6 opacity-100'
+                : 'w-2 opacity-40 hover:opacity-70'"
+            class="h-1.5 rounded-full transition-all duration-300"
+            style="background:white;"
+            aria-label="Ir a imagen {{ forloop.counter }}">
+        </button>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# Efectos del tema — siempre presentes #}
+    <canvas id="electricCanvas" class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
+    {% include "servelec/components/hero_effects.html" %}
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true"
+         style="background:linear-gradient(to right, rgba(11,40,24,0.75) 40%, rgba(11,40,24,0.25) 100%);"></div>
+    <div class="absolute left-0 top-0 bottom-0 w-0.5 opacity-40" aria-hidden="true"
+         style="background:linear-gradient(to bottom, transparent, #1DB954, transparent);"></div>
+
+    {# Contenido — Alpine decide según slide activo #}
+    <div class="relative max-w-7xl mx-auto px-6 lg:px-8 pt-36 pb-24">
+        <div class="max-w-3xl">
+
+            {# Título: default → Section, cliente → item.title #}
+            <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-black text-white
+                        leading-[1.05] mb-6 fade-up"
+                style="animation-delay:0.1s; letter-spacing:-0.02em;">
+
+                {# Slide default — título desde Section #}
+                <span x-show="active.is_default">
+                    {% if section and section.title %}
+                        {{ section.title }}
+                    {% else %}
+                        {{ client.settings.company_name|default:client.name }}
+                    {% endif %}
+                </span>
+
+                {# Slide cliente — título desde item #}
+                <span x-show="!active.is_default" x-text="active.title || '{{ client.settings.company_name|default:client.name|escapejs }}'"></span>
+            </h1>
+
+            {# Subtítulo #}
+            <template x-if="active.is_default">
+                {% if section and section.subtitle %}
+                <p class="text-lg md:text-xl mb-4 max-w-xl fade-up"
+                   style="animation-delay:0.2s; color:rgba(255,255,255,0.65);">
+                    {{ section.subtitle }}
+                </p>
+                {% endif %}
+            </template>
+
+            <template x-if="!active.is_default && active.caption">
+                <p class="text-lg md:text-xl mb-4 max-w-xl"
+                   style="color:rgba(255,255,255,0.65);"
+                   x-text="active.caption">
+                </p>
+            </template>
+
+            {# CTAs #}
+            <div class="flex flex-col sm:flex-row gap-4 mt-8 fade-up" style="animation-delay:0.3s;">
+
+                {# Default → CTAs del tema #}
+                <template x-if="active.is_default">
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        {% include "servelec/components/hero_ctas.html" %}
+                    </div>
+                </template>
+
+                {# Cliente → CTA del item si tiene #}
+                <template x-if="!active.is_default && active.cta_text && active.cta_url">
+                    <a :href="active.cta_url"
+                       class="group px-8 py-4 font-black rounded-lg inline-flex items-center
+                              justify-center gap-3 transition-all duration-300
+                              hover:opacity-90 hover:-translate-y-0.5"
+                       style="background:#1DB954; color:#0b2818;">
+                        <span x-text="active.cta_text"></span>
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                        </svg>
+                    </a>
+                </template>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% else %}
+{# Sin enable_gallery o sin imágenes activas #}
+{% with bg=section.get_background_image_url %}
+{% if bg %}
+<div class="absolute inset-0">
+    <img src="{{ bg }}"
+         alt="Portada principal"
+         class="w-full h-full object-cover">
+</div>
+{% else %}
+<div class="absolute inset-0" style="background:#0b2818;"></div>
+{% endif %}
+{% endwith %}
+<canvas id="electricCanvas" class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
+{% include "servelec/components/hero_effects.html" %}
+<div class="absolute inset-0 pointer-events-none" aria-hidden="true"
+     style="background:linear-gradient(to right, rgba(11,40,24,0.75) 40%, rgba(11,40,24,0.25) 100%);"></div>
+<div class="absolute left-0 top-0 bottom-0 w-0.5 opacity-40" aria-hidden="true"
+     style="background:linear-gradient(to bottom, transparent, #1DB954, transparent);"></div>
+<div class="relative max-w-7xl mx-auto px-6 lg:px-8 pt-36 pb-24">
+    <div class="max-w-3xl">
+        <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-black text-white
+                    leading-[1.05] mb-6 fade-up"
+            style="animation-delay:0.1s; letter-spacing:-0.02em;">
+            {% if section and section.title %}
+                {{ section.title }}
+            {% else %}
+                {{ client.settings.company_name|default:client.name }}
+            {% endif %}
+        </h1>
+        {% if section and section.subtitle %}
+        <p class="text-lg md:text-xl mb-4 max-w-xl fade-up"
+           style="animation-delay:0.2s; color:rgba(255,255,255,0.65);">
+            {{ section.subtitle }}
+        </p>
+        {% endif %}
+        <div class="flex flex-col sm:flex-row gap-4 fade-up" style="animation-delay:0.3s;">
+            {% include "servelec/components/hero_ctas.html" %}
+        </div>
+    </div>
+</div>
+{% endif %}
