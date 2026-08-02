@@ -344,10 +344,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Cuando un usuario no logueado intenta entrar a una zona protegida, mándalo aquí:
-LOGIN_URL = '/superadmin/login/'  
+LOGIN_URL = '/auth/login/'
 
-# Opcional: A dónde ir después de loguearse si no hay 'next'
-LOGIN_REDIRECT_URL = '/superadmin/nuevo/'
+# Opcional, por consistencia:
+LOGIN_REDIRECT_URL = '/dashboard/'
 
 
 

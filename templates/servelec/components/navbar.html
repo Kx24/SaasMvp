@@ -170,9 +170,9 @@
                         </svg>
                         Dashboard
                     </a>
-                    <a href="{% url 'client_logout' %}" class="nav-link">Salir</a>
+                    <a href="{% url 'accounts:logout' %}" class="nav-link">Salir</a>
                 {% else %}
-                    <a href="{% url 'client_login' %}" class="nav-link">Iniciar sesión</a>
+                    <a href="{% url 'accounts:login' %}" class="nav-link">Iniciar sesión</a>
                     <a href="#contacto" class="nav-cta">
                         Cotizar
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
@@ -252,12 +252,12 @@
                         </svg>
                         Dashboard
                     </a>
-                    <a href="{% url 'client_logout' %}"
+                    <a href="{% url 'accounts:logout' %}"
                        class="block text-center py-3 rounded-xl font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition text-sm">
                         Cerrar sesión
                     </a>
                 {% else %}
-                    <a href="{% url 'client_login' %}" @click="mobileMenuOpen = false"
+                    <a href="{% url 'accounts:login' %}" @click="mobileMenuOpen = false"
                        class="block text-center py-3 rounded-xl font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition text-sm">
                         Iniciar sesión
                     </a>

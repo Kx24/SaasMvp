@@ -49,9 +49,9 @@
                     <a href="/superadmin/" target="_blank" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary transition">Admin</a>
                     {% endif %}
                     <a href="{% url 'dashboard' %}" class="px-5 py-2.5 text-sm font-semibold text-white btn-stripe rounded-full">Dashboard</a>
-                    <a href="{% url 'client_logout' %}" class="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition">Salir</a>
+                    <a href="{% url 'accounts:logout' %}" class="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition">Salir</a>
                 {% else %}
-                    <a href="{% url 'client_login' %}" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary transition">Iniciar sesión</a>
+                    <a href="{% url 'accounts:login' %}" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary transition">Iniciar sesión</a>
                     <a href="#contacto" class="px-5 py-2.5 text-sm font-semibold text-white btn-stripe rounded-full">
                         Empezar ahora
                         <svg class="inline-block w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,9 +99,9 @@
                     <a href="/superadmin/" target="_blank" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition">🔧 Admin</a>
                     {% endif %}
                     <a href="{% url 'dashboard' %}" @click="mobileMenuOpen=false" class="block px-4 py-3 text-center text-white font-semibold btn-stripe rounded-xl">Dashboard</a>
-                    <a href="{% url 'client_logout' %}" class="block px-4 py-3 text-center text-slate-500 font-medium rounded-xl hover:bg-slate-50 transition">Cerrar sesión</a>
+                    <a href="{% url 'accounts:logout' %}" class="block px-4 py-3 text-center text-slate-500 font-medium rounded-xl hover:bg-slate-50 transition">Cerrar sesión</a>
                 {% else %}
-                    <a href="{% url 'client_login' %}" @click="mobileMenuOpen=false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition">Iniciar sesión</a>
+                    <a href="{% url 'accounts:login' %}" @click="mobileMenuOpen=false" class="block px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition">Iniciar sesión</a>
                     <a href="#contacto" @click="mobileMenuOpen=false" class="block px-4 py-3 text-center text-white font-semibold btn-stripe rounded-xl">Empezar ahora →</a>
                 {% endif %}
             </div>
