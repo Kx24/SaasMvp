@@ -70,6 +70,10 @@ class Client(models.Model):
     
     # ==================== ESTADO Y BILLING ====================
     is_active = models.BooleanField(default=True)
+    mode_under_construction = models.BooleanField(
+        default=False,
+        help_text="Si está activo, sirve la página temporal 'En construcción' en lugar del sitio."
+    )
     setup_completed = models.BooleanField(default=False)
     setup_fee_paid = models.BooleanField(default=False)
     monthly_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

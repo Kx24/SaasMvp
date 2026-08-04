@@ -11,6 +11,13 @@ Crea un tenant completo con:
 Uso:
     python manage.py provision_tenant servelec-ingenieria --template=electricidad
     python manage.py provision_tenant mi-empresa --template=servicios_profesionales --domain=miempresa.com
+
+    # Con branding completo (logo, contacto, redes) en un solo paso:
+    python manage.py provision_tenant mi-empresa \
+        --template=servicios_profesionales --domain=miempresa.com \
+        --logo=/ruta/local/logo.png --phone="+56912345678" \
+        --facebook=https://facebook.com/miempresa --instagram=https://instagram.com/miempresa \
+        --whatsapp=56912345678 --under-construction
 """
 
 import os
@@ -95,6 +102,42 @@ class Command(BaseCommand):
             help='Email de contacto'
         )
         parser.add_argument(
+            '--under-construction',
+            action='store_true',
+            default=False,
+            help='Crea el cliente en modo "En construcción" (sirve la landing temporal en vez del sitio)'
+        )
+        parser.add_argument(
+            '--logo',
+            type=str,
+            help='Ruta local o URL del logo a subir a Cloudinary'
+        )
+        parser.add_argument(
+            '--phone',
+            type=str,
+            help='Teléfono de contacto (se guarda en ClientSettings.contact_phone)'
+        )
+        parser.add_argument(
+            '--address',
+            type=str,
+            help='Dirección del cliente'
+        )
+        parser.add_argument(
+            '--tagline',
+            type=str,
+            help='Frase corta / tagline del cliente'
+        )
+        parser.add_argument('--facebook', type=str, help='URL de Facebook')
+        parser.add_argument('--instagram', type=str, help='URL de Instagram')
+        parser.add_argument('--twitter', type=str, help='URL de Twitter/X')
+        parser.add_argument('--linkedin', type=str, help='URL de LinkedIn')
+        parser.add_argument('--youtube', type=str, help='URL de YouTube')
+        parser.add_argument(
+            '--whatsapp',
+            type=str,
+            help='Número de WhatsApp en formato internacional (ej: 56912345678)'
+        )
+        parser.add_argument(
             '--copy-templates',
             action='store_true',
             default=True,
@@ -134,30 +177,37 @@ class Command(BaseCommand):
         
         # 4. Aplicar configuración de template
         self._apply_template_config(client, template_type)
-        
+
+        # 4b. Aplicar branding (logo, contacto, redes sociales) si se proporcionó
+        self._apply_branding(client, options)
+
         # 5. Crear contenido inicial
         self._create_initial_content(client, template_type)
-        
+
         # 6. Copiar templates si aplica
         if options['copy_templates']:
             self._copy_templates(slug, options['source_template'])
         
         self.stdout.write(self.style.HTTP_INFO('\n' + '='*60))
-        self.stdout.write(self.style.SUCCESS(f'  ✅ TENANT "{slug}" CREADO EXITOSAMENTE'))
+        self.stdout.write(self.style.SUCCESS(f'  TENANT "{slug}" CREADO EXITOSAMENTE'))
         self.stdout.write(self.style.HTTP_INFO('='*60 + '\n'))
-        
+
         # Resumen
-        self.stdout.write(f'  📋 Slug: {client.slug}')
-        self.stdout.write(f'  🏢 Nombre: {client.name}')
-        self.stdout.write(f'  📧 Email: {client.contact_email}')
-        self.stdout.write(f'  🎨 Template: {template_type}')
+        self.stdout.write(f'  Slug: {client.slug}')
+        self.stdout.write(f'  Nombre: {client.name}')
+        self.stdout.write(f'  Email: {client.contact_email}')
+        self.stdout.write(f'  Template: {template_type}')
         if client.primary_domain:
-            self.stdout.write(f'  🌐 Dominio: {client.primary_domain.domain}')
+            self.stdout.write(f'  Dominio: {client.primary_domain.domain}')
+        if client.mode_under_construction:
+            self.stdout.write(self.style.WARNING(
+                '  Modo construcción ACTIVO: se sirve la landing temporal, no el sitio.'
+            ))
         self.stdout.write('')
     
     def _create_client(self, slug, options, template_type):
         """Crear el cliente en la base de datos."""
-        self.stdout.write('📦 Creando cliente...')
+        self.stdout.write('Creando cliente...')
         
         name = options.get('name') or slug.replace('-', ' ').title()
         email = options.get('email') or f'contacto@{slug}.cl'
@@ -169,14 +219,15 @@ class Command(BaseCommand):
             contact_email=email,
             template=template_type,
             is_active=True,
+            mode_under_construction=options.get('under_construction', False),
         )
-        
-        self.stdout.write(self.style.SUCCESS(f'   ✅ Cliente "{name}" creado'))
+
+        self.stdout.write(self.style.SUCCESS(f'   Cliente "{name}" creado'))
         return client
     
     def _create_domain(self, client, domain):
         """Crear dominio para el cliente."""
-        self.stdout.write('🌐 Configurando dominio...')
+        self.stdout.write('Configurando dominio...')
         
         domain = domain.lower().strip()
         
@@ -201,11 +252,11 @@ class Command(BaseCommand):
                 is_verified=True,
             )
         
-        self.stdout.write(self.style.SUCCESS(f'   ✅ Dominio "{domain}" configurado'))
+        self.stdout.write(self.style.SUCCESS(f'   Dominio "{domain}" configurado'))
     
     def _apply_template_config(self, client, template_type):
         """Aplicar colores y configuración del template."""
-        self.stdout.write('🎨 Aplicando configuración de template...')
+        self.stdout.write('Aplicando configuración de template...')
         
         config = self.TEMPLATE_CONFIGS.get(template_type, {})
         colors = config.get('colors', {'primary': '#2563eb', 'secondary': '#dbeafe'})
@@ -217,13 +268,60 @@ class Command(BaseCommand):
         settings_obj.meta_description = f'Bienvenido a {client.name}'
         settings_obj.save()
         
-        self.stdout.write(self.style.SUCCESS(f'   ✅ Colores aplicados: {colors["primary"]}'))
-    
+        self.stdout.write(self.style.SUCCESS(f'   Colores aplicados: {colors["primary"]}'))
+
+    def _apply_branding(self, client, options):
+        """
+        Aplica a ClientSettings los datos de branding ya provistos por el
+        cliente (logo, teléfono, dirección, redes sociales), si se pasaron
+        por línea de comandos. Todo es opcional: si no se pasa nada, no hace nada.
+        """
+        settings_obj = client.settings
+        applied = []
+
+        social_fields = {
+            'phone': 'contact_phone',
+            'address': 'address',
+            'tagline': 'tagline',
+            'facebook': 'facebook_url',
+            'instagram': 'instagram_url',
+            'twitter': 'twitter_url',
+            'linkedin': 'linkedin_url',
+            'youtube': 'youtube_url',
+            'whatsapp': 'whatsapp_number',
+        }
+
+        for option_key, field_name in social_fields.items():
+            value = options.get(option_key)
+            if value:
+                setattr(settings_obj, field_name, value)
+                applied.append(field_name)
+
+        logo = options.get('logo')
+        if logo:
+            self.stdout.write('Subiendo logo...')
+            try:
+                import cloudinary.uploader
+                result = cloudinary.uploader.upload(
+                    logo,
+                    folder=f'tenants/{client.slug}/branding',
+                    resource_type='image',
+                )
+                settings_obj.logo = result['public_id']
+                applied.append('logo')
+                self.stdout.write(self.style.SUCCESS('   Logo subido correctamente'))
+            except Exception as e:
+                self.stdout.write(self.style.WARNING(f'   No se pudo subir el logo: {e}'))
+
+        if applied:
+            settings_obj.save()
+            self.stdout.write(self.style.SUCCESS(f'   Branding aplicado: {", ".join(applied)}'))
+
     def _create_initial_content(self, client, template_type):
         """Crear secciones y servicios iniciales."""
         from apps.website.models import Section, Service
-        
-        self.stdout.write('📝 Creando contenido inicial...')
+
+        self.stdout.write('Creando contenido inicial...')
         
         # Secciones base
         sections = [
@@ -242,7 +340,7 @@ class Command(BaseCommand):
                 is_active=True,
             )
         
-        self.stdout.write(f'   ✅ {len(sections)} secciones creadas')
+        self.stdout.write(f'   {len(sections)} secciones creadas')
         
         # Servicios según template
         config = self.TEMPLATE_CONFIGS.get(template_type, {})
@@ -262,22 +360,22 @@ class Command(BaseCommand):
                 is_featured=(order <= 3),
             )
         
-        self.stdout.write(f'   ✅ {len(services)} servicios creados')
+        self.stdout.write(f'   {len(services)} servicios creados')
     
     def _copy_templates(self, slug, source_template):
         """Copiar carpeta de templates para el tenant."""
-        self.stdout.write('📁 Copiando templates...')
+        self.stdout.write('Copiando templates...')
         
         templates_base = Path(settings.BASE_DIR) / 'templates' / 'tenants'
         source_path = templates_base / source_template
         dest_path = templates_base / slug
         
         if not source_path.exists():
-            self.stdout.write(self.style.WARNING(f'   ⚠️ Template origen "{source_template}" no existe'))
+            self.stdout.write(self.style.WARNING(f'   Template origen "{source_template}" no existe'))
             return
         
         if dest_path.exists():
-            self.stdout.write(f'   ℹ️ Carpeta "{slug}" ya existe, omitiendo copia')
+            self.stdout.write(f'   Carpeta "{slug}" ya existe, omitiendo copia')
             return
         
         # Copiar carpeta completa
@@ -286,4 +384,4 @@ class Command(BaseCommand):
         # Contar archivos copiados
         file_count = sum(1 for _ in dest_path.rglob('*.html'))
         
-        self.stdout.write(self.style.SUCCESS(f'   ✅ {file_count} templates copiados a /templates/tenants/{slug}/'))
+        self.stdout.write(self.style.SUCCESS(f'   {file_count} templates copiados a /templates/tenants/{slug}/'))

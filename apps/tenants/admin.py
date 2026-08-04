@@ -216,8 +216,8 @@ class FormConfigInline(admin.StackedInline):
 class ClientAdmin(admin.ModelAdmin):
     """Admin principal para gestionar clientes/tenants."""
     
-    list_display = ['name', 'slug', 'template', 'is_active', 'setup_completed', 'created_at']
-    list_filter = ['is_active', 'template', 'setup_completed', 'setup_fee_paid']
+    list_display = ['name', 'slug', 'template', 'is_active', 'mode_under_construction', 'setup_completed', 'created_at']
+    list_filter = ['is_active', 'mode_under_construction', 'template', 'setup_completed', 'setup_fee_paid']
     search_fields = ['name', 'slug', 'company_name', 'contact_email']
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ['created_at', 'updated_at']
@@ -264,6 +264,7 @@ class ClientAdmin(admin.ModelAdmin):
         ('Estado', {
             'fields': (
                 ('is_active', 'setup_completed'),
+                'mode_under_construction',
             )
         }),
         ('Billing', {

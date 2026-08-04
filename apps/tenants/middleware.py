@@ -12,7 +12,7 @@ import logging
 import threading
 from django.conf import settings
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.utils.deprecation import MiddlewareMixin
 
 logger = logging.getLogger(__name__)
@@ -36,11 +36,17 @@ class TenantMiddleware(MiddlewareMixin):
         
         # Dominios de sistema siempre permitidos (bypass de tenant)
         self.SYSTEM_DOMAINS = [
-            'localhost', 
+            'localhost',
             '127.0.0.1',
             getattr(settings, 'BASE_DOMAIN', 'localhost'),
             getattr(settings, 'RENDER_EXTERNAL_HOSTNAME', None)
         ]
+
+        # Rutas que deben seguir funcionando aunque el tenant esté
+        # en modo construcción: para que el cliente pueda loguearse y
+        # administrar su sitio, y para que el propio formulario de leads
+        # de la página "en construcción" (POST a /contact/submit/) responda.
+        self.CONSTRUCTION_BYPASS_PREFIXES = ('/dashboard', '/auth', '/superadmin', '/contact')
 
     def __call__(self, request):
         clear_current_tenant()
@@ -56,6 +62,12 @@ class TenantMiddleware(MiddlewareMixin):
             request.client = client
             set_current_tenant(client)
             logger.debug(f"[Tenant] Matched: {host} -> {client.slug}")
+
+            if client.mode_under_construction and not request.path.startswith(self.CONSTRUCTION_BYPASS_PREFIXES):
+                response = render(request, 'errors/under_construction.html', {'client': client})
+                clear_current_tenant()
+                return response
+
             response = self.get_response(request)
             clear_current_tenant()
             return response

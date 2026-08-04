@@ -33,7 +33,7 @@ def create_client_related_objects(sender, instance, created, **kwargs):
     )
     
     if settings_created:
-        print(f"✅ ClientSettings creado para {instance.name}")
+        print(f"ClientSettings creado para {instance.name}")
     
     # Crear o obtener ClientEmailSettings
     email_settings, email_created = ClientEmailSettings.objects.get_or_create(
@@ -45,7 +45,7 @@ def create_client_related_objects(sender, instance, created, **kwargs):
     )
     
     if email_created:
-        print(f"✅ ClientEmailSettings creado para {instance.name}")
+        print(f"ClientEmailSettings creado para {instance.name}")
     
     # Crear o obtener FormConfig
     form_config, form_created = FormConfig.objects.get_or_create(
@@ -57,4 +57,4 @@ def create_client_related_objects(sender, instance, created, **kwargs):
     )
     
     if form_created:
-        print(f"✅ FormConfig creado para {instance.name}")
+        print(f"FormConfig creado para {instance.name}")
