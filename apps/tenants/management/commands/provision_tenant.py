@@ -9,15 +9,19 @@ Crea un tenant completo con:
 - Contenido inicial (secciones, servicios)
 
 Uso:
-    python manage.py provision_tenant servelec-ingenieria --template=electricidad
-    python manage.py provision_tenant mi-empresa --template=servicios_profesionales --domain=miempresa.com
+    python manage.py provision_tenant servelec-ingenieria --industry=electricidad --theme=servelec
+    python manage.py provision_tenant mi-empresa --industry=servicios_profesionales --domain=miempresa.com
 
     # Con branding completo (logo, contacto, redes) en un solo paso:
     python manage.py provision_tenant mi-empresa \
-        --template=servicios_profesionales --domain=miempresa.com \
+        --industry=servicios_profesionales --theme=themes/default --domain=miempresa.com \
         --logo=/ruta/local/logo.png --phone="+56912345678" \
         --facebook=https://facebook.com/miempresa --instagram=https://instagram.com/miempresa \
         --whatsapp=56912345678 --under-construction
+
+Nota: --industry solo controla el contenido semilla (colores, textos de servicios).
+--theme controla la carpeta visual real (debe ser uno de Client.THEME_CHOICES) y es
+lo que se guarda en Client.template. No confundir ambos flags.
 """
 
 import os
@@ -85,11 +89,18 @@ class Command(BaseCommand):
             help='Nombre del cliente (si no se proporciona, se genera del slug)'
         )
         parser.add_argument(
-            '--template',
+            '--industry',
             type=str,
             default='servicios_profesionales',
             choices=list(self.TEMPLATE_CONFIGS.keys()) + ['custom'],
-            help='Template de industria a aplicar'
+            help='Rubro/industria: controla colores y servicios semilla (no el tema visual)'
+        )
+        parser.add_argument(
+            '--theme',
+            type=str,
+            default='themes/default',
+            choices=[choice[0] for choice in Client.THEME_CHOICES],
+            help='Carpeta de tema visual a usar (debe existir en templates/)'
         )
         parser.add_argument(
             '--domain',
@@ -158,31 +169,32 @@ class Command(BaseCommand):
     
     def handle(self, *args, **options):
         slug = options['slug'].lower().strip()
-        template_type = options['template']
-        
+        industry = options['industry']
+        theme = options['theme']
+
         self.stdout.write(self.style.HTTP_INFO('\n' + '='*60))
         self.stdout.write(self.style.HTTP_INFO(f'  PROVISIONING TENANT: {slug}'))
         self.stdout.write(self.style.HTTP_INFO('='*60 + '\n'))
-        
+
         # 1. Verificar que no existe
         if Client.objects.filter(slug=slug).exists():
             raise CommandError(f'El tenant "{slug}" ya existe')
-        
+
         # 2. Crear cliente
-        client = self._create_client(slug, options, template_type)
-        
+        client = self._create_client(slug, options, industry, theme)
+
         # 3. Crear dominio si se proporciona
         if options.get('domain'):
             self._create_domain(client, options['domain'])
-        
+
         # 4. Aplicar configuración de template
-        self._apply_template_config(client, template_type)
+        self._apply_template_config(client, industry)
 
         # 4b. Aplicar branding (logo, contacto, redes sociales) si se proporcionó
         self._apply_branding(client, options)
 
         # 5. Crear contenido inicial
-        self._create_initial_content(client, template_type)
+        self._create_initial_content(client, industry)
 
         # 6. Copiar templates si aplica
         if options['copy_templates']:
@@ -196,7 +208,8 @@ class Command(BaseCommand):
         self.stdout.write(f'  Slug: {client.slug}')
         self.stdout.write(f'  Nombre: {client.name}')
         self.stdout.write(f'  Email: {client.contact_email}')
-        self.stdout.write(f'  Template: {template_type}')
+        self.stdout.write(f'  Industria: {industry}')
+        self.stdout.write(f'  Tema visual: {theme}')
         if client.primary_domain:
             self.stdout.write(f'  Dominio: {client.primary_domain.domain}')
         if client.mode_under_construction:
@@ -205,19 +218,19 @@ class Command(BaseCommand):
             ))
         self.stdout.write('')
     
-    def _create_client(self, slug, options, template_type):
+    def _create_client(self, slug, options, industry, theme):
         """Crear el cliente en la base de datos."""
         self.stdout.write('Creando cliente...')
-        
+
         name = options.get('name') or slug.replace('-', ' ').title()
         email = options.get('email') or f'contacto@{slug}.cl'
-        
+
         client = Client.objects.create(
             name=name,
             slug=slug,
             company_name=name,
             contact_email=email,
-            template=template_type,
+            template=theme,
             is_active=True,
             mode_under_construction=options.get('under_construction', False),
         )
@@ -254,11 +267,11 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS(f'   Dominio "{domain}" configurado'))
     
-    def _apply_template_config(self, client, template_type):
-        """Aplicar colores y configuración del template."""
+    def _apply_template_config(self, client, industry):
+        """Aplicar colores y configuración según la industria."""
         self.stdout.write('Aplicando configuración de template...')
-        
-        config = self.TEMPLATE_CONFIGS.get(template_type, {})
+
+        config = self.TEMPLATE_CONFIGS.get(industry, {})
         colors = config.get('colors', {'primary': '#2563eb', 'secondary': '#dbeafe'})
         
         settings_obj = client.settings
@@ -317,7 +330,7 @@ class Command(BaseCommand):
             settings_obj.save()
             self.stdout.write(self.style.SUCCESS(f'   Branding aplicado: {", ".join(applied)}'))
 
-    def _create_initial_content(self, client, template_type):
+    def _create_initial_content(self, client, industry):
         """Crear secciones y servicios iniciales."""
         from apps.website.models import Section, Service
 
@@ -342,8 +355,8 @@ class Command(BaseCommand):
         
         self.stdout.write(f'   {len(sections)} secciones creadas')
         
-        # Servicios según template
-        config = self.TEMPLATE_CONFIGS.get(template_type, {})
+        # Servicios según industria
+        config = self.TEMPLATE_CONFIGS.get(industry, {})
         services = config.get('services', [
             ('Servicio 1', '⭐', 'Descripción del servicio'),
             ('Servicio 2', '✨', 'Descripción del servicio'),

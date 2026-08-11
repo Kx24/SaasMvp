@@ -74,7 +74,7 @@ services:
       # Dominios adicionales permitidos (separados por coma)
       # Agregar aquí los dominios de tus clientes
       - key: EXTRA_DOMAINS
-        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl"
+        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,ranchocachimba.cl,www.ranchocachimba.cl"
       
       # ===============================================
       # EMAIL (Zoho Mail)

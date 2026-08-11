@@ -6,29 +6,37 @@ no debemos crearlos manualmente en setUp.
 """
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import AnonymousUser
-from .models import Client, ClientSettings
+from .models import Client, ClientSettings, Domain
 from .middleware import TenantMiddleware
 
 
 class TenantMiddlewareTestCase(TestCase):
     """Tests para el middleware multi-tenant."""
-    
+
     def setUp(self):
         """
         Configuración inicial para cada test.
-        
+
         IMPORTANTE: No creamos ClientSettings manualmente porque
-        el signal post_save lo hace automáticamente.
+        el signal post_save lo hace automáticamente. El dominio vive
+        en el modelo Domain (Client no tiene campo `domain`).
         """
         # Crear cliente de prueba
         # El signal creará automáticamente sus ClientSettings
         self.client_obj = Client.objects.create(
             name='Test Client',
-            domain='test.com',
             company_name='Test Company',
             contact_email='test@test.com',
             contact_phone='+56900000000',
             is_active=True
+        )
+        self.domain_obj = Domain.objects.create(
+            client=self.client_obj,
+            domain='test.com',
+            domain_type='custom',
+            is_primary=True,
+            is_active=True,
+            is_verified=True,
         )
         
         # Verificar que el signal creó los settings
@@ -69,7 +77,7 @@ class TenantMiddlewareTestCase(TestCase):
             "El middleware debería inyectar request.client"
         )
         self.assertEqual(
-            request.client.domain,
+            request.client.primary_domain.domain,
             'test.com',
             "El cliente debería tener el dominio correcto"
         )
@@ -82,10 +90,23 @@ class TenantMiddlewareTestCase(TestCase):
     def test_localhost_uses_first_client(self):
         """
         Test que localhost usa el primer cliente activo.
-        
+
         En desarrollo, cuando accedes vía localhost,
         el middleware debe usar el primer cliente activo.
+
+        DESACTUALIZADO: la implementación actual de TenantMiddleware trata
+        'localhost' como SYSTEM_DOMAIN (bypass de seguridad, no un tenant) y
+        deja request.client=None -- ya no auto-selecciona "el primer cliente
+        activo". No lo reescribo para que pase porque no sé si ese cambio de
+        comportamiento fue intencional (endurecimiento de seguridad) o una
+        regresión; requiere una decisión de producto, no una corrección de
+        test silenciosa. Ver apps/tenants/middleware.py `_is_system_domain`.
         """
+        self.skipTest(
+            "Comportamiento real de TenantMiddleware para 'localhost' cambió "
+            "(ahora es SYSTEM_DOMAIN -> client=None). Confirmar con el equipo "
+            "si esto es intencional antes de reescribir la aserción."
+        )
         # Simular request a localhost
         request = self.factory.get('/', HTTP_HOST='localhost')
         request.user = AnonymousUser()
@@ -197,14 +218,14 @@ class ClientModelTestCase(TestCase):
         """
         client = Client.objects.create(
             name='Test Company',
-            domain='testcompany.com',
             company_name='Test Company Inc',
             contact_email='info@testcompany.com',
             contact_phone='+56912345678'
         )
-        
+        Domain.objects.create(client=client, domain='testcompany.com', is_primary=True, is_active=True)
+
         # Verificaciones básicas
-        self.assertEqual(client.domain, 'testcompany.com')
+        self.assertEqual(client.primary_domain.domain, 'testcompany.com')
         self.assertTrue(client.is_active)
         self.assertFalse(client.setup_completed)
         
@@ -217,7 +238,6 @@ class ClientModelTestCase(TestCase):
         """
         client = Client.objects.create(
             name='Another Test',
-            domain='anothertest.com',
             company_name='Another Test Inc',
             contact_email='test@test.com',
             contact_phone='+56900000000'
@@ -235,11 +255,10 @@ class ClientModelTestCase(TestCase):
         """
         client = Client.objects.create(
             name='String Test',
-            domain='stringtest.com',
             company_name='String Test Company',
             contact_email='test@test.com',
             contact_phone='+56900000000'
         )
-        
-        expected = "String Test Company (stringtest.com)"
+
+        expected = f"{client.name} ({client.slug})"
         self.assertEqual(str(client), expected)

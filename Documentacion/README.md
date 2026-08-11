@@ -93,12 +93,17 @@ petición → TenantMiddleware → request.client → View → TenantAwareManage
  
 ### Sistema de temas (templates)
  
-Cada tenant tiene asignado un `template` (campo en `ClientSettings`). El `TenantTemplateLoader` resuelve rutas bajo `templates/themes/{template}/`. Si no existe plantilla específica, cae al tema `default/`.
- 
+Cada tenant tiene asignado un `template` (campo en `Client`, no en `ClientSettings`; valores válidos: `Client.THEME_CHOICES`). El `TenantTemplateLoader` resuelve rutas directamente bajo `templates/{client.template}/`, con fallback a `templates/default/` y luego a `templates/{template_name}` si ninguna carpeta específica existe.
+
 ```
-request.client.settings.template → "electricidad"
-TenantTemplateLoader → templates/themes/electricidad/landing/home.html
+request.client.template → "servelec"
+TenantTemplateLoader → templates/servelec/landing/home.html
+
+request.client.template → "themes/default"
+TenantTemplateLoader → templates/themes/default/landing/home.html
 ```
+
+> No confundir con `--industry` de `provision_tenant` (rubro/contenido semilla: colores y textos). El campo `template`/`--theme` es exclusivamente la carpeta visual.
  
 ---
  
@@ -199,10 +204,10 @@ project_root/
  
 ```bash
 python manage.py create_tenant          # Crea tenant interactivo
-python manage.py provision_tenant       # Provisionamiento completo con seed data
-python manage.py list_tenants           # Lista todos los tenants activos
-python manage.py create_localhost_client # Crea tenant para dev local
-python manage.py update_domain          # Actualiza dominio de un tenant
+python manage.py provision_tenant       # Provisionamiento completo con seed data (--industry / --theme)
+python manage.py list_tenants           # Lista todos los tenants con su estado
+python manage.py update_domain          # Actualiza el dominio principal de un tenant
+python manage.py check_tenant_setup     # Audita theme/dominio/email/SEO de un tenant (gate de QA)
 python manage.py check_cloudinary       # Verifica configuración Cloudinary
 python manage.py cloudinary_usage       # Reporte de uso de Cloudinary
 python manage.py test_isolation         # Tests de aislamiento entre tenants
@@ -623,13 +628,13 @@ ClientAdmin → /dashboard/ (CMS custom)
 ### 7.2 Provisioning de Tenant
  
 ```
-1. python manage.py provision_tenant --slug cliente --template electricidad
+1. python manage.py provision_tenant cliente --industry electricidad --theme servelec
    ↓
 2. Crear Client + Domain en DB
    ↓
 3. Crear ClientSettings (colores, logo placeholder, tema)
    ↓
-4. Aplicar seed_data.json de templates_library/{template}/
+4. Aplicar seed data según --industry (colores y servicios de TEMPLATE_CONFIGS)
    ↓
 5. Crear usuario ClientAdmin
    ↓
@@ -721,8 +726,8 @@ cp .env.example .env
 # 5. Aplicar migraciones
 python manage.py migrate --settings=config.settings.development
  
-# 6. Crear tenant de desarrollo local
-python manage.py create_localhost_client --settings=config.settings.development
+# 6. Crear tenant de desarrollo local (sin --domain: se accede vía ?tenant=mi-empresa-dev)
+python manage.py provision_tenant mi-empresa-dev --industry=servicios_profesionales --settings=config.settings.development
  
 # 7. Crear superusuario
 python manage.py createsuperuser --settings=config.settings.development
@@ -817,18 +822,23 @@ python manage.py setup_plans --settings=config.settings.production
  
 ```bash
 # Provisionar tenant completo con seed data:
-python manage.py provision_tenant \
-  --slug nuevo-cliente \
+python manage.py provision_tenant nuevo-cliente \
   --domain nuevocliente.cl \
-  --template servicios_profesionales \
+  --industry servicios_profesionales \
+  --theme themes/default \
   --settings=config.settings.production
- 
-# Actualizar dominio si cambia:
-python manage.py update_domain \
-  --slug nuevo-cliente \
+
+# Actualizar el dominio principal de un tenant existente:
+python manage.py update_domain nuevo-cliente \
   --domain nuevocliente.cl \
+  --settings=config.settings.production
+
+# Verificar que el tenant quedó bien provisionado (theme, dominio, email, SEO):
+python manage.py check_tenant_setup nuevo-cliente \
   --settings=config.settings.production
 ```
+
+> Procedimiento completo, incluyendo pasos manuales (email de contacto, SEO): ver `Documentacion/Procedimiento_Nuevo_Tenant.md`.
  
 ### Configurar dominio personalizado
  
