@@ -45,6 +45,7 @@ class Client(models.Model):
     THEME_CHOICES = [
         ('themes/default', 'Tema Base (Servicios Profesionales)'),
         ('servelec',       'Electricidad (Servelec)'),
+        ('ranchocachimba', 'Rancho Cachimba (Turismo Rural)'),
     ]
 
     template = models.CharField(

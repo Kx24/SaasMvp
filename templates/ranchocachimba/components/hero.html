@@ -1,0 +1,12 @@
+{% load website_tags %}
+
+{% get_section 'hero' as hero_section %}
+{% get_hero_images as hero_images %}
+
+<!-- DEBUG hero_section: "{{ hero_section }}" -->
+<!-- DEBUG hero_images length: "{{ hero_images|length }}" -->
+<!-- DEBUG bg_url: "{{ hero_section.get_background_image_url }}" -->
+
+<section id="hero" class="relative min-h-[80vh] flex items-center overflow-hidden" style="background:#0b2818;">
+{% include 'components/media_collection.html' with items=hero_images mode="slideshow" slot_key=hero_section.slot_key section=hero_section client=client bg_url=hero_section.get_background_image_url effects="ranchocachimba/components/hero_effects.html" overlay="ranchocachimba/components/hero_overlay_theme.html" theme_ctas="ranchocachimba/components/hero_ctas.html" %}
+</section>
