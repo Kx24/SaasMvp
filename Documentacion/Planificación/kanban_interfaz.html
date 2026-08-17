@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de Control · Prototipo</title>
+<style>
+  :root{
+    --bg:#0f1311; --panel:#171d1a; --panel-2:#1e2622; --line:#2b3531;
+    --ink:#e8e6df; --ink-dim:#9aa39d; --ink-faint:#6b746f;
+    --primary:#2F4536; --secondary:#C8763C; --accent:#7fa88c;
+    --ok:#5f9e6e; --warn:#c9a227; --risk:#c05a4a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:14px; line-height:1.5;
+  }
+  header{
+    padding:22px 26px 18px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#1a221e 0%, #131816 100%);
+    position:sticky; top:0; z-index:20;
+  }
+  h1{margin:0; font-size:19px; letter-spacing:-.01em; font-weight:600; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .badge{
+    font-size:10.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+    background:#38321a; color:#dbc06a; border:1px solid #4a4224; border-radius:999px; padding:3px 10px;
+  }
+  .sub{color:var(--ink-dim); font-size:12.5px; margin-top:6px; max-width:820px}
+  .toolbar{display:flex; gap:10px; align-items:center; margin-top:16px; flex-wrap:wrap}
+  .toolbar input{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--ink);
+    padding:7px 12px; border-radius:9px; font-size:13px; font-family:inherit; min-width:220px;
+  }
+  .toolbar input:focus{outline:none; border-color:var(--accent)}
+  .filters{display:flex; gap:8px; flex-wrap:wrap}
+  .fbtn{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--ink-dim);
+    padding:6px 13px; border-radius:999px; cursor:pointer; font-size:12.5px; font-family:inherit; transition:.15s;
+  }
+  .fbtn:hover{color:var(--ink); border-color:#3c4a44}
+  .fbtn.on{background:var(--accent); border-color:var(--accent); color:#0f1311; font-weight:600}
+
+  main{padding:22px 26px 60px; max-width:1080px}
+
+  .proto-note{
+    background:linear-gradient(180deg,#1a1d24,#131519); border:1px solid #2c3440; border-radius:var(--radius);
+    padding:14px 18px; margin-bottom:18px; font-size:12.5px; color:var(--ink-dim);
+  }
+  .proto-note b{color:#9db4d9}
+
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:20px}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px}
+  .stat .n{font-size:26px; font-weight:700; line-height:1}
+  .stat .l{font-size:11.5px; color:var(--ink-dim); margin-top:5px; text-transform:uppercase; letter-spacing:.05em}
+  .stat.done .n{color:var(--ok)}
+  .stat.partial .n{color:var(--warn)}
+  .stat.open .n{color:var(--risk)}
+
+  .retake{
+    background:linear-gradient(180deg,#241f14,#1a1710); border:1px solid #4a4224; border-radius:var(--radius);
+    padding:14px 18px; margin-bottom:20px; font-size:13px; color:var(--ink-dim);
+  }
+  .retake b{color:var(--warn)}
+  .retake code{background:#232d28; padding:1px 5px; border-radius:4px; font-size:12px; color:var(--accent)}
+
+  .group{margin-bottom:22px}
+  .group h2{
+    font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-dim);
+    font-weight:600; margin:0 0 10px; display:flex; align-items:center; gap:8px;
+  }
+  .group h2 .count{background:var(--panel-2); border:1px solid var(--line); border-radius:999px; padding:1px 8px; font-size:11px; color:var(--ink-faint)}
+
+  .task{
+    background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--ink-faint);
+    border-radius:10px; padding:12px 14px; margin-bottom:8px; cursor:pointer; transition:.14s;
+  }
+  .task:hover{border-color:#43524b; transform:translateY(-1px)}
+  .task.done{border-left-color:var(--ok)}
+  .task.partial{border-left-color:var(--warn)}
+  .task.open{border-left-color:var(--risk)}
+  .task-row{display:flex; align-items:center; gap:10px}
+  .icon{font-size:14px; flex-shrink:0; width:18px; text-align:center}
+  .task.done .icon{color:var(--ok)}
+  .task.partial .icon{color:var(--warn)}
+  .task.open .icon{color:var(--risk)}
+  .tid{font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:11px; color:var(--secondary); font-weight:600; flex-shrink:0}
+  .ttitle{font-size:13.5px; font-weight:500; flex:1}
+  .ttags{display:flex; gap:5px; flex-shrink:0}
+  .tag{font-size:10px; padding:2px 7px; border-radius:5px; background:#232d28; color:var(--ink-dim); border:1px solid var(--line); white-space:nowrap}
+
+  .detail{display:none; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-size:12.5px; color:var(--ink-dim)}
+  .detail.on{display:block}
+  .detail strong{color:var(--ink)}
+
+  footer{padding:20px 26px 40px; color:var(--ink-faint); font-size:11.5px; max-width:1080px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Panel de Control de Proyecto <span class="badge">Prototipo</span></h1>
+  <div class="sub">Vista de control por tarea (no por columnas Kanban) — qué está hecho, qué quedó a medias, qué falta. Complementa a <code>kanban_andesscale.html</code>, no lo reemplaza.</div>
+  <div class="toolbar">
+    <input id="q" placeholder="Filtrar tareas…" autocomplete="off">
+    <div class="filters">
+      <button class="fbtn on" data-f="all">Todas</button>
+      <button class="fbtn" data-f="done">✅ Done</button>
+      <button class="fbtn" data-f="partial">◐ Parcial</button>
+      <button class="fbtn" data-f="open">○ Abierta</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="proto-note">
+    <b>Nota de alcance:</b> este archivo es un prototipo de una herramienta de control de proyecto más general que el usuario planea construir después como app propia (base <b>Reflex</b>, no Django — separado de SaaSMVP). Por ahora se mantiene simple: un único HTML estático que se actualiza a mano sesión a sesión, sin backend ni base de datos. Los datos de abajo reflejan el estado real de <code>Kanban_RanchoCachimba.md</code> al cierre de la sesión del 2026-08-17.
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="retake">
+    <b>🌙 Retomar mañana —</b> Etapa 1 completa en código, commiteada (<code>846d97f</code>). 3 cabos sueltos sin bloquear nada: <code>#RC-04</code> (morphicons/Babe/afiche sin decidir), <code>#RC-06</code> (hero con fotos de <em>prueba</em>, falta material definitivo), <code>#RC-08</code> (checklist de publicación sin ejecutar — solo el commit está hecho). <code>#RC-01</code> y <code>#RC-18</code> siguen sin empezar, dependen del usuario. Detalle completo en <code>Kanban_RanchoCachimba.md</code>.
+  </div>
+
+  <div id="groups"></div>
+</main>
+
+<footer>Fuente de verdad: <code>Kanban_RanchoCachimba.md</code> y <code>Kanban_Plataforma_v2.md</code>. Este archivo es una vista de control, no la fuente.</footer>
+
+<script>
+const TASKS = [
+ {id:'#RC-01', t:'Inventario del material del cliente', status:'open', tags:['Ruta crítica'],
+  d:'Sin empezar formalmente. Llegaron 3 archivos de prueba (2 fotos + 1 video) a Documentacion/ClientesRanchoCachimba/, ya usados en #RC-06, pero falta el brief/inventario como tal (horarios, precios, WhatsApp, nombre del pastor, torneos, perros).'},
+ {id:'#RC-02', t:'Gate de riesgo: galería y Cloudinary', status:'done', tags:['Gate'],
+  d:'AttributeError reproducido y arreglado (código muerto en GalleryItem). CLOUDINARY_PRESETS deduplicado. Veredicto: el hero de dos fotos se construye sin adelantar #DEUDA-02.'},
+ {id:'#RC-03', t:'Tokens de la guía oficial de color', status:'partial', tags:['Identidad'],
+  d:'accent_color agregado al modelo (faltaba), paleta oficial cargada, cero hex hardcodeado en el theme, Fraunces cargando. Pendiente: favicon/logo_footer reales — bloqueado por material, no por código.'},
+ {id:'#RC-04', t:'Crear y poblar LinkRevisar.md', status:'partial', tags:['Referencias'],
+  d:'8 entradas clasificadas (mínimo cumplido). 2 de las 5 URLs originales resultaron ser referencias de proceso/IA, no visuales — descartadas hacia #TOOL-04. 3 entradas "por revisar": morphicons, Babe, afiche de sheepdog trials.'},
+ {id:'#RC-05', t:'Registrar tema y rubro en el sistema', status:'done', tags:['Migración'],
+  d:'Tema ya estaba registrado como "ranchocachimba" (no "rancho"), no se renombró. TEMPLATE_CONFIGS[\'turismo_rural\'] agregado. Seed se queda en código.'},
+ {id:'#RC-06', t:'Hero de dos fotos: construcción', status:'partial', tags:['Diseño aprobado'],
+  d:'Layout split funcionando (grid asimétrico, tartán en CSS puro, tokens de marca). Fotos son de prueba, asignación arbitraria a los slots — falta pasada de diseño real con material definitivo.'},
+ {id:'#RC-07', t:'Navbar, footer y contacto mínimo', status:'done', tags:['Reutilización'],
+  d:'2 leftovers de Servelec corregidos (copyright, ubicación). Bug real en el botón WhatsApp arreglado (número con espacios rompía el link). Formulario reemplazado por WhatsApp con mensaje pre-cargado.'},
+ {id:'#RC-08', t:'Publicar la Etapa 1', status:'partial', tags:['Hito'],
+  d:'Código verificado (render.yaml, ALLOWED_HOSTS ya correctos). Publicación real — PR, deploy, DNS, salir de mode_under_construction en producción — sin ejecutar, checklist de 8 pasos en el Kanban.'},
+ {id:'#RC-18', t:'Acuerdo comercial y dominio', status:'open', tags:['Transversal'],
+  d:'Sin empezar — depende del usuario (propuesta, cobro, compra del dominio en NIC Chile), no de código.'},
+ {id:'#TOOL-04', t:'Design system / librería de componentes', status:'open', tags:['Tablero B', 'Nueva 17-08'],
+  d:'Card nueva, del Tablero B. El usuario maneja diseño con Tailwind y quiere mejorar cómo construye páginas con un design system. DoD por definir — no bloquea a Rancho Cachimba.'},
+];
+
+function icon(s){ return s==='done' ? '✓' : s==='partial' ? '◐' : '○'; }
+
+function renderStats(){
+  const c = {done:0, partial:0, open:0};
+  TASKS.forEach(t => c[t.status]++);
+  document.getElementById('stats').innerHTML = `
+    <div class="stat done"><div class="n">${c.done}</div><div class="l">Done</div></div>
+    <div class="stat partial"><div class="n">${c.partial}</div><div class="l">Parcial</div></div>
+    <div class="stat open"><div class="n">${c.open}</div><div class="l">Sin empezar</div></div>
+    <div class="stat"><div class="n">${TASKS.length}</div><div class="l">Total tareas</div></div>
+  `;
+}
+
+function renderGroups(filter, query){
+  const order = ['done','partial','open'];
+  const labels = {done:'✅ Done', partial:'◐ Parcial', open:'○ Sin empezar'};
+  const el = document.getElementById('groups');
+  el.innerHTML = order.map(status => {
+    let items = TASKS.filter(t => t.status === status);
+    if(filter !== 'all') items = items.filter(t => t.status === filter);
+    if(query) items = items.filter(t => (t.id+' '+t.t+' '+t.d+' '+t.tags.join(' ')).toLowerCase().includes(query));
+    if(!items.length) return '';
+    return `<div class="group"><h2>${labels[status]}<span class="count">${items.length}</span></h2>${
+      items.map(t => `
+        <div class="task ${t.status}" data-search="${(t.id+' '+t.t+' '+t.d+' '+t.tags.join(' ')).toLowerCase()}">
+          <div class="task-row">
+            <span class="icon">${icon(t.status)}</span>
+            <span class="tid">${t.id}</span>
+            <span class="ttitle">${t.t}</span>
+            <span class="ttags">${t.tags.map(tag=>`<span class="tag">${tag}</span>`).join('')}</span>
+          </div>
+          <div class="detail">${t.d}</div>
+        </div>`).join('')
+    }</div>`;
+  }).join('') || '<p style="color:var(--ink-faint)">Sin resultados.</p>';
+}
+
+let currentFilter = 'all', currentQuery = '';
+renderStats();
+renderGroups(currentFilter, currentQuery);
+
+document.addEventListener('click', e=>{
+  const task = e.target.closest('.task');
+  if(task){ task.querySelector('.detail').classList.toggle('on'); return; }
+  const fbtn = e.target.closest('.fbtn');
+  if(fbtn){
+    document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));
+    fbtn.classList.add('on');
+    currentFilter = fbtn.dataset.f;
+    renderGroups(currentFilter, currentQuery);
+  }
+});
+
+document.getElementById('q').addEventListener('input', e=>{
+  currentQuery = e.target.value.toLowerCase().trim();
+  renderGroups(currentFilter, currentQuery);
+});
+</script>
+</body>
+</html>

@@ -1,10 +1,11 @@
 # Tablero B — Plataforma, tooling y flujos de trabajo
 
-> **Estado:** PLAN — pendiente de aprobación. Ningún archivo del repo fue tocado.
+> **Estado:** PLAN — sin empezar, salvo `#DEUDA-01` (DONE, resuelto de paso en `#RC-02` del Tablero A) y `#TOOL-04` (nueva, agregada 2026-08-17 a partir de una observación del usuario durante la sesión de Rancho Cachimba). El resto sigue tal cual estaba: ningún otro archivo de este tablero fue tocado.
 > **Origen:** auditoría del directorio real (snapshot `estructura_proyecto.md`), README técnico, skill `andesscale-saas` y catálogo de plugins/MCP disponibles en tu cuenta.
 > **Regla:** ninguna card de este tablero debe bloquear la publicación de Rancho Cachimba, salvo las marcadas **⚠ adelantable**.
 > **Ejecución:** el desarrollo se hace desde **Claude Code sobre el repo**. Eso sube la prioridad de todo lo que da contexto local al agente — `#TOOL-07` pasa a ser la primera card del tablero, porque sin `CLAUDE.md` cada sesión en la terminal arranca a ciegas.
-> **Fecha:** 17-08-2026 · v2
+> **Fecha:** 17-08-2026 · v2 — última revisión de estado el mismo día, sesión de ejecución de Rancho Cachimba.
+> **🌙 Retomar mañana:** este tablero no es la ruta crítica hoy. Si se retoma, empezar por `#TOOL-04` (design system) o `#TOOL-07` (`CLAUDE.md`) — ver Tablero A para el detalle de qué se dejó abierto ahí.
 
 ---
 

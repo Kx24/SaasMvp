@@ -63,7 +63,15 @@
   .card:hover{border-color:#43524b; border-left-color:var(--secondary); transform:translateY(-1px)}
   .card.risk{border-left-color:var(--risk)}
   .card.warn{border-left-color:var(--warn)}
-  .card.done{opacity:.55}
+  .card.done{opacity:.62; border-left-color:var(--ok)}
+  .card.done .cid::after{content:" ✓"; color:var(--ok)}
+  .card.partial{border-left-color:var(--warn)}
+  .card.partial .cid::after{content:" ◐"; color:var(--warn)}
+  .retake{
+    background:linear-gradient(180deg,#241f14,#1a1710); border:1px solid #4a4224; border-radius:var(--radius);
+    padding:14px 18px; margin-bottom:16px; font-size:13px; color:var(--ink-dim);
+  }
+  .retake b{color:var(--warn)}
   .cid{font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:11px; color:var(--secondary); font-weight:600}
   .ctitle{margin:4px 0 0; font-size:13.5px; font-weight:500; line-height:1.35}
   .ctags{margin-top:8px; display:flex; gap:5px; flex-wrap:wrap}
@@ -93,7 +101,7 @@
 
 <header>
   <h1>AndesScale · Tableros de trabajo</h1>
-  <div class="sub">Plan v2 · 17-08-2026 — pendiente de aprobación. Ningún archivo del repositorio fue modificado. Ejecución desde Claude Code sobre el repo.</div>
+  <div class="sub">Plan v2 · 17-08-2026 — Etapa 1 de Rancho Cachimba con código completo y commiteado (<code>846d97f</code>). Publicación real pendiente. Ejecución desde Claude Code sobre el repo.</div>
   <div class="tabs">
     <button class="tab on" data-board="a">Tablero A · Rancho Cachimba</button>
     <button class="tab" data-board="b">Tablero B · Plataforma y flujos</button>
@@ -110,6 +118,9 @@
 </header>
 
 <main>
+  <div class="retake">
+    <b>🌙 Retomar mañana —</b> Etapa 1 (<code>#RC-01</code>–<code>#RC-08</code>) tiene el código completo y commiteado. Quedan 3 cabos sueltos sin bloquear nada: <code>#RC-04</code> (morphicons/Babe/afiche sin decidir), <code>#RC-06</code> (hero con fotos de <em>prueba</em>, falta material definitivo), <code>#RC-08</code> (checklist de publicación sin ejecutar — commit del código sí, PR/deploy/DNS no). <code>#RC-01</code> y <code>#RC-18</code> siguen sin empezar, dependen del usuario no de código. Detalle completo en <code>Kanban_RanchoCachimba.md</code>.
+  </div>
   <div class="note" id="ctx"></div>
   <div class="board on" id="board-a"></div>
   <div class="board" id="board-b"></div>
@@ -122,8 +133,8 @@ const CTX = {
   a: `<h3>Rancho Interactivo Cachimba · Maullín — MVP por etapas</h3>
       Dos productos en un solo sitio: la <strong>granja para familias y colegios</strong> y el <strong>pastoreo con border collies</strong> de un adiestrador que compite internacionalmente. Ese pastor es el activo que nadie puede copiar, y el sitio funciona además como su carta de presentación.<br><br>
       <strong>Cambios de la v2:</strong> la identidad ya está entregada (logo, favicon y guía de color), el material del cliente ya llegó, el hero de dos fotos está decidido, y el tablero se reordenó en <strong>etapas MVP</strong> — la Etapa 1 saca el "en construcción" y deja algo real andando sin que nada se rehaga después.<br><br>
-      <strong>Insumo formal nuevo:</strong> <code>Documentacion/clientes/rancho-cachimba/LinkRevisar.md</code> concentra las referencias de diseño. Cada entrada nombra el componente que afecta, y lo descartado se queda con su motivo. Existe porque el desarrollo pasa a Claude Code: el agente en la terminal no ve el historial del chat.<br><br>
-      <strong>Riesgo vivo:</strong> <code>#RC-02</code>. El hero de dos fotos necesita dos slots de media donde el patrón CDCA hoy resuelve uno.`,
+      <strong>Insumo formal nuevo:</strong> <code>Documentacion/LinkRevisar.md</code> concentra las referencias de diseño (ruta real, no <code>clientes/rancho-cachimba/</code> como decía la v2 original). Cada entrada nombra el componente que afecta, y lo descartado se queda con su motivo. Existe porque el desarrollo pasa a Claude Code: el agente en la terminal no ve el historial del chat.<br><br>
+      <strong>Riesgo resuelto:</strong> <code>#RC-02</code> — el gate se corrió el 17-08. Veredicto: el hero de dos fotos se construye sin adelantar <code>#DEUDA-02</code>. Ya implementado en <code>#RC-06</code>.`,
   b: `<h3>Plataforma, tooling y flujos</h3>
       Salido de auditar el árbol real del repo contra el README y la skill. Lo más serio no es la deuda de código sino la <strong>deriva entre documentación y código</strong>: hay comandos documentados que no existen y un campo documentado en el modelo equivocado. Todo agente que abra el proyecto arranca con supuestos falsos.<br><br>
       <strong>Cambio de la v2:</strong> con la ejecución movida a Claude Code, <code>#TOOL-07</code> (<code>CLAUDE.md</code> en la raíz) sube a primera card — sin él, cada sesión en la terminal arranca a ciegas. Y <code>#FLOW-04</code> se amplía: los insumos de diseño se versionan en el repo, con <code>LinkRevisar.md</code> como convención por cliente.<br><br>
@@ -131,30 +142,30 @@ const CTX = {
 };
 
 const A = [
- {id:'#RC-01',t:'Inventario del material del cliente',col:0,lvl:'risk',tags:['Etapa 1','Ruta crítica'],
+ {id:'#RC-01',t:'Inventario del material del cliente',col:0,lvl:'risk',tags:['Etapa 1','Ruta crítica','Sin empezar'],
   d:'Descomprimir y catalogar el material recibido: qué fotos hay, cuáles sirven, qué resolución, qué falta. Cruzar contra las dos fotos que el hero necesita — pastoreo en faena y visitante con animal. Pedir al cliente lo que no está: horarios, precios, dirección y coordenadas, WhatsApp, correo de destino, nombre del pastor, torneos y nombres de los perros.',
-  dod:'Inventario en Documentacion/clientes/rancho-cachimba/brief.md con lista explícita de qué falta y quién lo consigue: cliente o diseñador gráfico.'},
- {id:'#RC-02',t:'Gate de riesgo: galería y Cloudinary',col:0,lvl:'risk',tags:['Etapa 1','Bloquea RC-05'],
+  dod:'Inventario en Documentacion/clientes/rancho-cachimba/brief.md con lista explícita de qué falta y quién lo consigue: cliente o diseñador gráfico. — Sin empezar formalmente. Sí llegaron 3 archivos de prueba (2 fotos + 1 video) a Documentacion/ClientesRanchoCachimba/, usados en #RC-06, pero falta el inventario/brief como tal.'},
+ {id:'#RC-02',t:'Gate de riesgo: galería y Cloudinary',col:0,lvl:'risk',tags:['Etapa 1','DONE'],status:'done',
   d:'Reproducir el AttributeError de GalleryItem.get_background_image_url() con datos de Servelec y auditar las claves duplicadas de CLOUDINARY_PRESETS. Urgente porque el hero de dos fotos necesita dos slots de media donde el patrón CDCA hoy resuelve uno.',
-  dod:'Veredicto explícito: "el hero de dos slots se puede construir" o "hay que adelantar #DEUDA-02".'},
- {id:'#RC-03',t:'Tokens de la guía oficial de color',col:0,lvl:'',tags:['Etapa 1','Identidad entregada'],
+  dod:'✅ DONE (17-08). Reproducido y confirmado con datos reales de Servelec — era código muerto en GalleryItem, se eliminó. Presets deduplicados. Veredicto: el hero de dos fotos SÍ se puede construir sin adelantar #DEUDA-02.'},
+ {id:'#RC-03',t:'Tokens de la guía oficial de color',col:0,lvl:'',tags:['Etapa 1','DONE parcial'],status:'partial',
   d:'Cargar la paleta del cliente en ClientSettings como custom properties: #064B20 Verde Rancho · #0B642B Verde Bosque · #FFD500 Amarillo Cachimba · #EFB900 Amarillo Dorado · #FFFFFF · #EAF4EC Verde Muy Claro · #6B4F32 Tierra · #172019 Carbón, proporción 60/30/10. Subir logo y favicon a tenants/rancho-cachimba/branding/. Tipografía propuesta: Fraunces display + Inter cuerpo.',
-  dod:'Tokens en el tenant de desarrollo, cero hex hardcodeados en el tema.'},
- {id:'#RC-04',t:'Crear y poblar LinkRevisar.md',col:0,lvl:'warn',tags:['Etapa 1','Referencias'],
-  d:'Consolidar todas las referencias visuales en Documentacion/clientes/rancho-cachimba/LinkRevisar.md con formato fijo: link · qué se toma · a qué componente aplica · estado. Incluye lo conversado: toque escocés, Babe, afiche de sheepdog trials. Registrar aquí la decisión ya tomada — lo escocés entra por textura y no por color, vía un tartán tejido con los propios hex de la marca (#064B20 × #0B642B × #6B4F32 con hilo #FFD500), CSS puro y exportable como patrón para redes.',
-  dod:'Archivo creado y commiteado, con al menos 8 entradas clasificadas y cada una apuntando a un componente.'},
- {id:'#RC-05',t:'Registrar tema y rubro en el sistema',col:0,lvl:'warn',tags:['Etapa 1','Migración'],
+  dod:'🟡 DONE parcial (17-08). accent_color agregado al modelo (faltaba), paleta cargada, cero hex hardcodeado, Fraunces cargando. Logo ya estaba subido de antes. Pendiente: favicon/logo_footer reales (bloqueado por material, no por código).'},
+ {id:'#RC-04',t:'Crear y poblar LinkRevisar.md',col:0,lvl:'warn',tags:['Etapa 1','DONE parcial'],status:'partial',
+  d:'Consolidar todas las referencias visuales en Documentacion/LinkRevisar.md con formato fijo: link · qué se toma · a qué componente aplica · estado. Incluye lo conversado: toque escocés, Babe, afiche de sheepdog trials. Registrar aquí la decisión ya tomada — lo escocés entra por textura y no por color, vía un tartán tejido con los propios hex de la marca (#064B20 × #0B642B × #6B4F32 con hilo #FFD500), CSS puro y exportable como patrón para redes.',
+  dod:'🟡 DONE parcial (17-08). 8 entradas clasificadas (mínimo cumplido) — 2 de las 5 URLs originales resultaron ser referencias de proceso/IA, no visuales, y quedaron descartadas hacia #TOOL-04. 3 entradas siguen "por revisar": morphicons, Babe, afiche de sheepdog trials.'},
+ {id:'#RC-05',t:'Registrar tema y rubro en el sistema',col:0,lvl:'warn',tags:['Etapa 1','DONE'],status:'done',
   d:'Client.THEME_CHOICES necesita el valor "rancho", lo que exige migración (precedente 0015). TEMPLATE_CONFIGS necesita el rubro turismo_rural. Y hay que decidir si el seed sigue en código o pasa a seed_data.json, porque hoy templates_library/ solo tiene .gitkeep.',
-  dod:'provision_tenant --industry turismo_rural --theme rancho corre sin error en local.'},
- {id:'#RC-06',t:'Hero de dos fotos: construcción',col:0,lvl:'',tags:['Etapa 1','Diseño aprobado'],
+  dod:'✅ DONE (17-08). El tema ya estaba registrado como "ranchocachimba" (no "rancho", trabajo previo a este plan v2) — no se renombró. TEMPLATE_CONFIGS[\'turismo_rural\'] agregado. Seed se queda en código, no pasa a seed_data.json.'},
+ {id:'#RC-06',t:'Hero de dos fotos: construcción',col:0,lvl:'',tags:['Etapa 1','DONE con material de prueba'],status:'partial',
   d:'Composición asimétrica, no 50/50: pastoreo dominante con tratamiento contrastado y desaturado, granja más chica y desplazada hacia abajo, costura de tartán entre ambas, y bloque de texto sólido que invade la foto izquierda. Consulta LinkRevisar.md.',
-  dod:'Hero renderizando con ?tenant=rancho-cachimba en local, con las fotos reales del cliente.'},
- {id:'#RC-07',t:'Navbar, footer y contacto mínimo',col:0,lvl:'',tags:['Etapa 1','Reutilización'],
+  dod:'🟡 DONE con material de prueba (17-08). Layout split construido y funcionando (grid asimétrico, tartán en CSS puro). Fotos usadas son de prueba (zar.jpeg/FotoGaleria.jpeg), asignación arbitraria a los slots — falta pasada de diseño real con material definitivo antes de publicar.'},
+ {id:'#RC-07',t:'Navbar, footer y contacto mínimo',col:0,lvl:'',tags:['Etapa 1','DONE'],status:'done',
   d:'Reutilizar los componentes compartidos que ya existen. En esta etapa el contacto es solo botón de WhatsApp directo, sin formulario todavía.',
-  dod:'Navegación y footer coherentes con la marca; el WhatsApp abre con mensaje pre-cargado.'},
- {id:'#RC-08',t:'Publicar la Etapa 1',col:0,lvl:'',tags:['Etapa 1','Hito'],
+  dod:'✅ DONE (17-08). 2 leftovers de Servelec corregidos en el footer (copyright, ubicación). Bug real arreglado: el número de WhatsApp real tenía espacios y rompía el link wa.me. Mensaje pre-cargado agregado. Formulario reemplazado por WhatsApp.'},
+ {id:'#RC-08',t:'Publicar la Etapa 1',col:0,lvl:'',tags:['Etapa 1','Código listo'],status:'partial',
   d:'Salir de mode_under_construction, deploy en Render, DNS, SSL y alta en ALLOWED_HOSTS.',
-  dod:'https://ranchocachimba.cl en vivo con el hero real. El cliente lo ve andando.'},
+  dod:'🟡 Código listo (17-08) — render.yaml y ALLOWED_HOSTS ya estaban correctos, nada que cambiar. Publicación real (commit ✓, PR, deploy, DNS, salir de mode_under_construction en prod) queda en manos del usuario — checklist de 8 pasos en Kanban_RanchoCachimba.md.'},
 
  {id:'#RC-09',t:'Diseño y construcción por componente',col:1,lvl:'warn',tags:['Etapa 2','Librería'],
   d:'Aquí se cumple lo definido: la landing se arma sobre los componentes disponibles, mejorando cada uno y su reutilización. Orden: experiencias → el pastor → galería → cómo visitar → colegios. Regla por componente: antes de escribir código, revisar si ya existe en servelec, andesscale o themes/default; si existe en más de un lugar con diferencias, generalizar y subir a templates/components/ en vez de crear una cuarta versión. Caso testigo: hero.html existe hoy en tres versiones divergentes — la propuesta es un solo hero con variante layout single | split, para que Cachimba estrene split y Servelec no se toque.',
@@ -194,9 +205,9 @@ const A = [
 ];
 
 const B = [
- {id:'#DEUDA-01',t:'Auditoría de CLOUDINARY_PRESETS',col:0,lvl:'warn',tags:['Deuda','Adelantable'],
+ {id:'#DEUDA-01',t:'Auditoría de CLOUDINARY_PRESETS',col:0,lvl:'warn',tags:['Deuda','DONE'],status:'done',
   d:'Claves duplicadas hacen que "gane" un preset u otro de forma no determinista. Deduplicar y documentar cada preset con su uso. Es prerequisito de #RC-02.',
-  dod:'Un solo punto de definición y un test que falla si se reintroduce una clave duplicada.'},
+  dod:'✅ DONE (17-08, resuelto de paso en #RC-02 del Tablero A). gallery_card/gallery_full deduplicados. Pendiente menor: no se agregó el test que falla ante clave duplicada (no bloqueaba #RC-06).'},
  {id:'#DEUDA-04',t:'Limpieza de raíz del repositorio',col:0,lvl:'warn',tags:['Higiene','Adelantable'],
   d:'En la raíz hay .env, tres bases SQLite (una duplicada en config/), el virtualenv env/ con ~14.000 archivos, staticfiles/ duplicado, tres CSV de auditoría sueltos y un archivo llamado "exit" que quedó de un typo de shell. Además .claude/ vive dentro de Documentacion/ en vez de la raíz.',
   dod:'git status limpio en un clone fresco y .env confirmado fuera del historial. Si alguna vez se commiteó, rotar todas las credenciales — borrarlo no basta.'},
@@ -287,6 +298,9 @@ const B = [
   d:'Los prompts buenos y las referencias visuales viven hoy en historiales de chat. Con la ejecución movida a Claude Code eso deja de funcionar: el agente en la terminal no ve el chat. Dos piezas: (1) Documentacion/prompts/ con prompt_stitch.md, prompt_contenido_cliente.md y prompt_seo.md, versionados y con nota de qué funcionó. (2) LinkRevisar.md como convención por cliente en Documentacion/clientes/<slug>/, con formato fijo: link · qué se toma · a qué componente aplica · estado. Estrena en Rancho Cachimba con #RC-04 y pasa a formar parte del checklist de brief de #FLOW-01. Importa más de lo que parece: cada entrada apunta a un componente, así que alimenta directo la librería de #DS-02 en vez de quedar como moodboard decorativo, y lo descartado se queda con su motivo.',
   dod:'Ambas carpetas en el repo y el LinkRevisar.md de Rancho Cachimba poblado y en uso.'},
 
+ {id:'#TOOL-04',t:'Design system / librería de componentes para los themes',col:3,lvl:'',tags:['Diferido','Nueva 17-08'],
+  d:'Card nueva, agregada a partir de una observación directa del usuario durante la sesión de Rancho Cachimba: maneja diseño/dev con Tailwind y quiere mejorar cómo construye páginas con un design system, en vez de repetir componentes ad-hoc por tema. Evidencia concreta: el trabajo de #RC-03/06/07 quedó con style="" inline y CSS vars en vez de clases Tailwind (decisión explícita de no retocarlo ahora), y cada theme define sus tokens de color por separado en su propio tailwind.config — la misma raíz que ya había detectado hero_cachimba.html: hero.html tiene tres versiones divergentes entre temas.',
+  dod:'Por definir con el usuario — placeholder hasta que se retome, no bloquea a Rancho Cachimba. Relacionado: #RC-09.'},
  {id:'#DB-04',t:'Preparar pgvector para el asistente',col:3,lvl:'',tags:['Diferido'],
   d:'Para apps/assistant/. Decisión ya tomada: pgvector sobre Neon, no FAISS. No abrir hasta tener 3+ clientes pagando — es la card más fácil de empezar y la que menos ingreso genera hoy.',
   dod:'Congelada por decisión explícita.'},
@@ -304,7 +318,7 @@ function render(boardId, cards, cols){
     const items = cards.filter(c=>c.col===i);
     return `<div class="col"><h2>${name}<span class="count">${items.length}</span></h2>${
       items.map(c=>`
-        <div class="card ${c.lvl}" data-search="${(c.id+' '+c.t+' '+c.d+' '+c.tags.join(' ')).toLowerCase()}">
+        <div class="card ${c.lvl} ${c.status||''}" data-search="${(c.id+' '+c.t+' '+c.d+' '+c.tags.join(' ')).toLowerCase()}">
           <div class="cid">${c.id}</div>
           <p class="ctitle">${c.t}</p>
           <div class="ctags">${c.tags.map(t=>{

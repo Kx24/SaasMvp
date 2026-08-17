@@ -1,11 +1,24 @@
 # Tablero A — Rancho Interactivo Cachimba · hasta publicación
 
-> **Estado:** PLAN — pendiente de aprobación. Ningún archivo del repo fue modificado.
+> **Estado:** EN EJECUCIÓN — Etapa 1 con código completo (`#RC-01` a `#RC-08`), commiteado en `feature/RanchocachimbaEtapa1` (`846d97f`). Publicación real (deploy/DNS) pendiente, en manos del usuario. Ver `## 🌙 Retomar mañana` abajo para dónde seguir.
 > **Cliente:** Rancho Interactivo CACHIMBA · Maullín, Región de Los Lagos.
-> **Slug propuesto:** `rancho-cachimba` · **Tema propuesto:** `rancho` · **Rubro:** `turismo_rural`
+> **Slug real:** `ranchocachimba` · **Tema real:** `ranchocachimba` (no `rancho` como decía la v2 original — ver nota en `#RC-05`) · **Rubro:** `turismo_rural`
 > **Cobro:** fuera de plataforma (transferencia/factura). Observaciones → Tablero B `#PAY-02`.
 > **Ejecución:** el desarrollo se hace desde **Claude Code sobre el repo**. Toda ruta de este tablero es relativa a la raíz del proyecto, y todo insumo de diseño vive versionado en el repo — no en historiales de chat.
-> **Actualizado:** 17-08-2026 · v2
+> **Actualizado:** 17-08-2026 · v2 (sesión de ejecución del mismo día)
+
+---
+
+## 🌙 Retomar mañana
+
+**Dónde quedó todo:** Etapa 1 completa a nivel de código (`#RC-01`–`#RC-08`), commiteada. `#RC-01` (inventario formal de material) y `#RC-18` (dominio/acuerdo) siguen sin trabajar — dependen del usuario, no de código. Servidor de dev quedó con `mode_under_construction=False` para revisión visual; recordar que es solo estado local, no afecta producción.
+
+**Los 3 cabos sueltos concretos (no bloquean, pero quedaron abiertos):**
+1. `#RC-04` — `morphicons.com` sin decidir (¿vale la pena la dependencia JS nueva para el toggle del navbar?), *Babe* y el afiche de sheepdog trials sin URL ni componente preciso.
+2. `#RC-06` — el hero usa 2 fotos de **prueba** (`zar.jpeg`/`FotoGaleria.jpeg`), asignación arbitraria de cuál va en qué slot. Falta pasada de diseño real con el material definitivo del cliente antes de publicar en serio.
+3. `#RC-08` — checklist de 8 pasos para publicar, ninguno ejecutado todavía (commit del código sí, el resto — PR, deploy, DNS — no).
+
+**Para retomar:** decidir si se sigue en Etapa 1 (cerrar los 3 cabos sueltos + ejecutar el checklist de publicación) o se salta a Etapa 2 (`#RC-09` en adelante) dejando la publicación real para después. `#TOOL-04` (design system, Tablero B) queda anotado para cuando se quiera retomar aparte — no es parte de la ruta crítica de Cachimba.
 
 ---
 
@@ -25,7 +38,7 @@
 
 ## Convención nueva: `LinkRevisar.md`
 
-**Ruta:** `Documentacion/clientes/rancho-cachimba/LinkRevisar.md`
+**Ruta:** `Documentacion/LinkRevisar.md` (corregido 2026-08-17 — el archivo real vive en la raíz de `Documentacion/`, no en `Documentacion/clientes/rancho-cachimba/`; esa carpeta nunca se creó. Igual de accesible para Claude Code, no se movió).
 
 Archivo de referencias que alimenta toda la etapa de definición de diseño. **Ninguna referencia entra al diseño sin pasar por aquí.** Existe por una razón concreta: si el desarrollo se hace desde Claude Code en la terminal, el agente tiene que poder leer las referencias desde el repo — no sirve que vivan en el historial de un chat que la próxima sesión no ve.
 
@@ -96,10 +109,19 @@ Subir logo y favicon a `tenants/rancho-cachimba/branding/`.
 
 **Corrección (2026-08-17):** el logo **ya estaba subido** en `ClientSettings.logo` (`branding/jnqcfp8cm5leo6zet7tf`) — la nota anterior de "sin branding" era incorrecta, no se verificó la BD antes de escribirla. Sigue pendiente: `favicon` y `logo_footer` (ambos `None` hoy) y las fotos/video del hero (`GalleryItem` en `gallery_type='hero'`: 0 registros) — el cliente ya entregó ese material (fotos y videos), falta subirlo. Eso es `#RC-01`/`#RC-06`, no bloquea el resto de `#RC-03`.
 
-### `#RC-04` — Crear y poblar `LinkRevisar.md`
+### `#RC-04` — Crear y poblar `LinkRevisar.md` — **DONE parcial (2026-08-17)**
 Consolidar todas las referencias visuales con el formato de arriba. Incluye lo ya conversado: toque escocés, *Babe*, afiche de sheepdog trials.
 **Decisión ya tomada, registrarla aquí:** lo escocés entra **por textura, no por color** — un tartán tejido con los propios hex de la marca (`#064B20` × `#0B642B` × `#6B4F32` con hilo `#FFD500`). Es CSS puro, sin imágenes, y el diseñador gráfico lo puede exportar como patrón para redes.
 **DoD:** archivo creado, commiteado, con al menos 8 entradas clasificadas y cada una apuntando a un componente.
+
+**Resultado:**
+- El archivo tenía 5 URLs sueltas sin formato. Antes de tabularlas a ciegas, se visitaron las 5 (`WebFetch`) para no clasificar "a ojo" — resultado: **solo 2 de las 5 eran referencias visuales del sitio**. `impeccable.style` y `github.com/ryanthedev/design-for-ai` resultaron ser herramientas/metodología para diseñar *con* IA (vocabulario de comandos, flujo research→plan→mock→build) — no ejemplos de cómo debe verse Rancho Cachimba. Se dejaron registradas igual, marcadas `❌ descartado` con el motivo (regla del Kanban: "lo descartado se queda, con el motivo"), y apuntadas como candidatas a `#TOOL-04` en vez de a este tablero.
+- `behance.net` también quedó `❌ descartado` — apunta a la plataforma genérica, no a un proyecto puntual, así que no cumple "la idea específica, no me gusta".
+- `deere.com/tractores` quedó `✅ aprobado` — fotografía real de campo + producto, paleta verde/tierra que ya coincide con `#RC-03`. Aplica a `hero.html` y `services.html`.
+- `morphicons.com` quedó `🟡 por revisar` — aplicaría al toggle del menú mobile en `navbar.html`, pero agrega una dependencia JS nueva; no se decidió si vale la pena en esta etapa.
+- El tartán quedó `✅ aprobado e implementado` (ya construido en `#RC-06`).
+- *Babe* y el afiche de sheepdog trials se registraron **sin URL** — no se proporcionó una, y "el tono de la película" o "la composición del afiche" no alcanza para cumplir la regla de "idea específica apuntando a un componente" sin más detalle. Quedan `🟡 por revisar`, con el hueco explícito (falta la referencia concreta y el componente exacto) en vez de inventar una clasificación.
+- Total: **8 entradas**, DoD cumplido en cantidad — pero **3 de las 8 siguen abiertas** (`morphicons`, *Babe*, afiche), no es un DoD 100% cerrado todavía.
 
 ### `#RC-05` — Registrar tema y rubro en el sistema — **DONE (2026-08-17)**
 - `Client.THEME_CHOICES` necesita el valor `rancho` → **requiere migración** (precedente `0015`).
