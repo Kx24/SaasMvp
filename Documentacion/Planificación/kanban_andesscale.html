@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AndesScale · Tableros Kanban</title>
+<style>
+  :root{
+    --bg:#0f1311; --panel:#171d1a; --panel-2:#1e2622; --line:#2b3531;
+    --ink:#e8e6df; --ink-dim:#9aa39d; --ink-faint:#6b746f;
+    --primary:#2F4536; --secondary:#C8763C; --accent:#7fa88c;
+    --ok:#5f9e6e; --warn:#c9a227; --risk:#c05a4a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-size:14px; line-height:1.5;
+  }
+  header{
+    padding:22px 26px 18px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#1a221e 0%, #131816 100%);
+    position:sticky; top:0; z-index:20;
+  }
+  h1{margin:0; font-size:19px; letter-spacing:-.01em; font-weight:600}
+  .sub{color:var(--ink-dim); font-size:12.5px; margin-top:5px}
+  .tabs{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap}
+  .tab{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--ink-dim);
+    padding:7px 15px; border-radius:999px; cursor:pointer; font-size:13px;
+    font-family:inherit; transition:.15s;
+  }
+  .tab:hover{color:var(--ink); border-color:#3c4a44}
+  .tab.on{background:var(--secondary); border-color:var(--secondary); color:#1a1208; font-weight:600}
+  .toolbar{display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap}
+  .toolbar input{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--ink);
+    padding:7px 12px; border-radius:9px; font-size:13px; font-family:inherit; min-width:210px;
+  }
+  .toolbar input:focus{outline:none; border-color:var(--accent)}
+  .legend{display:flex; gap:14px; font-size:11.5px; color:var(--ink-faint); margin-left:auto; flex-wrap:wrap}
+  .legend b{font-weight:500}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+
+  main{padding:22px 26px 60px}
+  .board{display:none; grid-template-columns:repeat(4,minmax(240px,1fr)); gap:14px; align-items:start}
+  .board.on{display:grid}
+  @media(max-width:1100px){.board.on{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:680px){.board.on{grid-template-columns:1fr}}
+
+  .col{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:12px; min-height:120px}
+  .col h2{
+    margin:0 0 11px; font-size:11.5px; text-transform:uppercase; letter-spacing:.09em;
+    color:var(--ink-dim); font-weight:600; display:flex; justify-content:space-between; align-items:center;
+  }
+  .count{background:var(--panel-2); border:1px solid var(--line); border-radius:999px; padding:1px 8px; font-size:11px; color:var(--ink-faint)}
+
+  .card{
+    background:var(--panel-2); border:1px solid var(--line); border-left:3px solid var(--accent);
+    border-radius:10px; padding:11px 12px; margin-bottom:9px; cursor:pointer; transition:.14s;
+  }
+  .card:hover{border-color:#43524b; border-left-color:var(--secondary); transform:translateY(-1px)}
+  .card.risk{border-left-color:var(--risk)}
+  .card.warn{border-left-color:var(--warn)}
+  .card.done{opacity:.55}
+  .cid{font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:11px; color:var(--secondary); font-weight:600}
+  .ctitle{margin:4px 0 0; font-size:13.5px; font-weight:500; line-height:1.35}
+  .ctags{margin-top:8px; display:flex; gap:5px; flex-wrap:wrap}
+  .tag{font-size:10.5px; padding:2px 7px; border-radius:5px; background:#232d28; color:var(--ink-dim); border:1px solid var(--line)}
+  .tag.a{background:#2c3a30; color:#a8ccb2; border-color:#3a4c3f}
+  .tag.r{background:#3a2622; color:#e0a094; border-color:#4d3129}
+  .tag.w{background:#38321a; color:#dbc06a; border-color:#4a4224}
+
+  .detail{display:none; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-size:12.5px; color:var(--ink-dim)}
+  .detail.on{display:block}
+  .detail strong{color:var(--ink); font-weight:600}
+  .detail ul{margin:6px 0 0; padding-left:17px}
+  .detail li{margin-bottom:3px}
+  .dod{margin-top:8px; padding:7px 9px; background:#1a231d; border-radius:7px; border:1px solid #26332b; font-size:12px}
+  .dod b{color:var(--accent); font-weight:600}
+
+  .note{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px 18px; margin-bottom:18px; font-size:13px; color:var(--ink-dim);
+  }
+  .note h3{margin:0 0 8px; font-size:14px; color:var(--ink); font-weight:600}
+  .note code{background:#232d28; padding:1px 5px; border-radius:4px; font-size:12px; color:var(--accent)}
+  footer{padding:0 26px 40px; color:var(--ink-faint); font-size:11.5px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AndesScale · Tableros de trabajo</h1>
+  <div class="sub">Plan v2 · 17-08-2026 — pendiente de aprobación. Ningún archivo del repositorio fue modificado. Ejecución desde Claude Code sobre el repo.</div>
+  <div class="tabs">
+    <button class="tab on" data-board="a">Tablero A · Rancho Cachimba</button>
+    <button class="tab" data-board="b">Tablero B · Plataforma y flujos</button>
+  </div>
+  <div class="toolbar">
+    <input id="q" placeholder="Filtrar cards…" autocomplete="off">
+    <div class="legend">
+      <span><span class="dot" style="background:var(--risk)"></span><b>Riesgo / bloqueador</b></span>
+      <span><span class="dot" style="background:var(--warn)"></span><b>Adelantable</b></span>
+      <span><span class="dot" style="background:var(--accent)"></span><b>Normal</b></span>
+      <span>Clic en una card para ver alcance y DoD</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="note" id="ctx"></div>
+  <div class="board on" id="board-a"></div>
+  <div class="board" id="board-b"></div>
+</main>
+
+<footer>Fuente de verdad: <code>Kanban_RanchoCachimba.md</code> y <code>Kanban_Plataforma_v2.md</code>. Este tablero es la vista.</footer>
+
+<script>
+const CTX = {
+  a: `<h3>Rancho Interactivo Cachimba · Maullín — MVP por etapas</h3>
+      Dos productos en un solo sitio: la <strong>granja para familias y colegios</strong> y el <strong>pastoreo con border collies</strong> de un adiestrador que compite internacionalmente. Ese pastor es el activo que nadie puede copiar, y el sitio funciona además como su carta de presentación.<br><br>
+      <strong>Cambios de la v2:</strong> la identidad ya está entregada (logo, favicon y guía de color), el material del cliente ya llegó, el hero de dos fotos está decidido, y el tablero se reordenó en <strong>etapas MVP</strong> — la Etapa 1 saca el "en construcción" y deja algo real andando sin que nada se rehaga después.<br><br>
+      <strong>Insumo formal nuevo:</strong> <code>Documentacion/clientes/rancho-cachimba/LinkRevisar.md</code> concentra las referencias de diseño. Cada entrada nombra el componente que afecta, y lo descartado se queda con su motivo. Existe porque el desarrollo pasa a Claude Code: el agente en la terminal no ve el historial del chat.<br><br>
+      <strong>Riesgo vivo:</strong> <code>#RC-02</code>. El hero de dos fotos necesita dos slots de media donde el patrón CDCA hoy resuelve uno.`,
+  b: `<h3>Plataforma, tooling y flujos</h3>
+      Salido de auditar el árbol real del repo contra el README y la skill. Lo más serio no es la deuda de código sino la <strong>deriva entre documentación y código</strong>: hay comandos documentados que no existen y un campo documentado en el modelo equivocado. Todo agente que abra el proyecto arranca con supuestos falsos.<br><br>
+      <strong>Cambio de la v2:</strong> con la ejecución movida a Claude Code, <code>#TOOL-07</code> (<code>CLAUDE.md</code> en la raíz) sube a primera card — sin él, cada sesión en la terminal arranca a ciegas. Y <code>#FLOW-04</code> se amplía: los insumos de diseño se versionan en el repo, con <code>LinkRevisar.md</code> como convención por cliente.<br><br>
+      Ninguna card aquí bloquea la publicación, salvo las marcadas <strong>adelantable</strong>.`
+};
+
+const A = [
+ {id:'#RC-01',t:'Inventario del material del cliente',col:0,lvl:'risk',tags:['Etapa 1','Ruta crítica'],
+  d:'Descomprimir y catalogar el material recibido: qué fotos hay, cuáles sirven, qué resolución, qué falta. Cruzar contra las dos fotos que el hero necesita — pastoreo en faena y visitante con animal. Pedir al cliente lo que no está: horarios, precios, dirección y coordenadas, WhatsApp, correo de destino, nombre del pastor, torneos y nombres de los perros.',
+  dod:'Inventario en Documentacion/clientes/rancho-cachimba/brief.md con lista explícita de qué falta y quién lo consigue: cliente o diseñador gráfico.'},
+ {id:'#RC-02',t:'Gate de riesgo: galería y Cloudinary',col:0,lvl:'risk',tags:['Etapa 1','Bloquea RC-05'],
+  d:'Reproducir el AttributeError de GalleryItem.get_background_image_url() con datos de Servelec y auditar las claves duplicadas de CLOUDINARY_PRESETS. Urgente porque el hero de dos fotos necesita dos slots de media donde el patrón CDCA hoy resuelve uno.',
+  dod:'Veredicto explícito: "el hero de dos slots se puede construir" o "hay que adelantar #DEUDA-02".'},
+ {id:'#RC-03',t:'Tokens de la guía oficial de color',col:0,lvl:'',tags:['Etapa 1','Identidad entregada'],
+  d:'Cargar la paleta del cliente en ClientSettings como custom properties: #064B20 Verde Rancho · #0B642B Verde Bosque · #FFD500 Amarillo Cachimba · #EFB900 Amarillo Dorado · #FFFFFF · #EAF4EC Verde Muy Claro · #6B4F32 Tierra · #172019 Carbón, proporción 60/30/10. Subir logo y favicon a tenants/rancho-cachimba/branding/. Tipografía propuesta: Fraunces display + Inter cuerpo.',
+  dod:'Tokens en el tenant de desarrollo, cero hex hardcodeados en el tema.'},
+ {id:'#RC-04',t:'Crear y poblar LinkRevisar.md',col:0,lvl:'warn',tags:['Etapa 1','Referencias'],
+  d:'Consolidar todas las referencias visuales en Documentacion/clientes/rancho-cachimba/LinkRevisar.md con formato fijo: link · qué se toma · a qué componente aplica · estado. Incluye lo conversado: toque escocés, Babe, afiche de sheepdog trials. Registrar aquí la decisión ya tomada — lo escocés entra por textura y no por color, vía un tartán tejido con los propios hex de la marca (#064B20 × #0B642B × #6B4F32 con hilo #FFD500), CSS puro y exportable como patrón para redes.',
+  dod:'Archivo creado y commiteado, con al menos 8 entradas clasificadas y cada una apuntando a un componente.'},
+ {id:'#RC-05',t:'Registrar tema y rubro en el sistema',col:0,lvl:'warn',tags:['Etapa 1','Migración'],
+  d:'Client.THEME_CHOICES necesita el valor "rancho", lo que exige migración (precedente 0015). TEMPLATE_CONFIGS necesita el rubro turismo_rural. Y hay que decidir si el seed sigue en código o pasa a seed_data.json, porque hoy templates_library/ solo tiene .gitkeep.',
+  dod:'provision_tenant --industry turismo_rural --theme rancho corre sin error en local.'},
+ {id:'#RC-06',t:'Hero de dos fotos: construcción',col:0,lvl:'',tags:['Etapa 1','Diseño aprobado'],
+  d:'Composición asimétrica, no 50/50: pastoreo dominante con tratamiento contrastado y desaturado, granja más chica y desplazada hacia abajo, costura de tartán entre ambas, y bloque de texto sólido que invade la foto izquierda. Consulta LinkRevisar.md.',
+  dod:'Hero renderizando con ?tenant=rancho-cachimba en local, con las fotos reales del cliente.'},
+ {id:'#RC-07',t:'Navbar, footer y contacto mínimo',col:0,lvl:'',tags:['Etapa 1','Reutilización'],
+  d:'Reutilizar los componentes compartidos que ya existen. En esta etapa el contacto es solo botón de WhatsApp directo, sin formulario todavía.',
+  dod:'Navegación y footer coherentes con la marca; el WhatsApp abre con mensaje pre-cargado.'},
+ {id:'#RC-08',t:'Publicar la Etapa 1',col:0,lvl:'',tags:['Etapa 1','Hito'],
+  d:'Salir de mode_under_construction, deploy en Render, DNS, SSL y alta en ALLOWED_HOSTS.',
+  dod:'https://ranchocachimba.cl en vivo con el hero real. El cliente lo ve andando.'},
+
+ {id:'#RC-09',t:'Diseño y construcción por componente',col:1,lvl:'warn',tags:['Etapa 2','Librería'],
+  d:'Aquí se cumple lo definido: la landing se arma sobre los componentes disponibles, mejorando cada uno y su reutilización. Orden: experiencias → el pastor → galería → cómo visitar → colegios. Regla por componente: antes de escribir código, revisar si ya existe en servelec, andesscale o themes/default; si existe en más de un lugar con diferencias, generalizar y subir a templates/components/ en vez de crear una cuarta versión. Caso testigo: hero.html existe hoy en tres versiones divergentes — la propuesta es un solo hero con variante layout single | split, para que Cachimba estrene split y Servelec no se toque.',
+  dod:'Cada componente queda en components/ o documentado por qué tuvo que ser específico del tema. LinkRevisar.md actualizado por componente.'},
+ {id:'#RC-10',t:'Sección del pastor',col:1,lvl:'',tags:['Etapa 2','Diferenciador'],
+  d:'Bloque grande y distinto al resto: retrato, nombre, torneos, perros, video si existe. Es la carta de presentación del pastor. Aquí es donde el registro visual de "afiche de trials" tiene sentido, aunque el resto del sitio sea más cálido.',
+  dod:'La sección funciona sacada de contexto, como pieza compartible por sí sola.'},
+ {id:'#RC-11',t:'Contenido real y media en Cloudinary',col:1,lvl:'',tags:['Etapa 2','Contenido'],
+  d:'Subidas vía apps/core/cloudinary_utils.py en tenants/rancho-cachimba/{branding,services,sections}. Incluye la redacción final de textos: asumir que el cliente no entrega textos publicables.',
+  dod:'Cero placeholders, cero lorem ipsum, cero stock genérico.'},
+ {id:'#RC-12',t:'Formulario de contacto y SMTP',col:1,lvl:'',tags:['Etapa 2','Email'],
+  d:'ClientEmailSettings y FormConfig con tipo de visita (familia / colegio / grupo) y fecha tentativa — cambia por completo la calidad del lead. Verificar SPF/DKIM si se usa dominio propio.',
+  dod:'Envío end-to-end recibido en bandeja de entrada, no en spam.'},
+ {id:'#RC-13',t:'SEO y datos estructurados',col:1,lvl:'',tags:['Etapa 2','SEO'],
+  d:'SEOConfig más JSON-LD TouristAttraction × LocalBusiness con openingHoursSpecification y geo. Keywords: granja interactiva Maullín, pastoreo con perros ovejeros, paseo con niños Los Lagos, visitas de colegios.',
+  dod:'JSON-LD válido en Rich Results Test.'},
+
+ {id:'#RC-14',t:'QA y aislamiento multi-tenant',col:2,lvl:'',tags:['Etapa 3','QA'],
+  d:'test_isolation en verde · Servelec y AndesScale sin regresión · showmigrations limpio · responsive en móvil real · Lighthouse ≥85 performance y ≥90 accesibilidad · ninguna imagen servida sobre 300 KB.',
+  dod:'Checklist completo. Candidato directo a automatizar con #TOOL-01.'},
+ {id:'#RC-15',t:'Search Console y sitemap',col:2,lvl:'',tags:['Etapa 3','SEO'],
+  d:'verify_search_console --domain ranchocachimba.cl, envío de sitemap y verificación del robots.txt del tenant.',
+  dod:'Propiedad verificada y sitemap aceptado sin errores.'},
+ {id:'#RC-16',t:'Entrega y capacitación al cliente',col:2,lvl:'',tags:['Etapa 3','Entrega'],
+  d:'Usuario ClientAdmin, email de bienvenida con link de set_password, sesión de 30 minutos sobre el dashboard y mini guía en PDF.',
+  dod:'El cliente edita una sección él solo delante tuyo. Si no puede, es una card de UX para el Tablero B.'},
+ {id:'#RC-17',t:'Post-lanzamiento (semanas 1 a 4)',col:2,lvl:'',tags:['Etapa 3','Seguimiento'],
+  d:'GA4 instalado, revisión de los primeros leads y de su calidad, y pedirle al cliente 3 fotos nuevas para comprobar que la autoadministración se usa de verdad.',
+  dod:'Retrospectiva escrita: qué fue manual y debería ser producto. Alimenta el Tablero B.'},
+
+ {id:'#RC-18',t:'Acuerdo comercial y dominio',col:3,lvl:'',tags:['Transversal','Comercial'],
+  d:'Propuesta formal (fee de diseño + suscripción anual), cobro por transferencia fuera de plataforma, y compra de ranchocachimba.cl en NIC Chile. Registrar que este tenant no pasó por orders/, para no ensuciar métricas después.',
+  dod:'Propuesta aceptada por escrito y dominio comprado a nombre identificado.'},
+ {id:'#RC-19',t:'Mantener LinkRevisar.md vivo',col:3,lvl:'',tags:['Transversal','Referencias'],
+  d:'No es una card que se cierra. Cada vez que aparece una referencia nueva o se descarta una, se actualiza el archivo en el mismo commit del componente. Lo descartado se queda con su motivo: eso es lo que evita volver a proponer lo mismo en el cliente siguiente.',
+  dod:'Al cerrar la Etapa 2 el archivo refleja lo que efectivamente se construyó y lo que se descartó, con motivos.'}
+];
+
+const B = [
+ {id:'#DEUDA-01',t:'Auditoría de CLOUDINARY_PRESETS',col:0,lvl:'warn',tags:['Deuda','Adelantable'],
+  d:'Claves duplicadas hacen que "gane" un preset u otro de forma no determinista. Deduplicar y documentar cada preset con su uso. Es prerequisito de #RC-02.',
+  dod:'Un solo punto de definición y un test que falla si se reintroduce una clave duplicada.'},
+ {id:'#DEUDA-04',t:'Limpieza de raíz del repositorio',col:0,lvl:'warn',tags:['Higiene','Adelantable'],
+  d:'En la raíz hay .env, tres bases SQLite (una duplicada en config/), el virtualenv env/ con ~14.000 archivos, staticfiles/ duplicado, tres CSV de auditoría sueltos y un archivo llamado "exit" que quedó de un typo de shell. Además .claude/ vive dentro de Documentacion/ en vez de la raíz.',
+  dod:'git status limpio en un clone fresco y .env confirmado fuera del historial. Si alguna vez se commiteó, rotar todas las credenciales — borrarlo no basta.'},
+ {id:'#SEC-03',t:'Manejo de secretos',col:0,lvl:'warn',tags:['Seguridad','Adelantable'],
+  d:'Confirmar que .env nunca entró a git, rotar credenciales si entró, y documentar dónde vive cada secreto y quién tiene acceso.',
+  dod:'Inventario de secretos y rotación hecha si corresponde.'},
+ {id:'#TOOL-03',t:'Conectar MCPs: Neon y Cloudinary',col:0,lvl:'warn',tags:['Tooling','Adelantable'],
+  d:'Verifiqué el registro y están disponibles. Neon: inspeccionar esquema, comparar migraciones, branch por feature. Cloudinary: auditar assets por tenant sin escribir scripts — ataca directo #DEUDA-01. En segunda prioridad Render (deploys y logs) y Sentry (hoy no tienes observabilidad). No existe MCP de MercadoPago: esa integración seguirá siendo código propio.',
+  dod:'Neon y Cloudinary conectados y probados con una consulta real.'},
+ {id:'#TOOL-07',t:'CLAUDE.md en la raíz del repo — primera card',col:0,lvl:'risk',tags:['Tooling','Primera card'],
+  d:'Sube de prioridad porque el desarrollo pasa a hacerse desde Claude Code en la terminal. Hoy todo el contexto vive en la skill, que es de cuenta y no de repo: un agente que abre el proyecto desde la terminal no ve nada. Contenido: comandos frecuentes, las 4 convenciones críticas, orden de config/urls.py, mapa de dónde vive cada insumo de diseño incluido LinkRevisar.md por cliente, y link a la skill para lo profundo.',
+  dod:'CLAUDE.md en la raíz y .claude/ movido desde Documentacion/.'},
+
+ {id:'#DEUDA-05',t:'Reconciliar README y skill con el código real',col:1,lvl:'risk',tags:['Documentación'],
+  d:'La auditoría encontró deriva seria: check_tenant_setup está documentado pero no existe · audit_tenant_emails tiene .pyc sin .py · Procedimiento_Nuevo_Tenant.md está referenciado pero no aparece · el README dice que template vive en ClientSettings y en otra parte que vive en Client, y la skill repite la versión vieja. Ese último punto es el origen de un bug ya conocido.',
+  dod:'Cada comando documentado existe y cada archivo referenciado existe.'},
+ {id:'#TOOL-01',t:'Playwright para QA visual de tenants',col:1,lvl:'',tags:['Tooling','Testing'],
+  d:'Recomendación tras revisar el trade-off: CLI con specs versionados, no solo el MCP. El MCP sirve para exploración conversacional; el CLI sirve para lo que necesitas — un smoke test sobre los 3 tenants antes de cada deploy que falle solo si algo se rompió. Spec parametrizado en tests/e2e/: home 200, hero visible, formulario envía, navbar y footer presentes, screenshot de referencia. Cada tenant nuevo es una línea en un array.',
+  dod:'npx playwright test corre sobre servelec, andesscale y rancho-cachimba y falla si un tema se rompe. Reemplaza el checklist manual de #RC-13.'},
+ {id:'#TOOL-06',t:'Mejorar la skill andesscale-saas',col:1,lvl:'',tags:['Tooling','Skills'],
+  d:'La skill está bien construida. Le faltan tres referencias: tenants.md con ficha por tenant (dominio, tema, rubro, estado de SEO y correo) que hoy no existe en ningún lado consultable · seguridad.md · prompts.md con la plantilla de Stitch versionada. Más corregir ClientSettings.template → Client.template y quitar los comandos que no existen.',
+  dod:'Skill actualizada y entregada como archivo para guardar en tu cuenta.'},
+ {id:'#FLOW-01',t:'Formalizar el flujo de ingreso de cliente',col:1,lvl:'',tags:['Flujo','Comercial'],
+  d:'Convertir el proceso real en procedimiento repetible con los artefactos que hoy improvisas: plantilla de propuesta, checklist de brief (generalizar el de #RC-01), contrato y checklist de publicación. Prospecto → diagnóstico → propuesta → aceptación → brief → pago → provisioning → diseño → construcción → QA → publicación → entrega → seguimiento.',
+  dod:'El cliente siguiente a Rancho Cachimba se hace siguiendo el documento, sin inventar nada.'},
+ {id:'#FLOW-02',t:'Automatizar el checklist de publicación',col:1,lvl:'',tags:['Flujo','Backend'],
+  d:'Convertir #RC-13 en python manage.py check_tenant_setup <slug>: valida tema existente, dominio en ALLOWED_HOSTS, ClientEmailSettings y SEOConfig completos, N secciones con contenido y ausencia de placeholders. Bonus: es el comando que el README ya dice que existe.',
+  dod:'El comando falla con mensaje claro sobre un tenant incompleto.'},
+ {id:'#PAY-02',t:'Registrar observaciones del cobro manual',col:1,lvl:'',tags:['Pagos','Observación'],
+  d:'Mientras cobras fuera de plataforma, anotar cada fricción: qué datos pediste a mano, qué correo escribiste tú, qué paso del onboarding hiciste por el cliente. Esa lista es, literalmente, la especificación de #FLOW-03.',
+  dod:'Documento de observaciones cerrado al terminar #RC-17.'},
+
+ {id:'#DEUDA-02',t:'Rediseño de GalleryItem',col:2,lvl:'risk',tags:['Deuda','Migración de datos'],
+  d:'gallery_type bloquea cada imagen a un solo rol. El objetivo es un pool único por tenant: subir una vez, reusar en cualquier sección. Requiere FK/M2M entre Section/Service y GalleryItem, que hoy no existen. Arregla de paso el AttributeError de get_background_image_url().',
+  dod:'Una imagen subida una vez se usa en hero, servicio y galería sin duplicar el asset en Cloudinary. Es la card más grande del tablero, con migración de datos: no empezarla a medias.'},
+ {id:'#DEUDA-03',t:'Unificar convención de temas',col:2,lvl:'',tags:['Deuda','Frontend'],
+  d:'Mover servelec/ y andesscale/ dentro de themes/, migrar Client.template de los tenants existentes y ajustar TenantTemplateLoader. Ojo en Windows: los renames que solo cambian mayúsculas necesitan el truco de dos pasos con git mv.',
+  dod:'Una sola convención y los tres tenants renderizando igual que antes.'},
+ {id:'#DS-01',t:'Formalizar Andes Horizon como tokens',col:2,lvl:'',tags:['Diseño'],
+  d:'Hoy el sistema vive en tu cabeza y en decisiones caso a caso. Escribir escala tipográfica, espaciado, radios, sombras y estados en docs/design-system.md + static/css/tokens.css. Dejar explícita la regla que ya rige: color de marca como custom property por tenant, neutrales fijos.',
+  dod:'Un tema nuevo se puede construir leyendo solo ese documento.'},
+ {id:'#DS-02',t:'Componentes compartidos entre temas',col:2,lvl:'',tags:['Diseño','Frontend'],
+  d:'navbar, footer, hero, contacto y galería se reescriben por tema. Extraer la estructura común a templates/components/ y dejar en cada tema solo lo que de verdad cambia. Cada cliente nuevo baja de ~10 componentes escritos a ~3.',
+  dod:'Rancho Cachimba usa componentes compartidos para navbar, footer y contacto.'},
+ {id:'#PAY-01',t:'MercadoPago a producción',col:2,lvl:'risk',tags:['Pagos','Bloqueador'],
+  d:'Bloqueador de ingresos declarado hace meses, dependiente del registro SII. Separar en dos: lo que es trámite del SII, y lo que es técnico y puede quedar listo ahora — validación de firma del webhook, idempotencia, manejo de pagos duplicados y estados de Order.',
+  dod:'Cobro real recibido de punta a punta.'},
+ {id:'#PAY-03',t:'Prueba end-to-end en sandbox',col:2,lvl:'',tags:['Pagos','QA'],
+  d:'Pasar un tenant ficticio por checkout completo en modo test. El flujo nunca se probó de punta a punta con provisioning automático.',
+  dod:'Tenant creado automáticamente por un pago de prueba, sin tocar el shell.'},
+ {id:'#SEC-01',t:'Validación de firma de webhooks',col:2,lvl:'risk',tags:['Seguridad'],
+  d:'El README dice "validar IPN y firma". Verificar que esté implementado de verdad en mercadopago_service.py. Un webhook sin validación de firma es un endpoint que cualquiera puede llamar para provisionar tenants gratis.',
+  dod:'Firma verificada y test que prueba que un webhook falsificado se rechaza.'},
+ {id:'#SEC-02',t:'Headers de seguridad',col:2,lvl:'',tags:['Seguridad'],
+  d:'CSP, HSTS, X-Frame-Options, SECURE_SSL_REDIRECT y cookies Secure/HttpOnly/SameSite en production.py.',
+  dod:'Nota A en securityheaders.com para los tres dominios.'},
+ {id:'#TOOL-02',t:'Seguridad: StackHawk primero, Strix después',col:2,lvl:'',tags:['Tooling','Seguridad'],
+  d:'Investigué las dos. Strix es un agente de IA open source para pentesting autónomo, potente pero con fricción de instalación propia en Docker. StackHawk HawkScan es DAST clásico y ya está en tu catálogo de plugins, listo para habilitar. Recomendación: StackHawk para el escaneo recurrente antes de deploy, y reservar Strix para una auditoría profunda cuando MercadoPago esté en producción — que es cuando el riesgo real sube, porque ahí empiezas a mover dinero.',
+  dod:'Un escaneo corrido contra staging y findings triados en cards.'},
+ {id:'#TOOL-04',t:'Plugins del catálogo: engineering y design',col:2,lvl:'',tags:['Tooling'],
+  d:'Tres con encaje real en tu catálogo: engineering (code-review, tech-debt, deploy-checklist, testing-strategy) — deploy-checklist reemplaza tu checklist manual y tech-debt es literalmente lo que estamos haciendo aquí · design (design-critique, design-system, accessibility-review, ux-copy) — accessibility-review tapa un hueco que además es argumento de venta con colegios · stackhawk-hawkscan. Nota: no encontré ningún "plugin claude codex" en el catálogo ni en el registro; si te referías a correr Codex en paralelo con Claude Code, eso es una decisión de flujo y la convierto en card aparte si quieres.',
+  dod:'Plugins habilitados y probados en una tarea real cada uno.'},
+ {id:'#TOOL-05',t:'Skill frontend-design (lo que buscabas como "Skilliu")',col:2,lvl:'',tags:['Tooling','Diseño'],
+  d:'No existe ninguna skill llamada Skilliu. Lo más cercano a lo que describes es frontend-design, la skill oficial de Anthropic para generar interfaces con criterio visual — la que circula en los tutoriales en español sobre crear páginas con Claude Code. Es del mismo espíritu que taste-skill, que ya usas como marco anti-genérico.',
+  dod:'Skill probada contra el hero de Rancho Cachimba y comparada con el output de Stitch para decidir cuál se queda en el flujo.'},
+ {id:'#TOOL-08',t:'Kanban con estado real',col:2,lvl:'',tags:['Flujo'],
+  d:'Hoy el kanban vive en el README y en markdowns sueltos, y se desactualiza. Opciones: markdown versionado en el repo · Airtable (está en tu catálogo, kanban nativo y MCP, sirve para verlo desde el teléfono) · este tablero HTML actualizado sesión a sesión. Recomendación: markdown como fuente de verdad + este tablero como vista. Trabajas solo; una herramienta más es una cosa más que mantener desincronizada.',
+  dod:'Decisión tomada y el kanban actualizado en un solo lugar.'},
+ {id:'#DS-03',t:'Accesibilidad como estándar',col:2,lvl:'',tags:['Diseño'],
+  d:'Contraste AA, navegación por teclado, alt obligatorio en el dashboard (hoy probablemente opcional) y foco visible. Con colegios y municipalidades esto se pregunta.',
+  dod:'Los tres tenants pasan auditoría de accesibilidad automatizada.'},
+ {id:'#DB-01',t:'Branch de Neon por feature',col:2,lvl:'',tags:['Base de datos'],
+  d:'Ya tienes main y dev. Usar branches efímeros por cambio de esquema evita probar migraciones grandes como #DEUDA-02 contra datos compartidos. El MCP de Neon lo hace en una llamada.',
+  dod:'Procedimiento documentado y usado una vez de verdad.'},
+ {id:'#DB-02',t:'Backups verificados',col:2,lvl:'',tags:['Base de datos'],
+  d:'Existe la idea de backup en el kanban viejo. Falta la parte que importa: probar la restauración. Un backup sin restore probado no es un backup.',
+  dod:'Restore completo hecho a un branch de Neon, documentado con tiempos.'},
+ {id:'#DB-03',t:'Índices y consultas',col:2,lvl:'',tags:['Base de datos'],
+  d:'TenantAwareManager filtra toda query por client, así que cada modelo multi-tenant debería tener índice en client y en los campos de orden habituales. Verificar con EXPLAIN sobre datos de producción.',
+  dod:'Informe de queries lentas e índices agregados donde corresponda.'},
+ {id:'#SEC-04',t:'Aislamiento entre tenants como test permanente',col:2,lvl:'',tags:['Seguridad','Testing'],
+  d:'test_isolation existe. Falta que corra automáticamente, no cuando alguien se acuerda. Misma infraestructura que #TOOL-01.',
+  dod:'El test corre en cada push.'},
+ {id:'#FLOW-03',t:'Onboarding autoservicio del cliente',col:2,lvl:'',tags:['Flujo'],
+  d:'views_onboarding.py y los templates ya existen. Falta cerrar el círculo: que un cliente pague, complete el onboarding y tenga sitio sin intervención tuya. Bloqueado por #PAY-01. Todo lo que hagas a mano en el Tablero A es evidencia de qué falta aquí: anotarlo mientras pasa, no después.',
+  dod:'Un cliente completa el ciclo sin que tú toques el shell.'},
+ {id:'#FLOW-04',t:'Insumos de diseño versionados en el repo',col:0,lvl:'warn',tags:['Flujo','Adelantable'],
+  d:'Los prompts buenos y las referencias visuales viven hoy en historiales de chat. Con la ejecución movida a Claude Code eso deja de funcionar: el agente en la terminal no ve el chat. Dos piezas: (1) Documentacion/prompts/ con prompt_stitch.md, prompt_contenido_cliente.md y prompt_seo.md, versionados y con nota de qué funcionó. (2) LinkRevisar.md como convención por cliente en Documentacion/clientes/<slug>/, con formato fijo: link · qué se toma · a qué componente aplica · estado. Estrena en Rancho Cachimba con #RC-04 y pasa a formar parte del checklist de brief de #FLOW-01. Importa más de lo que parece: cada entrada apunta a un componente, así que alimenta directo la librería de #DS-02 en vez de quedar como moodboard decorativo, y lo descartado se queda con su motivo.',
+  dod:'Ambas carpetas en el repo y el LinkRevisar.md de Rancho Cachimba poblado y en uso.'},
+
+ {id:'#DB-04',t:'Preparar pgvector para el asistente',col:3,lvl:'',tags:['Diferido'],
+  d:'Para apps/assistant/. Decisión ya tomada: pgvector sobre Neon, no FAISS. No abrir hasta tener 3+ clientes pagando — es la card más fácil de empezar y la que menos ingreso genera hoy.',
+  dod:'Congelada por decisión explícita.'},
+ {id:'#47–#54',t:'Módulo de marketing del kanban original',col:3,lvl:'',tags:['Diferido','Revisar'],
+  d:'Rol MarketingManager, CampaignTracker, Google Ads API, UTM Builder, GA4, dashboard de marketing y exportación de reportes. Es un módulo completo para una plataforma que todavía tiene un cliente pagando. Sugiero congelarlas explícitamente en vez de dejarlas como "próximas": mientras figuren ahí compiten por atención con cosas que sí mueven ingreso.',
+  dod:'Decisión de congelar tomada y anotada en el README.'}
+];
+
+const COLS_A = ['Etapa 1 · Hero operativo','Etapa 2 · Landing completa','Etapa 3 · Cierre','Transversal'];
+const COLS_B = ['Ahora · en paralelo','Al publicar','Siguiente ciclo','Diferido'];
+
+function render(boardId, cards, cols){
+  const el = document.getElementById(boardId);
+  el.innerHTML = cols.map((name,i)=>{
+    const items = cards.filter(c=>c.col===i);
+    return `<div class="col"><h2>${name}<span class="count">${items.length}</span></h2>${
+      items.map(c=>`
+        <div class="card ${c.lvl}" data-search="${(c.id+' '+c.t+' '+c.d+' '+c.tags.join(' ')).toLowerCase()}">
+          <div class="cid">${c.id}</div>
+          <p class="ctitle">${c.t}</p>
+          <div class="ctags">${c.tags.map(t=>{
+            const k = /riesgo|bloquea|crítica|Bloqueador/i.test(t)?'r':(/Adelantable/i.test(t)?'w':'a');
+            return `<span class="tag ${k}">${t}</span>`;
+          }).join('')}</div>
+          <div class="detail">${c.d}<div class="dod"><b>DoD ·</b> ${c.dod}</div></div>
+        </div>`).join('')
+    }</div>`;
+  }).join('');
+}
+
+render('board-a', A, COLS_A);
+render('board-b', B, COLS_B);
+document.getElementById('ctx').innerHTML = CTX.a;
+
+document.addEventListener('click', e=>{
+  const card = e.target.closest('.card');
+  if(card){ card.querySelector('.detail').classList.toggle('on'); return; }
+  const tab = e.target.closest('.tab');
+  if(tab){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+    tab.classList.add('on');
+    const b = tab.dataset.board;
+    document.querySelectorAll('.board').forEach(x=>x.classList.remove('on'));
+    document.getElementById('board-'+b).classList.add('on');
+    document.getElementById('ctx').innerHTML = CTX[b];
+  }
+});
+
+document.getElementById('q').addEventListener('input', e=>{
+  const q = e.target.value.toLowerCase().trim();
+  document.querySelectorAll('.card').forEach(c=>{
+    c.style.display = (!q || c.dataset.search.includes(q)) ? '' : 'none';
+  });
+});
+</script>
+</body>
+</html>

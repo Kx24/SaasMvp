@@ -3,7 +3,7 @@
     /* ── Base links ─────────────────────────────────────────── */
     .nav-link {
         position: relative;
-        color: #475569;
+        color: var(--carbon);
         font-size: 0.875rem;
         font-weight: 500;
         padding: 0.5rem 0.25rem;
@@ -37,12 +37,12 @@
         align-items: center;
         gap: 0.4rem;
         background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        color: #fff;
+        color: var(--blanco);
         padding: 0.55rem 1.25rem;
         border-radius: 9999px;
         font-size: 0.875rem;
         font-weight: 600;
-        font-family: 'Outfit', sans-serif;
+        font-family: 'Fraunces', serif;
         letter-spacing: 0.02em;
         box-shadow: 0 2px 12px color-mix(in srgb, var(--primary) 35%, transparent);
         transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
@@ -59,12 +59,12 @@
     .nav-divider {
         width: 1px;
         height: 1.25rem;
-        background: #e2e8f0;
+        background: var(--gris-borde);
     }
 
     /* ── Scroll state ───────────────────────────────────────── */
     .nav-scrolled {
-        box-shadow: 0 1px 0 #e2e8f0, 0 4px 16px rgba(0,0,0,0.06) !important;
+        box-shadow: 0 1px 0 var(--gris-borde), 0 4px 16px rgba(0,0,0,0.06) !important;
     }
 
     /* ── Mobile links ───────────────────────────────────────── */
@@ -76,7 +76,7 @@
         border-radius: 0.75rem;
         font-weight: 500;
         font-size: 0.9375rem;
-        color: #334155;
+        color: var(--carbon);
         transition: background 0.15s, color 0.15s;
     }
     .mobile-link:hover {
@@ -212,7 +212,7 @@
          x-transition:leave-end="opacity-0 -translate-y-2"
          @click.away="mobileMenuOpen = false"
          class="lg:hidden border-t bg-white"
-         style="border-color: color-mix(in srgb, var(--primary) 10%, #e2e8f0);">
+         style="border-color: color-mix(in srgb, var(--primary) 10%, var(--gris-borde));">
 
         <div class="max-w-7xl mx-auto px-4 pt-3 pb-5 space-y-0.5">
 
@@ -229,7 +229,7 @@
 
             {# Separador #}
             <div class="pt-3 mt-2 space-y-2"
-                 style="border-top: 1px solid color-mix(in srgb, var(--primary) 10%, #e2e8f0);">
+                 style="border-top: 1px solid color-mix(in srgb, var(--primary) 10%, var(--gris-borde));">
 
                 {% if client.settings.contact_phone %}
                 <a href="tel:{{ client.settings.contact_phone }}"

@@ -278,6 +278,7 @@ class ClientSettings(models.Model):
     
     primary_color = models.CharField(max_length=7, default='#3B82F6')
     secondary_color = models.CharField(max_length=7, default='#1E40AF')
+    accent_color = models.CharField(max_length=7, default='#F59E0B')
     font_family = models.CharField(max_length=100, default='Inter, sans-serif')
     
     # ==================== INFORMACIÓN ====================

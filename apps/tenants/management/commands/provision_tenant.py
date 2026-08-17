@@ -75,6 +75,16 @@ class Command(BaseCommand):
             ],
             'colors': {'primary': '#8b5cf6', 'secondary': '#f5f3ff'},
         },
+        'turismo_rural': {
+            'name': 'Turismo Rural',
+            'services': [
+                ('Granja Interactiva', '🦌', 'Contacto directo con ciervos, pavos, gallinas, burros y perros'),
+                ('Pastoreo con Border Collies', '🐑', 'Exhibición de pastoreo con perros ovejeros de competencia'),
+                ('Visitas de Colegios', '🎒', 'Programas educativos para grupos escolares'),
+                ('Eventos y Cumpleaños', '🎉', 'Celebraciones en contacto con la naturaleza y los animales'),
+            ],
+            'colors': {'primary': '#064B20', 'secondary': '#0B642B', 'accent': '#FFD500'},
+        },
     }
     
     def add_arguments(self, parser):
@@ -273,14 +283,16 @@ class Command(BaseCommand):
 
         config = self.TEMPLATE_CONFIGS.get(industry, {})
         colors = config.get('colors', {'primary': '#2563eb', 'secondary': '#dbeafe'})
-        
+
         settings_obj = client.settings
         settings_obj.primary_color = colors['primary']
         settings_obj.secondary_color = colors['secondary']
+        if 'accent' in colors:
+            settings_obj.accent_color = colors['accent']
         settings_obj.meta_title = client.name
         settings_obj.meta_description = f'Bienvenido a {client.name}'
         settings_obj.save()
-        
+
         self.stdout.write(self.style.SUCCESS(f'   Colores aplicados: {colors["primary"]}'))
 
     def _apply_branding(self, client, options):

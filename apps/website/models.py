@@ -614,9 +614,3 @@ class GalleryItem(models.Model):
             return '/static/img/placeholder-gallery.jpg'
         from apps.core.cloudinary_utils import get_cloudinary_url
         return get_cloudinary_url(self.image, preset)
-    
-    def get_background_image_url(self, preset='hero'):
-        if not self.background_image:
-            return None
-        from apps.core.cloudinary_utils import get_cloudinary_url
-        return get_cloudinary_url(self.background_image, preset)

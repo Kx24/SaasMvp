@@ -164,6 +164,42 @@ def get_hero_images(context):
         return active
     
 @register.simple_tag(takes_context=True)
+def get_hero_split_media(context):
+    """
+    Retorna hasta 2 GalleryItem activos (gallery_type='hero'), para heroes de
+    dos fotos simultáneas lado a lado (layout "split", ej. Rancho Cachimba).
+
+    A diferencia de get_hero_images(), no antepone el slide default (None) —
+    un layout split no tiene noción de "slide", son dos slots fijos. Si hay
+    menos de 2 imágenes activas, el template decide el fallback visual.
+
+    Uso:
+        {% get_hero_split_media as hero_media %}
+        {{ hero_media.0 }} → slot A (o None si no hay)
+        {{ hero_media.1 }} → slot B (o None si no hay)
+    """
+    request = context.get('request')
+    if not request or not hasattr(request, 'client'):
+        return [None, None]
+
+    client = request.client
+    settings = getattr(client, 'settings', None)
+    if not settings or not settings.enable_gallery:
+        return [None, None]
+
+    active = list(
+        GalleryItem.objects.filter(
+            client=client,
+            gallery_type='hero',
+            is_active=True,
+        ).order_by('order', 'created_at')[:2]
+    )
+    while len(active) < 2:
+        active.append(None)
+    return active
+
+
+@register.simple_tag(takes_context=True)
 def get_testimonials(context):
     """
     Obtiene todos los testimonios activos

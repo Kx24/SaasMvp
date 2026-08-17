@@ -18,25 +18,36 @@
             <link rel="icon" href="{{ client.settings.favicon.url }}" type="image/x-icon">
         {% else %}
             {# Placeholder neutro: círculo sólido con el color primario del cliente. Reemplazar por el favicon real en diseño. #}
-            <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='{{ client.settings.primary_color|default:"#0F441A" }}'/></svg>">
+            <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='{{ client.settings.primary_color|default:"#064B20" }}'/></svg>">
         {% endif %}
     {% endblock %}
 
+    {# Tipografía de marca: Fraunces (display) + Inter (cuerpo) — guía oficial Rancho Cachimba #}
+    {% block fonts %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% endblock %}
+
 {% block theme_styles %}
-{# Colores dinámicos desde ClientSettings -- fallback a la paleta de Rancho Cachimba #}
+{# Colores dinámicos desde ClientSettings -- fallback a la paleta oficial de Rancho Cachimba #}
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
     tailwind.config = {
         theme: {
             extend: {
                 colors: {
-                    primary:   '{{ client.settings.primary_color|default:"#0F441A" }}',
-                    secondary: '{{ client.settings.secondary_color|default:"#D2B35C" }}',
-                    accent:    '{{ client.settings.accent_color|default:"#D2B35C" }}',
+                    primary:   '{{ client.settings.primary_color|default:"#064B20" }}',
+                    secondary: '{{ client.settings.secondary_color|default:"#0B642B" }}',
+                    accent:    '{{ client.settings.accent_color|default:"#FFD500" }}',
+                    dorado:    '#EFB900',
+                    claro:     '#EAF4EC',
+                    tierra:    '#6B4F32',
+                    carbon:    '#172019',
                 },
                 fontFamily: {
                     'sans':    ['Inter', 'system-ui', 'sans-serif'],
-                    'display': ['Outfit', 'system-ui', 'sans-serif'],
+                    'display': ['Fraunces', 'Georgia', 'serif'],
                 },
             }
         }
@@ -45,15 +56,26 @@
 
 <style>
     :root {
-        --primary:       {{ client.settings.primary_color|default:"#0F441A" }};
-        --secondary:     {{ client.settings.secondary_color|default:"#D2B35C" }};
-        --accent:        {{ client.settings.accent_color|default:"#D2B35C" }};
-        --primary-light: #f4ecd8;
+        /* Identidad de marca — tenant-configurable vía ClientSettings (60/30/10) */
+        --primary:   {{ client.settings.primary_color|default:"#064B20" }};   /* Verde Rancho */
+        --secondary: {{ client.settings.secondary_color|default:"#0B642B" }}; /* Verde Bosque */
+        --accent:    {{ client.settings.accent_color|default:"#FFD500" }};    /* Amarillo Cachimba */
+
+        /* Paleta fija de la guía oficial — Rancho Cachimba es tema de un solo tenant */
+        --amarillo-dorado: #EFB900;
+        --blanco:          #FFFFFF;
+        --verde-claro:     #EAF4EC;
+        --tierra:          #6B4F32;
+        --carbon:          #172019;
+
+        /* Neutros de UI — no forman parte de la guía de marca */
+        --gris-texto: #8B8B8B;
+        --gris-borde: #E2E8F0;
     }
 
     body { font-family: 'Inter', system-ui, sans-serif; }
 
-    .font-display { font-family: 'Outfit', system-ui, sans-serif; }
+    .font-display { font-family: 'Fraunces', Georgia, serif; }
 
     .text-gradient {
         background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
@@ -68,18 +90,18 @@
 
     .btn-primary {
         background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        box-shadow: 0 4px 14px 0 rgba(15, 68, 26, 0.4);
+        box-shadow: 0 4px 14px 0 color-mix(in srgb, var(--primary) 40%, transparent);
         transition: all 0.3s ease;
     }
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px 0 rgba(15, 68, 26, 0.5);
+        box-shadow: 0 6px 20px 0 color-mix(in srgb, var(--primary) 50%, transparent);
     }
 
     .hero-glow {
-        box-shadow: 0 0 20px rgba(15, 68, 26, 0.3),
-                    0 0 40px rgba(15, 68, 26, 0.2),
-                    0 0 60px rgba(15, 68, 26, 0.1);
+        box-shadow: 0 0 20px color-mix(in srgb, var(--primary) 30%, transparent),
+                    0 0 40px color-mix(in srgb, var(--primary) 20%, transparent),
+                    0 0 60px color-mix(in srgb, var(--primary) 10%, transparent);
     }
 
     .service-card {
@@ -87,7 +109,7 @@
     }
     .service-card:hover {
         transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(15, 68, 26, 0.15);
+        box-shadow: 0 20px 40px color-mix(in srgb, var(--primary) 15%, transparent);
     }
 
     @keyframes float {
@@ -104,11 +126,11 @@
 
     input:focus, textarea:focus, select:focus {
         border-color: var(--primary) !important;
-        box-shadow: 0 0 0 3px rgba(15, 68, 26, 0.1) !important;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent) !important;
     }
 
     ::-webkit-scrollbar       { width: 8px; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-track { background: var(--gris-borde); }
     ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--secondary); }
 
@@ -130,7 +152,8 @@
 {# Botón flotante WhatsApp — solo si el cliente lo tiene configurado #}
 {% block floating_widgets %}
     {% if client.settings.whatsapp_number %}
-    <a href="https://wa.me/{{ client.settings.whatsapp_number }}"
+    {# wa.me exige solo dígitos: sin espacios, sin "+" — el número se guarda con formato legible en ClientSettings #}
+    <a href="https://wa.me/{{ client.settings.whatsapp_number|cut:' '|cut:'+' }}?text={{ whatsapp_default_message|default:'¡Hola! Vi el sitio de Rancho Cachimba y me gustaría más información sobre las visitas.'|urlencode }}"
        target="_blank"
        rel="noopener noreferrer"
        class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"

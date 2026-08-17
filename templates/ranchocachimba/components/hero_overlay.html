@@ -59,7 +59,7 @@
             alt="Portada principal"
             class="w-full h-full object-cover">
         {% else %}
-        <div class="w-full h-full" style="background:#0b2818;"></div>
+        <div class="w-full h-full" style="background:var(--primary);"></div>
         {% endif %}
         {% endwith %}
         {% endif %}
@@ -88,9 +88,9 @@
     <canvas id="heroCanvas" class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
     {% include "ranchocachimba/components/hero_effects.html" %}
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true"
-         style="background:linear-gradient(to right, rgba(11,40,24,0.75) 40%, rgba(11,40,24,0.25) 100%);"></div>
+         style="background:linear-gradient(to right, color-mix(in srgb, var(--primary) 75%, transparent) 40%, color-mix(in srgb, var(--primary) 25%, transparent) 100%);"></div>
     <div class="absolute left-0 top-0 bottom-0 w-0.5 opacity-40" aria-hidden="true"
-         style="background:linear-gradient(to bottom, transparent, #1DB954, transparent);"></div>
+         style="background:linear-gradient(to bottom, transparent, var(--accent), transparent);"></div>
 
     {# Contenido — Alpine decide según slide activo #}
     <div class="relative max-w-7xl mx-auto px-6 lg:px-8 pt-36 pb-24">
@@ -147,7 +147,7 @@
                        class="group px-8 py-4 font-black rounded-lg inline-flex items-center
                               justify-center gap-3 transition-all duration-300
                               hover:opacity-90 hover:-translate-y-0.5"
-                       style="background:#1DB954; color:#0b2818;">
+                       style="background:var(--accent); color:var(--primary);">
                         <span x-text="active.cta_text"></span>
                         <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform"
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,15 +173,15 @@
          class="w-full h-full object-cover">
 </div>
 {% else %}
-<div class="absolute inset-0" style="background:#0b2818;"></div>
+<div class="absolute inset-0" style="background:var(--primary);"></div>
 {% endif %}
 {% endwith %}
 <canvas id="heroCanvas" class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
 {% include "ranchocachimba/components/hero_effects.html" %}
 <div class="absolute inset-0 pointer-events-none" aria-hidden="true"
-     style="background:linear-gradient(to right, rgba(11,40,24,0.75) 40%, rgba(11,40,24,0.25) 100%);"></div>
+     style="background:linear-gradient(to right, color-mix(in srgb, var(--primary) 75%, transparent) 40%, color-mix(in srgb, var(--primary) 25%, transparent) 100%);"></div>
 <div class="absolute left-0 top-0 bottom-0 w-0.5 opacity-40" aria-hidden="true"
-     style="background:linear-gradient(to bottom, transparent, #1DB954, transparent);"></div>
+     style="background:linear-gradient(to bottom, transparent, var(--accent), transparent);"></div>
 <div class="relative max-w-7xl mx-auto px-6 lg:px-8 pt-36 pb-24">
     <div class="max-w-3xl">
         <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-black text-white
