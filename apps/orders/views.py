@@ -12,17 +12,17 @@ Flujo completo:
 
 import json
 import logging
-import uuid
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST, require_GET
+
 from django.conf import settings
 from django.db import transaction
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
-from .models import Plan, Order, PaymentLog
-from .services.mercadopago_service import MercadoPagoService, MercadoPagoError
+from .models import Order, PaymentLog, Plan
 from .services.email_service import send_payment_success_email  # Card A6
+from .services.mercadopago_service import MercadoPagoError, MercadoPagoService
 
 logger = logging.getLogger(__name__)
 
@@ -347,14 +347,13 @@ def mercadopago_webhook_view(request):
             logger.warning("[MP Webhook] data.id vacío")
             return HttpResponse(status=200)
         
-        # Validar firma (opcional pero recomendado)
+        # Validar firma (obligatoria - #AUD-02)
         mp_service = MercadoPagoService()
-        
-        # En producción, descomentar validación:
-        # if not mp_service.validate_webhook_signature(request):
-        #     logger.warning("[MP Webhook] Firma inválida")
-        #     return HttpResponse(status=401)
-        
+
+        if not mp_service.validate_webhook_signature(request):
+            logger.warning("[MP Webhook] Firma inválida o ausente - rechazado")
+            return HttpResponse(status=401)
+
         # Consultar estado real del pago en MP
         payment_data = mp_service.get_payment(data_id)
         
