@@ -47,6 +47,15 @@ class RenderYamlStructureTestCase(SimpleTestCase):
         )
         return matches[0]
 
+    def _service_by_name(self, name):
+        matches = [s for s in self.config['services'] if s.get('name') == name]
+        self.assertEqual(
+            len(matches), 1,
+            f"Se esperaba exactamente 1 servicio name={name!r}, "
+            f"se encontraron {len(matches)}",
+        )
+        return matches[0]
+
     def test_web_service_has_build_and_start_commands(self):
         web = self._service('web')
         self.assertEqual(web.get('name'), 'saasmvp')
@@ -60,20 +69,29 @@ class RenderYamlStructureTestCase(SimpleTestCase):
         missing = REQUIRED_WEB_ENV_KEYS - env_keys
         self.assertFalse(missing, f"web service sin envVars: {missing}")
 
-    def test_cron_service_is_self_contained(self):
-        cron = self._service('cron')
-        self.assertEqual(cron.get('name'), 'contact-digest')
-        self.assertTrue(cron.get('schedule'), "cron sin schedule")
-        self.assertTrue(cron.get('command'), "cron sin command")
-        self.assertTrue(cron.get('runtime'), "cron sin runtime propio")
-        self.assertTrue(cron.get('buildCommand'), "cron sin buildCommand propio")
+    def test_all_cron_services_are_self_contained(self):
+        crons = [s for s in self.config['services'] if s.get('type') == 'cron']
+        self.assertTrue(crons, "no hay ningún servicio type=cron")
 
-        env_keys = {var['key'] for var in cron.get('envVars', [])}
-        required_for_cron = {
-            'DJANGO_SETTINGS_MODULE', 'SECRET_KEY', 'DATABASE_URL',
-        }
-        missing = required_for_cron - env_keys
-        self.assertFalse(missing, f"cron sin envVars necesarias: {missing}")
+        required_for_cron = {'DJANGO_SETTINGS_MODULE', 'SECRET_KEY', 'DATABASE_URL'}
+        for cron in crons:
+            name = cron.get('name')
+            self.assertTrue(cron.get('schedule'), f"{name}: cron sin schedule")
+            self.assertTrue(cron.get('command'), f"{name}: cron sin command")
+            self.assertTrue(cron.get('runtime'), f"{name}: cron sin runtime propio")
+            self.assertTrue(cron.get('buildCommand'), f"{name}: cron sin buildCommand propio")
+
+            env_keys = {var['key'] for var in cron.get('envVars', [])}
+            missing = required_for_cron - env_keys
+            self.assertFalse(missing, f"{name}: cron sin envVars necesarias: {missing}")
+
+    def test_contact_digest_cron_declared(self):
+        self._service_by_name('contact-digest')
+
+    def test_send_pending_emails_cron_declared(self):
+        """#MED-01: correo asíncrono -- el cron que procesa EmailOutbox."""
+        cron = self._service_by_name('send-pending-emails')
+        self.assertIn('send_pending_emails', cron.get('command', ''))
 
     def test_database_service_declared(self):
         self.assertTrue(self.config.get('databases'), "sin bloque databases")

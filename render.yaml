@@ -147,6 +147,60 @@ services:
       # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: configurar manualmente en
       # Render Dashboard para este servicio también (son secretas).
 
+  # =================================================================
+  # CRON JOB - Envío de emails encolados (#MED-01)
+  # =================================================================
+  - type: cron
+    name: send-pending-emails
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    schedule: "*/5 * * * *"   # cada 5 minutos -- confirmar que el plan free de Render admite intervalos sub-horarios antes de sincronizar
+    buildCommand: "pip install -r requirements.txt"
+    command: "python manage.py send_pending_emails"
+
+    # Mismas variables que el servicio web: el comando lee/escribe
+    # EmailOutbox y envía por SMTP, necesita DB + settings de Django +
+    # credenciales SMTP igual que el web service.
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: DEBUG
+        value: "False"
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: saasmvp-db
+          property: connectionString
+
+      - key: BASE_DOMAIN
+        value: "onrender.com"
+
+      - key: DEFAULT_TENANT_SLUG
+        value: "servelec"
+
+      - key: EXTRA_DOMAINS
+        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,ranchocachimba.cl,www.ranchocachimba.cl"
+
+      - key: EMAIL_HOST
+        value: "smtp.zoho.com"
+
+      - key: EMAIL_PORT
+        value: "587"
+
+      - key: EMAIL_USE_TLS
+        value: "True"
+      # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: configurar manualmente en
+      # Render Dashboard para este servicio también (son secretas).
+
 # =================================================================
 # DATABASE - PostgreSQL
 # =================================================================

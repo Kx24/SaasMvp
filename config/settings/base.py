@@ -376,6 +376,13 @@ BASE_URL = config('BASE_URL', default='http://localhost:8000')
 # Desarrollo: usar consola (no envía emails reales)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# #MED-01: si es True, EmailService encola en EmailOutbox (DB, rápido)
+# en vez de abrir la conexión SMTP dentro del request -- un cron
+# (apps/core/management/commands/send_pending_emails.py) hace el envío
+# real. False por defecto: en dev/tests el backend de consola/locmem ya
+# es instantáneo, no hay nada que diferir.
+EMAIL_ASYNC = False
+
 # Producción: usar SMTP real
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')

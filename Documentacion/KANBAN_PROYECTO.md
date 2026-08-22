@@ -31,7 +31,7 @@
 2. `#AUD-04` — falta confirmar contra el dashboard real de Render qué configuración está efectivamente activa.
 3. `#AUD-07`/`#PAY-03` — falta SPF/DKIM de Zoho + una pasada manual real contra el sandbox de MP (tarjeta de prueba + browser, requiere credenciales de test).
 
-**Siguiente en la ruta crítica:** con el gate de seguridad, robustez transaccional y aislamiento multi-tenant todos cerrados, lo que queda en corto plazo es `#RC-01`/`#RC-06b`/`#RC-18` (Rancho Cachimba, depende de insumos del cliente) o el trabajo de mediano plazo de §5 (`#MED-01` correo asíncrono, `#MED-03` índices, `#AUD-11` pipeline Tailwind, `#TOOL-01` Playwright smoke).
+**Siguiente en la ruta crítica:** con el gate de seguridad, robustez transaccional, aislamiento multi-tenant, la limpieza P2 (`#AUD-08/09/12`), `#TOOL-07` y ahora `#MED-01` (correo asíncrono) todos cerrados, lo que queda en corto plazo es `#RC-01`/`#RC-06b`/`#RC-18` (Rancho Cachimba, en pausa por decisión del usuario — necesita tiempo de diseño/investigación) o el resto de mediano plazo de §5 (`#MED-03` índices, `#AUD-11` pipeline Tailwind — ver informe "Tailwind, hoy" para el estado actual, `#TOOL-01` Playwright smoke).
 
 **No tocar sin que el usuario lo pida:** limpieza de lint global (135 errores preexistentes fuera de los archivos de este cierre — es `#AUD-10`/deuda técnica, no parte del gate), ni nada de Rancho Cachimba (`#RC-01`/`#RC-06b`/`#RC-18`) — depende de insumos del cliente, no de código.
 
@@ -174,7 +174,7 @@ Validación descomentada en `mercadopago_webhook_view`; `validate_webhook_signat
 **Resultado:** `apps/orders/tests/test_models.py` (3 tests): formato `ORD-YYYY-XXXXXX`, independencia bajo `count()` mockeado a un valor fijo compartido (reproduce la ventana de carrera — con la implementación vieja esto lanzaba `IntegrityError` en el segundo `save()`), no regeneración en re-save. Reproducido en rojo antes del fix (formato viejo `ORD-2026-0001` no matchea + `IntegrityError` en el test de carrera). Suite completa: 38 tests OK (1 skip). `ruff check` limpio en el archivo nuevo.
 
 #### ✅ `#AUD-06` — Emails fuera de la transacción `[P1-Alta]` `[M]` `[Backend]` — **DONE (2026-08-22)**
-Los 3 puntos de envío (`process_payment_view`, `mercadopago_webhook_view`, `process_onboarding`) encapsulados en una función local y diferidos con `transaction.on_commit()`. (El asincronismo real es `#MED-01`, mediano plazo.)
+Los 3 puntos de envío (`process_payment_view`, `mercadopago_webhook_view`, `process_onboarding`) encapsulados en una función local y diferidos con `transaction.on_commit()`. (El asincronismo real es `#MED-01`, ✅ cerrado 2026-08-22.)
 **Hallazgo incidental corregido:** `process_onboarding` llamaba `UserProfile.objects.create(user=user, ...)`, pero `create_user()` ya dispara el signal `create_or_update_user_profile` (`apps/accounts/models.py:100-102`) que crea un `UserProfile` vacío vía `get_or_create` — el `.create()` explícito chocaba con el `OneToOneField` y lanzaba `IntegrityError` en **todo** onboarding real (bug no relacionado con AUD-06, pero bloqueaba el flujo completo; encontrado porque el test de commit exitoso no podía pasar sin él). Cambiado a `UserProfile.objects.update_or_create(user=user, defaults={...})`.
 **Resultado:** `apps/orders/tests/test_emails.py` (4 tests): checkout y webhook verifican que el email queda en `on_commit` callbacks (outbox vacío hasta ejecutarlos); onboarding prueba rollback → outbox vacío (rojo confirmado: con el send directo, el correo salía igual antes del rollback forzado) y commit exitoso → 2 correos. Suite completa: 42 tests OK (1 skip). `ruff check` limpio en los archivos nuevos/tocados (errores preexistentes de import-sort en `views_onboarding.py` sin relación, `#AUD-10`).
 
@@ -238,8 +238,9 @@ Propuesta, cobro por transferencia (observaciones → `#PAY-02`), compra de `ran
 
 ## §5 · MEDIANO PLAZO — Estabilidad, seguridad y performance
 
-#### `#MED-01` — Correo asíncrono `[P1-Alta]` `[M]` `[Backend]`
-Hoy SMTP bloquea el hilo HTTP (~1-3 s por envío en Zoho). Sin broker disponible en Render free: cola en DB (modelo `EmailOutbox` + cron de Render cada 5 min, mismo mecanismo que `contact-digest`) o `threading` con `on_commit` como paso intermedio. Sube sobre `#AUD-06`.
+#### ✅ `#MED-01` — Correo asíncrono `[P1-Alta]` `[M]` `[Backend]` — **DONE (2026-08-22)**
+Cola en DB: `EmailOutbox` (nuevo modelo en `apps/core/models.py`) + cron `send-pending-emails` cada 5 min (mismo mecanismo que `contact-digest`). `EmailService._send_email()` renderiza el template igual que antes (CPU local, no red) pero si `settings.EMAIL_ASYNC=True` inserta en `EmailOutbox` en vez de abrir la conexión SMTP — el INSERT es lo único que corre dentro del request. `EMAIL_ASYNC=False` por defecto (`base.py`), `True` por defecto en producción (override por env var si hace falta apagarlo). `send_set_password` fuerza `force_sync=True` siempre: quien resetea su contraseña está esperando en el momento, no tiene sentido que dependa del próximo cron.
+**Resultado:** `apps/core/tests/test_email_outbox.py` (7 tests): encolado vs. envío directo según `EMAIL_ASYNC`, `set_password` siempre síncrono, comando `send_pending_emails` envía y marca `sent_at`, idempotente (no reenvía lo ya enviado), reintentos con `attempts`/`last_error`, `failed_at` al llegar a `max_attempts` (3). `apps/core/tests/test_production_settings.py` +2 tests: `EMAIL_ASYNC=True` por defecto en producción, desactivable por env var. `apps/core/tests/test_render_config.py` actualizado para 2 crons (ya no asume "exactamente 1"). Suite completa: 79 tests OK (1 skip). **Pendiente (usuario):** confirmar que el plan free de Render admite el schedule `*/5 * * * *` (sub-horario) antes de sincronizar el blueprint.
 
 #### ✅ `#MED-02` — Suite de aislamiento multi-tenant `[P0-Crítica]` `[M]` `[Backend]` `[Database]` *(absorbe `#SEC-04`)* — **DONE (2026-08-22)**
 `test_isolation` (management command manual) portado a `apps/tenants/tests_isolation.py`. **Hallazgo:** `TenantAwareManager._current_client` nunca se seteaba en código de request real (ni middleware ni vistas) — solo el comando manual lo hacía. En producción no filtraba nada: `Model.objects.all()` devolvía todos los tenants para `Section`/`Service`/`ContactSubmission`/`GalleryItem`. El aislamiento real siempre dependió (y sigue dependiendo) de que cada vista filtre explícitamente por `client=request.client`, y al auditar esas vistas (home pública, dashboard de galería, contactos) confirmé que sí lo hacen. **Decisión (con el usuario): eliminar el mecanismo** — no hacía nada y era un riesgo si alguien lo llegaba a usar (atributo de clase = contaminación entre requests concurrentes de distintos tenants). Se quitó de `TenantAwareManager` y se eliminó `TenantManager`/`TenantQuerySet` (alternativa "más robusta" que nunca se usó en ningún modelo). Se borró `apps/tenants/management/commands/test_isolation.py` (quedaba roto/engañoso tras el cambio — reportaba `FAIL` en el mecanismo que nunca fue real).
@@ -405,10 +406,14 @@ Ya hay HSTS/nosniff/X-Frame/cookies seguras; falta **CSP** (complicada por Tailw
 - **Criterios:** cero referencias a `cdn.tailwindcss.com`; CSS compilado y purgado por tema (< 50 KB gzip); tokens de marca siguen viniendo de `ClientSettings` como custom properties; los 3 tenants renderizan idéntico (screenshot diff con `#TOOL-01`).
 - **Verificación:** `grep -r "cdn.tailwindcss" templates/ → 0` como test de CI + smoke Playwright.
 
-### `#MED-01` — Correo asíncrono (outbox + cron)
-- **Archivos:** `apps/core/models.py` (`EmailOutbox`), `apps/core/management/commands/send_pending_emails.py`, `email_service.py` (encolar en vez de enviar cuando `EMAIL_ASYNC=True`), `render.yaml` (cron cada 5 min).
-- **Criterios:** encolar es O(1 insert); el cron envía con reintentos (máx. 3, backoff) y marca `sent_at`/`failed_at`; un fallo de SMTP no afecta la request HTTP; correos "urgentes" (reset de contraseña) pueden forzar envío síncrono.
-- **Verificación:** `python manage.py test apps.core.tests.test_email_outbox` — encolado, envío por comando, reintentos, idempotencia del cron.
+### ✅ `#MED-01` — Correo asíncrono (outbox + cron)
+- **Archivos:** `apps/core/models.py` (`EmailOutbox`), `apps/core/management/commands/send_pending_emails.py`, `apps/orders/services/email_service.py` (`_send_email` encola cuando `EMAIL_ASYNC=True` y no es `force_sync`), `config/settings/base.py`/`production.py` (`EMAIL_ASYNC`), `render.yaml` (cron `send-pending-emails` cada 5 min).
+- **Criterios:**
+  - [x] Encolar es un solo INSERT (el render del template ya corría antes, es CPU local — lo único que se difiere es el `.send()` SMTP).
+  - [x] El cron envía con reintentos (máx. 3, backoff = el propio intervalo del cron) y marca `sent_at`/`failed_at`.
+  - [x] Un fallo de SMTP no afecta la request HTTP (ocurre en el proceso del cron, no del web).
+  - [x] Correos "urgentes" (`set_password`) fuerzan envío síncrono vía `force_sync=True`, ignorando `EMAIL_ASYNC`.
+- **Verificación:** `python manage.py test apps.core.tests.test_email_outbox apps.core.tests.test_production_settings apps.core.tests.test_render_config` (15 tests). ✅ Ejecutado 2026-08-22, verde. Suite completa: 79 tests OK (1 skip).
 
 ### ✅ `#MED-02` — Suite de aislamiento multi-tenant
 - **Archivos:** `apps/tenants/tests_isolation.py` (nuevo), `apps/tenants/managers.py` (`_current_client` eliminado), `apps/tenants/management/commands/test_isolation.py` (borrado, superseded).
@@ -439,7 +444,7 @@ ROBUSTEZ TRANSACCIONAL ✅ CERRADA (2026-08-22)               ▼
 AUD-05 ✅ → AUD-06 ✅ → AUD-07 ✅ → PAY-03 ✅(parcial)   RC-09 → RC-10 → RC-11 → RC-12 → RC-13
    │
    ▼
-MED-02 (aislamiento) ✅ CERRADO (2026-08-22)         MEDIANO: MED-01 (async) ∥ AUD-11 (Tailwind) ∥ MED-03 (índices)
+MED-02 (aislamiento) ✅ CERRADO (2026-08-22)         MEDIANO: MED-01 ✅ (async, 2026-08-22) ∥ AUD-11 (Tailwind) ∥ MED-03 (índices)
    │                                                                  ▼
    ▼ ESTAMOS AQUÍ                                    RC-14 → RC-15 → RC-16 → RC-17 (cierre)
 Sin bloqueadores de código en el corto plazo —

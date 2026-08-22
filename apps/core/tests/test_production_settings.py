@@ -104,3 +104,42 @@ class ProductionDebugConfigTestCase(SimpleTestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), 'False')
+
+
+def _get_production_email_async_value(extra_env: dict) -> subprocess.CompletedProcess:
+    env = {k: v for k, v in os.environ.items() if not k.startswith('EMAIL_')}
+    env.update(REQUIRED_BASE_ENV)
+    env.update(REQUIRED_EMAIL_ENV)
+    env.update(extra_env)
+    return subprocess.run(
+        [
+            sys.executable, '-c',
+            'import django; django.setup(); '
+            'from django.conf import settings; print(settings.EMAIL_ASYNC)',
+        ],
+        cwd=BASE_DIR,
+        env={**env, 'DJANGO_SETTINGS_MODULE': 'config.settings.production'},
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+
+
+class ProductionEmailAsyncConfigTestCase(SimpleTestCase):
+    """
+    #MED-01: SMTP real bloquea el hilo del request 1-3s por envío. En
+    producción, EMAIL_ASYNC debe estar activo por defecto (encolar en
+    EmailOutbox en vez de abrir la conexión SMTP dentro del request).
+    """
+
+    def test_email_async_is_true_by_default_in_production(self):
+        result = _get_production_email_async_value({})
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), 'True')
+
+    def test_email_async_can_be_disabled_explicitly(self):
+        result = _get_production_email_async_value({'EMAIL_ASYNC': 'false'})
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), 'False')
