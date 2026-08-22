@@ -1,3 +1,31 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Componentes compartidos entre temas (#AUD-11/#TOOL-04).
+ *
+ * Regla: una clase entra acá SOLO cuando ya existe casi idéntica en 2+
+ * temas (ver docs/design-system.md). No es un lugar para "por si
+ * acaso" -- todavía hay clases claramente propias de un tema (ej.
+ * .electric-glow, .stripe-card) que se quedan en el <style> de su
+ * base.html porque de verdad son de ese tema nomás.
+ */
+@layer components {
+  /*
+   * .btn-primary: estaba casi duplicada byte a byte en servelec,
+   * themes/electricidad y ranchocachimba (gradiente primary->secondary +
+   * sombra tintada). Generalizada acá con color-mix() para la sombra en
+   * vez de rgba() hardcodeado (electricidad tenía el rgba fijo en verde,
+   * roto para cualquier otro color de marca).
+   */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    box-shadow: 0 4px 14px 0 color-mix(in srgb, var(--color-primary) 40%, transparent);
+    transition: all 0.3s ease;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 color-mix(in srgb, var(--color-primary) 50%, transparent);
+  }
+}

@@ -18,12 +18,12 @@
       @submit.prevent="submitting = true; $el.submit()">
 
     {% csrf_token %}
-    {# ContactForm exige intent/form_source (ChoiceField, sin required=False).
-       Esta plantilla es un formulario simple de una sola sección -- sin el
-       flujo por pasos que sí completa esos campos vía JS -- así que van
-       fijos a sus valores por defecto (#TOOL-01: sin esto, is_valid()
-       siempre era False y el envío fallaba con 400 en cualquier tenant
-       que use esta plantilla). #}
+    {# ContactForm exige intent/form_source (ChoiceField, sin required=False).#}
+{#       Esta plantilla es un formulario simple de una sola sección -- sin el#}
+{#       flujo por pasos que sí completa esos campos vía JS -- así que van#}
+{#       fijos a sus valores por defecto (#TOOL-01: sin esto, is_valid()#}
+{#       siempre era False y el envío fallaba con 400 en cualquier tenant#}
+{#       que use esta plantilla). #}
     <input type="hidden" name="intent" value="general">
     <input type="hidden" name="form_source" value="page">
 

@@ -21,11 +21,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
     {% endblock %}
 
-    {# CSS global (Tailwind CDN en dev, archivo compilado en prod) #}
-    <script src="https://cdn.tailwindcss.com"></script>
+    {# CSS global compilado (#AUD-11) — generado por `npm run build:css`,#}
+{#       nunca por CDN. Si esto 404ea, correr ese comando (ver CLAUDE.md). #}
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
 
-    {# Alpine.js — defer para no bloquear render #}
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {# Alpine.js — defer para no bloquear render. Versión fijada (antes#}
+{#       flotante @3.x.x en los 9 base.html — riesgo real de breaking#}
+{#       change sin aviso en cualquier request). #}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.16.2/dist/cdn.min.js"></script>
 
     {# Config de Tailwind y estilos del cliente — definido en cada cliente/base.html #}
     {% block theme_styles %}{% endblock %}

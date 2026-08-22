@@ -25,6 +25,12 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
+# ─── Build de Tailwind (#AUD-11) ────────────────────
+# Generado por `npm run build:css` / build.sh -- nunca a mano.
+# IMPORTANTE: correr `npm run build:css` una vez después de clonar el
+# repo, o el sitio se sirve sin ningún estilo (ver CLAUDE.md).
+static/css/output.css
+
 # ─── Archivos de sistema ────────────────────────────
 .DS_Store
 Thumbs.db

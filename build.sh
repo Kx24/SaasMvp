@@ -33,10 +33,14 @@ mkdir -p templates/tenants/_default/landing
 echo "   ✓ Directorios creados"
 
 # -----------------------------------------------------------------------------
-# 3. ARCHIVOS ESTÁTICOS
+# 3. BUILD DE TAILWIND (#AUD-11) + ARCHIVOS ESTÁTICOS
 # -----------------------------------------------------------------------------
+# El compilado (static/css/output.css) tiene que existir en static/ ANTES
+# de collectstatic --clear, que es lo que lo copia a staticfiles/.
 echo ""
-echo "🎨 [3/5] Recolectando archivos estáticos..."
+echo "🎨 [3/5] Compilando Tailwind y recolectando archivos estáticos..."
+npm ci --quiet
+npm run build:css
 python manage.py collectstatic --noinput --clear --verbosity=0
 echo "   ✓ Archivos estáticos listos"
 

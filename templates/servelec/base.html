@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load static website_tags %}
 
-{# ============================================================
-   SERVELEC — base.html
-   Hereda de base.html global.
-   Define: colores, fuentes, estilos propios, navbar y footer.
-   Cada página del cliente extiende ESTE archivo, no base.html.
-   ============================================================ #}
+{# ============================================================#}
+{#   SERVELEC — base.html#}
+{#   Hereda de base.html global.#}
+{#   Define: colores, fuentes, estilos propios, navbar y footer.#}
+{#   Cada página del cliente extiende ESTE archivo, no base.html.#}
+{#   ============================================================ #}
 
     <!-- SEO -->
     {% load seo_tags %}
@@ -22,63 +22,35 @@
     {% endblock %}
 
 {% block theme_styles %}
-{# Colores dinámicos desde ClientSettings — fallback a verde Servelec #}
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-<script>
-    tailwind.config = {
-        theme: {
-            extend: {
-                colors: {
-                    primary:   '{{ client.settings.primary_color|default:"#16a34a" }}',
-                    secondary: '{{ client.settings.secondary_color|default:"#15803d" }}',
-                    accent:    '{{ client.settings.accent_color|default:"#22c55e" }}',
-                },
-                fontFamily: {
-                    'sans':    ['Inter', 'system-ui', 'sans-serif'],
-                    'display': ['Outfit', 'system-ui', 'sans-serif'],
-                },
-            }
-        }
-    }
-</script>
-
+{# Tokens de marca desde ClientSettings — fallback a verde Servelec.#}
+{#   tailwind.config.js (compartido, raíz del repo) referencia estas#}
+{#   variables directo; ya no hay un tailwind.config por tema (#AUD-11). #}
 <style>
     :root {
-        --primary:       {{ client.settings.primary_color|default:"#16a34a" }};
-        --secondary:     {{ client.settings.secondary_color|default:"#15803d" }};
-        --accent:        {{ client.settings.accent_color|default:"#22c55e" }};
-        --primary-light: #dcfce7;
+        --color-primary:   {{ client.settings.primary_color|default:"#16a34a" }};
+        --color-secondary: {{ client.settings.secondary_color|default:"#15803d" }};
+        --color-accent:    {{ client.settings.accent_color|default:"#22c55e" }};
+        --font-sans:       'Inter';
+        --font-display:    'Outfit';
     }
 
-    body { font-family: 'Inter', system-ui, sans-serif; }
-
-    .font-display { font-family: 'Outfit', system-ui, sans-serif; }
+    body { font-family: var(--font-sans), system-ui, sans-serif; }
 
     .text-gradient {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
 
     .bg-gradient-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        box-shadow: 0 4px 14px 0 rgba(22, 163, 74, 0.4);
-        transition: all 0.3s ease;
-    }
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px 0 rgba(22, 163, 74, 0.5);
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
     }
 
     .electric-glow {
-        box-shadow: 0 0 20px rgba(22, 163, 74, 0.3),
-                    0 0 40px rgba(22, 163, 74, 0.2),
-                    0 0 60px rgba(22, 163, 74, 0.1);
+        box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 30%, transparent),
+                    0 0 40px color-mix(in srgb, var(--color-primary) 20%, transparent),
+                    0 0 60px color-mix(in srgb, var(--color-primary) 10%, transparent);
     }
 
     .service-card {
@@ -86,7 +58,7 @@
     }
     .service-card:hover {
         transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(22, 163, 74, 0.15);
+        box-shadow: 0 20px 40px color-mix(in srgb, var(--color-primary) 15%, transparent);
     }
 
     @keyframes float {
@@ -102,14 +74,14 @@
     .fade-up { animation: fade-up 0.6s ease-out forwards; }
 
     input:focus, textarea:focus, select:focus {
-        border-color: var(--primary) !important;
-        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1) !important;
+        border-color: var(--color-primary) !important;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
     }
 
     ::-webkit-scrollbar       { width: 8px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--secondary); }
+    ::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-secondary); }
 
     [x-cloak] { display: none !important; }
 </style>
