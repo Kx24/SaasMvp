@@ -1,0 +1,6 @@
+-r requirements.txt
+
+ruff==0.16.4
+bandit==1.7.*
+coverage==7.*
+pyyaml==6.0.*

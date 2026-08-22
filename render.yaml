@@ -3,10 +3,18 @@
 #
 # Este archivo define la infraestructura en Render:
 # - Web service (Django app)
+# - Cron job (digest de contactos)
 # - PostgreSQL database
 #
 # Para desplegar: conecta tu repo de GitHub a Render
 # Render detectará este archivo automáticamente
+#
+# #AUD-04: el cron estaba insertado en medio de la lista de servicios y
+# arrastraba buildCommand/startCommand/healthCheckPath/envVars bajo su
+# propia entrada -- el servicio web (saasmvp) quedaba sin ninguno de esos
+# campos. Si Render re-sincronizaba el blueprint, el deploy web perdía
+# build/start command y todas las variables de entorno. Cada servicio
+# declara ahora su configuración completa y propia.
 
 services:
   # =================================================================
@@ -19,80 +27,125 @@ services:
     plan: free
     branch: main
 
-# =================================================================
-# Cron Jobs para activar digest y purga de mensajes contacto
-# =================================================================
-
-  - type: cron
-    name: contact-digest
-    schedule: "0 8 * * 1"   # Lunes 8am
-    command: python manage.py send_contact_digest
-    
     # Build & Start
     buildCommand: "./build.sh"
     startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
-    
+
     # Health Check
     healthCheckPath: /
-    
+
     # Variables de entorno
     envVars:
       # Python
       - key: PYTHON_VERSION
         value: "3.11.0"
-      
+
       # Django Settings
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.production
-      
+
       # Seguridad (generada automáticamente)
       - key: SECRET_KEY
         generateValue: true
-      
+
       # Debug (siempre False en producción)
       - key: DEBUG
         value: "False"
-      
+
       # Base de datos (se conecta automáticamente)
       - key: DATABASE_URL
         fromDatabase:
           name: saasmvp-db
           property: connectionString
-      
+
       # ===============================================
       # CONFIGURACIÓN MULTI-TENANT
       # ===============================================
-      
+
       # Dominio base para subdominios (ej: demo.tuapp.cl)
       - key: BASE_DOMAIN
         value: "onrender.com"
-      
+
       # Tenant por defecto (cuando no se detecta dominio)
       - key: DEFAULT_TENANT_SLUG
         value: "servelec"
-      
+
       # Dominios adicionales permitidos (separados por coma)
       # Agregar aquí los dominios de tus clientes
       - key: EXTRA_DOMAINS
         value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,ranchocachimba.cl,www.ranchocachimba.cl"
-      
+
       # ===============================================
       # EMAIL (Zoho Mail)
       # ===============================================
       - key: EMAIL_HOST
         value: "smtp.zoho.com"
-      
+
       - key: EMAIL_PORT
         value: "587"
-      
+
       - key: EMAIL_USE_TLS
         value: "True"
-      
+
       # Estas las configuras manualmente en Render Dashboard (son secretas)
       # - key: EMAIL_HOST_USER
       #   sync: false
       # - key: EMAIL_HOST_PASSWORD
       #   sync: false
+
+  # =================================================================
+  # CRON JOB - Digest de mensajes de contacto
+  # =================================================================
+  - type: cron
+    name: contact-digest
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    schedule: "0 8 * * 1"   # Lunes 8am
+    buildCommand: "pip install -r requirements.txt"
+    command: "python manage.py send_contact_digest"
+
+    # Mismas variables que el servicio web: el comando lee Client,
+    # ContactSubmission y envía correo, así que necesita DB + settings de
+    # Django + credenciales SMTP igual que el web service.
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: DEBUG
+        value: "False"
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: saasmvp-db
+          property: connectionString
+
+      - key: BASE_DOMAIN
+        value: "onrender.com"
+
+      - key: DEFAULT_TENANT_SLUG
+        value: "servelec"
+
+      - key: EXTRA_DOMAINS
+        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,ranchocachimba.cl,www.ranchocachimba.cl"
+
+      - key: EMAIL_HOST
+        value: "smtp.zoho.com"
+
+      - key: EMAIL_PORT
+        value: "587"
+
+      - key: EMAIL_USE_TLS
+        value: "True"
+      # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: configurar manualmente en
+      # Render Dashboard para este servicio también (son secretas).
 
 # =================================================================
 # DATABASE - PostgreSQL
@@ -102,4 +155,3 @@ databases:
     plan: free
     region: oregon
     # ipAllowList: []  # Permitir todas las IPs (default)
-

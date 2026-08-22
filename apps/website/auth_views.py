@@ -2,12 +2,27 @@
 Vistas de autenticación para clientes
 apps/website/auth_views.py
 """
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib import messages
+from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
+
+
+def _user_belongs_to_tenant(user, request):
+    """
+    #AUD-03: además de autenticar, el login debe verificar que el usuario
+    pertenezca al tenant del dominio visitado. Superusers y staff (acceso
+    de Django admin, no ligado a un tenant) quedan exentos.
+    """
+    if user.is_superuser or user.is_staff:
+        return True
+
+    client = getattr(request, 'client', None)
+    profile = getattr(user, 'profile', None)
+
+    return client is not None and profile is not None and profile.client_id == client.id
 
 
 @never_cache
@@ -40,7 +55,7 @@ def client_login(request):
 
         user = authenticate(request, username=username, password=password)
 
-        if user is not None:
+        if user is not None and _user_belongs_to_tenant(user, request):
             login(request, user)  # rota CSRF token + cicla sesión
 
             if user.is_superuser or user.is_staff:
