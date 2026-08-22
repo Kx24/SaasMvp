@@ -14,14 +14,32 @@
 // header Host (extraHTTPHeaders) no funciona: Chromium lo rechaza con
 // ERR_INVALID_ARGUMENT.
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = 8811;
 
-const TENANTS = [
+const ALL_TENANTS = [
   { slug: 'andesscale', host: 'andesscale.localhost', contactFlow: 'multistep' },
   { slug: 'servelec-e2e', host: 'servelec-e2e.localhost', contactFlow: 'simple' },
   { slug: 'ranchocachimba-e2e', host: 'ranchocachimba-e2e.localhost', contactFlow: 'whatsapp' },
 ];
+
+// En develop todavía no existe templates/ranchocachimba/ (esa branch no
+// tiene el trabajo de Rancho Cachimba, en pausa aparte). seed_e2e_tenants
+// igual crea el Client -- render_tenant_template cae al fallback genérico
+// (templates/landing/home.html), que no tiene ni el layout ni el
+// WhatsApp de RC, así que el smoke de ese tenant no aplica todavía acá.
+// Se salta con un motivo explícito, no un test en rojo permanente; en
+// cuanto RC se mergee a esta branch, el chequeo de filesystem lo vuelve
+// a incluir solo.
+const RANCHOCACHIMBA_THEME_EXISTS = fs.existsSync(
+  path.join(__dirname, '../../templates/ranchocachimba')
+);
+
+const TENANTS = ALL_TENANTS.filter(
+  (t) => t.slug !== 'ranchocachimba-e2e' || RANCHOCACHIMBA_THEME_EXISTS
+);
 
 for (const tenant of TENANTS) {
   test.describe(`smoke: ${tenant.slug}`, () => {
