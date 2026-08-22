@@ -521,12 +521,17 @@ class Order(models.Model):
         return self
     
     def mark_as_completed(self, client):
-        """Marca la orden como completada tras el onboarding."""
+        """
+        Marca la orden como completada tras el onboarding.
+
+        Conserva onboarding_token: onboarding_success_view busca la orden
+        por ese token justo después de completar, y onboarding_view ya
+        corta el flujo antes (status == 'completed' -> página de éxito/
+        resumen) así que dejarlo no reabre el formulario.
+        """
         self.status = 'completed'
         self.client = client
         self.completed_at = timezone.now()
-        self.onboarding_token = None
-        self.token_expires_at = None
         self.save()
         return self
     

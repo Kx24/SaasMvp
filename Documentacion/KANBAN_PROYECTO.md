@@ -186,8 +186,12 @@ Devolver 500 en excepción inesperada para que MP reintente; conservar 200 para 
 #### `#AUD-09` — Onboarding sin mutación en GET `[P2-Media]` `[S]` `[Backend]`
 `start_onboarding()` solo en POST válido.
 
-#### `#PAY-03` — E2E sandbox de pago→provisioning `[P1-Alta]` `[M]` `[Backend]`
-Con `#AUD-01/02` cerrados: pasar un tenant ficticio por checkout completo en modo test, sin tocar el shell. **DoD:** tenant creado automáticamente por un pago de prueba.
+#### ✅ `#PAY-03` — E2E sandbox de pago→provisioning `[P1-Alta]` `[M]` `[Backend]` — **DONE (parcial, 2026-08-22)**
+Automatizado con `MercadoPagoService` mockeado (sin red, sin credenciales reales) — cubre el contrato completo checkout→onboarding→tenant en CI. **No reemplaza** la verificación manual contra la API real de MP en sandbox (tarjeta de prueba + browser), que sigue pendiente y requiere `MP_ACCESS_TOKEN`/`MP_PUBLIC_KEY` de test del usuario.
+**2 bugs de producción encontrados y corregidos al construir el test** (nadie había corrido este flujo de punta a punta):
+1. `views_onboarding.py` redirigía con `redirect('orders:onboarding_success', ...)`, pero `urls_onboarding.py` se incluye **sin namespace** en `config/urls.py` → `NoReverseMatch` en **todo** onboarding real, atrapado por el `except Exception` genérico → el cliente veía "Ocurrió un error al crear tu sitio" aunque el tenant ya se había creado exitosamente. Corregido a `redirect('onboarding_success', ...)` (y el mismo bug en el redirect de token inválido/expirado).
+2. `Order.mark_as_completed()` limpiaba `onboarding_token` (`= None`) justo antes de que `onboarding_success_view` buscara la orden **por ese mismo token** → `Http404` incluso arreglado el bug #1. El token ya no se limpia al completar (el propio `onboarding_view` corta el flujo antes por `status == 'completed'`, así que dejarlo no reabre el formulario).
+**Resultado:** `apps/orders/tests/test_pay03_e2e_sandbox.py` (2 tests): tarjeta aprobada → checkout→email→formulario→Client+Domain+UserProfile(owner)+Sections(hero,contact)+orden `completed`+2 emails, siguiendo el redirect real hasta la página de éxito (no un 404); tarjeta rechazada → orden `failed`, sin tenant. Reproducido en rojo antes de ambos fixes (`NoReverseMatch` primero, luego `redirect_chain` vacío). Suite completa: 54 tests OK (1 skip). `ruff check` limpio en archivos nuevos/tocados.
 
 ### 🟡 Lanzamiento Rancho Cachimba (código ya listo, faltan insumos + publicación)
 
@@ -354,11 +358,17 @@ Ya hay HSTS/nosniff/X-Frame/cookies seguras; falta **CSP** (complicada por Tailw
 - **Criterios:** excepción inesperada en webhook → 500 (MP reintenta); `payment_id` ya procesado → 200 no-op idempotente con `PaymentLog` único; GET de onboarding no cambia `order.status`.
 - **Verificación:** `python manage.py test apps.orders.tests.test_webhooks apps.orders.tests.test_onboarding`.
 
-### `#PAY-03` — E2E sandbox
+### ✅ `#PAY-03` — E2E sandbox (parcial: automatizado con mocks, falta la pasada manual real)
 - **Contexto:** validar la cadena completa checkout→webhook→onboarding→tenant con MP en modo test.
-- **Archivos:** sin cambios de código (es verificación); fixture de `Plan` de prueba (`apps/orders/management/commands/setup_plans.py`).
-- **Criterios:** pago con tarjeta de prueba aprobado → orden `paid` + email con token → formulario de onboarding crea Client+Domain+User+secciones → orden `completed`. Tarjeta rechazada → orden `failed`, sin tenant.
-- **Verificación:** manual guiada en sandbox + `python manage.py test apps.orders` completo en verde antes de intentarlo.
+- **Archivos:** `apps/orders/tests/test_pay03_e2e_sandbox.py` (nuevo); fixes en `apps/orders/views_onboarding.py` y `apps/orders/models.py` (ver hallazgos abajo).
+- **Criterios:**
+  - [x] Pago con tarjeta de prueba aprobado (mockeado) → orden `paid` + email con token → formulario de onboarding crea Client+Domain+User+secciones → orden `completed`.
+  - [x] Tarjeta rechazada (mockeada) → orden `failed`, sin tenant.
+  - [ ] Pasada manual real contra el sandbox de MP (tarjeta de prueba + browser) — requiere `MP_ACCESS_TOKEN`/`MP_PUBLIC_KEY` de test del usuario, no automatizable desde el repo.
+- **Hallazgos corregidos (bugs de producción, no del test):**
+  1. `redirect('orders:onboarding_success', ...)` → `NoReverseMatch` porque `urls_onboarding.py` no tiene namespace `orders:`. Atrapado por el `except Exception` genérico → el cliente veía un error falso aunque el tenant sí se creaba. Corregido a `redirect('onboarding_success', ...)` (y el mismo patrón en el redirect de token inválido).
+  2. `Order.mark_as_completed()` limpiaba `onboarding_token`, y `onboarding_success_view` busca la orden por ese token inmediatamente después → `Http404` incluso con el bug 1 arreglado. Ya no se limpia el token al completar.
+- **Verificación:** `python manage.py test apps.orders.tests.test_pay03_e2e_sandbox` (2 tests). ✅ Ejecutado 2026-08-22, verde (rojo confirmado antes de cada fix). Suite completa: 54 tests OK (1 skip). Pendiente: pasada manual guiada en sandbox real de MP.
 
 ### `#RC-12` — Formulario de contacto Cachimba + SMTP
 - **Contexto:** el lead de Cachimba vale más con tipo de visita y fecha tentativa; hoy contacto = WhatsApp.
