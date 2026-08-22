@@ -31,7 +31,7 @@
 2. `#AUD-04` — falta confirmar contra el dashboard real de Render qué configuración está efectivamente activa.
 3. `#AUD-07`/`#PAY-03` — falta SPF/DKIM de Zoho + una pasada manual real contra el sandbox de MP (tarjeta de prueba + browser, requiere credenciales de test).
 
-**Siguiente en la ruta crítica:** con el gate de seguridad, robustez transaccional, aislamiento multi-tenant, la limpieza P2 (`#AUD-08/09/12`), `#TOOL-07`, `#MED-01` (correo asíncrono) y `#MED-03` (índices) todos cerrados, lo que queda en corto plazo es `#RC-01`/`#RC-06b`/`#RC-18` (Rancho Cachimba, en pausa por decisión del usuario — necesita tiempo de diseño/investigación) o el resto de mediano plazo de §5 (`#AUD-11` pipeline Tailwind — ver informe "Tailwind, hoy" para el estado actual, `#TOOL-01` Playwright smoke).
+**Siguiente en la ruta crítica:** con el gate de seguridad, robustez transaccional, aislamiento multi-tenant, la limpieza P2 (`#AUD-08/09/12`), `#TOOL-07`, `#MED-01` (correo asíncrono), `#MED-03` (índices) y `#TOOL-01` (Playwright smoke) todos cerrados, lo único que queda en el radar de corto/mediano plazo sin depender de Rancho Cachimba es `#AUD-11` (pipeline de Tailwind — ver informe "Tailwind, hoy" para el estado actual). El resto (`#RC-01`/`#RC-06b`/`#RC-18`) sigue en pausa por decisión del usuario, que necesita tiempo de diseño/investigación antes de retomarlo. También quedó postergado (a pedido del usuario) verificar `EXPLAIN ANALYZE` de `#MED-03` contra la base real — nota aparte: la base de producción es **Neon**, no Supabase como dice el resto de este documento; corrección pendiente, el usuario pidió posponer el tema completo hasta tener más contexto sobre Neon.
 
 **No tocar sin que el usuario lo pida:** limpieza de lint global (135 errores preexistentes fuera de los archivos de este cierre — es `#AUD-10`/deuda técnica, no parte del gate), ni nada de Rancho Cachimba (`#RC-01`/`#RC-06b`/`#RC-18`) — depende de insumos del cliente, no de código.
 
@@ -259,8 +259,11 @@ Rediseñar `templates/emails/*` (tablas, inline CSS, dark-mode friendly, texto p
 #### `#MED-05` — Rate limit y auditoría de IP confiable `[P2-Media]` `[S]` `[Backend]`
 Tomar la IP del último proxy confiable (Render setea XFF); aplicar `RateLimiter` también a login (`scope='login'`) y checkout.
 
-#### `#TOOL-01` — Playwright smoke multi-tenant `[P1-Alta]` `[M]` `[DevOps]`
-`tests/e2e/` parametrizado por tenant: home 200, hero visible, formulario envía, navbar/footer. **DoD:** `npx playwright test` cubre servelec, andesscale y ranchocachimba.
+#### ✅ `#TOOL-01` — Playwright smoke multi-tenant `[P1-Alta]` `[M]` `[DevOps]` — **DONE (2026-08-22)**
+Primera herramienta Node/npm del repo (`package.json`, `@playwright/test`, chromium instalado) — sienta base para `#AUD-11` también. `playwright.config.js` levanta un servidor Django dedicado (`config.settings.e2e`, DB SQLite descartable `db_e2e.sqlite3`, puerto 8811) que migra y siembra (`seed_e2e_tenants`, idempotente) antes de correr — `npx playwright test` hace todo en un solo comando, tal como pide el DoD.
+**Decisión técnica:** el plan original (override del header `Host` vía Playwright para simular dominios sin DNS real) **no funciona** — Chromium moderno lo rechaza con `ERR_INVALID_ARGUMENT`. Se usa en cambio subdominios `*.localhost` (resuelven a `127.0.0.1` por RFC 6761, confirmado con `nslookup` en Windows sin tocar `/etc/hosts`) — cada tenant navega directo a su propia URL (`andesscale.localhost:8811`, etc.).
+**Hallazgo real corregido antes de escribir el smoke (bloqueaba "formulario envía"):** `templates/partials/contact_form.html` (usado por `servelec`, `themes/default` y `themes/electricidad`) hacía un POST nativo sin `intent` ni `form_source` — dos `ChoiceField` requeridos por `ContactForm` sin `required=False`. Resultado: el formulario de contacto **siempre devolvía 400** en cualquier tenant con esa plantilla, `servelec` (producción real) incluido — nadie podía enviar un mensaje desde ahí. Corregido agregando los dos hidden inputs con sus valores por defecto (`general`/`page`, iguales a los que ya declara `ContactForm`). `andesscale` no tenía el bug (usa `components/contact_multistep.html`, que sí arma esos campos vía `fetch()`). `ranchocachimba` no tiene formulario todavía por diseño (`#RC-07`, WhatsApp directo) — el smoke prueba el link de WhatsApp en su lugar, no un formulario que no existe.
+**Resultado:** `apps/website/tests/test_contact_submit.py` (2 tests, TDD del bug: rojo confirmado con `git stash` contra la plantilla original — 400 sin `ContactSubmission` creado). `tests/e2e/smoke.spec.js` (6 tests, 3 tenants × {home+hero+navbar+footer, mecanismo de contacto real de cada uno — difiere por tema, no es el mismo formulario}) — verde, `npx playwright test` completo en ~12s. Suite Django completa: 83 tests OK (1 skip).
 
 #### ✅ `#TOOL-07` — `CLAUDE.md` en la raíz `[P1-Alta]` `[S]` `[DevOps]` — **DONE (2026-08-22)**
 `CLAUDE.md` creado en la raíz: comandos frecuentes, resolución de tenant/templates (`TenantTemplateLoader`), `render_tenant_template`, `TenantAwareManager` sin auto-filtro (post `#MED-02`), `tenant_member_required`, `cloudinary_utils`, emails con `on_commit`, los 4 gotchas reales de esta sesión (orden de `apps/orders/urls.py` — `#AUD-01`; namespace de `redirect()` en onboarding — `#PAY-03`; signal de `UserProfile` — `#AUD-06`; fail-fast de `production.py` — `#AUD-07`/`#AUD-12`), el arnés de TDD de §2 como contrato, y la situación de branches (`develop` vs `feature/RanchocachimbaEtapa1` en pausa).
@@ -437,7 +440,7 @@ Ya hay HSTS/nosniff/X-Frame/cookies seguras; falta **CSP** (complicada por Tailw
   - [ ] `EXPLAIN ANALYZE` en Supabase — pendiente, requiere datos reales de producción, no automatizable desde SQLite.
 - **Verificación:** `python manage.py test apps.website.tests.test_model_indexes apps.tenants.tests.DomainIndexTestCase` + `python manage.py makemigrations --check --dry-run`. ✅ Ejecutado 2026-08-22, verde.
 
-### `#MED-04` / `#MED-05` / `#TOOL-01` / `#TOOL-07` — ver §5; sus DoD son autocontenidos.
+### `#MED-04` / `#MED-05` — ver §5; sus DoD son autocontenidos. `#TOOL-01`/`#TOOL-07` ✅ cerrados, detalle en §4.
 
 ---
 
@@ -452,7 +455,7 @@ ROBUSTEZ TRANSACCIONAL ✅ CERRADA (2026-08-22)               ▼
 AUD-05 ✅ → AUD-06 ✅ → AUD-07 ✅ → PAY-03 ✅(parcial)   RC-09 → RC-10 → RC-11 → RC-12 → RC-13
    │
    ▼
-MED-02 (aislamiento) ✅ CERRADO (2026-08-22)         MEDIANO: MED-01 ✅ ∥ MED-03 ✅ (2026-08-22) ∥ AUD-11 (Tailwind) pendiente
+MED-02 (aislamiento) ✅ CERRADO (2026-08-22)         MEDIANO: MED-01 ✅ ∥ MED-03 ✅ ∥ TOOL-01 ✅ (2026-08-22) ∥ AUD-11 (Tailwind) pendiente
    │                                                                  ▼
    ▼ ESTAMOS AQUÍ                                    RC-14 → RC-15 → RC-16 → RC-17 (cierre)
 Sin bloqueadores de código en el corto plazo —
