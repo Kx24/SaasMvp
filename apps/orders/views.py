@@ -190,14 +190,17 @@ def process_payment_view(request):
                     )
                     
                     # =========================================================
-                    # CARD A6: ENVIAR EMAIL DE PAGO EXITOSO
+                    # CARD A6: ENVIAR EMAIL DE PAGO EXITOSO (tras commit)
                     # =========================================================
-                    try:
-                        send_payment_success_email(order)
-                        logger.info(f"[Checkout] Email de pago exitoso enviado a: {order.email}")
-                    except Exception as e:
-                        # No fallar el proceso si el email falla
-                        logger.error(f"[Checkout] Error enviando email de pago: {e}")
+                    def _send_checkout_success_email(order=order):
+                        try:
+                            send_payment_success_email(order)
+                            logger.info(f"[Checkout] Email de pago exitoso enviado a: {order.email}")
+                        except Exception as e:
+                            # No fallar el proceso si el email falla
+                            logger.error(f"[Checkout] Error enviando email de pago: {e}")
+
+                    transaction.on_commit(_send_checkout_success_email)
                     # =========================================================
                     
                     # URL de éxito
@@ -408,13 +411,16 @@ def mercadopago_webhook_view(request):
                 logger.info(f"[MP Webhook] Orden marcada como pagada: {order.order_number}")
                 
                 # =========================================================
-                # CARD A6: ENVIAR EMAIL DE PAGO EXITOSO (desde webhook)
+                # CARD A6: ENVIAR EMAIL DE PAGO EXITOSO (desde webhook, tras commit)
                 # =========================================================
-                try:
-                    send_payment_success_email(order)
-                    logger.info(f"[MP Webhook] Email de pago exitoso enviado a: {order.email}")
-                except Exception as e:
-                    logger.error(f"[MP Webhook] Error enviando email de pago: {e}")
+                def _send_webhook_success_email(order=order):
+                    try:
+                        send_payment_success_email(order)
+                        logger.info(f"[MP Webhook] Email de pago exitoso enviado a: {order.email}")
+                    except Exception as e:
+                        logger.error(f"[MP Webhook] Error enviando email de pago: {e}")
+
+                transaction.on_commit(_send_webhook_success_email)
                 # =========================================================
             
             elif payment_status == 'rejected':

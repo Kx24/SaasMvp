@@ -166,8 +166,10 @@ Validación descomentada en `mercadopago_webhook_view`; `validate_webhook_signat
 `count()+1` reemplazado por `ORD-{año}-{self.uuid.hex[:6].upper()}`. El `uuid` (PK) ya está asignado en memoria por el `default=uuid.uuid4` del campo antes del INSERT, así que la generación no depende de ninguna lectura compartida de la tabla — dos órdenes en paralelo nunca compiten por el mismo número.
 **Resultado:** `apps/orders/tests/test_models.py` (3 tests): formato `ORD-YYYY-XXXXXX`, independencia bajo `count()` mockeado a un valor fijo compartido (reproduce la ventana de carrera — con la implementación vieja esto lanzaba `IntegrityError` en el segundo `save()`), no regeneración en re-save. Reproducido en rojo antes del fix (formato viejo `ORD-2026-0001` no matchea + `IntegrityError` en el test de carrera). Suite completa: 38 tests OK (1 skip). `ruff check` limpio en el archivo nuevo.
 
-#### `#AUD-06` — Emails fuera de la transacción `[P1-Alta]` `[M]` `[Backend]`
-`transaction.on_commit()` para todo envío en `process_onboarding`, checkout y webhook. (El asincronismo real es `#MED-01`, mediano plazo.)
+#### ✅ `#AUD-06` — Emails fuera de la transacción `[P1-Alta]` `[M]` `[Backend]` — **DONE (2026-08-22)**
+Los 3 puntos de envío (`process_payment_view`, `mercadopago_webhook_view`, `process_onboarding`) encapsulados en una función local y diferidos con `transaction.on_commit()`. (El asincronismo real es `#MED-01`, mediano plazo.)
+**Hallazgo incidental corregido:** `process_onboarding` llamaba `UserProfile.objects.create(user=user, ...)`, pero `create_user()` ya dispara el signal `create_or_update_user_profile` (`apps/accounts/models.py:100-102`) que crea un `UserProfile` vacío vía `get_or_create` — el `.create()` explícito chocaba con el `OneToOneField` y lanzaba `IntegrityError` en **todo** onboarding real (bug no relacionado con AUD-06, pero bloqueaba el flujo completo; encontrado porque el test de commit exitoso no podía pasar sin él). Cambiado a `UserProfile.objects.update_or_create(user=user, defaults={...})`.
+**Resultado:** `apps/orders/tests/test_emails.py` (4 tests): checkout y webhook verifican que el email queda en `on_commit` callbacks (outbox vacío hasta ejecutarlos); onboarding prueba rollback → outbox vacío (rojo confirmado: con el send directo, el correo salía igual antes del rollback forzado) y commit exitoso → 2 correos. Suite completa: 42 tests OK (1 skip). `ruff check` limpio en los archivos nuevos/tocados (errores preexistentes de import-sort en `views_onboarding.py` sin relación, `#AUD-10`).
 
 #### `#AUD-07` — Correo de producción confiable `[P1-Alta]` `[S]` `[Backend]` `[DevOps]`
 Sin fallback silencioso a console en producción (fallar al arrancar o loggear CRITICAL); URLs de sitio en emails construidas desde `Domain`/`BASE_DOMAIN`, no hardcodeadas `.andesscale.cl`. Verificar SPF/DKIM de Zoho.
@@ -323,14 +325,14 @@ Ya hay HSTS/nosniff/X-Frame/cookies seguras; falta **CSP** (complicada por Tailw
   - [x] Órdenes existentes no cambian (sin migración de datos — el cambio es solo en la generación de números nuevos).
 - **Verificación:** `python manage.py test apps.orders.tests.test_models` (3 tests). ✅ Ejecutado 2026-08-22, verde. Suite completa: 38 tests OK (1 skip).
 
-### `#AUD-06` — Emails fuera de la transacción
+### ✅ `#AUD-06` — Emails fuera de la transacción
 - **Contexto:** envío dentro de `atomic` = bloqueo + emails de transacciones que hicieron rollback.
 - **Archivos:** `apps/orders/views_onboarding.py`, `apps/orders/views.py`.
 - **Criterios de aceptación:**
-  - [ ] Todo `send_*_email` en flujos con `atomic` va dentro de `transaction.on_commit(lambda: ...)`.
-  - [ ] Si el onboarding hace rollback, no se envía nada.
-  - [ ] Si el email falla, la transacción ya commiteada no se ve afectada (log ERROR, no excepción al usuario).
-- **Verificación:** `python manage.py test apps.orders.tests.test_emails` — con `django.core.mail.outbox`: rollback simulado → `len(outbox)==0`; commit → los 2 correos esperados; `TestCase.captureOnCommitCallbacks`.
+  - [x] Todo `send_*_email` en flujos con `atomic` va dentro de `transaction.on_commit(...)` (función local, no lambda, para capturar `order`/`client`/`user` por valor vía default args y loguear éxito/error igual que antes).
+  - [x] Si el onboarding hace rollback, no se envía nada.
+  - [x] Si el email falla, la transacción ya commiteada no se ve afectada (log ERROR, no excepción al usuario — `EmailService._send_email` ya atrapa la excepción internamente).
+- **Verificación:** `python manage.py test apps.orders.tests.test_emails` (4 tests) — con `django.core.mail.outbox`: rollback simulado → `len(outbox)==0` (rojo confirmado con send directo); commit → los 2 correos esperados; `TestCase.captureOnCommitCallbacks`. ✅ Ejecutado 2026-08-22, verde. Suite completa: 42 tests OK (1 skip).
 
 ### `#AUD-07` — Correo de producción confiable
 - **Contexto:** fallback silencioso a console + URLs hardcodeadas `.andesscale.cl` rompen los correos de tenants con dominio propio.
