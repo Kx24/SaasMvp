@@ -194,6 +194,9 @@ LOGGING = {
 }
 
 # ==============================================================================
-# DEBUG (temporal — desactivar tras cerrar el bug)
+# DEBUG
 # ==============================================================================
-DEBUG = os.environ.get('DEBUG_PRODUCTION', 'False').lower() == 'true'
+# Sin override por variable de entorno (#AUD-12): DEBUG=True en producción
+# expone traceback completo, variables de entorno y rutas del sistema en
+# cualquier error 500 a cualquier visitante.
+DEBUG = False

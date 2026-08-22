@@ -54,3 +54,53 @@ class ProductionEmailConfigTestCase(SimpleTestCase):
         })
 
         self.assertEqual(result.returncode, 0, result.stderr)
+
+
+REQUIRED_EMAIL_ENV = {
+    'EMAIL_HOST_USER': 'no-reply@andesscale.cl',
+    'EMAIL_HOST_PASSWORD': 'super-secret',
+}
+
+
+def _get_production_debug_value(extra_env: dict) -> subprocess.CompletedProcess:
+    env = {
+        k: v for k, v in os.environ.items()
+        if not k.startswith('EMAIL_') and k != 'DEBUG_PRODUCTION'
+    }
+    env.update(REQUIRED_BASE_ENV)
+    env.update(REQUIRED_EMAIL_ENV)
+    env.update(extra_env)
+    return subprocess.run(
+        [
+            sys.executable, '-c',
+            'import django; django.setup(); '
+            'from django.conf import settings; print(settings.DEBUG)',
+        ],
+        cwd=BASE_DIR,
+        env={**env, 'DJANGO_SETTINGS_MODULE': 'config.settings.production'},
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+
+
+class ProductionDebugConfigTestCase(SimpleTestCase):
+    """
+    #AUD-12: DEBUG_PRODUCTION=true encendía DEBUG en producción --
+    páginas de error con traceback completo, variables de entorno y
+    rutas del sistema expuestas a cualquier visitante que provoque un
+    error 500. Producción debe correr siempre con DEBUG=False, sin
+    ningún override por variable de entorno.
+    """
+
+    def test_debug_production_override_no_longer_enables_debug(self):
+        result = _get_production_debug_value({'DEBUG_PRODUCTION': 'true'})
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), 'False')
+
+    def test_debug_is_false_without_any_override(self):
+        result = _get_production_debug_value({})
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), 'False')

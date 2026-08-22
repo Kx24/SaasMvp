@@ -183,11 +183,13 @@ Los 3 puntos de envío (`process_payment_view`, `mercadopago_webhook_view`, `pro
 **Pendiente (no verificable desde el repo):** SPF/DKIM de Zoho — acción del usuario en el panel de Zoho/DNS.
 **Resultado:** `apps/core/tests/test_production_settings.py` (2 tests, vía subprocess — el módulo de settings solo se evalúa una vez por proceso): sin credenciales → falla con `EMAIL_HOST_USER` en stderr (rojo confirmado con `git stash` contra el `production.py` original); con credenciales → arranca limpio. `apps/orders/tests/test_email_service.py` (8 tests): `_site_url` usa dominio primario o cae a `BASE_DOMAIN` (rojo confirmado: el método no existía), y smoke test de los 6 templates de `EmailService` con contexto real (`payment_success`, `welcome`, `site_ready`, `token_expiring`, `set_password`, `contact_received`). Suite completa: 52 tests OK (1 skip). `ruff check` limpio en archivos nuevos/tocados.
 
-#### `#AUD-08` — Webhook con reintento honesto `[P2-Media]` `[S]` `[Backend]`
-Devolver 500 en excepción inesperada para que MP reintente; conservar 200 para casos "ignorar" legítimos. Registrar idempotencia: un `payment_id` ya procesado en estado final → no-op (ya cubierto parcialmente, dejar test).
+#### ✅ `#AUD-08` — Webhook con reintento honesto `[P2-Media]` `[S]` `[Backend]` — **DONE (2026-08-22)**
+El `except Exception` genérico del webhook devolvía 200 ("para que MP no reintente") — en la práctica, una excepción inesperada hacía que la notificación se perdiera para siempre en vez de reintentarse. Ahora devuelve 500; los "ignorar" legítimos (tipo distinto de `payment`, sin `data.id`, orden no encontrada, ya finalizada) siguen devolviendo 200 explícito, sin cambios.
+**Resultado:** `apps/orders/tests/test_webhooks.py` +2 tests: excepción inesperada (firma válida, `get_payment` lanza) → 500 (rojo confirmado: devolvía 200 antes del fix); idempotencia de orden ya finalizada → no-op sin `PaymentLog` duplicado (ya funcionaba, solo faltaba el test — verde sin cambios de código). Suite completa: 68 tests OK (1 skip).
 
-#### `#AUD-09` — Onboarding sin mutación en GET `[P2-Media]` `[S]` `[Backend]`
-`start_onboarding()` solo en POST válido.
+#### ✅ `#AUD-09` — Onboarding sin mutación en GET `[P2-Media]` `[S]` `[Backend]` — **DONE (2026-08-22)**
+`order.start_onboarding()` (paid→onboarding) se llamaba incondicionalmente en `onboarding_view`, sin mirar el método HTTP — un simple GET (link preview de un cliente de correo, prefetch del browser) mutaba el estado de la orden. Movido dentro del bloque `if request.method == 'POST':`.
+**Resultado:** `apps/orders/tests/test_onboarding.py` (2 tests): GET no muta el estado (rojo confirmado: pasaba a `onboarding` antes del fix); POST sí transiciona (aunque el form sea inválido, refleja que el cliente empezó). Suite completa: 68 tests OK (1 skip).
 
 #### ✅ `#PAY-03` — E2E sandbox de pago→provisioning `[P1-Alta]` `[M]` `[Backend]` — **DONE (parcial, 2026-08-22)**
 Automatizado con `MercadoPagoService` mockeado (sin red, sin credenciales reales) — cubre el contrato completo checkout→onboarding→tenant en CI. **No reemplaza** la verificación manual contra la API real de MP en sandbox (tarjeta de prueba + browser), que sigue pendiente y requiere `MP_ACCESS_TOKEN`/`MP_PUBLIC_KEY` de test del usuario.
@@ -225,8 +227,9 @@ Subidas vía `apps/core/cloudinary_utils.py` a `tenants/rancho-cachimba/{brandin
 #### `#AUD-11` — Pipeline de build de Tailwind `[P1-Alta]` `[M]` `[Frontend]` `[DevOps]`
 Sacar `cdn.tailwindcss.com` de los 7 `base.html`; build con CLI de Tailwind (config compartida + extensión por tema, semilla de `#TOOL-04`), integrado a `build.sh`/Render y `collectstatic`.
 
-#### `#AUD-12` — Endurecer settings de producción `[P2-Media]` `[S]` `[DevOps]`
-Eliminar el override `DEBUG_PRODUCTION`; documentar variables de entorno requeridas y validarlas al boot (fail-fast con mensaje claro). Verificación `manage.py check --deploy` limpia.
+#### ✅ `#AUD-12` — Endurecer settings de producción `[P2-Media]` `[S]` `[DevOps]` — **DONE (2026-08-22)**
+Eliminado el override `DEBUG_PRODUCTION` — `DEBUG = False` fijo en `config/settings/production.py`, sin ninguna variable de entorno que pueda reactivarlo (encender DEBUG en prod expone traceback completo, env vars y rutas del sistema en cualquier error 500). La validación fail-fast de env vars requeridas ya existe para `SECRET_KEY` (previo) y `EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD` (`#AUD-07`) — incluida en la verificación de este cierre.
+**Resultado:** `apps/core/tests/test_production_settings.py` +2 tests (vía subprocess): con `DEBUG_PRODUCTION=true` seteado, `settings.DEBUG` sigue siendo `False` (rojo confirmado: antes daba `True`); sin ningún override, también `False`. Suite completa: 68 tests OK (1 skip).
 
 #### `#RC-18` — Acuerdo comercial y dominio `[P1-Alta]` *(usuario)*
 Propuesta, cobro por transferencia (observaciones → `#PAY-02`), compra de `ranchocachimba.cl` en NIC Chile.
@@ -357,10 +360,18 @@ Ya hay HSTS/nosniff/X-Frame/cookies seguras; falta **CSP** (complicada por Tailw
   - [x] Los 6 templates de email renderizan con contexto completo (smoke test) — el audit original decía "5", el servicio expone 6 (`payment_success`, `welcome`, `site_ready`, `token_expiring`, `set_password`, `contact_received`).
 - **Verificación:** `python manage.py test apps.orders.tests.test_email_service apps.core.tests.test_production_settings` (10 tests). ✅ Ejecutado 2026-08-22, verde. Suite completa: 52 tests OK (1 skip). **Pendiente (usuario):** envío real de prueba a una casilla propia tras el deploy + verificar SPF/DKIM de Zoho.
 
-### `#AUD-08` / `#AUD-09` — Webhook honesto + onboarding sin mutar en GET
+### ✅ `#AUD-08` / `#AUD-09` — Webhook honesto + onboarding sin mutar en GET
 - **Archivos:** `apps/orders/views.py`, `apps/orders/views_onboarding.py`.
-- **Criterios:** excepción inesperada en webhook → 500 (MP reintenta); `payment_id` ya procesado → 200 no-op idempotente con `PaymentLog` único; GET de onboarding no cambia `order.status`.
-- **Verificación:** `python manage.py test apps.orders.tests.test_webhooks apps.orders.tests.test_onboarding`.
+- **Criterios:**
+  - [x] Excepción inesperada en webhook → 500 (MP reintenta).
+  - [x] `payment_id` ya procesado (orden en estado final) → 200 no-op idempotente, sin `PaymentLog` duplicado.
+  - [x] GET de onboarding no cambia `order.status`; POST sigue transicionando `paid`→`onboarding`.
+- **Verificación:** `python manage.py test apps.orders.tests.test_webhooks apps.orders.tests.test_onboarding` (8 tests). ✅ Ejecutado 2026-08-22, verde. Suite completa: 68 tests OK (1 skip).
+
+### ✅ `#AUD-12` — Endurecer settings de producción
+- **Archivos:** `config/settings/production.py`.
+- **Criterios:** `DEBUG` fijo en `False`, sin override por `DEBUG_PRODUCTION` ni ninguna otra env var.
+- **Verificación:** `python manage.py test apps.core.tests.test_production_settings` (4 tests). ✅ Ejecutado 2026-08-22, verde.
 
 ### ✅ `#PAY-03` — E2E sandbox (parcial: automatizado con mocks, falta la pasada manual real)
 - **Contexto:** validar la cadena completa checkout→webhook→onboarding→tenant con MP en modo test.

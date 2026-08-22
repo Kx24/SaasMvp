@@ -15,7 +15,7 @@ from unittest.mock import patch
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from apps.orders.models import Order, Plan
+from apps.orders.models import Order, PaymentLog, Plan
 
 WEBHOOK_SETTINGS = dict(
     MP_ACCESS_TOKEN='test-access-token',
@@ -118,3 +118,61 @@ class MercadoPagoWebhookSignatureTestCase(TestCase):
 
         self.assertEqual(response.status_code, 401)
         mock_get_payment.assert_not_called()
+
+    @override_settings(**WEBHOOK_SETTINGS)
+    @patch('apps.orders.services.mercadopago_service.MercadoPagoService.get_payment')
+    def test_webhook_unexpected_exception_returns_500(self, mock_get_payment):
+        """
+        #AUD-08: una excepción inesperada durante el procesamiento (firma
+        válida, pero algo revienta después) debía devolver 200 -- "para
+        que MP no reintente" -- lo que en realidad significa que la
+        notificación se pierde para siempre. Debe devolver 500 para que
+        MP SÍ reintente.
+        """
+        request_id = 'req-99'
+        ts = '1700000000'
+        signature = _sign(WEBHOOK_SETTINGS['MP_WEBHOOK_SECRET'], self.data_id, request_id, ts)
+        mock_get_payment.side_effect = RuntimeError("boom inesperado")
+
+        response = self._post(headers={
+            'HTTP_X_SIGNATURE': f'ts={ts},v1={signature}',
+            'HTTP_X_REQUEST_ID': request_id,
+        })
+
+        self.assertEqual(response.status_code, 500)
+
+    @override_settings(**WEBHOOK_SETTINGS)
+    @patch('apps.orders.services.mercadopago_service.MercadoPagoService.get_payment')
+    def test_webhook_already_finalized_order_is_idempotent_noop(self, mock_get_payment):
+        """
+        #AUD-08: un payment_id ya procesado en estado final (completed/
+        refunded) no debe reprocesarse -- ni tocar la orden ni crear un
+        PaymentLog duplicado.
+        """
+        self.order.status = 'completed'
+        self.order.save()
+
+        mock_get_payment.return_value = {
+            'payment_id': self.data_id,
+            'status': 'approved',
+            'status_detail': 'accredited',
+            'amount': 10000,
+            'external_reference': self.order.order_number,
+            'raw_response': {},
+        }
+
+        request_id = 'req-100'
+        ts = '1700000000'
+        signature = _sign(WEBHOOK_SETTINGS['MP_WEBHOOK_SECRET'], self.data_id, request_id, ts)
+
+        logs_before = PaymentLog.objects.filter(order=self.order).count()
+
+        response = self._post(headers={
+            'HTTP_X_SIGNATURE': f'ts={ts},v1={signature}',
+            'HTTP_X_REQUEST_ID': request_id,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'completed')
+        self.assertEqual(PaymentLog.objects.filter(order=self.order).count(), logs_before)
