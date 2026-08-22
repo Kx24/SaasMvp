@@ -239,7 +239,11 @@ class Service(models.Model):
         verbose_name_plural = 'Servicios'
         indexes = [
             models.Index(fields=['client', 'slug']),
-            models.Index(fields=['client', 'is_active']),
+            # (client, is_active, order) reemplaza a (client, is_active):
+            # el prefijo (client, is_active) sigue sirviendo cualquier
+            # query que no use 'order', y esta versión además cubre el
+            # .order_by('order') de home() sin un sort aparte (#MED-03).
+            models.Index(fields=['client', 'is_active', 'order']),
             models.Index(fields=['client', 'is_featured']),
         ]
 

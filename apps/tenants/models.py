@@ -203,6 +203,10 @@ class Domain(models.Model):
         indexes = [
             models.Index(fields=['domain']),
             models.Index(fields=['client', 'is_active']),
+            # Cubre Client.primary_domain (filter is_primary+is_active) y
+            # el dedup de save() (filter client+is_primary) -- el índice
+            # de arriba no incluye is_primary (#MED-03).
+            models.Index(fields=['client', 'is_primary', 'is_active']),
         ]
     
     def __str__(self):
