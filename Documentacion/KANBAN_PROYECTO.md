@@ -257,8 +257,9 @@ Tomar la IP del último proxy confiable (Render setea XFF); aplicar `RateLimiter
 #### `#TOOL-01` — Playwright smoke multi-tenant `[P1-Alta]` `[M]` `[DevOps]`
 `tests/e2e/` parametrizado por tenant: home 200, hero visible, formulario envía, navbar/footer. **DoD:** `npx playwright test` cubre servelec, andesscale y ranchocachimba.
 
-#### `#TOOL-07` — `CLAUDE.md` en la raíz `[P1-Alta]` `[S]` `[DevOps]`
-Comandos frecuentes, convenciones críticas (`render_tenant_template`, managers, `cloudinary_utils`, orden de `config/urls.py` — incluir la lección de `#AUD-01`), mapa de insumos de diseño, y el arnés de §2 como contrato. Mover `.claude/` desde `Documentacion/`.
+#### ✅ `#TOOL-07` — `CLAUDE.md` en la raíz `[P1-Alta]` `[S]` `[DevOps]` — **DONE (2026-08-22)**
+`CLAUDE.md` creado en la raíz: comandos frecuentes, resolución de tenant/templates (`TenantTemplateLoader`), `render_tenant_template`, `TenantAwareManager` sin auto-filtro (post `#MED-02`), `tenant_member_required`, `cloudinary_utils`, emails con `on_commit`, los 4 gotchas reales de esta sesión (orden de `apps/orders/urls.py` — `#AUD-01`; namespace de `redirect()` en onboarding — `#PAY-03`; signal de `UserProfile` — `#AUD-06`; fail-fast de `production.py` — `#AUD-07`/`#AUD-12`), el arnés de TDD de §2 como contrato, y la situación de branches (`develop` vs `feature/RanchocachimbaEtapa1` en pausa).
+**"Mover `.claude/` desde `Documentacion/`":** verificado — son solo `settings.local.json` autogenerados (permisos de sesión), ya ignorados por `.gitignore` global del usuario y nunca trackeados en git (`Documentacion/.claude/`, `Documentacion/Planificación/.claude/`, `.claude/` en la raíz). No hay nada que mover a nivel de repo; no bloquea nada.
 
 #### `#AUD-10` — Higiene de repo + test anti-regresión de presets `[P2-Media]` `[S]` `[DevOps]` *(absorbe `#DEUDA-04` y el pendiente de `#DEUDA-01`)*
 `git rm --cached db_production_test.sqlite3 exit`; ignorar `staticfiles/`, mover CSVs a `scripts/output/`; test que falla si `CLOUDINARY_PRESETS` reintroduce clave duplicada (definirlo como literal verificado o lint específico).
