@@ -293,13 +293,18 @@ def process_onboarding(order: Order, data: dict) -> tuple:
     
     # Generar token para configurar contraseña
     invitation_token = uuid.uuid4()
-    
-    profile = UserProfile.objects.create(
+
+    # create_user() dispara un signal post_save que ya crea un UserProfile
+    # vacío (apps/accounts/models.py::create_or_update_user_profile) -> un
+    # segundo .create() con el mismo user choca con el OneToOneField.
+    profile, _ = UserProfile.objects.update_or_create(
         user=user,
-        client=client,
-        role='owner',
-        invitation_token=invitation_token,
-        invitation_expires_at=timezone.now() + timezone.timedelta(days=7),
+        defaults={
+            'client': client,
+            'role': 'owner',
+            'invitation_token': invitation_token,
+            'invitation_expires_at': timezone.now() + timezone.timedelta(days=7),
+        },
     )
     
     logger.info(f"[Onboarding] UserProfile creado: {user.email} -> {client.slug}")
@@ -351,22 +356,25 @@ def process_onboarding(order: Order, data: dict) -> tuple:
     logger.info(f"[Onboarding] Orden completada: {order.order_number}")
     
     # =========================================================================
-    # 8. ENVIAR EMAILS
+    # 8. ENVIAR EMAILS (diferidos a que la transacción confirme)
     # =========================================================================
-    
-    # Email de bienvenida con link para configurar contraseña
-    try:
-        send_welcome_email(client, user, str(profile.invitation_token))
-        logger.info(f"[Onboarding] Email de bienvenida enviado a: {user.email}")
-    except Exception as e:
-        logger.error(f"[Onboarding] Error enviando email de bienvenida: {e}")
-    
-    # Email de sitio listo (opcional, puede enviarse después)
-    try:
-        send_site_ready_email(client, user)
-        logger.info(f"[Onboarding] Email de sitio listo enviado a: {user.email}")
-    except Exception as e:
-        logger.error(f"[Onboarding] Error enviando email de sitio listo: {e}")
-    
-    return client, user  
+
+    def _send_welcome_email(client=client, user=user, token=str(profile.invitation_token)):
+        try:
+            send_welcome_email(client, user, token)
+            logger.info(f"[Onboarding] Email de bienvenida enviado a: {user.email}")
+        except Exception as e:
+            logger.error(f"[Onboarding] Error enviando email de bienvenida: {e}")
+
+    def _send_site_ready_email(client=client, user=user):
+        try:
+            send_site_ready_email(client, user)
+            logger.info(f"[Onboarding] Email de sitio listo enviado a: {user.email}")
+        except Exception as e:
+            logger.error(f"[Onboarding] Error enviando email de sitio listo: {e}")
+
+    transaction.on_commit(_send_welcome_email)
+    transaction.on_commit(_send_site_ready_email)
+
+    return client, user
     
