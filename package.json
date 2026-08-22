@@ -1,0 +1,12 @@
+{
+  "name": "saasmvp",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Tooling de frontend (E2E smoke tests, futuro build de Tailwind #AUD-11). El backend sigue siendo Django/Python -- ver requirements.txt.",
+  "scripts": {
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0"
+  }
+}
