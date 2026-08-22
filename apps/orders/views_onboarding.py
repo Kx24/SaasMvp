@@ -108,7 +108,7 @@ def onboarding_view(request, token):
                 )
                 
                 # Redirigir a página de éxito
-                return redirect('orders:onboarding_success', token=token)
+                return redirect('onboarding_success', token=token)
                 
             except Exception as e:
                 logger.exception(f"[Onboarding] Error procesando: {e}")
@@ -157,7 +157,7 @@ def onboarding_success_view(request, token):
         raise Http404("Orden no encontrada")
     
     if order.status != 'completed' or not order.client:
-        return redirect('orders:onboarding', token=token)
+        return redirect('onboarding', token=token)
     
     # Obtener el usuario creado
     user_profile = UserProfile.objects.filter(client=order.client).first()
