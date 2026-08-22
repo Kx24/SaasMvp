@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('tenants', '0018_clientsettings_accent_color'),
+        ('tenants', '0015_client_mode_under_construction_alter_client_template'),
         ('website', '0018_section_add_slot_key'),
     ]
 
