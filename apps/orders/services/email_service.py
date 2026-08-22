@@ -40,6 +40,22 @@ class EmailService:
         )
         self.base_url = getattr(settings, 'BASE_URL', 'https://andesscale.cl')
     
+    def _site_url(self, client) -> str:
+        """
+        URL pública del sitio del tenant, para links en emails.
+
+        Prioriza el dominio primario real (Domain.is_primary) para que
+        tenants con dominio propio (ej. ranchocachimba.cl) no reciban
+        links a un subdominio *.andesscale.cl que no usan. Cae a
+        BASE_DOMAIN solo si el tenant todavía no tiene ningún dominio
+        activo (ej. onboarding recién creado).
+        """
+        url = client.get_absolute_url()
+        if url:
+            return url
+        base_domain = getattr(settings, 'BASE_DOMAIN', 'andesscale.cl')
+        return f"https://{client.slug}.{base_domain}"
+
     def _send_email(
         self,
         to_email: str,
@@ -146,7 +162,7 @@ class EmailService:
         Template: emails/welcome.html
         """
         set_password_url = f"{self.base_url}/auth/set-password/{invitation_token}/"
-        site_url = f"https://{client.slug}.andesscale.cl"  # Ajustar según tu config
+        site_url = self._site_url(client)
         
         context = {
             'client': client,
@@ -180,15 +196,15 @@ class EmailService:
         
         Template: emails/site_ready.html
         """
-        site_url = f"https://{client.slug}.andesscale.cl"
-        
+        site_url = self._site_url(client)
+
         context = {
             'client': client,
             'user': user,
             'site_url': site_url,
             'dashboard_url': f"{self.base_url}/dashboard/",
         }
-        
+
         return self._send_email(
             to_email=user.email,
             subject=f"🚀 ¡Tu sitio {client.name} está listo!",
