@@ -19,6 +19,8 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 
+from apps.core.models import EmailOutbox
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,20 +64,25 @@ class EmailService:
         subject: str,
         template_name: str,
         context: dict,
-        reply_to: str = None
+        reply_to: str = None,
+        force_sync: bool = False,
     ) -> bool:
         """
         Método interno para enviar emails con template HTML.
-        
+
         Args:
             to_email: Destinatario
             subject: Asunto del email
             template_name: Nombre del template (sin extensión)
             context: Contexto para el template
             reply_to: Email de respuesta (opcional)
-        
+            force_sync: ignora EMAIL_ASYNC y envía de inmediato (para
+                emails "urgentes" como configurar/recuperar contraseña,
+                donde el usuario está esperando en el momento -- no tiene
+                sentido que dependan del próximo cron).
+
         Returns:
-            bool: True si se envió correctamente
+            bool: True si se envió (o encoló) correctamente
         """
         try:
             # Agregar variables comunes al contexto
@@ -84,11 +91,24 @@ class EmailService:
                 'support_email': getattr(settings, 'SUPPORT_EMAIL', 'soporte@andesscale.cl'),
                 'company_name': 'Andesscale',
             })
-            
-            # Renderizar templates
+
+            # Renderizar templates (CPU local, no red -- esto SÍ puede
+            # pasar dentro del request aunque EMAIL_ASYNC esté activo)
             html_content = render_to_string(f'emails/{template_name}.html', context)
             text_content = strip_tags(html_content)
-            
+
+            if getattr(settings, 'EMAIL_ASYNC', False) and not force_sync:
+                EmailOutbox.objects.create(
+                    to_email=to_email,
+                    from_email=self.from_email,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    reply_to=reply_to or '',
+                )
+                logger.info(f"[Email] Encolado '{template_name}' para {to_email}")
+                return True
+
             # Crear email
             email = EmailMultiAlternatives(
                 subject=subject,
@@ -98,13 +118,13 @@ class EmailService:
                 reply_to=[reply_to] if reply_to else None
             )
             email.attach_alternative(html_content, "text/html")
-            
+
             # Enviar
             email.send(fail_silently=False)
-            
+
             logger.info(f"[Email] Enviado '{template_name}' a {to_email}")
             return True
-            
+
         except Exception as e:
             logger.error(f"[Email] Error enviando '{template_name}' a {to_email}: {e}")
             return False
@@ -272,12 +292,13 @@ class EmailService:
         }
         
         subject = "🔐 Recupera tu contraseña" if is_reset else "🔐 Configura tu contraseña"
-        
+
         return self._send_email(
             to_email=user.email,
             subject=f"{subject} | Andesscale",
             template_name='set_password',
-            context=context
+            context=context,
+            force_sync=True,
         )
     
     # =========================================================================

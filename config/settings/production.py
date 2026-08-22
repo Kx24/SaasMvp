@@ -162,6 +162,13 @@ if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
         "onboarding, contacto) se pierden en silencio."
     )
 
+# #MED-01: SMTP real (Zoho) tarda 1-3s por conexión -- diferir el envío
+# real a un cron (send_pending_emails, cada 5 min en render.yaml) para
+# no bloquear el hilo del request. set_password sigue siendo síncrono
+# (EmailService._send_email(force_sync=True)) porque ahí el usuario está
+# esperando en el momento.
+EMAIL_ASYNC = os.environ.get('EMAIL_ASYNC', 'True').lower() == 'true'
+
 # ==============================================================================
 # CACHE
 # ==============================================================================
