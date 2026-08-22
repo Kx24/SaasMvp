@@ -453,13 +453,18 @@ class Order(models.Model):
         super().save(*args, **kwargs)
     
     def _generate_order_number(self):
-        """Genera número de orden único: ORD-YYYY-NNNN"""
+        """
+        Genera número de orden único: ORD-YYYY-XXXXXX.
+
+        Derivado del uuid (ya asignado en memoria por el default del campo,
+        antes del INSERT) en vez de un count() de la tabla: dos órdenes
+        creadas en paralelo nunca comparten uuid, así que nunca compiten
+        por el mismo order_number. Un count()+1 sí compite: dos requests
+        que leen el mismo count antes de que cualquiera inserte generan el
+        mismo número y la segunda falla con IntegrityError (unique=True).
+        """
         year = timezone.now().year
-        # Contar órdenes del año actual
-        count = Order.objects.filter(
-            created_at__year=year
-        ).count() + 1
-        return f"ORD-{year}-{count:04d}"
+        return f"ORD-{year}-{self.uuid.hex[:6].upper()}"
     
     # ==================== MÉTODOS DE ESTADO ====================
     
