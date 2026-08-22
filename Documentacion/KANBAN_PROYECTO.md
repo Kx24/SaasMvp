@@ -14,15 +14,17 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-08-20)
+## 🌙 Retomar aquí (actualizado 2026-08-22)
 
-**El gate de seguridad de §4 está cerrado.** `#AUD-01`, `#AUD-02`, `#AUD-03` y `#AUD-04` — los 4 bloqueadores P0 de la auditoría (checkout inalcanzable, webhook sin firma, fuga cross-tenant en login/dashboard, `render.yaml` roto) — están **DONE**, cada uno con TDD estricto (Rojo→Verde, ver detalle en §4 y §7) y verificados de punta a punta con `git stash` contra el estado original cuando aplicaba (`#AUD-04`). Suite: **35 tests, OK (1 skip)**. Archivos nuevos: `apps/orders/tests/`, `apps/website/tests/`, `apps/core/tests/`, `apps/accounts/decorators.py`, `ruff.toml`, `requirements-dev.txt`.
+**El gate de seguridad de §4 está cerrado y commiteado.** `#AUD-01`, `#AUD-02`, `#AUD-03` y `#AUD-04` — los 4 bloqueadores P0 de la auditoría (checkout inalcanzable, webhook sin firma, fuga cross-tenant en login/dashboard, `render.yaml` roto) — están **DONE**, cada uno con TDD estricto (Rojo→Verde, ver detalle en §4 y §7) y verificados de punta a punta con `git stash` contra el estado original cuando aplicaba (`#AUD-04`). Commit `b5539f9` en `feature/RanchocachimbaEtapa1`. Archivos nuevos: `apps/orders/tests/`, `apps/website/tests/`, `apps/core/tests/`, `apps/accounts/decorators.py`, `ruff.toml`, `requirements-dev.txt`.
 
-**2 cabos sueltos menores de este cierre, no bloqueantes:**
+**`#AUD-05` (carrera en `order_number`) también DONE (2026-08-22)**, mismo TDD estricto — ver §4/§7. Suite: **38 tests, OK (1 skip)**. Pendiente de commit propio (no incluido en `b5539f9`).
+
+**2 cabos sueltos menores del cierre del gate, no bloqueantes:**
 1. `#AUD-01` — falta el caso "un plan no puede llamarse `process`/`success`/`error`" (sin validación ni test).
 2. `#AUD-04` — falta confirmar contra el dashboard real de Render qué configuración está efectivamente activa (acción del usuario, no verificable desde el repo).
 
-**Siguiente en la ruta crítica — 🟠 Robustez del flujo transaccional (§4):** `#AUD-05` (carrera en `order_number`) → `#AUD-06` (emails fuera de la transacción) → `#AUD-07` (correo de producción confiable) → `#PAY-03` (E2E sandbox de pago, ahora desbloqueado por el gate cerrado). En paralelo, `#MED-02` (suite de aislamiento multi-tenant real, hoy sigue siendo un management command manual) es la otra card `[P0-Crítica]` pendiente — vale la pena antes de tocar más código de dashboard.
+**Siguiente en la ruta crítica — 🟠 Robustez del flujo transaccional (§4):** `#AUD-06` (emails fuera de la transacción) → `#AUD-07` (correo de producción confiable) → `#PAY-03` (E2E sandbox de pago, ahora desbloqueado por el gate cerrado). En paralelo, `#MED-02` (suite de aislamiento multi-tenant real, hoy sigue siendo un management command manual) es la otra card `[P0-Crítica]` pendiente — vale la pena antes de tocar más código de dashboard.
 
 **No tocar sin que el usuario lo pida:** limpieza de lint global (135 errores preexistentes fuera de los archivos de este cierre — es `#AUD-10`/deuda técnica, no parte del gate), ni nada de Rancho Cachimba (`#RC-01`/`#RC-06b`/`#RC-18`) — depende de insumos del cliente, no de código.
 
@@ -160,8 +162,9 @@ Validación descomentada en `mercadopago_webhook_view`; `validate_webhook_signat
 
 ### 🟠 Robustez del flujo transaccional
 
-#### `#AUD-05` — `order_number` sin carrera `[P1-Alta]` `[S]` `[Backend]` `[Database]`
-Reemplazar `count()+1` por derivado del UUID (`ORD-{año}-{uuid.hex[:6]}`) o retry sobre `IntegrityError`.
+#### ✅ `#AUD-05` — `order_number` sin carrera `[P1-Alta]` `[S]` `[Backend]` `[Database]` — **DONE (2026-08-22)**
+`count()+1` reemplazado por `ORD-{año}-{self.uuid.hex[:6].upper()}`. El `uuid` (PK) ya está asignado en memoria por el `default=uuid.uuid4` del campo antes del INSERT, así que la generación no depende de ninguna lectura compartida de la tabla — dos órdenes en paralelo nunca compiten por el mismo número.
+**Resultado:** `apps/orders/tests/test_models.py` (3 tests): formato `ORD-YYYY-XXXXXX`, independencia bajo `count()` mockeado a un valor fijo compartido (reproduce la ventana de carrera — con la implementación vieja esto lanzaba `IntegrityError` en el segundo `save()`), no regeneración en re-save. Reproducido en rojo antes del fix (formato viejo `ORD-2026-0001` no matchea + `IntegrityError` en el test de carrera). Suite completa: 38 tests OK (1 skip). `ruff check` limpio en el archivo nuevo.
 
 #### `#AUD-06` — Emails fuera de la transacción `[P1-Alta]` `[M]` `[Backend]`
 `transaction.on_commit()` para todo envío en `process_onboarding`, checkout y webhook. (El asincronismo real es `#MED-01`, mediano plazo.)
@@ -311,14 +314,14 @@ Ya hay HSTS/nosniff/X-Frame/cookies seguras; falta **CSP** (complicada por Tailw
   - [ ] Confirmar contra el dashboard de Render qué configuración está efectivamente activa antes de sincronizar el blueprint — **pendiente, requiere acceso al dashboard de Render (acción del usuario, no verificable desde el repo)**.
 - **Verificación:** `python -c "import yaml,sys; d=yaml.safe_load(open('render.yaml')); ws=[s for s in d['services'] if s['type']=='web'][0]; assert 'buildCommand' in ws and 'envVars' in ws"` + revisión manual del diff. ✅ Formalizado como `apps/core/tests/test_render_config.py`, ejecutado 2026-08-20, verde (4/4). Rojo confirmado contra el YAML original vía `git stash`.
 
-### `#AUD-05` — `order_number` sin carrera
+### ✅ `#AUD-05` — `order_number` sin carrera
 - **Contexto:** `count()+1` bajo concurrencia duplica el número → `IntegrityError` post-cobro.
-- **Archivos:** `apps/orders/models.py` (`_generate_order_number`, `save`).
+- **Archivos:** `apps/orders/models.py` (`_generate_order_number`).
 - **Criterios de aceptación:**
-  - [ ] Formato legible se mantiene (`ORD-2026-XXXXXX`).
-  - [ ] Dos creaciones "simultáneas" (mock de colisión o threads) → números distintos, cero excepciones.
-  - [ ] Órdenes existentes no cambian (sin migración de datos).
-- **Verificación:** `python manage.py test apps.orders.tests.test_models` — test de unicidad bajo colisión simulada (forzar mismo prefijo y verificar retry/sufijo).
+  - [x] Formato legible se mantiene (`ORD-2026-XXXXXX`, hex derivado del uuid en vez de contador).
+  - [x] Dos creaciones "simultáneas" (mock de `count()` a un valor fijo compartido) → números distintos, cero excepciones.
+  - [x] Órdenes existentes no cambian (sin migración de datos — el cambio es solo en la generación de números nuevos).
+- **Verificación:** `python manage.py test apps.orders.tests.test_models` (3 tests). ✅ Ejecutado 2026-08-22, verde. Suite completa: 38 tests OK (1 skip).
 
 ### `#AUD-06` — Emails fuera de la transacción
 - **Contexto:** envío dentro de `atomic` = bloqueo + emails de transacciones que hicieron rollback.
