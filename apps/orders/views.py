@@ -440,8 +440,11 @@ def mercadopago_webhook_view(request):
     
     except Exception as e:
         logger.exception(f"[MP Webhook] Error: {e}")
-        # Siempre retornar 200 para que MP no reintente
-        return HttpResponse(status=200)
+        # 500 para que MP SÍ reintente -- devolver 200 acá hacía que una
+        # excepción inesperada (no un "ignorar" legítimo, esos ya
+        # retornan 200 explícito arriba) se tradujera en notificación
+        # perdida para siempre, no reintentada (#AUD-08).
+        return HttpResponse(status=500)
 
 
 @csrf_exempt

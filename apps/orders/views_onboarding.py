@@ -81,16 +81,18 @@ def onboarding_view(request, token):
             'message': 'El enlace ha expirado. Por favor contacta a soporte.'
         })
     
-    # Marcar que comenzó el onboarding
-    if order.status == 'paid':
-        order.start_onboarding()
-    
     # Obtener temas disponibles según el plan
     available_themes = order.plan.get_available_themes_list()
     if not available_themes:
         available_themes = ['default']
-    
+
     if request.method == 'POST':
+        # Marcar que comenzó el onboarding -- solo en POST: un GET (link
+        # preview de un cliente de correo, prefetch del browser) no debe
+        # mutar el estado de la orden (#AUD-09).
+        if order.status == 'paid':
+            order.start_onboarding()
+
         form = ClientOnboardingForm(
             request.POST,
             request.FILES,
