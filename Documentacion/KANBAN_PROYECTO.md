@@ -18,17 +18,20 @@
 
 **El gate de seguridad de §4 está cerrado y commiteado.** `#AUD-01`, `#AUD-02`, `#AUD-03` y `#AUD-04` — los 4 bloqueadores P0 de la auditoría (checkout inalcanzable, webhook sin firma, fuga cross-tenant en login/dashboard, `render.yaml` roto) — están **DONE**, cada uno con TDD estricto (Rojo→Verde, ver detalle en §4 y §7) y verificados de punta a punta con `git stash` contra el estado original cuando aplicaba (`#AUD-04`). Commit `b5539f9` en `feature/RanchocachimbaEtapa1`. Archivos nuevos: `apps/orders/tests/`, `apps/website/tests/`, `apps/core/tests/`, `apps/accounts/decorators.py`, `ruff.toml`, `requirements-dev.txt`.
 
-**`#AUD-05`, `#AUD-06` y `#AUD-07` también DONE (2026-08-22)**, mismo TDD estricto — ver §4/§7. Suite: **52 tests, OK (1 skip)**. Commits: `10cf3ec` (AUD-05), `2e8b226` (AUD-06); AUD-07 pendiente de commit propio.
+**`#AUD-05`, `#AUD-06`, `#AUD-07`, `#PAY-03` (parcial) y `#MED-02` también DONE (2026-08-22)**, mismo TDD estricto — ver §4/§5/§7. Suite: **62 tests, OK (1 skip)**. Commits: `10cf3ec` (AUD-05), `2e8b226` (AUD-06), `fabedf2` (AUD-07), `37d09c7` (PAY-03); MED-02 pendiente de commit propio.
 
-**Hallazgos incidentales corregidos durante AUD-06/AUD-07 (no eran el alcance original, pero bloqueaban las cards):**
-- `process_onboarding` llamaba `UserProfile.objects.create(...)` chocando con el signal `create_or_update_user_profile` (`apps/accounts/models.py`) → `IntegrityError` en **todo** onboarding real. Cambiado a `update_or_create`.
+**Hallazgos incidentales corregidos esta sesión (ninguno era el alcance original de su card, pero bloqueaban el DoD o eran riesgos reales encontrados al escribir el test):**
+- `process_onboarding` llamaba `UserProfile.objects.create(...)` chocando con el signal `create_or_update_user_profile` → `IntegrityError` en **todo** onboarding real. Cambiado a `update_or_create` (AUD-06).
+- `redirect('orders:onboarding_success', ...)` usaba un namespace que no existe (`urls_onboarding.py` no tiene `app_name`) → `NoReverseMatch` atrapado por un `except Exception` genérico: el cliente veía "hubo un error" aunque su sitio SÍ se había creado. Corregido a `redirect('onboarding_success', ...)` (PAY-03).
+- `Order.mark_as_completed()` limpiaba `onboarding_token` justo antes de que la página de éxito lo buscara por ese mismo token → `Http404` incluso con el bug anterior arreglado. Ya no se limpia (PAY-03).
+- `TenantAwareManager._current_client`: código muerto en producción (nunca se seteaba fuera del comando manual) — eliminado junto con `TenantManager`/`TenantQuerySet` (nunca usados) (MED-02).
 
-**2 cabos sueltos menores del cierre del gate original, no bloqueantes:**
-1. `#AUD-01` — falta el caso "un plan no puede llamarse `process`/`success`/`error`" (sin validación ni test).
-2. `#AUD-04` — falta confirmar contra el dashboard real de Render qué configuración está efectivamente activa (acción del usuario, no verificable desde el repo).
-3. `#AUD-07` — falta verificar SPF/DKIM de Zoho y hacer un envío real de prueba post-deploy (acción del usuario).
+**3 cabos sueltos menores, no bloqueantes (acción del usuario, no verificable desde el repo):**
+1. `#AUD-01` — falta el caso "un plan no puede llamarse `process`/`success`/`error`".
+2. `#AUD-04` — falta confirmar contra el dashboard real de Render qué configuración está efectivamente activa.
+3. `#AUD-07`/`#PAY-03` — falta SPF/DKIM de Zoho + una pasada manual real contra el sandbox de MP (tarjeta de prueba + browser, requiere credenciales de test).
 
-**Siguiente en la ruta crítica:** `#PAY-03` (E2E sandbox de pago→provisioning, ahora desbloqueado por AUD-01/02/05/06). En paralelo, `#MED-02` (suite de aislamiento multi-tenant real, hoy sigue siendo un management command manual) es la otra card `[P0-Crítica]` pendiente — vale la pena antes de tocar más código de dashboard.
+**Siguiente en la ruta crítica:** con el gate de seguridad, robustez transaccional y aislamiento multi-tenant todos cerrados, lo que queda en corto plazo es `#RC-01`/`#RC-06b`/`#RC-18` (Rancho Cachimba, depende de insumos del cliente) o el trabajo de mediano plazo de §5 (`#MED-01` correo asíncrono, `#MED-03` índices, `#AUD-11` pipeline Tailwind, `#TOOL-01` Playwright smoke).
 
 **No tocar sin que el usuario lo pida:** limpieza de lint global (135 errores preexistentes fuera de los archivos de este cierre — es `#AUD-10`/deuda técnica, no parte del gate), ni nada de Rancho Cachimba (`#RC-01`/`#RC-06b`/`#RC-18`) — depende de insumos del cliente, no de código.
 
@@ -235,8 +238,9 @@ Propuesta, cobro por transferencia (observaciones → `#PAY-02`), compra de `ran
 #### `#MED-01` — Correo asíncrono `[P1-Alta]` `[M]` `[Backend]`
 Hoy SMTP bloquea el hilo HTTP (~1-3 s por envío en Zoho). Sin broker disponible en Render free: cola en DB (modelo `EmailOutbox` + cron de Render cada 5 min, mismo mecanismo que `contact-digest`) o `threading` con `on_commit` como paso intermedio. Sube sobre `#AUD-06`.
 
-#### `#MED-02` — Suite de aislamiento multi-tenant `[P0-Crítica]` `[M]` `[Backend]` `[Database]` *(absorbe `#SEC-04`)*
-Portar `test_isolation` a tests reales (`apps/tenants/tests_isolation.py`): por cada modelo con FK a `Client`, lectura y escritura cross-tenant deben fallar. Incluye tests del nuevo `tenant_member_required` (`#AUD-03`) y del atributo de clase `_current_client` (decidir: thread-local o eliminación del auto-filtro).
+#### ✅ `#MED-02` — Suite de aislamiento multi-tenant `[P0-Crítica]` `[M]` `[Backend]` `[Database]` *(absorbe `#SEC-04`)* — **DONE (2026-08-22)**
+`test_isolation` (management command manual) portado a `apps/tenants/tests_isolation.py`. **Hallazgo:** `TenantAwareManager._current_client` nunca se seteaba en código de request real (ni middleware ni vistas) — solo el comando manual lo hacía. En producción no filtraba nada: `Model.objects.all()` devolvía todos los tenants para `Section`/`Service`/`ContactSubmission`/`GalleryItem`. El aislamiento real siempre dependió (y sigue dependiendo) de que cada vista filtre explícitamente por `client=request.client`, y al auditar esas vistas (home pública, dashboard de galería, contactos) confirmé que sí lo hacen. **Decisión (con el usuario): eliminar el mecanismo** — no hacía nada y era un riesgo si alguien lo llegaba a usar (atributo de clase = contaminación entre requests concurrentes de distintos tenants). Se quitó de `TenantAwareManager` y se eliminó `TenantManager`/`TenantQuerySet` (alternativa "más robusta" que nunca se usó en ningún modelo). Se borró `apps/tenants/management/commands/test_isolation.py` (quedaba roto/engañoso tras el cambio — reportaba `FAIL` en el mecanismo que nunca fue real).
+**Resultado:** `apps/tenants/tests_isolation.py` (8 tests) vía HTTP con `HTTP_HOST` por tenant: home pública nunca muestra servicios de otro tenant; IDOR en `GalleryItem` (edit/delete/toggle) y `ContactSubmission` (mark_read) — un owner correctamente logueado en su propio dominio no puede tocar objetos de otro tenant por ID; listados de dashboard (galería, contactos) nunca incluyen datos de otro tenant. Complementa la matriz de `apps/website/tests/test_tenant_authorization.py` (`#AUD-03`, gate a nivel de dominio) con el nivel de objeto que esa suite no cubría. Suite completa: 62 tests OK (1 skip). `ruff check` limpio. `makemigrations --check` limpio (sin cambios de schema).
 
 #### `#MED-03` — Índices compuestos y revisión de consultas `[P1-Alta]` `[M]` `[Database]` *(absorbe `#DB-03`)*
 Migraciones con `Meta.indexes`: `Section(client, is_active)`, `Service(client, is_active, order)`, `GalleryItem(client, gallery_type, is_active, order)`, `ContactSubmission(client, created_at)`. `EXPLAIN` sobre datos reales de Supabase antes/después.
@@ -394,10 +398,14 @@ Ya hay HSTS/nosniff/X-Frame/cookies seguras; falta **CSP** (complicada por Tailw
 - **Criterios:** encolar es O(1 insert); el cron envía con reintentos (máx. 3, backoff) y marca `sent_at`/`failed_at`; un fallo de SMTP no afecta la request HTTP; correos "urgentes" (reset de contraseña) pueden forzar envío síncrono.
 - **Verificación:** `python manage.py test apps.core.tests.test_email_outbox` — encolado, envío por comando, reintentos, idempotencia del cron.
 
-### `#MED-02` — Suite de aislamiento multi-tenant
-- **Archivos:** `apps/tenants/tests_isolation.py` (nuevo), `apps/tenants/managers.py` (decisión sobre `_current_client`).
-- **Criterios:** para `Section`, `Service`, `GalleryItem`, `ContactSubmission`, `SEOConfig`, `ClientSettings`: usuario/dominio de A no lee ni escribe datos de B (vía HTTP con `HTTP_HOST`, no solo ORM); `_current_client` documentado como solo-para-comandos o migrado a thread-local.
-- **Verificación:** `python manage.py test apps.tenants.tests_isolation` — corre en cada push (gate de §2).
+### ✅ `#MED-02` — Suite de aislamiento multi-tenant
+- **Archivos:** `apps/tenants/tests_isolation.py` (nuevo), `apps/tenants/managers.py` (`_current_client` eliminado), `apps/tenants/management/commands/test_isolation.py` (borrado, superseded).
+- **Criterios:**
+  - [x] `Section`/`Service`: usuario/dominio de A no lee datos de B en la home pública (vía HTTP con `HTTP_HOST`).
+  - [x] `GalleryItem`/`ContactSubmission`: owner de B no lee ni escribe (IDOR) objetos de A por ID, aunque esté correctamente logueado en su propio dominio.
+  - [x] `SEOConfig`/`ClientSettings`: ya no tienen vector de IDOR (sin ID en URL, siempre `get_or_create`/lookup por `client=request.client`) — no requieren test de objeto, solo se documentó el análisis.
+  - [x] `_current_client`: decidido con el usuario — **eliminado** (código muerto en producción, riesgo de atributo de clase compartido si se llegaba a usar). `TenantManager`/`TenantQuerySet` (alternativa nunca usada) también eliminados.
+- **Verificación:** `python manage.py test apps.tenants.tests_isolation` (8 tests). ✅ Ejecutado 2026-08-22, verde. Suite completa: 62 tests OK (1 skip) — corre en cada push (gate de §2).
 
 ### `#MED-03` — Índices compuestos
 - **Archivos:** `apps/website/models.py`, `apps/marketing/models.py` + migraciones.
@@ -414,31 +422,35 @@ Ya hay HSTS/nosniff/X-Frame/cookies seguras; falta **CSP** (complicada por Tailw
 GATE SEGURIDAD ✅ CERRADO (2026-08-20)   LANZAMIENTO CACHIMBA
 AUD-01 ✅ → AUD-02 ✅ → AUD-03 ✅ → AUD-04 ✅   RC-01 → RC-06b ─┐
    │                                        RC-18 ──────────┼→ RC-08 (publicar Etapa 1)
-   ▼ ESTAMOS AQUÍ                                           │
-AUD-05/06/07 → PAY-03 (sandbox E2E)                         ▼
-                                      RC-09 → RC-10 → RC-11 → RC-12 → RC-13
-                                                                  │
-              MEDIANO: MED-02 (aislamiento) ∥ MED-01 (async) ∥ AUD-11 (Tailwind)
-                                                                  ▼
-                                      RC-14 → RC-15 → RC-16 → RC-17 (cierre)
+   ▼                                                        │
+ROBUSTEZ TRANSACCIONAL ✅ CERRADA (2026-08-22)               ▼
+AUD-05 ✅ → AUD-06 ✅ → AUD-07 ✅ → PAY-03 ✅(parcial)   RC-09 → RC-10 → RC-11 → RC-12 → RC-13
+   │
+   ▼
+MED-02 (aislamiento) ✅ CERRADO (2026-08-22)         MEDIANO: MED-01 (async) ∥ AUD-11 (Tailwind) ∥ MED-03 (índices)
+   │                                                                  ▼
+   ▼ ESTAMOS AQUÍ                                    RC-14 → RC-15 → RC-16 → RC-17 (cierre)
+Sin bloqueadores de código en el corto plazo —
+queda RC-* (insumos del cliente) o mediano plazo (§5)
 ```
 
-**Riesgo 1 — publicar con los P0 abiertos.** ✅ **Cerrado (2026-08-20).** `#AUD-03` (cross-tenant) ya no existe en el código de dashboard/login; sigue pendiente `#MED-02` para convertir el aislamiento del resto del ORM en suite automática.
+**Riesgo 1 — publicar con los P0 abiertos.** ✅ **Cerrado (2026-08-22).** `#AUD-03` (cross-tenant en dashboard/login) y `#MED-02` (aislamiento del resto del ORM, ahora en suite automática — `apps/tenants/tests_isolation.py`) ambos cerrados.
 **Riesgo 2 — el material del cliente.** `#RC-01`/`#RC-06b` dependen del usuario, no de código; son lo único que bloquea `#RC-08` una vez pasado el gate.
 **Riesgo 3 — tocar Render sin reparar `render.yaml`.** ✅ **Cerrado (2026-08-20).** Falta solo confirmar contra el dashboard real de Render qué configuración quedó efectivamente activa (acción del usuario).
+**Riesgo 4 — onboarding real roto en producción sin que nadie lo notara.** ✅ **Cerrado (2026-08-22).** El E2E de `#PAY-03` encontró 2 bugs que rompían el redirect post-onboarding (`NoReverseMatch` + token limpiado antes de tiempo) — ver hallazgos incidentales arriba. Nadie había corrido el flujo completo de punta a punta hasta ahora.
 
 ---
 
-## Batería de validación inmediata (estado al 2026-08-20, post gate de seguridad)
+## Batería de validación inmediata (estado al 2026-08-22, post robustez transaccional + aislamiento)
 
 ```bash
-python manage.py test apps                              # 35 tests · OK (1 skip) ✅
+python manage.py test apps                              # 62 tests · OK (1 skip) ✅
 python manage.py makemigrations --check --dry-run       # sin pendientes ✅
 python manage.py check --deploy --settings=config.settings.production
 python manage.py check_tenant_setup ranchocachimba      # [OK] tema/dominio ✅ (sesión RC)
-python manage.py test_isolation                         # manual, hasta #MED-02
-python -m ruff check apps/ config/                      # 135 preexistentes fuera de lo tocado — #AUD-10
-python -m ruff check <archivos tocados en el gate>      # limpio ✅
+python manage.py test apps.tenants.tests_isolation      # 8 tests, aislamiento real vía HTTP ✅ (#MED-02, reemplaza el comando manual `test_isolation`, eliminado)
+python -m ruff check apps/ config/                      # ~135 preexistentes fuera de lo tocado — #AUD-10
+python -m ruff check <archivos tocados en esta sesión>  # limpio ✅
 ```
 
 Dependencias de desarrollo nuevas (`requirements-dev.txt`): `ruff`, `bandit`, `coverage`, `pyyaml`. Instalar con `pip install -r requirements-dev.txt` antes de retomar.
