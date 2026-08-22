@@ -262,3 +262,28 @@ class ClientModelTestCase(TestCase):
 
         expected = f"{client.name} ({client.slug})"
         self.assertEqual(str(client), expected)
+
+
+class DomainIndexTestCase(TestCase):
+    """
+    #MED-03: índices compuestos según patrones reales de consulta.
+    """
+
+    def test_domain_is_indexed_for_primary_lookup_query_shape(self):
+        """
+        Client.primary_domain hace
+        self.domains.filter(is_primary=True, is_active=True).first(),
+        y Domain.save() hace
+        Domain.objects.filter(client=X, is_primary=True).exclude(...)
+        para desmarcar el primario anterior -- ninguna de las dos queda
+        cubierta por el índice existente (client, is_active), que no
+        incluye is_primary. También hay 5+ lugares (apps/marketing/) que
+        hacen client.domains.filter(is_primary=True).first() sin
+        is_active -- el prefijo (client, is_primary) de este índice los
+        cubre igual.
+        """
+        indexes = [list(idx.fields) for idx in Domain._meta.indexes]
+        self.assertIn(
+            ['client', 'is_primary', 'is_active'], indexes,
+            f"Domain._meta.indexes no tiene (client, is_primary, is_active); tiene: {indexes}",
+        )

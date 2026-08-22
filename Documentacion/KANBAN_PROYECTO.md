@@ -31,7 +31,7 @@
 2. `#AUD-04` — falta confirmar contra el dashboard real de Render qué configuración está efectivamente activa.
 3. `#AUD-07`/`#PAY-03` — falta SPF/DKIM de Zoho + una pasada manual real contra el sandbox de MP (tarjeta de prueba + browser, requiere credenciales de test).
 
-**Siguiente en la ruta crítica:** con el gate de seguridad, robustez transaccional, aislamiento multi-tenant, la limpieza P2 (`#AUD-08/09/12`), `#TOOL-07` y ahora `#MED-01` (correo asíncrono) todos cerrados, lo que queda en corto plazo es `#RC-01`/`#RC-06b`/`#RC-18` (Rancho Cachimba, en pausa por decisión del usuario — necesita tiempo de diseño/investigación) o el resto de mediano plazo de §5 (`#MED-03` índices, `#AUD-11` pipeline Tailwind — ver informe "Tailwind, hoy" para el estado actual, `#TOOL-01` Playwright smoke).
+**Siguiente en la ruta crítica:** con el gate de seguridad, robustez transaccional, aislamiento multi-tenant, la limpieza P2 (`#AUD-08/09/12`), `#TOOL-07`, `#MED-01` (correo asíncrono) y `#MED-03` (índices) todos cerrados, lo que queda en corto plazo es `#RC-01`/`#RC-06b`/`#RC-18` (Rancho Cachimba, en pausa por decisión del usuario — necesita tiempo de diseño/investigación) o el resto de mediano plazo de §5 (`#AUD-11` pipeline Tailwind — ver informe "Tailwind, hoy" para el estado actual, `#TOOL-01` Playwright smoke).
 
 **No tocar sin que el usuario lo pida:** limpieza de lint global (135 errores preexistentes fuera de los archivos de este cierre — es `#AUD-10`/deuda técnica, no parte del gate), ni nada de Rancho Cachimba (`#RC-01`/`#RC-06b`/`#RC-18`) — depende de insumos del cliente, no de código.
 
@@ -246,8 +246,12 @@ Cola en DB: `EmailOutbox` (nuevo modelo en `apps/core/models.py`) + cron `send-p
 `test_isolation` (management command manual) portado a `apps/tenants/tests_isolation.py`. **Hallazgo:** `TenantAwareManager._current_client` nunca se seteaba en código de request real (ni middleware ni vistas) — solo el comando manual lo hacía. En producción no filtraba nada: `Model.objects.all()` devolvía todos los tenants para `Section`/`Service`/`ContactSubmission`/`GalleryItem`. El aislamiento real siempre dependió (y sigue dependiendo) de que cada vista filtre explícitamente por `client=request.client`, y al auditar esas vistas (home pública, dashboard de galería, contactos) confirmé que sí lo hacen. **Decisión (con el usuario): eliminar el mecanismo** — no hacía nada y era un riesgo si alguien lo llegaba a usar (atributo de clase = contaminación entre requests concurrentes de distintos tenants). Se quitó de `TenantAwareManager` y se eliminó `TenantManager`/`TenantQuerySet` (alternativa "más robusta" que nunca se usó en ningún modelo). Se borró `apps/tenants/management/commands/test_isolation.py` (quedaba roto/engañoso tras el cambio — reportaba `FAIL` en el mecanismo que nunca fue real).
 **Resultado:** `apps/tenants/tests_isolation.py` (8 tests) vía HTTP con `HTTP_HOST` por tenant: home pública nunca muestra servicios de otro tenant; IDOR en `GalleryItem` (edit/delete/toggle) y `ContactSubmission` (mark_read) — un owner correctamente logueado en su propio dominio no puede tocar objetos de otro tenant por ID; listados de dashboard (galería, contactos) nunca incluyen datos de otro tenant. Complementa la matriz de `apps/website/tests/test_tenant_authorization.py` (`#AUD-03`, gate a nivel de dominio) con el nivel de objeto que esa suite no cubría. Suite completa: 62 tests OK (1 skip). `ruff check` limpio. `makemigrations --check` limpio (sin cambios de schema).
 
-#### `#MED-03` — Índices compuestos y revisión de consultas `[P1-Alta]` `[M]` `[Database]` *(absorbe `#DB-03`)*
-Migraciones con `Meta.indexes`: `Section(client, is_active)`, `Service(client, is_active, order)`, `GalleryItem(client, gallery_type, is_active, order)`, `ContactSubmission(client, created_at)`. `EXPLAIN` sobre datos reales de Supabase antes/después.
+#### ✅ `#MED-03` — Índices compuestos y revisión de consultas `[P1-Alta]` `[M]` `[Database]` *(absorbe `#DB-03`)* — **DONE (2026-08-22)**
+Auditoría completa de todo modelo con FK a `Client` (no solo los 4 que mencionaba el audit original), comparando índices existentes contra patrones de consulta reales en código (no hipotéticos). **Resultado: la mayoría ya estaba bien indexado** de trabajo previo a esta sesión — `Section`, `ContactSubmission`, `GalleryItem` y `SEOConfig` ya tenían exactamente los compuestos que sus vistas necesitan. Solo 2 gaps reales:
+1. `Service`: tenía `(client, is_active)` pero `home()` hace `.filter(client=X, is_active=True).order_by('order')` — sin `order` en el índice, Postgres filtra por índice pero igual ordena aparte. Reemplazado por `(client, is_active, order)` (el prefijo sigue sirviendo cualquier query que no use `order`).
+2. `Domain`: `Client.primary_domain` hace `.filter(is_primary=True, is_active=True)` y `Domain.save()` hace `.filter(client=X, is_primary=True)` para desmarcar el primario anterior — ninguna cubierta por el índice existente `(client, is_active)`, que no incluye `is_primary`. Se agregó `(client, is_primary, is_active)` (nuevo, no reemplaza — hay también consultas reales que filtran solo por `is_active` sin `is_primary`, en 5+ lugares de `apps/marketing/`).
+`UserProfile`, `Order` y los modelos `OneToOneField` (`ClientSettings`, `ClientEmailSettings`, `FormConfig`) no tienen gap: sus queries reales filtran solo por `client` (ya cubierto por el índice de FK por defecto) o el campo es `OneToOneField` (como máximo una fila por cliente, un índice compuesto no aporta nada).
+**Resultado:** `apps/website/tests/test_model_indexes.py` (Service) + `apps/tenants/tests.py::DomainIndexTestCase` (Domain) verifican que los índices existen, citando la línea de código real que los necesita. Rojo confirmado antes de cada fix (`assertIn` sobre `Model._meta.indexes`). Suite completa: 81 tests OK (1 skip). `makemigrations --check` limpio. **Pendiente (usuario, no automatizable desde SQLite):** `EXPLAIN ANALYZE` contra datos reales de Supabase para confirmar index scan en producción.
 
 #### `#MED-04` — Plantillas HTML transaccionales responsive `[P2-Media]` `[M]` `[Frontend]`
 Rediseñar `templates/emails/*` (tablas, inline CSS, dark-mode friendly, texto plano decente). Probar en Gmail/Outlook móvil.
@@ -424,10 +428,14 @@ Ya hay HSTS/nosniff/X-Frame/cookies seguras; falta **CSP** (complicada por Tailw
   - [x] `_current_client`: decidido con el usuario — **eliminado** (código muerto en producción, riesgo de atributo de clase compartido si se llegaba a usar). `TenantManager`/`TenantQuerySet` (alternativa nunca usada) también eliminados.
 - **Verificación:** `python manage.py test apps.tenants.tests_isolation` (8 tests). ✅ Ejecutado 2026-08-22, verde. Suite completa: 62 tests OK (1 skip) — corre en cada push (gate de §2).
 
-### `#MED-03` — Índices compuestos
-- **Archivos:** `apps/website/models.py`, `apps/marketing/models.py` + migraciones.
-- **Criterios:** `Meta.indexes` según patrones de §1.2; `EXPLAIN ANALYZE` en Supabase muestra index scan en home y dashboard; `makemigrations --check` limpio después.
-- **Verificación:** `python manage.py test apps.website` + `python manage.py makemigrations --check --dry-run`.
+### ✅ `#MED-03` — Índices compuestos
+- **Archivos:** `apps/website/models.py` (`Service`), `apps/tenants/models.py` (`Domain`) + migraciones. `apps/marketing/models.py` (`SEOConfig`) auditado, ya estaba correcto — sin cambios.
+- **Criterios:**
+  - [x] `Meta.indexes` revisado contra patrones de consulta reales (no los de §1.2 a ciegas — varios ya no aplicaban porque el índice necesario ya existía de trabajo previo).
+  - [x] `Service(client, is_active, order)`, `Domain(client, is_primary, is_active)` agregados; `Section`, `ContactSubmission`, `GalleryItem`, `SEOConfig` confirmados ya correctos.
+  - [x] `makemigrations --check` limpio después.
+  - [ ] `EXPLAIN ANALYZE` en Supabase — pendiente, requiere datos reales de producción, no automatizable desde SQLite.
+- **Verificación:** `python manage.py test apps.website.tests.test_model_indexes apps.tenants.tests.DomainIndexTestCase` + `python manage.py makemigrations --check --dry-run`. ✅ Ejecutado 2026-08-22, verde.
 
 ### `#MED-04` / `#MED-05` / `#TOOL-01` / `#TOOL-07` — ver §5; sus DoD son autocontenidos.
 
@@ -444,7 +452,7 @@ ROBUSTEZ TRANSACCIONAL ✅ CERRADA (2026-08-22)               ▼
 AUD-05 ✅ → AUD-06 ✅ → AUD-07 ✅ → PAY-03 ✅(parcial)   RC-09 → RC-10 → RC-11 → RC-12 → RC-13
    │
    ▼
-MED-02 (aislamiento) ✅ CERRADO (2026-08-22)         MEDIANO: MED-01 ✅ (async, 2026-08-22) ∥ AUD-11 (Tailwind) ∥ MED-03 (índices)
+MED-02 (aislamiento) ✅ CERRADO (2026-08-22)         MEDIANO: MED-01 ✅ ∥ MED-03 ✅ (2026-08-22) ∥ AUD-11 (Tailwind) pendiente
    │                                                                  ▼
    ▼ ESTAMOS AQUÍ                                    RC-14 → RC-15 → RC-16 → RC-17 (cierre)
 Sin bloqueadores de código en el corto plazo —
