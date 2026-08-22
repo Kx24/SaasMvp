@@ -49,7 +49,7 @@ Dependencias de desarrollo (`ruff`, `bandit`, `coverage`, `pyyaml`) en `requirem
 
 Las vistas llaman `apps.core.template_resolver.render_tenant_template(request, template_path, context)` — **no** arman la ruta a mano (`f'tenants/{slug}/...'`); eso ya no existe, lo resuelve el loader.
 
-Antes de escribir un componente nuevo: revisar si ya existe en 2+ temas (`servelec`, `themes/default`, `ranchocachimba`, `andesscale`); si es así, generalizarlo a `templates/components/` en vez de duplicarlo (precedente: `hero` con variante `layout: single|split`).
+Antes de escribir un componente nuevo: revisar si ya existe en 2+ temas (`servelec`, `themes/default`, `ranchocachimba`, `andesscale`); si es así, generalizarlo a `templates/components/` en vez de duplicarlo. Contrato completo y precedente real (`components/media_collection.html`, parámetro `mode` + slots de override por ruta de template) en `docs/design-system.md`.
 
 **Brand tokens por tenant:** `ClientSettings` (color primario/secundario/accent, fuentes, logo) se inyecta como CSS custom properties — no hay valores de marca hardcodeados en JS/Tailwind config. Preferir utilidades Tailwind sobre `style=""` inline en templates nuevos (preferencia explícita del usuario).
 
