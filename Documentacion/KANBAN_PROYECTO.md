@@ -18,13 +18,17 @@
 
 **El gate de seguridad de §4 está cerrado y commiteado.** `#AUD-01`, `#AUD-02`, `#AUD-03` y `#AUD-04` — los 4 bloqueadores P0 de la auditoría (checkout inalcanzable, webhook sin firma, fuga cross-tenant en login/dashboard, `render.yaml` roto) — están **DONE**, cada uno con TDD estricto (Rojo→Verde, ver detalle en §4 y §7) y verificados de punta a punta con `git stash` contra el estado original cuando aplicaba (`#AUD-04`). Commit `b5539f9` en `feature/RanchocachimbaEtapa1`. Archivos nuevos: `apps/orders/tests/`, `apps/website/tests/`, `apps/core/tests/`, `apps/accounts/decorators.py`, `ruff.toml`, `requirements-dev.txt`.
 
-**`#AUD-05` (carrera en `order_number`) también DONE (2026-08-22)**, mismo TDD estricto — ver §4/§7. Suite: **38 tests, OK (1 skip)**. Pendiente de commit propio (no incluido en `b5539f9`).
+**`#AUD-05`, `#AUD-06` y `#AUD-07` también DONE (2026-08-22)**, mismo TDD estricto — ver §4/§7. Suite: **52 tests, OK (1 skip)**. Commits: `10cf3ec` (AUD-05), `2e8b226` (AUD-06); AUD-07 pendiente de commit propio.
 
-**2 cabos sueltos menores del cierre del gate, no bloqueantes:**
+**Hallazgos incidentales corregidos durante AUD-06/AUD-07 (no eran el alcance original, pero bloqueaban las cards):**
+- `process_onboarding` llamaba `UserProfile.objects.create(...)` chocando con el signal `create_or_update_user_profile` (`apps/accounts/models.py`) → `IntegrityError` en **todo** onboarding real. Cambiado a `update_or_create`.
+
+**2 cabos sueltos menores del cierre del gate original, no bloqueantes:**
 1. `#AUD-01` — falta el caso "un plan no puede llamarse `process`/`success`/`error`" (sin validación ni test).
 2. `#AUD-04` — falta confirmar contra el dashboard real de Render qué configuración está efectivamente activa (acción del usuario, no verificable desde el repo).
+3. `#AUD-07` — falta verificar SPF/DKIM de Zoho y hacer un envío real de prueba post-deploy (acción del usuario).
 
-**Siguiente en la ruta crítica — 🟠 Robustez del flujo transaccional (§4):** `#AUD-06` (emails fuera de la transacción) → `#AUD-07` (correo de producción confiable) → `#PAY-03` (E2E sandbox de pago, ahora desbloqueado por el gate cerrado). En paralelo, `#MED-02` (suite de aislamiento multi-tenant real, hoy sigue siendo un management command manual) es la otra card `[P0-Crítica]` pendiente — vale la pena antes de tocar más código de dashboard.
+**Siguiente en la ruta crítica:** `#PAY-03` (E2E sandbox de pago→provisioning, ahora desbloqueado por AUD-01/02/05/06). En paralelo, `#MED-02` (suite de aislamiento multi-tenant real, hoy sigue siendo un management command manual) es la otra card `[P0-Crítica]` pendiente — vale la pena antes de tocar más código de dashboard.
 
 **No tocar sin que el usuario lo pida:** limpieza de lint global (135 errores preexistentes fuera de los archivos de este cierre — es `#AUD-10`/deuda técnica, no parte del gate), ni nada de Rancho Cachimba (`#RC-01`/`#RC-06b`/`#RC-18`) — depende de insumos del cliente, no de código.
 
@@ -171,8 +175,10 @@ Los 3 puntos de envío (`process_payment_view`, `mercadopago_webhook_view`, `pro
 **Hallazgo incidental corregido:** `process_onboarding` llamaba `UserProfile.objects.create(user=user, ...)`, pero `create_user()` ya dispara el signal `create_or_update_user_profile` (`apps/accounts/models.py:100-102`) que crea un `UserProfile` vacío vía `get_or_create` — el `.create()` explícito chocaba con el `OneToOneField` y lanzaba `IntegrityError` en **todo** onboarding real (bug no relacionado con AUD-06, pero bloqueaba el flujo completo; encontrado porque el test de commit exitoso no podía pasar sin él). Cambiado a `UserProfile.objects.update_or_create(user=user, defaults={...})`.
 **Resultado:** `apps/orders/tests/test_emails.py` (4 tests): checkout y webhook verifican que el email queda en `on_commit` callbacks (outbox vacío hasta ejecutarlos); onboarding prueba rollback → outbox vacío (rojo confirmado: con el send directo, el correo salía igual antes del rollback forzado) y commit exitoso → 2 correos. Suite completa: 42 tests OK (1 skip). `ruff check` limpio en los archivos nuevos/tocados (errores preexistentes de import-sort en `views_onboarding.py` sin relación, `#AUD-10`).
 
-#### `#AUD-07` — Correo de producción confiable `[P1-Alta]` `[S]` `[Backend]` `[DevOps]`
-Sin fallback silencioso a console en producción (fallar al arrancar o loggear CRITICAL); URLs de sitio en emails construidas desde `Domain`/`BASE_DOMAIN`, no hardcodeadas `.andesscale.cl`. Verificar SPF/DKIM de Zoho.
+#### ✅ `#AUD-07` — Correo de producción confiable `[P1-Alta]` `[S]` `[Backend]` `[DevOps]` — **DONE (2026-08-22)**
+`config/settings/production.py` ya no cae a `console.EmailBackend` si falta `EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD`: falla al importar (`raise ValueError`, mismo patrón que `SECRET_KEY`). `EmailService._site_url()` (nuevo) prioriza `client.get_absolute_url()` (dominio primario real) y solo cae a `BASE_DOMAIN` si el tenant no tiene dominio activo; reemplaza el `f"https://{client.slug}.andesscale.cl"` hardcodeado en `send_welcome`/`send_site_ready`.
+**Pendiente (no verificable desde el repo):** SPF/DKIM de Zoho — acción del usuario en el panel de Zoho/DNS.
+**Resultado:** `apps/core/tests/test_production_settings.py` (2 tests, vía subprocess — el módulo de settings solo se evalúa una vez por proceso): sin credenciales → falla con `EMAIL_HOST_USER` en stderr (rojo confirmado con `git stash` contra el `production.py` original); con credenciales → arranca limpio. `apps/orders/tests/test_email_service.py` (8 tests): `_site_url` usa dominio primario o cae a `BASE_DOMAIN` (rojo confirmado: el método no existía), y smoke test de los 6 templates de `EmailService` con contexto real (`payment_success`, `welcome`, `site_ready`, `token_expiring`, `set_password`, `contact_received`). Suite completa: 52 tests OK (1 skip). `ruff check` limpio en archivos nuevos/tocados.
 
 #### `#AUD-08` — Webhook con reintento honesto `[P2-Media]` `[S]` `[Backend]`
 Devolver 500 en excepción inesperada para que MP reintente; conservar 200 para casos "ignorar" legítimos. Registrar idempotencia: un `payment_id` ya procesado en estado final → no-op (ya cubierto parcialmente, dejar test).
@@ -334,14 +340,14 @@ Ya hay HSTS/nosniff/X-Frame/cookies seguras; falta **CSP** (complicada por Tailw
   - [x] Si el email falla, la transacción ya commiteada no se ve afectada (log ERROR, no excepción al usuario — `EmailService._send_email` ya atrapa la excepción internamente).
 - **Verificación:** `python manage.py test apps.orders.tests.test_emails` (4 tests) — con `django.core.mail.outbox`: rollback simulado → `len(outbox)==0` (rojo confirmado con send directo); commit → los 2 correos esperados; `TestCase.captureOnCommitCallbacks`. ✅ Ejecutado 2026-08-22, verde. Suite completa: 42 tests OK (1 skip).
 
-### `#AUD-07` — Correo de producción confiable
+### ✅ `#AUD-07` — Correo de producción confiable
 - **Contexto:** fallback silencioso a console + URLs hardcodeadas `.andesscale.cl` rompen los correos de tenants con dominio propio.
 - **Archivos:** `config/settings/production.py`, `apps/orders/services/email_service.py`.
 - **Criterios de aceptación:**
-  - [ ] En producción, sin credenciales SMTP: error explícito al arrancar (o log CRITICAL + health check en rojo), nunca console silencioso.
-  - [ ] `send_welcome`/`send_site_ready` construyen `site_url` desde `client.get_absolute_url()`/`Domain` primario.
-  - [ ] Los 5 templates de email renderizan con contexto completo (smoke test).
-- **Verificación:** `python manage.py test apps.orders.tests.test_email_service` + envío real de prueba a una casilla propia tras el deploy (`manage.py shell` en Render, documentado en el runbook).
+  - [x] En producción, sin credenciales SMTP: error explícito al arrancar (`raise ValueError` en el import del módulo, nunca console silencioso).
+  - [x] `send_welcome`/`send_site_ready` construyen `site_url` desde `client.get_absolute_url()`/`Domain` primario (nuevo `EmailService._site_url()`).
+  - [x] Los 6 templates de email renderizan con contexto completo (smoke test) — el audit original decía "5", el servicio expone 6 (`payment_success`, `welcome`, `site_ready`, `token_expiring`, `set_password`, `contact_received`).
+- **Verificación:** `python manage.py test apps.orders.tests.test_email_service apps.core.tests.test_production_settings` (10 tests). ✅ Ejecutado 2026-08-22, verde. Suite completa: 52 tests OK (1 skip). **Pendiente (usuario):** envío real de prueba a una casilla propia tras el deploy + verificar SPF/DKIM de Zoho.
 
 ### `#AUD-08` / `#AUD-09` — Webhook honesto + onboarding sin mutar en GET
 - **Archivos:** `apps/orders/views.py`, `apps/orders/views_onboarding.py`.

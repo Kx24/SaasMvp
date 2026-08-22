@@ -150,8 +150,17 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-if not EMAIL_HOST_USER:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+    # Sin fallback silencioso a console.EmailBackend: un correo transaccional
+    # (confirmación de pago, invitación de onboarding) "enviado" a la consola
+    # de un dyno es indistinguible de un correo perdido, y nadie lo nota
+    # hasta que un cliente reporta que nunca llegó. Preferimos que el deploy
+    # no arranque, igual que con SECRET_KEY.
+    raise ValueError(
+        "EMAIL_HOST_USER y EMAIL_HOST_PASSWORD son obligatorios en "
+        "producción: sin ellos los emails transaccionales (pago, "
+        "onboarding, contacto) se pierden en silencio."
+    )
 
 # ==============================================================================
 # CACHE
