@@ -188,7 +188,7 @@ services:
         value: "servelec"
 
       - key: EXTRA_DOMAINS
-        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,ranchocachimba.cl,www.ranchocachimba.cl"
+        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl"
 
       - key: EMAIL_HOST
         value: "smtp.zoho.com"
