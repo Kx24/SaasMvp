@@ -15,44 +15,34 @@
     <link rel="icon" href="{{ client.settings.favicon.url }}">
     {% endif %}
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '{{ client.settings.primary_color|default:"#2563eb" }}',
-                        secondary: '{{ client.settings.secondary_color|default:"#1e40af" }}',
-                        accent: '{{ client.settings.accent_color|default:"#f59e0b" }}',
-                    },
-                    fontFamily: {
-                        sans: ['{{ client.settings.font_family|default:"Inter" }}', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- CSS personalizado del tenant -->
-    {% tenant_custom_css %}
-    
-    <!-- Estilos adicionales -->
+
+    <!-- CSS global compilado (#AUD-11) — ver templates/base.html para la nota completa -->
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.16.2/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    {# Tokens de marca desde ClientSettings -- tailwind.config.js#}
+{#       (compartido, raíz del repo) referencia estas variables directo.#}
+{#       Este tema era el único sin bloque :root propio (dependía 100% del#}
+{#       tailwind.config inline, ahora removido) -- se agrega acá. #}
     <style>
+        :root {
+            --color-primary:   {{ client.settings.primary_color|default:"#2563eb" }};
+            --color-secondary: {{ client.settings.secondary_color|default:"#1e40af" }};
+            --color-accent:    {{ client.settings.accent_color|default:"#f59e0b" }};
+            --font-sans:       '{{ client.settings.font_family|default:"Inter" }}';
+            --font-display:    '{{ client.settings.font_family|default:"Inter" }}';
+        }
         [x-cloak] { display: none !important; }
         html { scroll-behavior: smooth; }
     </style>
+
+    <!-- CSS personalizado del tenant -->
+    {% tenant_custom_css %}
     
     {% block extra_head %}{% endblock %}
 </head>

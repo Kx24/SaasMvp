@@ -22,108 +22,63 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <!-- Tailwind Config con colores VERDES -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        // Usamos los colores de la BD. Si no existen, usa los verdes por defecto de Servelec.
-                        primary: '{{ client.settings.primary_color|default:"#16a34a" }}',
-                        secondary: '{{ client.settings.secondary_color|default:"#15803d" }}',
-                        // Puedes crear un campo 'accent_color' en tu modelo o derivarlo aquí
-                        accent: '{{ client.settings.accent_color|default:"#22c55e" }}', 
-                    },
-                    fontFamily: {
-                        'sans': ['Inter', 'system-ui', 'sans-serif'],
-                        'display': ['Outfit', 'system-ui', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-    
+    {# CSS global compilado (#AUD-11) — ver templates/base.html para la nota completa #}
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.16.2/dist/cdn.min.js"></script>
+
     <style>
-        /* Vinculamos las variables CSS a las variables de Django también */
+        {# Tema huérfano: casi idéntico a servelec, no está en Client.THEME_CHOICES#}
+{#           (ver informe "Tailwind, hoy" y #DEUDA-03). No se toca esa duplicación#}
+{#           acá -- solo se migra al mismo mecanismo de tokens que el resto. #}
         :root {
-            --primary: {{ client.settings.primary_color|default:"#16a34a" }};
-            --secondary: {{ client.settings.secondary_color|default:"#15803d" }};
-            --accent: {{ client.settings.accent_color|default:"#22c55e" }};
-            /* Nota: --primary-light es difícil de calcular dinámicamente en template sin un filtro custom, 
-               así que lo dejaremos estático o usaremos una opacidad */
-            --primary-light: #dcfce7; 
+            --color-primary:   {{ client.settings.primary_color|default:"#16a34a" }};
+            --color-secondary: {{ client.settings.secondary_color|default:"#15803d" }};
+            --color-accent:    {{ client.settings.accent_color|default:"#22c55e" }};
+            --font-sans:       'Inter';
+            --font-display:    'Outfit';
         }
-        
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-        }
-        
-        .font-display {
-            font-family: 'Outfit', system-ui, sans-serif;
-        }
-        
-        /* Gradientes verdes */
+
+        body { font-family: var(--font-sans), system-ui, sans-serif; }
+
         .text-gradient {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         .bg-gradient-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
         }
-        
-        /* Botón principal verde */
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            box-shadow: 0 4px 14px 0 rgba(22, 163, 74, 0.4);
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px 0 rgba(22, 163, 74, 0.5);
-        }
-        
-        /* Efectos eléctricos con verde */
+
         .electric-glow {
-            box-shadow: 0 0 20px rgba(22, 163, 74, 0.3),
-                        0 0 40px rgba(22, 163, 74, 0.2),
-                        0 0 60px rgba(22, 163, 74, 0.1);
+            box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 30%, transparent),
+                        0 0 40px color-mix(in srgb, var(--color-primary) 20%, transparent),
+                        0 0 60px color-mix(in srgb, var(--color-primary) 10%, transparent);
         }
-        
-        /* Cards con hover verde */
+
         .service-card {
             transition: all 0.3s ease;
         }
-        
+
         .service-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(22, 163, 74, 0.15);
+            box-shadow: 0 20px 40px color-mix(in srgb, var(--color-primary) 15%, transparent);
         }
-        
-        /* Hero background */
+
         .hero-gradient {
             background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%);
         }
-        
-        /* Animaciones */
+
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-20px); }
         }
-        
+
         .animate-float {
             animation: float 6s ease-in-out infinite;
         }
-        
+
         @keyframes fade-up {
             from {
                 opacity: 0;
@@ -134,35 +89,33 @@
                 transform: translateY(0);
             }
         }
-        
+
         .fade-up {
             animation: fade-up 0.6s ease-out forwards;
         }
-        
-        /* Input focus verde */
+
         input:focus, textarea:focus, select:focus {
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1) !important;
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
         }
-        
-        /* Scrollbar verde */
+
         ::-webkit-scrollbar {
             width: 8px;
         }
-        
+
         ::-webkit-scrollbar-track {
             background: #f1f5f9;
         }
-        
+
         ::-webkit-scrollbar-thumb {
-            background: var(--primary);
+            background: var(--color-primary);
             border-radius: 4px;
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--secondary);
+            background: var(--color-secondary);
         }
-        
+
         [x-cloak] { display: none !important; }
     </style>
     
