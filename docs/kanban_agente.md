@@ -315,6 +315,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-23 | BOLT-02 | DONE | 115 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | `d958064` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-03 | DONE | 123 tests OK (5 skip) / ruff limpio (4 archivos) / migraciones limpias | `f570cda` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-04 | DONE | 133 tests OK (5 skip) / ruff limpio (5 archivos) / migraciones limpias | `9e8ab83` (`agent/ai-dlc-pilot`) |
-| 2026-08-23 | BOLT-05 | DONE | 143 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | *(pendiente — se completa al commitear)* |
+| 2026-08-23 | BOLT-05 | DONE | 143 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | `40ffbfa` (`agent/ai-dlc-pilot`) |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*
