@@ -53,6 +53,10 @@ DIAGNOSTICO_SI_BLOQUEADO: <si aplica>
      explicando el qué y el porqué (no el cómo línea por línea). Si el handoff señaló hallazgos
      incidentales, documentarlos en el cuerpo del commit, igual que hace el resto del historial de
      este repo.
+   - **Pushear.** `git push` inmediatamente después del commit — el push por card es parte del
+     cierre, no opcional (política de `docs/tratamiento_git.md`: la rama del agente es un buffer
+     respaldado; nunca acumula trabajo solo-local). Pushear no es integrar: el PR a `develop` se
+     abre cuando el lote termina, no por card.
 5. **Sobre `REJECT`:**
    - Editar la card: volver `**Estado:** TODO` (no `DOING` — libera la card para que
      `01_planificador` la retome, posiblemente con un spec distinto).
