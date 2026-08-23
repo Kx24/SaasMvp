@@ -177,17 +177,18 @@ CLOSE (actualizar card aquí + commit único con ID)
 > se excluyó a propósito: solo 2 temas lo tienen y con layouts distintos — forzarla sería el
 > anti-patrón del "flag de más" que `docs/design-system.md` §2b prohíbe.
 
-### [BOLT-01] Confirmar suite en verde tras el retiro de `apps/core/managers.py`
-- **Estado:** TODO
+### ✅ [BOLT-01] Confirmar suite en verde tras el retiro de `apps/core/managers.py` — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Backend
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** ninguno esperado (solo ejecución + actualización de `Documentacion/KANBAN_PROYECTO.md` §"Retomar aquí" y este archivo)
+- **Archivos Afectados:** `apps/core/managers.py` (eliminado — ver hallazgo), `Documentacion/KANBAN_PROYECTO.md`, este archivo
 - **Contexto:** `#DEUDA-05` eliminó la copia muerta de `TenantAwareManager` en `apps/core/managers.py`, pero esa sesión **no pudo correr la suite completa** (bloqueada por el runner). El import en frío funcionó; falta la confirmación formal. Es el único cabo suelto verificable desde el repo que quedó abierto.
+- **⚠️ Hallazgo incidental (bloqueaba el sentido de la card — corregido acá):** el retiro que la card daba por hecho **nunca llegó a esta rama**: el commit que borraba el archivo (`d3bb7ba`, `DEUDA-05: reconcilia README...`) vive solo en `feature/RanchocachimbaEtapa1`, no en `develop` (base de `agent/ai-dlc-pilot`) — mismo patrón que el hallazgo del `SKILL.md` en PILOT-02. Se completó el retiro aquí (`git rm`), previa verificación de que es código muerto: 0 imports de `apps.core.managers` en `apps/`/`config/`; todo el uso real de `TenantAwareManager` importa de `apps/tenants/managers.py`. Al mergear ambas ramas el borrado converge sin conflicto.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] `python manage.py test apps -v 1` completa en verde (≈103 tests, 1 skip) — la suite entera ES el test de esta card; si algo falla por el archivo eliminado, restaurar el import mínimo roto es el fix.
-  - [ ] `python -m ruff check apps/ config/` sin errores nuevos y `makemigrations --check --dry-run` limpio.
-  - [ ] Nota de cierre del pendiente registrada en `KANBAN_PROYECTO.md` (§"Retomar aquí" y card `#DEUDA-05`).
-  - [ ] Sin side-effects fuera del alcance de la tarjeta.
+  - [x] Suite completa en verde tras el retiro, vía gatekeeper: **112 tests, 0 fallos, 5 skips** (`duration_s: 10.27`). Sin test nuevo por diseño de la card ("la suite entera ES el test").
+  - [x] `ruff` sin errores nuevos (gate en verde) y `makemigrations --check --dry-run` limpio.
+  - [x] Nota de cierre registrada en `KANBAN_PROYECTO.md` (§"Retomar aquí" con fecha 2026-08-23 y card `#DEUDA-05`), incluyendo el hallazgo del commit `d3bb7ba` no mergeado.
+  - [x] Sin side-effects fuera del alcance: únicos archivos tocados = el retiro + los 2 kanbans; 0 procesos huérfanos.
 
 ### [BOLT-02] Slugs reservados en `Plan` — cierre del DoD de `#AUD-01`
 - **Estado:** TODO
@@ -309,5 +310,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-22 | PILOT-01 | DONE | 107 tests OK (5 skip) / ruff limpio / migraciones limpias | `acb20a9`, `e9f783d` (`agent/ai-dlc-pilot`) |
 | 2026-08-22 | PILOT-02 | DONE | 107 tests OK (5 skip) / ruff limpio (0 archivos .py tocados) / migraciones limpias | `78c4cdc`, `f539d81` (`agent/ai-dlc-pilot`) |
 | 2026-08-22 | PILOT-03 | DONE | 112 tests OK (5 skip) / ruff limpio / migraciones limpias | `9e58de9` (`agent/ai-dlc-pilot`) |
+| 2026-08-23 | BOLT-01 | DONE | 112 tests OK (5 skip) / ruff limpio / migraciones limpias | *(pendiente — se completa al commitear)* |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*
