@@ -1,6 +1,6 @@
 {% load static %}
 {% load seo_tags %}
-{% load tenant_tags %} 
+{% load tenant_tags %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -24,9 +24,11 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 
     <style>
-        {# secondary/accent quedan fijos (nunca vinieron de ClientSettings,#}
-{#           ni antes de esta migración -- andesscale es la marca propia,#}
-{#           un solo tenant real, sin necesidad de personalización). #}
+        {# secondary/accent/font-sans quedan fijos (nunca vinieron de#}
+{#           ClientSettings, ni antes de esta migración -- andesscale es#}
+{#           la marca propia, un solo tenant real, sin necesidad de#}
+{#           personalización; font_family de #AUD-11 Paso 3 no aplica acá#}
+{#           por la misma razón). #}
         :root {
             --color-primary:   {{ client.settings.primary_color|default:"#0ea5e9" }};
             --color-secondary: #0284c7;

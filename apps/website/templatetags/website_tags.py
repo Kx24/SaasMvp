@@ -1,9 +1,21 @@
 
 from django import template
-from apps.website.models import Section, Service, GalleryItem
+
+from apps.tenants.fonts import google_fonts_query as _google_fonts_query
 from apps.tenants.models import FormConfig
+from apps.website.models import GalleryItem, Section, Service
 
 register = template.Library()
+
+
+@register.simple_tag
+def google_fonts_query(font_name):
+    """
+    Fragmento `family=...` de Google Fonts para la fuente de cuerpo
+    elegida por el tenant (#AUD-11 Paso 3). Uso:
+        <link href="https://fonts.googleapis.com/css2?family={% google_fonts_query client.settings.font_family %}&display=swap" rel="stylesheet">
+    """
+    return _google_fonts_query(font_name)
 
 MEDIA_SLOTS = {
     'hero':    'components/slots/hero_overlay.html',

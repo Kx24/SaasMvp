@@ -1,7 +1,9 @@
 # apps/tenants/forms.py
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Client, Domain, ClientSettings
+
+from .models import Client, ClientSettings, Domain
+
 
 class BrandingForm(forms.ModelForm):
     """
@@ -18,6 +20,9 @@ class BrandingForm(forms.ModelForm):
             # Colores
             'primary_color',
             'secondary_color',
+            'accent_color',
+            # Tipografía
+            'font_family',
             # Información
             'company_name',
             'tagline',
@@ -36,6 +41,7 @@ class BrandingForm(forms.ModelForm):
         widgets = {
             'primary_color': forms.TextInput(attrs={'type': 'color'}),
             'secondary_color': forms.TextInput(attrs={'type': 'color'}),
+            'accent_color': forms.TextInput(attrs={'type': 'color'}),
         }
 
 

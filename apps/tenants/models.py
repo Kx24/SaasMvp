@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
 from cloudinary.models import CloudinaryField
+from .fonts import FONT_CHOICES
 from apps.core.cloudinary_utils import cloudinary_upload_path
 
 # ==============================================================================
@@ -283,7 +284,7 @@ class ClientSettings(models.Model):
     primary_color = models.CharField(max_length=7, default='#3B82F6')
     secondary_color = models.CharField(max_length=7, default='#1E40AF')
     accent_color = models.CharField(max_length=7, default='#F59E0B')
-    font_family = models.CharField(max_length=100, default='Inter, sans-serif')
+    font_family = models.CharField(max_length=100, choices=FONT_CHOICES, default='Inter')
     
     # ==================== INFORMACIÓN ====================
     company_name = models.CharField(max_length=200, blank=True)

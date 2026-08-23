@@ -50,6 +50,28 @@ Un tema nuevo que no siga este contrato simplemente no va a heredar paleta ni
 tipografía del tenant — el resto del sitio (componentes compartidos,
 `components/navbar.html`, etc.) asume que estas variables existen.
 
+### Personalización expuesta al tenant (`#AUD-11` Paso 3)
+
+`accent_color` y `font_family` se exponen en `BrandingForm` (dashboard del
+tenant). `font_family` es una lista curada (`apps/tenants/fonts.py::FONT_CHOICES`
+— Inter, Outfit, Fraunces, Space Grotesk), no texto libre: un valor arbitrario
+no tiene Google Font asociada y rompe el fallback en silencio, el mismo tipo
+de bug que `#BUG-01`.
+
+El valor elegido controla **`--font-sans` únicamente** (cuerpo de texto).
+`--font-display` (títulos) sigue fijo por tema — es una decisión de
+identidad visual, no un ajuste de personalización acotada. El `<link>` de
+Google Fonts de cada tema se arma con `{% google_fonts_query
+client.settings.font_family %}` (tag en `website_tags`, mapea el nombre
+curado a su fragmento `family=...:wght@...`) más el font de display fijo del
+tema — un solo punto por `base.html`, el mismo que tocó el Paso 1.
+
+**Excepción:** `andesscale` no aplica `font_family` (ni `secondary_color`/
+`accent_color`, precedente ya establecido en Paso 1) — es la marca propia,
+un solo tenant real, sin necesidad de personalización. Mismo criterio que
+la sección 2b de abajo: la excepción está comentada explícitamente en el
+archivo, no es un olvido.
+
 ## 2. Regla de componentes compartidos (`#RC-09`)
 
 Antes de escribir un componente que podría repetirse en más de un tema:

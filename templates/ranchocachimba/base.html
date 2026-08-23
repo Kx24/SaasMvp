@@ -22,11 +22,13 @@
         {% endif %}
     {% endblock %}
 
-    {# Tipografía de marca: Fraunces (display) + Inter (cuerpo) — guía oficial Rancho Cachimba #}
+    {# Tipografía de marca: Fraunces (display, fijo) + fuente de cuerpo#}
+{#       elegida por el tenant (#AUD-11 Paso 3) -- Inter por guía oficial#}
+{#       si no se personalizó. #}
     {% block fonts %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family={% google_fonts_query client.settings.font_family %}&display=swap" rel="stylesheet">
     {% endblock %}
 
 {% block theme_styles %}
@@ -42,7 +44,7 @@
         --color-primary:   {{ client.settings.primary_color|default:"#064B20" }};   /* Verde Rancho */
         --color-secondary: {{ client.settings.secondary_color|default:"#0B642B" }}; /* Verde Bosque */
         --color-accent:    {{ client.settings.accent_color|default:"#FFD500" }};    /* Amarillo Cachimba */
-        --font-sans:       'Inter';
+        --font-sans:       '{{ client.settings.font_family|default:"Inter" }}';
         --font-display:    'Fraunces';
 
         /* Paleta fija de la guía oficial — Rancho Cachimba es tema de un solo tenant */
