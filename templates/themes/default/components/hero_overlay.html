@@ -14,7 +14,7 @@ Usa CSS variables del tenant: --primary, --secondary, --accent
 
 {# Línea decorativa izquierda — usa accent del tenant #}
 <div class="absolute left-0 top-0 bottom-0 w-0.5 opacity-50" aria-hidden="true"
-     style="background: linear-gradient(to bottom, transparent, var(--accent), transparent);"></div>
+     style="background: linear-gradient(to bottom, transparent, var(--color-accent), transparent);"></div>
 
 {# Contenido #}
 <div class="relative max-w-7xl mx-auto px-6 lg:px-8 pt-36 pb-24">
@@ -26,7 +26,7 @@ Usa CSS variables del tenant: --primary, --secondary, --accent
                 {{ section.title }}
             {% else %}
                 Bienvenido<br>
-                <span style="color: var(--accent);">Soluciones</span><br>
+                <span style="color: var(--color-accent);">Soluciones</span><br>
                 Profesionales.
             {% endif %}
         </h1>
@@ -48,7 +48,7 @@ Usa CSS variables del tenant: --primary, --secondary, --accent
         <div class="flex flex-col sm:flex-row gap-4 fade-up" style="animation-delay:0.3s;">
             <a href="#contacto"
                class="group px-8 py-4 font-black rounded-lg inline-flex items-center justify-center gap-3 transition-all duration-300 hover:opacity-90 hover:-translate-y-0.5"
-               style="background: var(--accent); color: var(--primary);">
+               style="background: var(--color-accent); color: var(--color-primary);">
                 Contáctanos
                 <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>

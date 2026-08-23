@@ -243,18 +243,19 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Cero errores en Linter: ruff en verde, 2 archivos (intentos: 1).
   - [x] Sin side-effects: comando solo lectura (verificado por test); `makemigrations --check` limpio.
 
-### [BOLT-06] Guardia del contrato de tokens CSS (`docs/design-system.md` §1)
-- **Estado:** TODO
+### ✅ [BOLT-06] Guardia del contrato de tokens CSS (`docs/design-system.md` §1) — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** UI
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `apps/core/tests/test_theme_token_contract.py` (nuevo); temas solo si el test expone una violación vigente (arreglarla en la misma card como hallazgo incidental)
-- **Contexto:** al auditar el hero de Cachimba contra su tema (2026-08-24, feature branch) se encontraron **114 usos de `var(--primary|--secondary|--accent)` que ningún `:root` define** — los componentes consumían nombres cortos mientras el contrato define `--color-*`. La clase de bug es general y silenciosa (CSS inválido no lanza error): nada verifica que un tema consuma solo variables definidas. Mismo patrón de test anti-regresión que el de `CLOUDINARY_PRESETS` en `#AUD-10` (estático sobre el código fuente, sin runtime).
-- **Spec ejecutable:** test que, por cada tema presente en esta branch (`andesscale`, `servelec`, `themes/default`, `themes/electricidad`), recolecte las custom properties definidas en el bloque `:root` de su `base.html` y escanee por regex todos los `.html` del tema (más `templates/components/` compartidos, contra la intersección de contratos) exigiendo que todo `var(--x)` consumido esté definido, con whitelist para variables generadas (`--tw-*`). El rojo del arnés se demuestra con una violación sintética inyectada en el propio test (fixture de template inválido), no rompiendo un tema real. Cuando la branch de Rancho se integre, este test atrapará sus 114 usos rotos automáticamente.
+- **Archivos Afectados:** `apps/core/tests/test_theme_token_contract.py` (nuevo, 3 tests) + **10 templates corregidos** (hallazgo incidental, ver abajo)
+- **Contexto:** al auditar el hero de Cachimba contra su tema (feature branch) se encontraron 114 usos de `var(--primary|--secondary|--accent)` que ningún `:root` define. La clase de bug es general y silenciosa (CSS inválido no lanza error). Mismo patrón de test anti-regresión que `CLOUDINARY_PRESETS` en `#AUD-10` (estático, sin runtime).
+- **Resultado:** el test recolecta las custom properties definidas en los `.html` de cada tema (`andesscale`, `servelec`, `themes/default`, `themes/electricidad`) y exige que todo `var(--x)` consumido **sin fallback** esté definido; `templates/components/` compartidos se validan contra la **intersección** de contratos. Decisiones de contrato documentadas en el test: `var(--x, fallback)` no es violación (comportamiento CSS definido — patrón legítimo de slots como `--hero-bg`); `--tw-*` whitelisteado. Rojo sintético con fixture en tmp dir (sin romper temas reales). Cuando la branch de Rancho se integre, atrapará sus 114 usos rotos automáticamente.
+- **⚠️ Hallazgo incidental (previsto por la card):** la violación estaba vigente también en esta branch — `var(--primary|--secondary|--accent)` sin fallback en 10 archivos: navbar/footer de `servelec` y `themes/electricidad`, hero/hero_ctas/hero_overlay(_theme) de `themes/default`, y `components/slots/gallery_caption.html`+`hero_overlay.html`. Corregidos a `--color-*` (el fix RESTAURA el color de marca que el CSS inválido descartaba en silencio — los gradientes/botones afectados caían al valor heredado).
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Test escrito que exprese la funcionalidad (Red → Green con la violación sintética; si un tema actual ya viola el contrato, el test lo expone y se corrige aquí, documentado como hallazgo incidental).
-  - [ ] Implementación mínima que pase la suite de pruebas.
-  - [ ] Cero errores en Linter (`ruff check`).
-  - [ ] Sin side-effects fuera del alcance de la tarjeta (cero cambios visuales en los temas salvo hallazgo incidental documentado).
+  - [x] Test Red → Green: rojo sintético (el checker reporta exactamente `[('hero.html', '--primary')]` con fallback y `--tw-*` exentos) + rojo real (3 temas y components/ fallaban). Verde tras corregir los 10 archivos.
+  - [x] Implementación mínima que pasa la suite completa: gatekeeper 146 tests OK (5 skip, +3 de esta card).
+  - [x] Cero errores en Linter: ruff en verde (intentos: 1).
+  - [x] Sin side-effects: los tests de rendering existentes de los temas siguen verdes; único "cambio visual" = el hallazgo incidental documentado.
 
 ### [BOLT-07] CTA del navbar compartido configurable por tenant
 - **Estado:** TODO
@@ -316,5 +317,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-23 | BOLT-03 | DONE | 123 tests OK (5 skip) / ruff limpio (4 archivos) / migraciones limpias | `f570cda` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-04 | DONE | 133 tests OK (5 skip) / ruff limpio (5 archivos) / migraciones limpias | `9e8ab83` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-05 | DONE | 143 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | `40ffbfa` (`agent/ai-dlc-pilot`) |
+| 2026-08-23 | BOLT-06 | DONE | 146 tests OK (5 skip) / ruff limpio / migraciones limpias | *(pendiente — se completa al commitear)* |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*

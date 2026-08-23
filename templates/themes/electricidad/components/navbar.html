@@ -9,28 +9,28 @@
         font-weight: 500;
     }
     .nav-link:hover {
-        color: var(--primary);
-        background: color-mix(in srgb, var(--primary) 8%, transparent);
+        color: var(--color-primary);
+        background: color-mix(in srgb, var(--color-primary) 8%, transparent);
     }
     .nav-cta {
-        background: var(--primary);
+        background: var(--color-primary);
         color: #fff;
         padding: 0.625rem 1.25rem;
         border-radius: 9999px;
         font-size: 0.875rem;
         font-weight: 600;
         transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent);
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary) 30%, transparent);
     }
     .nav-cta:hover {
         opacity: 0.88;
         transform: translateY(-1px);
-        box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent);
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 35%, transparent);
     }
     .nav-scrolled {
         background: rgba(255,255,255,0.95) !important;
         backdrop-filter: blur(20px);
-        border-bottom: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
+        border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
         box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
     .mobile-link {
@@ -42,8 +42,8 @@
         transition: background 0.15s, color 0.15s;
     }
     .mobile-link:hover {
-        background: color-mix(in srgb, var(--primary) 8%, transparent);
-        color: var(--primary);
+        background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+        color: var(--color-primary);
     }
     [x-cloak] { display: none !important; }
 </style>
@@ -66,7 +66,7 @@
                 <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-12 w-auto">
                 {% else %}
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow"
-                     style="background: var(--primary);">
+                     style="background: var(--color-primary);">
                     <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                     </svg>
@@ -124,18 +124,18 @@
          x-transition
          @click.away="mobileMenuOpen = false"
          class="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b shadow-lg"
-         style="border-color: color-mix(in srgb, var(--primary) 12%, transparent);">
+         style="border-color: color-mix(in srgb, var(--color-primary) 12%, transparent);">
         <div class="max-w-7xl mx-auto px-6 py-5 space-y-1">
             <a href="{% url 'home' %}" @click="mobileMenuOpen = false" class="mobile-link">Inicio</a>
             <a href="#servicios" @click="mobileMenuOpen = false" class="mobile-link">Servicios</a>
             <a href="#about" @click="mobileMenuOpen = false" class="mobile-link">Nosotros</a>
             <a href="#contacto" @click="mobileMenuOpen = false" class="mobile-link">Contacto</a>
 
-            <div class="pt-3 mt-3 space-y-2" style="border-top: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);">
+            <div class="pt-3 mt-3 space-y-2" style="border-top: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);">
                 {% if client.settings.contact_phone %}
                 <a href="tel:{{ client.settings.contact_phone }}"
                    class="mobile-link font-semibold"
-                   style="color: var(--primary);">
+                   style="color: var(--color-primary);">
                     {{ client.settings.contact_phone }}
                 </a>
                 {% endif %}
@@ -143,7 +143,7 @@
                 {% if user.is_authenticated %}
                     <a href="{% url 'dashboard' %}" @click="mobileMenuOpen = false"
                        class="block text-center py-3 rounded-xl font-semibold text-white transition hover:opacity-88"
-                       style="background: var(--primary);">
+                       style="background: var(--color-primary);">
                         Dashboard
                     </a>
                     <a href="{% url 'client_logout' %}"
@@ -157,7 +157,7 @@
                     </a>
                     <a href="#contacto" @click="mobileMenuOpen = false"
                        class="block text-center py-3 rounded-xl font-semibold text-white transition hover:opacity-88"
-                       style="background: var(--primary);">
+                       style="background: var(--color-primary);">
                         Solicitar cotización
                     </a>
                 {% endif %}
