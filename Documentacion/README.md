@@ -1,4 +1,4 @@
-# AndesScale — Documentación Técnica
+corre# AndesScale — Documentación Técnica
  
 > Plataforma SaaS multi-tenant para gestión de presencia web de pymes en Chile y Latinoamérica.
  
@@ -29,10 +29,11 @@ AndesScale es una plataforma SaaS (Software as a Service) construida sobre Djang
 - **Módulos diferenciales:** Catálogo, reservas, chatbot, pagos (según plan).
 ### Tenants activos en producción
  
-| Dominio | Descripción | Tema |
+| Dominio | Descripción | `Client.template` |
 |---|---|---|
-| `andesscale.com` | Landing page del SaaS (el producto mismo) | `marketing/` |
-| `servelec-ingenieria.cl` | Cliente 1 — empresa de ingeniería eléctrica | `electricidad/` |
+| `andesscale.com` | Landing page del SaaS (el producto mismo) | `andesscale` (marca propia, resuelto aparte por el loader) |
+| `servelec-ingenieria.cl` | Cliente 1 — empresa de ingeniería eléctrica | `servelec` |
+| Rancho Cachimba (`ranchocachimba.cl`, aún no publicado) | Turismo rural — lanzamiento en pausa (`feature/RanchocachimbaEtapa1`) | `ranchocachimba` |
  
 ### Stack tecnológico
  
@@ -85,15 +86,21 @@ AndesScale es una plataforma SaaS (Software as a Service) construida sobre Djang
  
 ### Patrón multi-tenant
  
-Cada request pasa por `TenantMiddleware`, que detecta el tenant activo según el dominio HTTP (o el parámetro `?tenant=slug` en desarrollo). El objeto `Client` queda disponible como `request.client` en todas las vistas y templates. Todos los modelos de negocio heredan de `TenantAwareManager`, que filtra automáticamente las queries por tenant.
- 
+Cada request pasa por `TenantMiddleware` (`apps/tenants/middleware.py`), que detecta el tenant activo según el dominio HTTP (o el parámetro `?tenant=slug`, solo con `DEBUG=True`) y lo deja en `request.client` — además lo guarda en un thread-local (`set_current_tenant`/`get_current_tenant`) que usa el `TenantTemplateLoader` para resolver temas. Un dominio de sistema (`localhost`, `BASE_DOMAIN`, `*.onrender.com`) pasa con `request.client = None`; un dominio desconocido devuelve 404 antes de llegar a ninguna vista.
+
+> ⚠️ **`TenantAwareManager` NO filtra automáticamente por tenant** (se eliminó ese comportamiento en `#MED-02`, 2026-08-22 — el auto-filtro dependía de un atributo de clase `_current_client` que nunca se seteaba en código de request real y era un riesgo real de fuga entre tenants concurrentes). **Toda vista debe filtrar explícitamente** con `.filter(client=request.client)` o `Model.objects.for_client(client)`. No asumir que `Model.objects.all()` está scoped por tenant.
+
 ```
-petición → TenantMiddleware → request.client → View → TenantAwareManager → DB (filtrado)
+petición → TenantMiddleware → request.client → View (filtra .filter(client=request.client) a mano) → DB
 ```
  
 ### Sistema de temas (templates)
  
-Cada tenant tiene asignado un `template` (campo en `Client`, no en `ClientSettings`; valores válidos: `Client.THEME_CHOICES`). El `TenantTemplateLoader` resuelve rutas directamente bajo `templates/{client.template}/`, con fallback a `templates/default/` y luego a `templates/{template_name}` si ninguna carpeta específica existe.
+Cada tenant tiene asignado un `template` (campo en `Client`, no en `ClientSettings`; valores válidos: `Client.THEME_CHOICES` — hoy `'themes/default'`, `'servelec'`, `'ranchocachimba'`). `TenantTemplateLoader` (`apps/tenants/template_loader.py`) resuelve cada `template_name` en este orden:
+
+1. Si el tenant es `andesscale` (marca propia): `templates/andesscale/{template_name}` → `templates/{template_name}` (sin tier `default/` intermedio).
+2. Para cualquier otro tenant: `templates/{client.template}/{template_name}` → `templates/default/{template_name}` (fallback genérico) → `templates/{template_name}` (fallback global — así resuelven `base.html`, `templates/components/*.html`, `templates/emails/*.html`).
+3. Sin tenant (`request.client is None`): solo `templates/{template_name}`.
 
 ```
 request.client.template → "servelec"
@@ -102,6 +109,8 @@ TenantTemplateLoader → templates/servelec/landing/home.html
 request.client.template → "themes/default"
 TenantTemplateLoader → templates/themes/default/landing/home.html
 ```
+
+Las vistas llaman `apps.core.template_resolver.render_tenant_template(request, template_path, context)` — esta función **ya no arma rutas a mano**, solo delega en `render()` de Django y deja que el loader haga la resolución.
 
 > No confundir con `--industry` de `provision_tenant` (rubro/contenido semilla: colores y textos). El campo `template`/`--theme` es exclusivamente la carpeta visual.
  
@@ -134,24 +143,22 @@ project_root/
 │   ├── orders/                 # Pagos y onboarding
 │   └── marketing/              # SEO, sitemap, robots.txt
 │
-├── templates/                  # Templates globales del proyecto
-│   ├── themes/                 # Temas visuales por rubro
-│   │   ├── default/            # Tema genérico
-│   │   └── electricidad/       # Tema Servelec
-│   ├── dashboard/              # Panel CMS del cliente
-│   ├── marketing/              # Landing del SaaS
-│   ├── emails/                 # Templates de email transaccional
-│   ├── errors/                 # Páginas de error
-│   └── partials/               # Fragmentos HTMX
+├── templates/                   # Templates globales, resueltos por TenantTemplateLoader
+│   ├── themes/default/          # Tema base genérico
+│   ├── servelec/                # Tema del cliente Servelec (rubro electricidad)
+│   ├── ranchocachimba/          # Tema Rancho Cachimba (turismo rural, en pausa)
+│   ├── andesscale/              # Marca propia del SaaS (landing de producto)
+│   ├── components/              # Componentes compartidos entre 2+ temas (docs/design-system.md)
+│   ├── dashboard/                # Panel CMS del cliente
+│   ├── emails/                  # Templates de email transaccional
+│   ├── errors/                  # Páginas de error (incl. under_construction.html)
+│   └── partials/                # Fragmentos reutilizados entre temas (ej. contact_form.html)
 │
-├── static/                     # Assets compilados (CSS, JS, img)
+├── static/                     # Assets compilados (CSS, JS, img) — pipeline Tailwind (#AUD-11)
 ├── media/                      # Uploads locales (solo dev)
-├── templates_library/          # Seed data por rubro de cliente
-│   ├── electricidad/
-│   ├── construccion/
-│   └── servicios_profesionales/
 ├── scripts/                    # Scripts de utilidad y mantenimiento
-└── docs/                       # Documentación adicional
+├── tests/e2e/                  # Smoke Playwright multi-tenant (#TOOL-01)
+└── docs/                       # design-system.md: contrato de tema y librería de componentes
 ```
  
 ### Detalle de carpetas clave
@@ -162,12 +169,12 @@ project_root/
 | `apps/tenants/` | Modelo Client, middleware, provisioning | Core |
 | `apps/website/` | CMS: Section, Service, ContactSubmission | Core |
 | `apps/accounts/` | UserProfile, autenticación, roles | Core |
-| `apps/core/` | BaseModel, TenantAwareManager, Cloudinary helpers | Auxiliar |
+| `apps/core/` | `BaseModel`, `EmailOutbox`, Cloudinary helpers, `template_resolver` | Auxiliar |
 | `apps/orders/` | Checkout MercadoPago, onboarding post-pago | Auxiliar |
 | `apps/marketing/` | SEO, sitemap, robots.txt, Search Console | Auxiliar |
-| `templates/themes/` | Temas visuales por rubro | Presentación |
+| `templates/{tema}/` | Un directorio por tema visual (`servelec`, `ranchocachimba`, `andesscale`, `themes/default`) | Presentación |
 | `templates/dashboard/` | Panel de administración del cliente | Presentación |
-| `templates_library/` | Contenido inicial (seed data) por industria | Datos |
+| `templates_library/` | Scaffolding de seed data por industria — hoy solo carpetas vacías (`.gitkeep`), sin contenido real | Datos |
 | `scripts/` | Automatización, migración, tests manuales | DevOps |
  
 ---
@@ -184,34 +191,37 @@ project_root/
  
 | Modelo | Descripción |
 |---|---|
-| `Client` | Representa un tenant. Campos: `name`, `slug`, `plan`, `is_active`, `contact_email` |
-| `Domain` | Dominios asociados a un Client (uno-a-muchos) |
-| `ClientSettings` | Branding: colores, logo, favicon, fuentes, tagline, descripción, template visual |
-| `ClientMailSettings` | Configuración SMTP del tenant |
-| `FormConfig` | Configuración del formulario de contacto |
+| `Client` | Representa un tenant. Campos: `name`, `slug`, `plan`, `template` (tema visual, `THEME_CHOICES`), `is_active`, `contact_email` |
+| `Domain` | Dominios asociados a un Client (uno-a-muchos, uno marcado `is_primary`) |
+| `ClientSettings` | Branding: colores (`primary`/`secondary`/`accent`), logo/favicon/logo_footer, `font_family` (lista curada, `#AUD-11`), tagline, descripción, SEO básico. **No** tiene el campo `template` — el tema visual vive en `Client.template`, no acá. |
+| `ClientEmailSettings` | Configuración de envío por tenant (SMTP propio, SendGrid/Resend/Mailgun/SES, o solo dashboard) |
+| `FormConfig` | Qué campos muestra el formulario de contacto del tenant y sus opciones |
  
 **Archivos clave:**
  
 | Archivo | Función |
 |---|---|
-| `middleware.py` | `TenantMiddleware`: detecta tenant por dominio, inyecta `request.client` |
-| `template_loader.py` | `TenantTemplateLoader`: resuelve rutas de templates por tema del tenant |
-| `context_processors.py` | Inyecta `client` y `settings` en contexto de cada template |
-| `signals.py` | Auto-crea `ClientSettings` al crear un `Client` |
-| `tenant_tags.py` | Tags `{% tenant_css %}`, `{% client_settings %}` |
+| `middleware.py` | `TenantMiddleware`: detecta tenant por dominio, inyecta `request.client` y el thread-local que usa el loader |
+| `template_loader.py` | `TenantTemplateLoader`: resuelve rutas de templates por tema del tenant (ver §2) |
+| `context_processors.py` | Inyecta `client` y `current_year` en el contexto de cada template |
+| `signals.py` | Al crear un `Client`, auto-crea `ClientSettings` + `ClientEmailSettings` + `FormConfig` (`get_or_create`, idempotente) |
+| `tenant_tags.py` | Tags de media/template por tenant: `{% tenant_static %}`, `{% tenant_media %}`, `{% get_tenant_media_url %}`, `{% tenant_include %}`, `{% get_tenant_slug %}`. Los tokens de marca (colores/fuente) se inyectan como CSS custom properties directamente en cada `base.html` de tema, no vía un tag — el tag `{% tenant_custom_css %}` que existía antes se retiró por completo (`#AUD-11` Paso 4, código muerto). |
  
 **Comandos de management:**
  
 ```bash
-python manage.py create_tenant          # Crea tenant interactivo
-python manage.py provision_tenant       # Provisionamiento completo con seed data (--industry / --theme)
-python manage.py list_tenants           # Lista todos los tenants con su estado
-python manage.py update_domain          # Actualiza el dominio principal de un tenant
-python manage.py check_tenant_setup     # Audita theme/dominio/email/SEO de un tenant (gate de QA)
-python manage.py check_cloudinary       # Verifica configuración Cloudinary
-python manage.py cloudinary_usage       # Reporte de uso de Cloudinary
-python manage.py test_isolation         # Tests de aislamiento entre tenants
+python manage.py create_tenant             # Crea tenant interactivo
+python manage.py provision_tenant          # Provisionamiento completo con seed data (--industry / --theme)
+python manage.py list_tenants              # Lista todos los tenants con su estado
+python manage.py update_domain             # Actualiza el dominio principal de un tenant
+python manage.py check_tenant_setup        # Audita theme/dominio/email/SEO de un tenant (gate de QA)
+python manage.py check_cloudinary          # Verifica configuración Cloudinary (apps/core)
+python manage.py cloudinary_usage          # Reporte de uso de Cloudinary (apps/core)
+python manage.py setup_cloudinary_folders  # Crea la estructura de carpetas en Cloudinary para un tenant
+python manage.py send_contact_digest       # Cron: resumen periódico de mensajes de contacto por tenant
 ```
+
+> No existe un comando `test_isolation` — se eliminó (`#MED-02`, 2026-08-22) junto con el auto-filtro que probaba; el aislamiento real se verifica con `python manage.py test apps.tenants.tests_isolation` (suite automática, corre en cada push).
  
 **Relación con otros módulos:** Provee `request.client` a `website`, `accounts`, `orders` y `marketing`. Es la dependencia base de todo el sistema.
  
@@ -229,17 +239,17 @@ python manage.py test_isolation         # Tests de aislamiento entre tenants
 | `Service` | Servicio ofrecido por el tenant. Campos: `name`, `description`, imagen |
 | `ContactSubmission` | Formulario de contacto recibido. Campos: `name`, `email`, `phone`, `message`, `created_at` |
  
-Todos usan `TenantAwareManager` para filtrar por tenant automáticamente.
+Todos tienen FK a `Client`, pero **ningún manager filtra por tenant automáticamente** — cada vista de `views.py` filtra a mano (`.filter(client=request.client)`). Ver advertencia de `TenantAwareManager` en §2.
  
 **Archivos clave:**
  
 | Archivo | Función |
 |---|---|
-| `views.py` | `HomeView` (landing pública), CRUD de secciones y servicios en dashboard |
-| `website_tags.py` | `{% get_section 'hero' %}`, `{% get_services %}` |
-| `cloudinary_tags.py` | `{% cloudinary_image %}` con transformaciones |
+| `views.py` | `home` (landing pública), dashboard y CRUD de secciones/servicios/galería, todo detrás de `tenant_member_required` |
+| `website_tags.py` | `{% get_section 'hero' %}`, `{% get_services %}`, entre otros tags de contenido |
+| `cloudinary_tags.py` | Tags de imagen con transformaciones Cloudinary |
 | `forms.py` | `ContactForm`, `SectionForm`, `ServiceForm` |
-| `auth_views.py` | Login/logout del cliente |
+| `auth_views.py` | `client_login`/`client_logout` — **el login real del dashboard**, montado en `auth/login/` vía `apps/website/auth_urls.py` (ver gotcha más abajo) |
  
 **Relación con otros módulos:** Consume `request.client` de `tenants`. Usa `core.template_resolver` para renderizar el tema correcto. Alimenta `marketing` con páginas indexables.
  
@@ -253,38 +263,44 @@ Todos usan `TenantAwareManager` para filtrar por tenant automáticamente.
  
 | Modelo | Descripción |
 |---|---|
-| `UserProfile` | Extiende `User` de Django con FK a `Client`. Campos: `role`, `invitation_token`, `invitation_expires_at` |
+| `UserProfile` | Extiende `User` de Django con FK a `Client` (`null=True` solo para superusers). Campos: `role`, `invitation_token`, `invitation_expires_at` |
  
-**Roles:**
+**Roles (`UserProfile.ROLE_CHOICES`):**
  
 | Rol | Acceso |
 |---|---|
-| `SuperAdmin` | Acceso total a todos los tenants |
-| `ClientAdmin` | Acceso solo a su propio tenant |
+| `owner` | Dueño del tenant, acceso total (`is_owner`) |
+| `admin` | Gestiona contenido (`is_admin`, incluye `owner`) |
+| `editor` | Solo edita contenido (`can_edit`, incluye `owner`/`admin`) — default del campo |
+| `viewer` | Solo lectura |
+ 
+Por fuera de estos 4 roles, un `User.is_superuser` de Django tiene acceso total a todos los tenants (exento de `tenant_member_required` y del check de `client_login`).
  
 **Archivos clave:**
  
 | Archivo | Función |
 |---|---|
-| `mixins.py` | `TenantRequiredMixin`, `RoleRequiredMixin` para proteger vistas |
-| `views.py` | Login, logout, reset de contraseña, invitaciones |
+| `decorators.py` | `tenant_member_required` — exige `profile.client == request.client` (o superuser) en toda vista de dashboard de `apps/website/views.py`; ver `#AUD-03` |
+| `mixins.py` | `TenantAdminMixin`/`TenantAdminReadOnlyMixin` — filtran por tenant en **Django Admin** (`ModelAdmin`), no en vistas de dashboard |
+| `views.py` | `set_password_view`, `request_password_reset_view`, `change_password_view` (sí en uso); `login_view`/`logout_view` están registrados en `apps/accounts/urls.py` bajo `auth/`, pero `apps/website/auth_urls.py` monta **el mismo prefijo `auth/`** con sus propios `login/`/`logout/` primero en `config/urls.py` — Django resuelve ahí y esos dos de `accounts` nunca se alcanzan por URL directa (código muerto en la práctica, solo viven por `{% url 'accounts:login' %}` si algo los referencia así). No confundir con el login real (`apps/website/auth_views.py::client_login`). |
  
-**Relación con otros módulos:** Depende de `tenants` para asociar usuarios a clientes. Sus mixins son usados por `website` y `orders`.
+**Relación con otros módulos:** Depende de `tenants` para asociar usuarios a clientes. `decorators.py` protege las vistas de `website`.
  
 ---
  
 ### 4.4 `apps/core/` — Utilidades Compartidas
  
-**Propósito:** Proveer clases base, managers y helpers reutilizables en todas las apps. No tiene URLs ni vistas propias.
+**Propósito:** Proveer clases base y helpers reutilizables en todas las apps. No tiene URLs ni vistas propias.
  
 **Archivos clave:**
  
 | Archivo | Función |
 |---|---|
-| `models.py` | `BaseModel`: timestamps `created_at`, `updated_at` — heredado por todos los modelos |
-| `managers.py` | `TenantAwareManager`: filtra queries por `request.client` automáticamente |
-| `cloudinary_utils.py` | `upload_image()`, `delete_asset()`, helpers de transformación |
-| `template_resolver.py` | `get_tenant_template()`, `render_tenant_template()` |
+| `models.py` | `BaseModel` (timestamps, heredado por todos los modelos) y `EmailOutbox` (cola de emails, `#MED-01`) |
+| `cloudinary_utils.py` | `upload_to_cloudinary()`, `delete_from_cloudinary()`, `get_cloudinary_url()`, `get_srcset_urls()`, `CLOUDINARY_PRESETS` — toda subida/URL de Cloudinary pasa por acá, no armar rutas a mano |
+| `template_resolver.py` | `render_tenant_template()` — ya no arma rutas, delega en el `TenantTemplateLoader` de `apps/tenants/template_loader.py` |
+ 
+> `TenantAwareManager` **no** vive en `apps/core/` — está en `apps/tenants/managers.py` y no filtra por tenant automáticamente (ver §2 y `#MED-02`).
  
 **Relación con otros módulos:** Es la base técnica de todo el sistema. Todas las apps dependen de `core`.
  
@@ -358,84 +374,80 @@ python manage.py verify_search_console --all
  
 ## 5. Funciones y Métodos Clave
  
-### `TenantMiddleware.process_request(request)`
+### `TenantMiddleware.__call__(request)`
  
-**Propósito:** Detectar el tenant activo y adjuntarlo a cada request.
+**Propósito:** Detectar el tenant activo, adjuntarlo a `request.client` y a un thread-local que usa el loader de templates.
  
 **Parámetros:** `request` — objeto `HttpRequest` de Django.
  
-**Retorna:** `None` (modifica `request` en lugar) o `HttpResponse` 404 si el dominio no existe.
+**Retorna:** la respuesta de la vista (`request.client = client` o `None` si es dominio de sistema), o un `HttpResponse` 404 si el dominio es desconocido.
  
 ```python
-# apps/tenants/middleware.py
- 
-class TenantMiddleware:
+# apps/tenants/middleware.py (simplificado)
+
+class TenantMiddleware(MiddlewareMixin):
     def __call__(self, request):
-        host = request.get_host().split(':')[0]
-        slug = request.GET.get('tenant')  # shortcut en desarrollo
- 
-        try:
-            if slug:
-                client = Client.objects.get(slug=slug, is_active=True)
-            else:
-                domain = Domain.objects.select_related('client').get(domain=host)
-                client = domain.client
-        except (Client.DoesNotExist, Domain.DoesNotExist):
-            return render(request, 'errors/tenant_not_found.html', status=404)
- 
-        request.client = client
-        return self.get_response(request)
+        clear_current_tenant()
+        host = request.get_host().split(':')[0].lower()
+        client = self._detect_tenant(request, host)  # ?tenant=slug solo si DEBUG, si no busca Domain
+
+        if client:
+            request.client = client
+            set_current_tenant(client)  # thread-local, lo usa TenantTemplateLoader
+            if client.mode_under_construction and not request.path.startswith(self.CONSTRUCTION_BYPASS_PREFIXES):
+                return render(request, 'errors/under_construction.html', {'client': client})
+            return self.get_response(request)
+
+        if self._is_system_domain(host):  # localhost, BASE_DOMAIN, *.onrender.com
+            request.client = None
+            return self.get_response(request)
+
+        return self._handle_no_tenant(request, host)  # 404
 ```
  
 ---
  
-### `TenantAwareManager.get_queryset()`
+### `TenantAwareManager` (`apps/tenants/managers.py`)
  
-**Propósito:** Filtrar automáticamente todos los querysets por el tenant activo en el request.
+**No filtra por tenant.** Es un `models.Manager` con helpers de conveniencia (`for_client()`, `active()`, `ordered()`) — el auto-filtro basado en un atributo de clase `_current_client` existió antes pero se eliminó en `#MED-02` (2026-08-22) por ser código muerto en producción y un riesgo real (atributo de clase compartido entre requests concurrentes de distintos tenants).
  
-**Uso:** Heredado por todos los modelos del sistema.
+**Uso correcto:** filtrar siempre a mano.
  
 ```python
-# apps/core/managers.py
+# apps/tenants/managers.py
  
 class TenantAwareManager(models.Manager):
-    def get_queryset(self):
-        from django.db import connection
-        # El tenant se almacena en el thread local durante el request
-        return super().get_queryset().filter(client=get_current_client())
+    def for_client(self, client):
+        return super().get_queryset().filter(client=client)
+    # + active(), ordered(), featured() — helpers, no auto-filtro
  
-# Uso en un modelo:
-class Section(BaseModel):
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    objects = TenantAwareManager()
- 
-# Uso en una vista:
-sections = Section.objects.all()  # Ya filtrado por tenant actual
+# Uso en una vista (obligatorio filtrar explícito):
+sections = Section.objects.filter(client=request.client)
+# o, equivalente:
+sections = Section.objects.for_client(request.client)
 ```
  
 ---
  
-### `render_tenant_template(request, template_name, context)`
+### `render_tenant_template(request, template_path, context)`
  
-**Propósito:** Renderizar un template resolviendo la ruta correcta según el tema del tenant.
+**Propósito:** Renderizar un template dejando que `TenantTemplateLoader` resuelva la ruta correcta según el tema del tenant — ya no arma rutas a mano.
  
 **Parámetros:**
-- `request` — `HttpRequest` con `request.client`
-- `template_name` — nombre relativo del template (ej. `"landing/home.html"`)
+- `request` — `HttpRequest` con `request.client` (usado por el loader vía thread-local)
+- `template_path` — ruta relativa genérica (ej. `"landing/home.html"`)
 - `context` — diccionario de contexto
 **Retorna:** `HttpResponse` con el template renderizado.
  
 ```python
 # apps/core/template_resolver.py
- 
-def render_tenant_template(request, template_name, context=None):
-    theme = request.client.settings.template  # ej. "electricidad"
-    full_path = f"themes/{theme}/{template_name}"
-    return render(request, full_path, context or {})
- 
-# Uso en una vista del dashboard:
+
+def render_tenant_template(request, template_path, context=None):
+    return render(request, template_path, context or {})
+
+# Uso en una vista del dashboard (filtrado explícito, sin auto-filtro de manager):
 def dashboard_home(request):
-    context = {'sections': Section.objects.all()}
+    context = {'sections': Section.objects.filter(client=request.client)}
     return render_tenant_template(request, 'dashboard/index.html', context)
 ```
  
@@ -535,23 +547,16 @@ tenants/
  
 **Rol:** Procesamiento de pagos de suscripción para nuevos clientes.
  
-**Estado actual:** ⚠️ Modo test — activar producción es el principal bloqueador de ingresos.
+**Estado actual:** ⚠️ Modo test. La parte técnica (checkout, firma de webhook, idempotencia, generación de `order_number` sin condición de carrera, E2E automatizado con mocks) ya está cerrada — ver `#AUD-01/02/05/08` y `#PAY-03` en el kanban. Lo que falta es el trámite de facturación (SII) y una pasada manual real contra el sandbox de MP con credenciales de test (`#PAY-01`).
  
-**Flujo:**
- 
-```
-1. CheckoutView → mercadopago_service.crear_preferencia(plan, cliente)
-2. Redirigir a URL de MercadoPago
-3. Pago completado → webhook POST a /webhook/
-4. Validar IPN → order_processor.procesar_pago()
-5. Crear Client + enviar email de bienvenida
-```
+**Flujo:** ver §7.4 arriba (checkout → webhook firmado → onboarding provisiona el tenant).
  
 **Variables de entorno requeridas:**
  
 ```env
-MERCADOPAGO_ACCESS_TOKEN=TEST-xxx   # En test
-MERCADOPAGO_PUBLIC_KEY=TEST-xxx
+MP_ACCESS_TOKEN=TEST-xxx      # En test
+MP_PUBLIC_KEY=TEST-xxx
+MP_WEBHOOK_SECRET=xxx          # Obligatorio fuera de DEBUG — falla cerrado si falta (#AUD-02)
 ```
  
 ---
@@ -608,19 +613,22 @@ pip install -r requirements.txt && python manage.py collectstatic --noinput && p
 ### 7.1 Autenticación de Cliente
  
 ```
-1. GET /auth/login/
+1. GET /auth/login/ → resuelve a apps/website/auth_views.py::client_login
+   (montado por apps/website/auth_urls.py, que Django resuelve ANTES que
+   apps/accounts/urls.py — también registrado en 'auth/' pero shadowed;
+   ver nota en §4.3)
 2. Usuario ingresa credenciales
-3. auth_views.login_view → authenticate(username, password)
-4. Verificar UserProfile.client == request.client (aislamiento)
-5. Login exitoso → redirect /dashboard/
-6. Middleware verifica sesión en cada request posterior
+3. client_login → authenticate(username, password)
+4. _user_belongs_to_tenant(): profile.client_id == request.client.id (o superuser/staff) — #AUD-03
+5. Login exitoso → redirect a 'home' (rota sesión + token CSRF)
+6. Middleware detecta el tenant en cada request posterior; tenant_member_required protege cada vista del dashboard
 ```
  
 **Roles y acceso:**
  
 ```
-SuperAdmin → /superadmin/ (Django Admin nativo)
-ClientAdmin → /dashboard/ (CMS custom)
+superuser (Django) → /superadmin/ + acceso a todos los tenants
+owner/admin/editor/viewer (UserProfile.role) → /dashboard/, acotado a profile.client
 ```
  
 ---
@@ -628,19 +636,21 @@ ClientAdmin → /dashboard/ (CMS custom)
 ### 7.2 Provisioning de Tenant
  
 ```
-1. python manage.py provision_tenant cliente --industry electricidad --theme servelec
+1. python manage.py provision_tenant cliente --industry servicios_profesionales --theme servelec
    ↓
 2. Crear Client + Domain en DB
    ↓
-3. Crear ClientSettings (colores, logo placeholder, tema)
+3. Signal post_save de Client crea ClientSettings + ClientEmailSettings + FormConfig (get_or_create)
    ↓
-4. Aplicar seed data según --industry (colores y servicios de TEMPLATE_CONFIGS)
+4. Aplicar seed data según --industry
    ↓
-5. Crear usuario ClientAdmin
+5. Crear usuario owner (UserProfile.role='owner') ligado al Client
    ↓
-6. Enviar email de bienvenida con link de set_password
+6. Enviar email de bienvenida con link de set_password (EmailService.send_welcome)
    ↓
-7. Cliente accede a /dashboard/ y personaliza su sitio
+7. python manage.py check_tenant_setup <slug> — gate de QA antes de dar por lista la publicación
+   ↓
+8. Cliente accede a /dashboard/ y personaliza su sitio
 ```
  
 ---
@@ -648,13 +658,13 @@ ClientAdmin → /dashboard/ (CMS custom)
 ### 7.3 Formulario de Contacto
  
 ```
-1. Visitante completa form en landing pública
-2. POST → ContactView (HTMX para respuesta parcial)
+1. Visitante completa el form en la landing pública (varía por tema — algunos usan
+   partials/contact_form.html, otros components/contact_multistep.html)
+2. POST → website/views.py::contact_submit (rate limit 3/10min por IP+tenant, honeypot)
 3. ContactForm.is_valid()
-4. Guardar ContactSubmission (filtrada por tenant)
-5. Enviar email de notificación al cliente (ClientMailSettings)
-6. Enviar email de confirmación al visitante
-7. Renderizar partials/contact_success.html
+4. Guardar ContactSubmission (client=request.client explícito)
+5. Notificar según ClientEmailSettings.notify_mode ('dashboard' | 'email' | 'both')
+6. Responder JSON (fetch) o partial HTMX según el tema — sin página de éxito separada
 ```
  
 ---
@@ -662,17 +672,17 @@ ClientAdmin → /dashboard/ (CMS custom)
 ### 7.4 Checkout y Pago (MercadoPago)
  
 ```
-1. Visitante elige plan en /checkout/
-2. CheckoutView → mercadopago_service.crear_preferencia()
-3. Redirect a URL de MercadoPago
-4. Pago aprobado → MercadoPago POST /webhook/
-5. Validar IPN y firma del webhook
-6. order_processor.procesar_pago():
-   - Crear Order con estado "pagado"
-   - Disparar signal post_save
-   - Provisionar tenant automáticamente
-   - Enviar email de bienvenida + link de onboarding
-7. Cliente completa onboarding en /onboarding/{token}/
+1. Visitante elige plan en /checkout/<plan_slug>/ → checkout_view (apps/orders/views.py)
+2. POST /checkout/process/ → process_payment_view → MercadoPagoService crea la preferencia
+3. Redirect a Checkout Bricks de MercadoPago (excluido de la CSP, ver kanban #SEC-02)
+4. Pago aprobado → MercadoPago POST /webhook/ → mercadopago_webhook_view
+5. Validar firma HMAC del webhook (401 si falta/es inválida; #AUD-02) y re-consultar el pago contra la API de MP
+6. Order pasa a estado 'paid'; el email con el link de onboarding se encola vía
+   transaction.on_commit() (#AUD-06) — nunca dentro de la misma transacción del webhook
+7. Cliente completa /onboarding/<token>/ (views_onboarding.py): ahí recién se
+   crea Client + Domain + UserProfile(owner) + Section(hero, contact) — el
+   tenant NO se provisiona en el webhook, se provisiona en el onboarding
+8. Order pasa a 'completed'; redirect a la página de éxito (namespace de urls_onboarding.py: sin 'orders:', ver gotcha en CLAUDE.md)
 ```
  
 ---
@@ -681,12 +691,12 @@ ClientAdmin → /dashboard/ (CMS custom)
  
 ```
 1. GET https://servelec-ingenieria.cl/
-2. TenantMiddleware → request.client = Client("servelec")
-3. HomeView → render_tenant_template(request, "landing/home.html")
-4. TenantTemplateLoader → templates/themes/electricidad/landing/home.html
+2. TenantMiddleware → request.client = Client("servelec-ingenieria"), template='servelec'
+3. website.views.home → render_tenant_template(request, "landing/home.html")
+4. TenantTemplateLoader → templates/servelec/landing/home.html
 5. Template carga:
    - {% seo_tags "home" %} → título, meta, OG, JSON-LD
-   - {% tenant_css %} → variables CSS del branding
+   - Variables CSS de branding embebidas inline en base.html (colores/fuente de ClientSettings)
    - {% get_section 'hero' %} → sección hero del tenant
    - {% get_services %} → servicios del tenant
 6. Respuesta HTML con contenido del tenant
@@ -732,7 +742,8 @@ python manage.py provision_tenant mi-empresa-dev --industry=servicios_profesiona
 # 7. Crear superusuario
 python manage.py createsuperuser --settings=config.settings.development
  
-# 8. Compilar Tailwind CSS
+# 8. Instalar dependencias de Node y compilar Tailwind CSS (pipeline propio, #AUD-11 — ya no CDN)
+npm ci
 npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch
  
 # 9. Iniciar servidor
@@ -757,8 +768,9 @@ CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
  
 # MercadoPago (modo test)
-MERCADOPAGO_ACCESS_TOKEN=TEST-xxx
-MERCADOPAGO_PUBLIC_KEY=TEST-xxx
+MP_ACCESS_TOKEN=TEST-xxx
+MP_PUBLIC_KEY=TEST-xxx
+MP_WEBHOOK_SECRET=xxx
  
 # Email (SMTP)
 EMAIL_HOST=smtp.gmail.com
@@ -860,39 +872,11 @@ python manage.py verify_search_console --domain nuevocliente.cl
  
 ## 10. Estado del Kanban
  
-### ✅ Completado (Cards #1 – #46b)
+Esta sección numeraba cards `#1`–`#54` con un esquema que ya no se usa — el kanban vigente vive en **`Documentacion/KANBAN_PROYECTO.md`** y usa IDs por categoría (`#AUD-xx` seguridad/robustez, `#MED-xx` mediano plazo, `#DEUDA-xx` deuda técnica, `#RC-xx` Rancho Cachimba, `#TOOL-xx` herramientas). Mantener un resumen duplicado acá garantiza que se desactualice de nuevo — no se reproduce.
  
-| Rango | Módulo |
-|---|---|
-| #1–#6 | Ambiente, estructura, modelos tenant, middleware, testing, CMS |
-| #7–#12 | Admin, Cloudinary, template tags, templates, views, contacto |
-| #13–#16 | Migración contenido, testing aislamiento, commands, docs |
-| #17–#22 | Deploy Render, dominio, testing producción, backup |
-| #23–#26 | Template library, provisioning, templates por rubro |
-| #27–#30 | Accounts, roles, login/logout |
-| #31–#33 | Panel personalización, CSS dinámico, tutorial onboarding |
-| #34–#37 | Landing SaaS, case study, email templates, prospectos |
-| #38–#42 | Polish, pricing, campaña cold email, demos, onboarding clientes |
-| #43–#46b | SEO, sitemap, robots.txt, Google Search Console |
+**Para saber qué está hecho y qué falta:** abrir `Documentacion/KANBAN_PROYECTO.md`, sección **"🌙 Retomar aquí"** al inicio, que se actualiza en cada sesión con el estado más reciente.
  
-### ⏳ Próximos (Cards #47+)
- 
-| Card | Descripción |
-|---|---|
-| #47 | Rol MarketingManager |
-| #48 | Admin filtrado por rol |
-| #49 | CampaignTracker model (Google Ads) |
-| #50 | Google Ads API básica |
-| #51 | UTM Builder |
-| #52 | Google Analytics / GA4 integration |
-| #53 | Dashboard de marketing |
-| #54 | Exportar reportes PDF/CSV |
- 
-### 🔴 Bloqueadores activos
- 
-| Bloqueador | Impacto | Acción requerida |
-|---|---|---|
-| MercadoPago en modo test | No se pueden cobrar suscripciones reales | Activar cuenta de producción MP |
+**Resumen de alto nivel al 2026-08-22:** el gate de seguridad P0 (checkout, firma de webhook, aislamiento cross-tenant, `render.yaml`) está cerrado, igual que la robustez transaccional (emails fuera de la transacción, `order_number` sin condición de carrera, E2E de pago con mocks) y el aislamiento multi-tenant real (`#MED-02`, suite `apps.tenants.tests_isolation`). El pipeline de Tailwind (`#AUD-11`) y headers de seguridad (`#SEC-02`) también están cerrados. Lo que sigue son cabos sueltos que requieren acción del usuario fuera del repo (SPF/DKIM de Zoho, sandbox real de MercadoPago, dashboard de Render) y el lanzamiento de Rancho Cachimba, en pausa.
 
  
 ---
@@ -909,9 +893,12 @@ python manage.py verify_search_console --domain nuevocliente.cl
 ### Convenciones
  
 - **Templates:** Nunca usar `render()` en vistas del dashboard; siempre `render_tenant_template()`
-- **Queries:** Siempre usar el manager del modelo (`Section.objects.all()`), nunca filtrar `client` manualmente
-- **Cloudinary:** Toda subida pasa por `apps/core/cloudinary_utils.py`
-- **Migraciones:** Verificar con `python manage.py showmigrations` antes de cada deploy
+- **Queries:** ⚠️ Al revés de lo que decía esta línea antes — `TenantAwareManager` **no** filtra por tenant (`#MED-02`). Siempre `.filter(client=request.client)` explícito, nunca asumir que `Model.objects.all()` ya viene scoped.
+- **Autorización:** vistas de dashboard van detrás de `tenant_member_required` (`apps/accounts/decorators.py`), no alcanza con `@login_required` solo (`#AUD-03`).
+- **Cloudinary:** Toda subida pasa por `apps/core/cloudinary_utils.py` (`upload_to_cloudinary`, `get_cloudinary_url`, presets en `CLOUDINARY_PRESETS`)
+- **Emails:** todo `send_*` disparado dentro de un `transaction.atomic()` va envuelto en `transaction.on_commit(...)` (`#AUD-06`)
+- **Migraciones:** Verificar con `python manage.py makemigrations --check --dry-run` antes de cada deploy
+- **Arnés de TDD:** toda card de Backend/Database entrega un test que falla sin el cambio — contrato completo en `Documentacion/KANBAN_PROYECTO.md` §2 y en `CLAUDE.md`.
 ---
  
-*Documentación generada para AndesScale — Mayo 2026*
+*Documentación generada para AndesScale — Mayo 2026. Reconciliada con el código real en `#DEUDA-05`, 2026-08-22.*

@@ -44,6 +44,10 @@ staticfiles/
 scripts/output/*
 !scripts/output/.gitkeep
 
+# ─── Claude Code (local a la máquina/sesión, no compartir) ──
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
 # ─── Archivos de sistema ────────────────────────────
 .DS_Store
 Thumbs.db

@@ -44,8 +44,9 @@ Dependencias de desarrollo (`ruff`, `bandit`, `coverage`, `pyyaml`) en `requirem
 **Resolución de tenant:** `apps/tenants/middleware.py` inyecta `request.client` según el `Host` header (allowlist dinámica de dominios, ver `Domain` model). `localhost` es `SYSTEM_DOMAIN` (bypass, `request.client = None`), no un tenant real — no confundir con "usa el primer cliente activo" (ese comportamiento no existe hoy, hay un test con skip documentando la duda en `apps/tenants/tests.py`).
 
 **Resolución de templates:** `apps/tenants/template_loader.py::TenantTemplateLoader`. Dado `template_name` (ej. `'landing/home.html'`), busca en este orden:
-1. `templates/{tenant.template}/{template_name}` — `tenant.template` es el campo `Client.template` (`THEME_CHOICES`: `'themes/default'`, `'servelec'`, `'ranchocachimba'`), o `tenant.slug` si `template` no está seteado.
-2. `templates/{template_name}` — fallback global, así es como resuelven `base.html`, `templates/components/*.html`, `templates/emails/*.html`, etc. compartidos entre temas.
+1. Si el tenant es `andesscale` (marca propia): `templates/andesscale/{template_name}` → `templates/{template_name}` (sin nivel intermedio).
+2. Para cualquier otro tenant: `templates/{tenant.template}/{template_name}` — `tenant.template` es el campo `Client.template` (`THEME_CHOICES`: `'themes/default'`, `'servelec'`, `'ranchocachimba'`), o `tenant.slug` si `template` no está seteado — → `templates/default/{template_name}` (fallback genérico) → `templates/{template_name}` (fallback global, así es como resuelven `base.html`, `templates/components/*.html`, `templates/emails/*.html`, etc. compartidos entre temas).
+3. Sin tenant (`request.client is None`, dominio de sistema): solo `templates/{template_name}`.
 
 Las vistas llaman `apps.core.template_resolver.render_tenant_template(request, template_path, context)` — **no** arman la ruta a mano (`f'tenants/{slug}/...'`); eso ya no existe, lo resuelve el loader.
 
@@ -90,3 +91,4 @@ Detalle completo en `Documentacion/KANBAN_PROYECTO.md` §2. Resumen:
 
 - `Documentacion/KANBAN_PROYECTO.md` — qué está hecho, qué falta, por qué, en qué orden. Sección **"🌙 Retomar aquí"** al inicio siempre tiene el estado más reciente.
 - `apps/*/tests/` — el comportamiento esperado documentado como test vale más que el docstring de al lado.
+- Skill `andesscale-saas` (`.claude/skills/andesscale-saas/SKILL.md`) — profundiza en resolución de templates, filtrado por tenant y provisioning; cárgalo para trabajo específico de tenants/temas en vez de releer este archivo entero.
