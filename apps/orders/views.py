@@ -20,6 +20,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from apps.core.rate_limit import get_client_ip
+
 from .models import Order, PaymentLog, Plan
 from .services.email_service import send_payment_success_email  # Card A6
 from .services.mercadopago_service import MercadoPagoError, MercadoPagoService
@@ -458,13 +460,6 @@ def mercadopago_webhook_get(request):
 # ==============================================================================
 # HELPERS
 # ==============================================================================
-
-def get_client_ip(request):
-    """Obtiene la IP real del cliente."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0].strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+# get_client_ip vive en apps/core/rate_limit.py (#MED-05a: única función
+# canónica de resolución de IP, importada arriba — no duplicar acá).
 

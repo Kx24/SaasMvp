@@ -15,10 +15,32 @@
 # SCOPES sugeridos: 'contact', 'login', 'password_reset'
 # =============================================================================
 
-from django.core.cache import cache
 import logging
 
+from django.conf import settings
+from django.core.cache import cache
+
 logger = logging.getLogger(__name__)
+
+
+def get_client_ip(request) -> str:
+    """
+    Resuelve la IP real del cliente detrás del proxy (#MED-05a / BOLT-03).
+
+    X-Forwarded-For es attacker-controlled salvo los últimos N valores, que
+    los appendean los proxies confiables delante de la app (Render escribe
+    la IP del cliente que se le conectó al final del header). Por eso se
+    toma el valor a TRUSTED_PROXY_COUNT posiciones desde la derecha
+    (setting, default 1) — nunca el primero de la cadena. Sin header, cae
+    a REMOTE_ADDR.
+    """
+    xff = request.META.get('HTTP_X_FORWARDED_FOR')
+    if xff:
+        parts = [p.strip() for p in xff.split(',') if p.strip()]
+        if parts:
+            trusted = getattr(settings, 'TRUSTED_PROXY_COUNT', 1)
+            return parts[max(len(parts) - trusted, 0)][:45]
+    return (request.META.get('REMOTE_ADDR') or 'unknown')[:45]
 
 
 class RateLimiter:
@@ -45,17 +67,8 @@ class RateLimiter:
         Si no hay cliente (misconfiguration), usa 'unknown'.
         """
         tenant_id = getattr(request.client, 'id', 'unknown') if hasattr(request, 'client') else 'unknown'
-        ip = self._get_ip(request)
+        ip = get_client_ip(request)
         return f"rl:{scope}:{tenant_id}:{ip}"
-
-    def _get_ip(self, request) -> str:
-        """Obtiene la IP real considerando proxies (Render usa X-Forwarded-For)."""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
-        else:
-            ip = request.META.get('REMOTE_ADDR', 'unknown')
-        return ip[:45]
 
     def current_count(self) -> int:
         """Retorna el número de intentos actuales en la ventana."""

@@ -203,18 +203,19 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Cero errores en Linter: `ruff` en verde al 3er intento (REPAIR ×2 por `I001` — bloque de imports preexistente desordenado que se activó al tocar el archivo; resuelto con `ruff --fix`, solo reordena imports).
   - [x] Sin side-effects: `makemigrations --check` limpio (sin migración, esperado); planes con slugs válidos intactos.
 
-### [BOLT-03] `#MED-05` (a) — IP confiable detrás del proxy de Render
-- **Estado:** TODO
+### ✅ [BOLT-03] `#MED-05` (a) — IP confiable detrás del proxy de Render — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Backend
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `apps/core/rate_limit.py`, `apps/orders/views.py` (copia de `get_client_ip` en línea ~462), `apps/website/views.py` (segunda copia, línea ~52), tests nuevos en `apps/core/tests/`
-- **Contexto:** hallazgo de auditoría (§1.2 del maestro): `get_client_ip()` confía en `X-Forwarded-For` completo → el rate-limit se evade spoofeando el header. Hay **dos copias duplicadas** de la función (verificado por grep: `apps/website/views.py:52` y `apps/orders/views.py:462`). Render (único proxy real delante de la app) escribe la IP del cliente en una posición conocida del XFF.
-- **Spec ejecutable:** una única función canónica de resolución de IP en `apps/core/` (junto a `rate_limit.py`, que ya es el hogar de esta infraestructura), reemplazando ambas copias que tome la IP del **último salto confiable** (primer valor no confiable desde la derecha del XFF, con número de proxies confiables configurable vía setting con default 1) y caiga a `REMOTE_ADDR` sin header. Nada de listas de IPs hardcodeadas.
+- **Archivos Afectados:** `apps/core/rate_limit.py` (`get_client_ip()` canónica; `RateLimiter._get_ip` eliminado — delegaba la 3ª copia de la lógica), `apps/orders/views.py`, `apps/website/views.py` (copias reemplazadas por import), `apps/core/tests/test_client_ip.py` (nuevo, 8 tests)
+- **Contexto:** hallazgo de auditoría (§1.2 del maestro): `get_client_ip()` confía en `X-Forwarded-For` completo → el rate-limit se evade spoofeando el header. La card citaba 2 copias; el planificador encontró una **3ª** en `RateLimiter._get_ip` (misma lógica vulnerable, ya listada en archivos afectados).
+- **Resultado:** `apps.core.rate_limit.get_client_ip(request)` toma el valor a `TRUSTED_PROXY_COUNT` posiciones desde la derecha del XFF (setting con default 1 = último valor, el que escribe Render), cae a `REMOTE_ADDR` sin header, trunca a 45 chars, sin IPs hardcodeadas. Las 3 copias consumen la canónica (2 por import directo, `RateLimiter` por llamada interna); tests de identidad (`assertIs`) impiden que una copia local reaparezca en silencio.
+- **⚠️ Hallazgo incidental:** `F841` preexistente en `apps/website/views.py:821` (`tab = gallery_type`, asignación muerta) — el gate lintéa completo el archivo tocado; eliminada la línea (verificado que `gallery_type` se usa directo después). No es limpieza de lint global (#AUD-10): solo lo que el gate exige sobre archivos del diff.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Test escrito (Red → Green): XFF spoofeado con cadena larga no cambia la IP efectiva (el rojo se confirma mostrando que hoy sí la cambia); sin XFF usa `REMOTE_ADDR`; ambos consumidores (rate limit de contacto y checkout) usan la función canónica.
-  - [ ] Implementación mínima que pase la suite de pruebas.
-  - [ ] Cero errores en Linter (`ruff check`).
-  - [ ] Sin side-effects fuera del alcance de la tarjeta (el rate limit de contacto existente sigue verde en su suite).
+  - [x] Test Red → Green: rojo estructural (ImportError, la canónica no existía) + rojo conductual demostrado en vivo (XFF `"1.2.3.4, 5.6.7.8"` → la copia de website devolvía `1.2.3.4`, el valor spoofeado). Verde: cadena larga spoofeada resuelve el último salto; sin XFF → `REMOTE_ADDR`; `TRUSTED_PROXY_COUNT=2` → penúltimo; ambos consumidores usan la canónica (`assertIs`) y la key del `RateLimiter` lleva la IP del último salto.
+  - [x] Implementación mínima que pasa la suite completa: gatekeeper 123 tests OK (5 skip, +8 de esta card).
+  - [x] Cero errores en Linter: ruff en verde, 4 archivos chequeados (intentos: 2 — F841 preexistente arriba).
+  - [x] Sin side-effects: rate limit de contacto sigue verde en la suite completa; `makemigrations --check` limpio.
 
 ### [BOLT-04] `#MED-05` (b) — Rate limit en login y checkout
 - **Estado:** TODO
@@ -312,5 +313,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-22 | PILOT-03 | DONE | 112 tests OK (5 skip) / ruff limpio / migraciones limpias | `9e58de9` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-01 | DONE | 112 tests OK (5 skip) / ruff limpio / migraciones limpias | `7ff867a` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-02 | DONE | 115 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | `d958064` (`agent/ai-dlc-pilot`) |
+| 2026-08-23 | BOLT-03 | DONE | 123 tests OK (5 skip) / ruff limpio (4 archivos) / migraciones limpias | *(pendiente — se completa al commitear)* |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*
