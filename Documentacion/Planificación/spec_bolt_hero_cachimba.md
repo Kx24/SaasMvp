@@ -165,8 +165,8 @@ branch.
 
 ---
 
-### [RC-BOLT-06] CTAs del hero: "Reservar visita" + "Ver el pastoreo →"
-- **Estado:** TODO
+### ✅ [RC-BOLT-06] CTAs del hero: "Reservar visita" + "Ver el pastoreo →" — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Frontend / Templates
 - **Variables requeridas:** ninguna
 - **Archivos Afectados:** `templates/ranchocachimba/components/hero_ctas.html`
@@ -178,10 +178,11 @@ branch.
   3. Mantener el patrón actual de flecha SVG con `group-hover:translate-x-1`.
   4. Alpine.js: ninguna. htmx: ninguna.
 
+- **Resultado:** el primario ya usaba `--color-accent`/`--color-primary` (post `RC-BOLT-01`) — solo cambió el copy ("Reservar visita") y el hover, de `hover:opacity-90` (dimmed, no era el token pedido) a `hover:bg-[var(--amarillo-dorado)]` real. El secundario no tenía NINGÚN estado hover definido (hallazgo menor); se agregó `hover:border-accent hover:text-accent`, borde subido de 20%→42% blanco (`border-white/42`, valor del mockup). Migrado de `style=""` inline a utilidades Tailwind reales donde el token ya existe en `tailwind.config.js` (`bg-accent`, `text-primary`, `border-accent`, `text-accent`) — inline `style` solo para el valor arbitrario `--amarillo-dorado` (no está en `tailwind.config.js`, confirmado ahí "paleta fija... no se agrega", vía sintaxis de valor arbitrario `hover:bg-[var(--amarillo-dorado)]`, no CSS nuevo). Flecha SVG + `group-hover:translate-x-1` sin cambios. `hero_ctas.html` también se incluye desde `hero_overlay.html`, pero ese componente no está enlazado desde ninguna página real del tema (`grep` confirma 0 includes de `hero_overlay.html` fuera de sí mismo) — sin impacto adicional.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Copy y estilos del mockup en desktop y móvil; sin textos de Servelec.
-  - [ ] Solo tokens del tema en colores.
-  - [ ] Gate real en verde. Sin side-effects fuera del alcance de la tarjeta.
+  - [x] Copy y estilos del mockup en desktop y móvil; sin textos de Servelec (`grep` de "Solicitar cotiz" → 0 resultados).
+  - [x] Solo tokens del tema en colores (`grep` del `output.css` recompilado confirma que `amarillo-dorado` sí compiló como regla real, no quedó silenciosamente descartado).
+  - [x] Gate real en verde: 103 tests OK (1 skip), ruff n/a, migraciones limpias, `npx playwright test` 6/6 passed. Sin side-effects fuera del alcance de la tarjeta.
 
 ---
 
@@ -191,3 +192,15 @@ branch.
 conflictos) → `RC-BOLT-03` / `RC-BOLT-02` (navbar + barra de utilidad, misma zona) →
 `RC-BOLT-05` → `RC-BOLT-06`. Todo es frontend puro: sin migraciones, sin cambios en
 vistas ni managers.
+
+**Estado (2026-08-23): las 6 cards están DONE**, ejecutadas en este orden en una sola
+sesión sobre `feature/RanchocachimbaEtapa1`. Commits: `6a43eaf` (RC-BOLT-01), `d087593`
+(RC-BOLT-04), `a34d1ff` (RC-BOLT-03), `a0b5030` (RC-BOLT-02), `25638ac` (RC-BOLT-05),
+y RC-BOLT-06 (ver commit siguiente a este). Gate real en verde en cada una (suite
+completa + `npx playwright test`); `npm run build:css` corrido tras cada card que
+introdujo combinaciones nuevas de utilidades Tailwind (no versionado). 3 hallazgos
+reales documentados en sus cards respectivas: recuento de `var(--primary)` roto
+desactualizado (114→143, RC-BOLT-01), coordinación de offset `fixed` entre navbar y
+la barra de utilidad (RC-BOLT-02), y el pill "El oficio" del hero oculto bajo el
+header fijo -- **pre-existente, no corregido, pendiente de una card aparte** que
+revise el offset del contenido del hero contra el header fijo del tema.
