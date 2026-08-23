@@ -14,7 +14,9 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-08-22)
+## 🌙 Retomar aquí (actualizado 2026-08-23)
+
+**Rancho Cachimba — maquetación del hero (`#RC-20`), las 6 cards `RC-BOLT-01..06` están DONE (2026-08-23).** Detalle completo, hallazgos y DoD verificado en `Documentacion/Planificación/spec_bolt_hero_cachimba.md`. Resumen: tokens CSS rotos `var(--primary/secondary/accent)` corregidos (143 usos reales, no 114 como decía el análisis original), patrón de tartán unificado en una sola clase, navbar restyleado a fondo oscuro con CTA "Reservar visita", barra de utilidad nueva sobre el navbar, stats reescrito con copy propio del rancho, CTAs del hero con copy y hovers del mockup. Gate real en verde en cada card (suite completa + `npx playwright test`, 6/6). Commits `6a43eaf`..`5af0a6c` en `feature/RanchocachimbaEtapa1`. **Hallazgo pendiente, no bloqueante:** el pill "El oficio" del hero queda oculto bajo el header fijo (navbar + barra de utilidad) — pre-existente a estas 6 cards, no corregido; falta abrir una card para revisar el offset del contenido bajo el header fijo del tema.
 
 **El gate de seguridad de §4 está cerrado y commiteado.** `#AUD-01`, `#AUD-02`, `#AUD-03` y `#AUD-04` — los 4 bloqueadores P0 de la auditoría (checkout inalcanzable, webhook sin firma, fuga cross-tenant en login/dashboard, `render.yaml` roto) — están **DONE**, cada uno con TDD estricto (Rojo→Verde, ver detalle en §4 y §7) y verificados de punta a punta con `git stash` contra el estado original cuando aplicaba (`#AUD-04`). Commit `b5539f9` en `feature/RanchocachimbaEtapa1`. Archivos nuevos: `apps/orders/tests/`, `apps/website/tests/`, `apps/core/tests/`, `apps/accounts/decorators.py`, `ruff.toml`, `requirements-dev.txt`.
 
