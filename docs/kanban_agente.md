@@ -230,18 +230,18 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Cero errores en Linter: ruff en verde, 5 archivos chequeados (intentos: 1).
   - [x] Sin side-effects: matriz `#AUD-03` (`test_login_tenant_authorization`) y aislamiento `#MED-02` (`tests_isolation`) verdes dentro de la suite completa; `makemigrations --check` limpio.
 
-### [BOLT-05] `#FLOW-02` — `check_tenant_setup` como gate de calidad ampliado
-- **Estado:** TODO
+### ✅ [BOLT-05] `#FLOW-02` — `check_tenant_setup` como gate de calidad ampliado — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Multi-tenant
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `apps/tenants/management/commands/check_tenant_setup.py`, `apps/tenants/tests_check_tenant_setup.py` (nuevo — patrón plano `tests_*.py` de la app, ver §0.0; NO crear `apps/tenants/tests/`)
-- **Contexto:** parte automatizable del flujo comercial repetible (`#FLOW-01/02` del maestro). El comando existe y verifica tema/dominio; el maestro pide ampliarlo: `SEOConfig` completo, cero placeholders visibles, `ClientEmailSettings` configurado.
-- **Spec ejecutable:** agregar chequeos: (1) `SEOConfig` del tenant con título/descripción no vacíos ni placeholder; (2) contenido de secciones activas sin marcadores obvios (`lorem`, `placeholder`, `TODO`, `xxx` — lista en una constante del comando); (3) `ClientEmailSettings` presente y con remitente válido cuando el tenant tiene formulario de contacto. Salida con veredicto por chequeo y exit code ≠ 0 si algo falla (hoy es informativo — conservar `--warn-only` para el comportamiento actual si algún flujo lo consume).
+- **Archivos Afectados:** `apps/tenants/management/commands/check_tenant_setup.py` (replicado + ampliado), `apps/tenants/tests_check_tenant_setup.py` (nuevo plano, 10 tests)
+- **⚠️ Hallazgo incidental (4º caso del mismo patrón):** la card asumía "el comando existe" — **no existía en esta rama**: vive solo en `feature/RanchocachimbaEtapa1` (`03f14e2`), nunca llegó a `develop` (como el `SKILL.md` de PILOT-02, el retiro de `managers.py` en BOLT-01 y `Procedimiento_Nuevo_Tenant.md`). Dependencias verificadas presentes acá (`primary_domain`, `email_settings`, `seo_configs`, `notify_mode`) → se replicó la versión commiteada base y se amplió; la branch en pausa no se tocó.
+- **Resultado:** chequeos nuevos sobre la base: (1) `SEOConfig("home")` obligatorio con título/descripción no vacíos ni placeholder; (2) secciones activas sin marcadores de relleno — constante con `lorem`/`placeholder`/`xxx` case-insensitive con word-boundary y `TODO` **case-sensitive** (para no matchear "todo" en español, cubierto por test); (3) `ClientEmailSettings` presente cuando hay `FormConfig`, y `from_email` obligatorio si `notify_mode` envía emails. Con fallos → `CommandError` (exit ≠ 0) resumiendo cada `[FAIL]`; `--warn-only` conserva el modo informativo original. Sigue siendo 100 % lectura (test dedicado compara los datos antes/después).
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Test escrito (Red → Green) con `call_command`: tenant de prueba incompleto → exit/reporte de fallo por cada chequeo nuevo (rojo: hoy pasan en silencio); tenant completo → OK.
-  - [ ] Implementación mínima que pase la suite de pruebas.
-  - [ ] Cero errores en Linter (`ruff check`).
-  - [ ] Sin side-effects fuera del alcance de la tarjeta (el comando sigue sin modificar datos — es solo lectura, como hoy).
+  - [x] Test Red → Green con `call_command`: contra la base replicada sin ampliar, 5× `CommandError not raised` (tenant incompleto pasaba en silencio) + `--warn-only` inexistente (`TypeError`). Verde: fallo por cada chequeo nuevo, tenant completo OK, sección inactiva con placeholder no falla.
+  - [x] Implementación mínima que pasa la suite completa: gatekeeper 143 tests OK (5 skip, +10 de esta card).
+  - [x] Cero errores en Linter: ruff en verde, 2 archivos (intentos: 1).
+  - [x] Sin side-effects: comando solo lectura (verificado por test); `makemigrations --check` limpio.
 
 ### [BOLT-06] Guardia del contrato de tokens CSS (`docs/design-system.md` §1)
 - **Estado:** TODO
@@ -315,5 +315,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-23 | BOLT-02 | DONE | 115 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | `d958064` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-03 | DONE | 123 tests OK (5 skip) / ruff limpio (4 archivos) / migraciones limpias | `f570cda` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-04 | DONE | 133 tests OK (5 skip) / ruff limpio (5 archivos) / migraciones limpias | `9e8ab83` (`agent/ai-dlc-pilot`) |
+| 2026-08-23 | BOLT-05 | DONE | 143 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | *(pendiente — se completa al commitear)* |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*
