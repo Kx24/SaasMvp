@@ -96,8 +96,8 @@ branch.
 
 ---
 
-### [RC-BOLT-03] Navbar oscura según mockup + CTA "Reservar visita"
-- **Estado:** TODO
+### ✅ [RC-BOLT-03] Navbar oscura según mockup + CTA "Reservar visita" — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Frontend / Templates
 - **Variables requeridas:** ninguna
 - **Archivos Afectados:** `templates/ranchocachimba/components/navbar.html`
@@ -110,10 +110,11 @@ branch.
   4. Alpine.js (ya existente, conservar): `x-data="{ mobileMenuOpen }"` para el menú móvil y toggle de sombra on-scroll; adaptar el panel móvil a la paleta oscura. htmx: ninguna.
   5. Estados auth (`Dashboard`/`Iniciar sesión`) se conservan con el nuevo estilo.
 
+- **Resultado:** `bg-primary` + `h-[76px]` en el nav; `.nav-link` pasa a texto blanco/90 con hover+subrayado en `--color-accent` (se simplificó el `::after` de gradiente dos-tonos a color sólido, invisible contra el fondo verde); `.nav-cta` pasa a fondo `--color-accent`/texto `--color-primary`/hover `--amarillo-dorado`/radius 8px, texto "Reservar visita" (desktop y móvil), ancla `#contacto` (comentario explícito: sin flujo de reserva propio todavía). Menú: Servicios→Experiencias, Nosotros→El Rancho, Contacto→Visitar (mismas anclas reales); comentario `{# El Pastor... #RC-10 #}` en vez de agregar un link muerto. Panel móvil, botón hamburguesa, teléfono, divisor, badge de usuario y estados auth adaptados a la paleta oscura (`rgba(255,255,255,.x)` en vez de los grises de Servelec). Alpine (`mobileMenuOpen`, scroll shadow) sin tocar. `npm run build:css` corrido para compilar las combinaciones nuevas de utilidades (`bg-primary`, `text-white/70`, etc.) — no versionado (`static/css/output.css` gitignorado).
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Navbar renderiza sobre `--color-primary` con menú y CTA del mockup en desktop y móvil.
-  - [ ] Menú móvil Alpine operativo (abrir/cerrar, click-away, transiciones).
-  - [ ] Gate real en verde. Sin side-effects fuera del alcance de la tarjeta.
+  - [x] Navbar renderiza sobre `--color-primary` con menú y CTA del mockup en desktop y móvil (verificado con `npx playwright test`, 6/6 passed, incluye `ranchocachimba-e2e`).
+  - [x] Menú móvil Alpine operativo (abrir/cerrar, click-away, transiciones) — sin cambios en la lógica `x-data`/`x-show`/`x-transition`, solo estilos.
+  - [x] Gate real en verde: 103 tests OK (1 skip), ruff n/a (solo HTML), migraciones limpias. Sin side-effects fuera del alcance de la tarjeta.
 
 ---
 

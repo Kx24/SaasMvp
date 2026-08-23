@@ -1,9 +1,9 @@
 <!-- Navbar Rancho Cachimba (clonado de servelec, pendiente de diseño final) -->
 <style>
-    /* ── Base links ─────────────────────────────────────────── */
+    /* ── Base links (navbar oscura, RC-BOLT-03) ────────────────── */
     .nav-link {
         position: relative;
-        color: var(--carbon);
+        color: rgba(255,255,255,.9);
         font-size: 0.875rem;
         font-weight: 500;
         padding: 0.5rem 0.25rem;
@@ -18,14 +18,14 @@
         left: 0;
         right: 0;
         height: 2px;
-        background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+        background: var(--color-accent);
         border-radius: 2px;
         transform: scaleX(0);
         transform-origin: left center;
         transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .nav-link:hover {
-        color: var(--color-primary);
+        color: var(--color-accent);
     }
     .nav-link:hover::after {
         transform: scaleX(1);
@@ -36,20 +36,21 @@
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-        color: var(--blanco);
+        background: var(--color-accent);
+        color: var(--color-primary);
         padding: 0.55rem 1.25rem;
-        border-radius: 9999px;
+        border-radius: 8px;
         font-size: 0.875rem;
         font-weight: 600;
         font-family: 'Fraunces', serif;
         letter-spacing: 0.02em;
-        box-shadow: 0 2px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
-        transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+        box-shadow: 0 2px 12px color-mix(in srgb, var(--carbon) 25%, transparent);
+        transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
     }
     .nav-cta:hover {
+        background: var(--amarillo-dorado);
         transform: translateY(-1px);
-        box-shadow: 0 5px 18px color-mix(in srgb, var(--color-primary) 40%, transparent);
+        box-shadow: 0 5px 18px color-mix(in srgb, var(--carbon) 30%, transparent);
     }
     .nav-cta:active {
         transform: translateY(0);
@@ -59,15 +60,15 @@
     .nav-divider {
         width: 1px;
         height: 1.25rem;
-        background: var(--gris-borde);
+        background: rgba(255,255,255,.25);
     }
 
     /* ── Scroll state ───────────────────────────────────────── */
     .nav-scrolled {
-        box-shadow: 0 1px 0 var(--gris-borde), 0 4px 16px rgba(0,0,0,0.06) !important;
+        box-shadow: 0 1px 0 rgba(255,255,255,.1), 0 4px 16px rgba(0,0,0,0.18) !important;
     }
 
-    /* ── Mobile links ───────────────────────────────────────── */
+    /* ── Mobile links (panel oscuro) ───────────────────────────── */
     .mobile-link {
         display: flex;
         align-items: center;
@@ -76,18 +77,18 @@
         border-radius: 0.75rem;
         font-weight: 500;
         font-size: 0.9375rem;
-        color: var(--carbon);
+        color: rgba(255,255,255,.9);
         transition: background 0.15s, color 0.15s;
     }
     .mobile-link:hover {
-        background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-        color: var(--color-primary);
+        background: rgba(255,255,255,.08);
+        color: var(--color-accent);
     }
     .mobile-link .dot {
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: var(--color-primary);
+        background: var(--color-accent);
         opacity: 0;
         transition: opacity 0.15s;
         flex-shrink: 0;
@@ -99,7 +100,7 @@
     [x-cloak] { display: none !important; }
 </style>
 
-<nav class="fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-300"
+<nav class="fixed top-0 left-0 right-0 z-50 bg-primary transition-shadow duration-300"
      id="main-nav"
      x-data="{ mobileMenuOpen: false }"
      x-init="
@@ -112,7 +113,7 @@
     <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-60"></div>
 
     <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="flex items-center justify-between h-18 py-3">
+        <div class="flex items-center justify-between h-[76px]">
 
             {# ── Logo ──────────────────────────────────────── #}
             <a href="{% url 'home' %}" class="flex items-center gap-3 group">
@@ -130,21 +131,22 @@
                         <div class="absolute -top-2 -right-2 w-6 h-6 bg-white/20 rounded-full blur-sm"></div>
                     </div>
                     <div class="flex flex-col leading-none">
-                        <span class="font-display font-bold text-lg text-slate-900 tracking-tight group-hover:text-primary transition-colors duration-200">
+                        <span class="font-display font-bold text-lg text-white tracking-tight group-hover:text-accent transition-colors duration-200">
                             {{ client.name }}
                         </span>
                         {% if client.settings.tagline %}
-                        <span class="text-xs text-slate-400 font-normal mt-0.5">{{ client.settings.tagline }}</span>
+                        <span class="text-xs text-white/60 font-normal mt-0.5">{{ client.settings.tagline }}</span>
                         {% endif %}
                     </div>
                 {% endif %}
             </a>
 
             {# ── Desktop Nav ───────────────────────────────── #}
+            {# "El Pastor" se agrega cuando exista la sección (#RC-10) #}
             <div class="hidden lg:flex items-center gap-7">
-                <a href="#servicios" class="nav-link">Servicios</a>
-                <a href="#about"     class="nav-link">Nosotros</a>
-                <a href="#contacto"  class="nav-link">Contacto</a>
+                <a href="#servicios" class="nav-link">Experiencias</a>
+                <a href="#about"     class="nav-link">El Rancho</a>
+                <a href="#contacto"  class="nav-link">Visitar</a>
             </div>
 
             {# ── Desktop Actions ───────────────────────────── #}
@@ -152,7 +154,7 @@
 
                 {% if client.settings.contact_phone %}
                 <a href="tel:{{ client.settings.contact_phone }}"
-                   class="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-primary transition-colors duration-200">
+                   class="flex items-center gap-1.5 text-sm font-medium text-white/70 hover:text-accent transition-colors duration-200">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 6.75z"/>
@@ -163,7 +165,7 @@
                 {% endif %}
 
                 {% if user.is_authenticated %}
-                    <span class="text-xs text-slate-400 font-medium">{{ user.username }}</span>
+                    <span class="text-xs text-white/60 font-medium">{{ user.username }}</span>
                     <a href="{% url 'dashboard' %}" class="nav-cta">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -173,8 +175,9 @@
                     <a href="{% url 'client_logout' %}" class="nav-link">Salir</a>
                 {% else %}
                     <a href="{% url 'client_login' %}" class="nav-link">Iniciar sesión</a>
+                    {# sin flujo de reserva propio todavia: ancla a contacto (RC-BOLT-03) #}
                     <a href="#contacto" class="nav-cta">
-                        Cotizar
+                        Reservar visita
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
                         </svg>
@@ -184,7 +187,7 @@
 
             {# ── Mobile toggle ─────────────────────────────── #}
             <button @click="mobileMenuOpen = !mobileMenuOpen"
-                    class="lg:hidden relative w-9 h-9 flex items-center justify-center rounded-lg text-slate-600 hover:text-primary hover:bg-slate-50 transition-colors duration-150"
+                    class="lg:hidden relative w-9 h-9 flex items-center justify-center rounded-lg text-white/90 hover:text-accent hover:bg-white/10 transition-colors duration-150"
                     :aria-expanded="mobileMenuOpen"
                     aria-label="Menú">
                 {# Icono hamburguesa → X con transición #}
@@ -211,30 +214,30 @@
          x-transition:leave-start="opacity-100 translate-y-0"
          x-transition:leave-end="opacity-0 -translate-y-2"
          @click.away="mobileMenuOpen = false"
-         class="lg:hidden border-t bg-white"
-         style="border-color: color-mix(in srgb, var(--color-primary) 10%, var(--gris-borde));">
+         class="lg:hidden border-t bg-primary"
+         style="border-color: rgba(255,255,255,.12);">
 
         <div class="max-w-7xl mx-auto px-4 pt-3 pb-5 space-y-0.5">
 
-            {# Links de navegación #}
+            {# Links de navegación — "El Pastor" pendiente de #RC-10 #}
             <a href="#servicios" @click="mobileMenuOpen = false" class="mobile-link">
-                <span class="dot"></span>Servicios
+                <span class="dot"></span>Experiencias
             </a>
             <a href="#about" @click="mobileMenuOpen = false" class="mobile-link">
-                <span class="dot"></span>Nosotros
+                <span class="dot"></span>El Rancho
             </a>
             <a href="#contacto" @click="mobileMenuOpen = false" class="mobile-link">
-                <span class="dot"></span>Contacto
+                <span class="dot"></span>Visitar
             </a>
 
             {# Separador #}
             <div class="pt-3 mt-2 space-y-2"
-                 style="border-top: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--gris-borde));">
+                 style="border-top: 1px solid rgba(255,255,255,.12);">
 
                 {% if client.settings.contact_phone %}
                 <a href="tel:{{ client.settings.contact_phone }}"
                    class="mobile-link font-semibold"
-                   style="color: var(--color-primary);">
+                   style="color: var(--color-accent);">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 6.75z"/>
@@ -245,26 +248,27 @@
 
                 {% if user.is_authenticated %}
                     <a href="{% url 'dashboard' %}" @click="mobileMenuOpen = false"
-                       class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-88"
-                       style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%); box-shadow: 0 2px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);">
+                       class="flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-sm transition-opacity hover:opacity-88"
+                       style="background: var(--color-accent); color: var(--color-primary); box-shadow: 0 2px 12px color-mix(in srgb, var(--carbon) 25%, transparent);">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                         </svg>
                         Dashboard
                     </a>
                     <a href="{% url 'client_logout' %}"
-                       class="block text-center py-3 rounded-xl font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition text-sm">
+                       class="block text-center py-3 rounded-lg font-medium text-white/90 bg-white/10 hover:bg-white/15 transition text-sm">
                         Cerrar sesión
                     </a>
                 {% else %}
                     <a href="{% url 'client_login' %}" @click="mobileMenuOpen = false"
-                       class="block text-center py-3 rounded-xl font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition text-sm">
+                       class="block text-center py-3 rounded-lg font-medium text-white/90 bg-white/10 hover:bg-white/15 transition text-sm">
                         Iniciar sesión
                     </a>
+                    {# sin flujo de reserva propio todavia: ancla a contacto (RC-BOLT-03) #}
                     <a href="#contacto" @click="mobileMenuOpen = false"
-                       class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-88"
-                       style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%); box-shadow: 0 2px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);">
-                        Solicitar cotización
+                       class="flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-sm transition-opacity hover:opacity-88"
+                       style="background: var(--color-accent); color: var(--color-primary); box-shadow: 0 2px 12px color-mix(in srgb, var(--carbon) 25%, transparent);">
+                        Reservar visita
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
                         </svg>
