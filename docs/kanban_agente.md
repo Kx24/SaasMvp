@@ -13,6 +13,31 @@
 
 ## §0 · PRECONDICIONES DE EJECUCIÓN (leer antes de tomar cualquier card)
 
+### 0.-1 Rama y entorno de ejecución de este piloto (desde PILOT-01, 2026-08-22)
+
+Todo el trabajo de este kanban corre en una rama y un worktree dedicados, **separados** de
+`feature/RanchocachimbaEtapa1` (que tiene trabajo del usuario sin commitear y está en pausa —
+`#0.4`) y del checkout principal del repo:
+
+- **Rama:** `agent/ai-dlc-pilot`, creada desde `develop` (el kanban maestro usa `develop` como rama
+  de integración para trabajo de plataforma no relacionado con Rancho Cachimba).
+- **Worktree:** `C:\Users\sanch\Documents\Proyectos\SaaSMVP-agentic-pilot` (sibling del checkout
+  principal, creado con `git worktree add`). Cualquier corrida futura del planificador/dev/validador
+  debe operar ahí, no en el checkout principal — así el trabajo desatendido nunca pisa cambios sin
+  commitear del usuario en otra rama.
+- **`.env` local del worktree (gitignorado, no compartido con el checkout principal):** cada
+  worktree tiene su propio directorio de trabajo, y `.env` está en `.gitignore` — no se copia solo
+  con `git worktree add`. Se creó un `.env` mínimo *sin secretos reales* con `SECRET_KEY` dummy y
+  `MP_PUBLIC_KEY`/`MP_ACCESS_TOKEN`/`MP_WEBHOOK_SECRET` dummy (estos 3 tienen `default=''` en
+  `config/settings/base.py`, pero un valor vacío hace que `MercadoPagoService` registre error y
+  2 tests de checkout devuelvan 400 en vez de 200 — no es un bug de código, es un artefacto de este
+  `.env` minimalista). Si el worktree se recrea, hay que recrear este `.env` con los mismos 4 valores
+  dummy antes de correr el gatekeeper.
+- **Nota de shell:** en esta sesión, el `cwd` del tool de Bash **se resetea al directorio del checkout
+  principal entre llamadas** (no persiste `cd` de una llamada a la siguiente, a diferencia de lo que
+  suele asumirse). Cada comando dirigido al worktree necesita su propio `cd
+  "C:\Users\sanch\Documents\Proyectos\SaaSMVP-agentic-pilot" &&` al principio.
+
 ### 0.0 Estructura real del repo (verificada 2026-08-22 — NO usar `docs/Structure.md`, está desactualizado)
 
 ```
@@ -231,6 +256,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 
 | Fecha | Card | Resultado | Gatekeeper (tests/ruff/migr) | Commit |
 |---|---|---|---|---|
-| 2026-08-22 | PILOT-01 | DONE | 107 tests OK (5 skip) / ruff limpio / migraciones limpias | *(pendiente — ver nota abajo)* |
+| 2026-08-22 | PILOT-01 | DONE | 107 tests OK (5 skip) / ruff limpio / migraciones limpias | `acb20a9` (`agent/ai-dlc-pilot`) |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*
