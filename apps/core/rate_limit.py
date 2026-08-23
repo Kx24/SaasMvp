@@ -54,21 +54,27 @@ class RateLimiter:
         period:     Ventana de tiempo en segundos (default: 600 = 10 min)
     """
 
-    def __init__(self, request, scope: str, limit: int = 3, period: int = 600):
+    def __init__(self, request, scope: str, limit: int = 3, period: int = 600,
+                 key_extra: str = ''):
         self.limit = limit
         self.period = period
-        self.key = self._build_key(request, scope)
+        self.key = self._build_key(request, scope, key_extra)
 
-    def _build_key(self, request, scope: str) -> str:
+    def _build_key(self, request, scope: str, key_extra: str = '') -> str:
         """
-        Construye la cache key: rl:{scope}:{tenant_id}:{ip}
+        Construye la cache key: rl:{scope}:{tenant_id}:{ip}[:{key_extra}]
 
         Usa tenant_id para que el límite sea por tenant, no global.
         Si no hay cliente (misconfiguration), usa 'unknown'.
+        key_extra permite dimensiones adicionales (ej: hash del username en
+        login, #MED-05b) — debe venir ya saneado (hex/slug, sin espacios).
         """
         tenant_id = getattr(request.client, 'id', 'unknown') if hasattr(request, 'client') else 'unknown'
         ip = get_client_ip(request)
-        return f"rl:{scope}:{tenant_id}:{ip}"
+        key = f"rl:{scope}:{tenant_id}:{ip}"
+        if key_extra:
+            key += f":{key_extra}"
+        return key
 
     def current_count(self) -> int:
         """Retorna el número de intentos actuales en la ventana."""

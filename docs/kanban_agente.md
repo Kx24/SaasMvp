@@ -217,18 +217,18 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Cero errores en Linter: ruff en verde, 4 archivos chequeados (intentos: 2 — F841 preexistente arriba).
   - [x] Sin side-effects: rate limit de contacto sigue verde en la suite completa; `makemigrations --check` limpio.
 
-### [BOLT-04] `#MED-05` (b) — Rate limit en login y checkout
-- **Estado:** TODO
+### ✅ [BOLT-04] `#MED-05` (b) — Rate limit en login y checkout — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Auth
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `apps/website/auth_views.py` (`client_login`), `apps/orders/views.py` (`process_payment_view`), `apps/core/rate_limit.py` (scopes nuevos), tests en `apps/website/tests/` y `apps/orders/tests/`
-- **Contexto:** segunda mitad de `#MED-05`; depende de BOLT-03 (la IP debe ser confiable antes de limitar por IP). `RateLimiter` ya existe y está probado en el formulario de contacto — extender, no reescribir.
-- **Spec ejecutable:** `scope='login'` (p. ej. 5 intentos/5 min por IP+username) sobre `client_login` y `scope='checkout'` sobre `process_payment_view`, con respuesta 429 y mensaje genérico (indistinguible del mensaje de credenciales inválidas de `#AUD-03` — no filtrar información). Límites como settings con defaults, no números mágicos inline.
+- **Archivos Afectados:** `apps/website/auth_views.py`, `apps/orders/views.py`, `apps/core/rate_limit.py` (param `key_extra` nuevo), `apps/website/tests/test_login_rate_limit.py` (7 tests) y `apps/orders/tests/test_checkout_rate_limit.py` (3 tests, nuevos)
+- **Contexto:** segunda mitad de `#MED-05`; depende de BOLT-03 (cerrada). `RateLimiter` existente extendido, no reescrito.
+- **Resultado:** login: `scope='login'`, 5 intentos fallidos / 5 min por IP+hash(username)+tenant (`RATE_LIMIT_LOGIN_LIMIT/PERIOD` vía `getattr` con defaults); **solo los fallos consumen cupo** (login legítimo bajo umbral intacto) y alcanzado el límite ni la contraseña correcta entra (si entrara, el 429 confirmaría credenciales). El 429 re-renderiza el form con el MISMO texto genérico de credenciales inválidas (constante compartida `LOGIN_GENERIC_ERROR`), sin mencionar límites. Checkout: `scope='checkout'`, 10/10 min por IP+tenant (`RATE_LIMIT_CHECKOUT_LIMIT/PERIOD`), **todo** intento cuenta (card testing no manda payloads válidos), JSON 429 `code: RATE_LIMITED`.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Test escrito (Red → Green): N+1 intentos de login fallidos → 429 (rojo: hoy responde 200/302 siempre); mismo patrón en checkout; un login legítimo bajo el umbral no se ve afectado; el contador no cruza tenants ni IPs.
-  - [ ] Implementación mínima que pase la suite de pruebas.
-  - [ ] Cero errores en Linter (`ruff check`).
-  - [ ] Sin side-effects fuera del alcance de la tarjeta (matriz de `#AUD-03` y suite de aislamiento `#MED-02` siguen en verde).
+  - [x] Test Red → Green: login `200/302 != 429` confirmado; checkout `400 != 429` confirmado (tras corregir el arnés: el POST necesita `HTTP_HOST='localhost'` como en `test_emails` — el 404 inicial era del middleware, no un rojo válido); login legítimo bajo umbral → 302; contador no cruza IPs, usernames ni tenants (tests dedicados).
+  - [x] Implementación mínima que pasa la suite completa: gatekeeper 133 tests OK (5 skip, +10 de esta card).
+  - [x] Cero errores en Linter: ruff en verde, 5 archivos chequeados (intentos: 1).
+  - [x] Sin side-effects: matriz `#AUD-03` (`test_login_tenant_authorization`) y aislamiento `#MED-02` (`tests_isolation`) verdes dentro de la suite completa; `makemigrations --check` limpio.
 
 ### [BOLT-05] `#FLOW-02` — `check_tenant_setup` como gate de calidad ampliado
 - **Estado:** TODO
@@ -314,5 +314,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-23 | BOLT-01 | DONE | 112 tests OK (5 skip) / ruff limpio / migraciones limpias | `7ff867a` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-02 | DONE | 115 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | `d958064` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-03 | DONE | 123 tests OK (5 skip) / ruff limpio (4 archivos) / migraciones limpias | `f570cda` (`agent/ai-dlc-pilot`) |
+| 2026-08-23 | BOLT-04 | DONE | 133 tests OK (5 skip) / ruff limpio (5 archivos) / migraciones limpias | *(pendiente — se completa al commitear)* |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*

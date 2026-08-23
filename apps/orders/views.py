@@ -20,7 +20,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from apps.core.rate_limit import get_client_ip
+from apps.core.rate_limit import RateLimiter, get_client_ip
 
 from .models import Order, PaymentLog, Plan
 from .services.email_service import send_payment_success_email  # Card A6
@@ -70,6 +70,23 @@ def process_payment_view(request):
     
     URL: POST /checkout/process/
     """
+    # #MED-05b: límite por IP+tenant contra card testing (probar tarjetas
+    # robadas en loop). Cada intento cuenta, válido o no — un atacante no
+    # manda payloads válidos de cortesía.
+    limiter = RateLimiter(
+        request,
+        scope='checkout',
+        limit=getattr(settings, 'RATE_LIMIT_CHECKOUT_LIMIT', 10),
+        period=getattr(settings, 'RATE_LIMIT_CHECKOUT_PERIOD', 600),
+    )
+    if limiter.is_exceeded():
+        return JsonResponse({
+            'success': False,
+            'error': 'No se pudo procesar el pago. Intenta nuevamente más tarde.',
+            'code': 'RATE_LIMITED'
+        }, status=429)
+    limiter.increment()
+
     try:
         # Parsear JSON del body
         try:
