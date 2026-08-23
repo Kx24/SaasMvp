@@ -143,3 +143,58 @@ class ProductionEmailAsyncConfigTestCase(SimpleTestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), 'False')
+
+
+def _get_production_middleware_json(extra_env: dict) -> subprocess.CompletedProcess:
+    env = {k: v for k, v in os.environ.items() if not k.startswith('EMAIL_')}
+    env.update(REQUIRED_BASE_ENV)
+    env.update(REQUIRED_EMAIL_ENV)
+    env.update(extra_env)
+    return subprocess.run(
+        [
+            sys.executable, '-c',
+            'import django; django.setup(); '
+            'import json; from django.conf import settings; '
+            'print(json.dumps({'
+            '"middleware": settings.MIDDLEWARE, '
+            '"has_csp_dict": hasattr(settings, "CONTENT_SECURITY_POLICY"), '
+            '"has_permissions_policy_dict": hasattr(settings, "PERMISSIONS_POLICY"), '
+            '}))',
+        ],
+        cwd=BASE_DIR,
+        env={**env, 'DJANGO_SETTINGS_MODULE': 'config.settings.production'},
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+
+
+class ProductionSecurityHeadersConfigTestCase(SimpleTestCase):
+    """
+    #SEC-02: los diccionarios reales viven en config/settings/
+    security_headers.py (testeados sin subprocess ahí, no dependen de
+    env vars) -- esto solo confirma que production.py los conecta:
+    middleware presente, en orden correcto, y los settings expuestos.
+    """
+
+    def test_csp_and_permissions_policy_middleware_present_and_ordered(self):
+        result = _get_production_middleware_json({})
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+        import json
+        data = json.loads(result.stdout.strip())
+        middleware = data['middleware']
+
+        self.assertIn('csp.middleware.CSPMiddleware', middleware)
+        self.assertIn('django_permissions_policy.PermissionsPolicyMiddleware', middleware)
+
+        # Ambas deben ir después de XFrameOptionsMiddleware (mismo punto
+        # donde ya se decide frame-ancestors/X-Frame-Options).
+        xframe_idx = middleware.index('django.middleware.clickjacking.XFrameOptionsMiddleware')
+        csp_idx = middleware.index('csp.middleware.CSPMiddleware')
+        pp_idx = middleware.index('django_permissions_policy.PermissionsPolicyMiddleware')
+        self.assertGreater(csp_idx, xframe_idx)
+        self.assertGreater(pp_idx, xframe_idx)
+
+        self.assertTrue(data['has_csp_dict'])
+        self.assertTrue(data['has_permissions_policy_dict'])

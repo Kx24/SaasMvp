@@ -18,6 +18,8 @@ from .base import *
 import os
 import dj_database_url
 
+from .security_headers import CONTENT_SECURITY_POLICY, PERMISSIONS_POLICY  # noqa: F401
+
 # ==============================================================================
 # SEGURIDAD
 # ==============================================================================
@@ -120,6 +122,17 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+
+# ==============================================================================
+# CSP Y PERMISSIONS-POLICY (#SEC-02)
+# ==============================================================================
+# Diccionarios reales en config/settings/security_headers.py (import de
+# arriba) -- ese módulo documenta por qué /checkout/ queda afuera y por
+# qué script-src/style-src necesitan 'unsafe-inline'.
+if 'csp.middleware.CSPMiddleware' not in MIDDLEWARE:
+    xframe_index = MIDDLEWARE.index('django.middleware.clickjacking.XFrameOptionsMiddleware')
+    MIDDLEWARE.insert(xframe_index + 1, 'csp.middleware.CSPMiddleware')
+    MIDDLEWARE.insert(xframe_index + 2, 'django_permissions_policy.PermissionsPolicyMiddleware')
 
 # ==============================================================================
 # AISLAMIENTO DE COOKIES POR TENANT (CSRF-04 / requisito de ciberseguridad)
