@@ -18,14 +18,14 @@
         left: 0;
         right: 0;
         height: 2px;
-        background: linear-gradient(90deg, var(--primary), var(--accent));
+        background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
         border-radius: 2px;
         transform: scaleX(0);
         transform-origin: left center;
         transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .nav-link:hover {
-        color: var(--primary);
+        color: var(--color-primary);
     }
     .nav-link:hover::after {
         transform: scaleX(1);
@@ -36,7 +36,7 @@
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
         color: var(--blanco);
         padding: 0.55rem 1.25rem;
         border-radius: 9999px;
@@ -44,12 +44,12 @@
         font-weight: 600;
         font-family: 'Fraunces', serif;
         letter-spacing: 0.02em;
-        box-shadow: 0 2px 12px color-mix(in srgb, var(--primary) 35%, transparent);
+        box-shadow: 0 2px 12px color-mix(in srgb, var(--color-primary) 35%, transparent);
         transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
     }
     .nav-cta:hover {
         transform: translateY(-1px);
-        box-shadow: 0 5px 18px color-mix(in srgb, var(--primary) 40%, transparent);
+        box-shadow: 0 5px 18px color-mix(in srgb, var(--color-primary) 40%, transparent);
     }
     .nav-cta:active {
         transform: translateY(0);
@@ -80,14 +80,14 @@
         transition: background 0.15s, color 0.15s;
     }
     .mobile-link:hover {
-        background: color-mix(in srgb, var(--primary) 8%, transparent);
-        color: var(--primary);
+        background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+        color: var(--color-primary);
     }
     .mobile-link .dot {
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: var(--primary);
+        background: var(--color-primary);
         opacity: 0;
         transition: opacity 0.15s;
         flex-shrink: 0;
@@ -109,7 +109,7 @@
      ">
 
     {# Línea de acento superior #}
-    <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent opacity-60"></div>
+    <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-60"></div>
 
     <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="flex items-center justify-between h-18 py-3">
@@ -122,7 +122,7 @@
                          class="h-11 w-auto transition-opacity duration-200 group-hover:opacity-85">
                 {% else %}
                     <div class="relative w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
-                         style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);">
+                         style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);">
                         <svg class="w-5 h-5 text-white relative z-10" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                         </svg>
@@ -212,7 +212,7 @@
          x-transition:leave-end="opacity-0 -translate-y-2"
          @click.away="mobileMenuOpen = false"
          class="lg:hidden border-t bg-white"
-         style="border-color: color-mix(in srgb, var(--primary) 10%, var(--gris-borde));">
+         style="border-color: color-mix(in srgb, var(--color-primary) 10%, var(--gris-borde));">
 
         <div class="max-w-7xl mx-auto px-4 pt-3 pb-5 space-y-0.5">
 
@@ -229,12 +229,12 @@
 
             {# Separador #}
             <div class="pt-3 mt-2 space-y-2"
-                 style="border-top: 1px solid color-mix(in srgb, var(--primary) 10%, var(--gris-borde));">
+                 style="border-top: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--gris-borde));">
 
                 {% if client.settings.contact_phone %}
                 <a href="tel:{{ client.settings.contact_phone }}"
                    class="mobile-link font-semibold"
-                   style="color: var(--primary);">
+                   style="color: var(--color-primary);">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 6.75z"/>
@@ -246,7 +246,7 @@
                 {% if user.is_authenticated %}
                     <a href="{% url 'dashboard' %}" @click="mobileMenuOpen = false"
                        class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-88"
-                       style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); box-shadow: 0 2px 12px color-mix(in srgb, var(--primary) 30%, transparent);">
+                       style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%); box-shadow: 0 2px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                         </svg>
@@ -263,7 +263,7 @@
                     </a>
                     <a href="#contacto" @click="mobileMenuOpen = false"
                        class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white text-sm transition-opacity hover:opacity-88"
-                       style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); box-shadow: 0 2px 12px color-mix(in srgb, var(--primary) 30%, transparent);">
+                       style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%); box-shadow: 0 2px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);">
                         Solicitar cotización
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>

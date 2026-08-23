@@ -14,16 +14,16 @@
 {% get_hero_split_media as hero_media %}
 
 <style>
-    .hero-split{position:relative;background:var(--primary);overflow:hidden;}
+    .hero-split{position:relative;background:var(--color-primary);overflow:hidden;}
     .hero-split .hero-grid{
         display:grid;grid-template-columns:1.32fr 10px 1fr;
         min-height:600px;align-items:stretch;
     }
-    .hero-split .shot{position:relative;overflow:hidden;background:var(--primary);}
+    .hero-split .shot{position:relative;overflow:hidden;background:var(--color-primary);}
     .hero-split .shot img{width:100%;height:100%;object-fit:cover;display:block;}
     .hero-split .shot-placeholder{
         width:100%;height:100%;display:grid;place-content:center;
-        background:linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        background:linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
         color:color-mix(in srgb, var(--blanco) 55%, transparent);
         font-size:.75rem;letter-spacing:.05em;text-align:center;padding:24px;
     }
@@ -32,33 +32,33 @@
 
     /* costura tartán entre las dos fotos — CSS puro, tokens de marca */
     .hero-split .seam{
-        background-color:var(--primary);
+        background-color:var(--color-primary);
         background-image:
-            repeating-linear-gradient(90deg, color-mix(in srgb, var(--secondary) 95%, transparent) 0 20px, transparent 20px 50px, color-mix(in srgb, var(--tierra) 60%, transparent) 50px 60px, transparent 60px 100px),
-            repeating-linear-gradient(0deg, color-mix(in srgb, var(--secondary) 95%, transparent) 0 20px, transparent 20px 50px, color-mix(in srgb, var(--tierra) 60%, transparent) 50px 60px, transparent 60px 100px),
-            repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent) 90%, transparent) 0 2px, transparent 2px 100px),
-            repeating-linear-gradient(0deg, color-mix(in srgb, var(--accent) 90%, transparent) 0 2px, transparent 2px 100px);
+            repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-secondary) 95%, transparent) 0 20px, transparent 20px 50px, color-mix(in srgb, var(--tierra) 60%, transparent) 50px 60px, transparent 60px 100px),
+            repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-secondary) 95%, transparent) 0 20px, transparent 20px 50px, color-mix(in srgb, var(--tierra) 60%, transparent) 50px 60px, transparent 60px 100px),
+            repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 90%, transparent) 0 2px, transparent 2px 100px),
+            repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-accent) 90%, transparent) 0 2px, transparent 2px 100px);
     }
 
     .hero-split .pill{
         position:absolute;z-index:6;background:color-mix(in srgb, var(--carbon) 82%, transparent);
         backdrop-filter:blur(4px);color:var(--blanco);font-size:11px;font-weight:600;
         letter-spacing:.11em;text-transform:uppercase;padding:7px 13px;border-radius:999px;
-        border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+        border:1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
     }
     .hero-split .pill.a{top:26px;left:28px;}
     .hero-split .pill.b{top:90px;right:28px;}
 
     .hero-split .hero-copy{
         position:absolute;left:0;bottom:0;width:min(640px,58%);
-        background:linear-gradient(90deg, var(--primary) 68%, color-mix(in srgb, var(--primary) 92%, transparent));
+        background:linear-gradient(90deg, var(--color-primary) 68%, color-mix(in srgb, var(--color-primary) 92%, transparent));
         padding:40px 46px 42px 28px;z-index:5;
     }
     .hero-split .eyebrow{
-        display:inline-flex;align-items:center;gap:9px;color:var(--accent);
+        display:inline-flex;align-items:center;gap:9px;color:var(--color-accent);
         font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;margin-bottom:16px;
     }
-    .hero-split .eyebrow .rule{width:34px;height:2px;background:var(--accent);display:block;}
+    .hero-split .eyebrow .rule{width:34px;height:2px;background:var(--color-accent);display:block;}
     .hero-split h1{
         font-family:'Fraunces',Georgia,serif;font-size:clamp(34px,4.1vw,56px);line-height:1.04;
         color:var(--blanco);font-weight:600;letter-spacing:-.018em;margin-bottom:16px;
