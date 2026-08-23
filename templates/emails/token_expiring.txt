@@ -1,0 +1,30 @@
+{% comment %}
+Template: templates/emails/token_expiring.txt
+Email texto plano de recordatorio de token por expirar.
+{% endcomment %}
+═══════════════════════════════════════════
+⏰ TU ENLACE EXPIRA PRONTO - {{ company_name }}
+═══════════════════════════════════════════
+
+Te recordamos que tu enlace para configurar tu sitio web expira en
+{{ hours_remaining }} horas.
+
+Después de este tiempo necesitarás contactarnos para un nuevo enlace.
+
+───────────────────────────────────────────
+DETALLES DE LA ORDEN
+───────────────────────────────────────────
+Orden: #{{ order.order_number }}
+Plan: {{ plan.name }}
+Email: {{ order.email }}
+
+───────────────────────────────────────────
+Configura tu sitio ahora:
+{{ onboarding_url }}
+
+Si ya completaste la configuración, puedes ignorar este mensaje.
+¿Tienes problemas? Responde a este email y te ayudamos.
+
+═══════════════════════════════════════════
+© {% now "Y" %} {{ company_name }}. Todos los derechos reservados.
+═══════════════════════════════════════════

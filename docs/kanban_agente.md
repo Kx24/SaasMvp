@@ -283,6 +283,22 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Cero errores en Linter y suite completa en verde: gatekeeper 155 tests OK (5 skip, +5 de esta card), intentos: 1.
   - [x] Sin side-effects: HTML visible equivalente; guardia de tokens (BOLT-06) verde dentro de la suite.
 
+### ✅ [BOLT-09] `#MED-04` (mitad automatizable) — Texto plano legible + link de soporte roto en emails — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
+- **Componente:** Backend / Email
+- **Variables requeridas:** ninguna
+- **Archivos Afectados:** `apps/orders/services/email_service.py` (`_send_email`), `templates/emails/base_email.html`, `templates/emails/{payment_success,welcome,site_ready,token_expiring,set_password,contact_received}.txt` (6 nuevos), `apps/orders/tests/test_email_service.py` (+9 tests)
+- **Contexto:** con `§2` agotado, se cumple la condición que la propia §3 dejó anotada para `#MED-04`: "la mitad automatizable puede promoverse a bolt cuando se agote §2". La mitad manual (probar en Gmail/Outlook móvil real) sigue bloqueada en §3, sin insumo del usuario.
+- **⚠️ 2 hallazgos reales, verificados en vivo antes de tocar código (no hipotéticos):**
+  1. `EmailService._send_email` generaba el texto plano con `strip_tags(html_content)`. `strip_tags` de Django no es consciente de `<style>`: deja el CSS completo de `base_email.html` (150+ líneas: `mso-table-lspace`, `-webkit-text-size-adjust`, etc.) como texto visible **al principio** de cada email de texto plano, antes de cualquier contenido real — confirmado renderizando `payment_success.html` directo con `manage.py shell`. Afectaba a los 6 emails que pasan por este servicio. El patrón correcto ya existía en el propio repo sin usarse acá: `apps/tenants/services/email_dispatcher.py` renderiza `.txt` dedicados para `contact_notification`/`contact_confirmation`.
+  2. `templates/emails/base_email.html`: el link de soporte del footer (`¿Tienes dudas? Escríbenos a...`) apuntaba a `href="/cdn-cgi/l/email-protection#e59e9e..."` — un artefacto de ofuscación de Cloudflare que decodifica el email vía su JS del lado del navegador; ese JS nunca corre dentro de un cliente de correo, así que era un link muerto en el 100% de los casos, en los 6 templates que heredan el footer default (`payment_success`, `welcome`, `site_ready`, `token_expiring`, `set_password`, `contact_digest`).
+- **Resultado:** `_send_email` ahora renderiza `emails/{template_name}.txt` (mismo patrón que `email_dispatcher.py`) en vez de `strip_tags`; se crearon los 6 `.txt` faltantes con el mismo estilo ASCII (`═══`/`───`) que ya usaban `contact_confirmation.txt`/`contact_notification.txt`. El link roto del footer pasa a `mailto:{{ support_email }}`. De paso, `base_email.html` suma `<meta name="color-scheme" content="light dark">` + `<meta name="supported-color-schemes" content="light dark">` (dark-mode friendly, trivial, sin romper nada existente — clientes que no lo soportan lo ignoran). El import de `strip_tags` se retiró de `email_service.py` (sin otro uso en el archivo).
+- **Definición de Terminado (DoD Verificable):**
+  - [x] Test Red → Green: rojo confirmado en vivo — 7 tests nuevos fallaron antes del fix (`mso-table-lspace`/`-webkit-text-size-adjust` presentes en `mail.outbox[-1].body` de los 6 emails; `cdn-cgi` presente en el HTML renderizado). Verde tras crear los `.txt` y cambiar `_send_email` + el link del footer.
+  - [x] Implementación mínima que pasa la suite completa: gatekeeper 162 tests OK (5 skip, +9 de esta card sobre los 155 de BOLT-08 — 6 de texto plano limpio + 1 de link del footer, más 2 tests ya existentes que ahora ejercitan el nuevo camino).
+  - [x] Cero errores en Linter: ruff en verde (intentos: 2 — 1º activó 4 hallazgos preexistentes en `email_service.py` al tocar el archivo — `I001`, 2×`F401`, `F541` — mismo patrón que BOLT-02/03/07; autofix de ruff, sin cambio de comportamiento).
+  - [x] Sin side-effects fuera del alcance de la tarjeta: `makemigrations --check --dry-run` limpio; `contact_digest.html`/`contact_notification.html`/`contact_confirmation.html` no tocados (su flujo de texto plano ya era correcto); único cambio visual = el link del footer y los 2 meta tags nuevos.
+
 ---
 
 ## §3 · BLOQUEADAS — requieren insumos externos (NO tomar, NO preguntar)
@@ -298,7 +314,7 @@ CLOSE (actualizar card aquí + commit único con ID)
 | `#MED-03` (cabo) | `EXPLAIN ANALYZE` contra datos reales | Acceso a la DB de producción (**Neon** — el maestro aún dice Supabase, corrección pospuesta por el usuario) |
 | `#MED-01` (cabo) | Confirmar cron `*/5` en plan free de Render | Dashboard de Render |
 | `#SEC-03` | Inventario de secretos + política de rotación | Lista real de env vars en Render (solo el usuario la ve) |
-| `#MED-04` (mitad manual) | Prueba visual en Gmail/Outlook móvil | Casillas reales del usuario (la mitad automatizable puede promoverse a bolt cuando se agote §2) |
+| `#MED-04` (mitad manual, resto **DONE** en `BOLT-09`) | Prueba visual en Gmail/Outlook móvil real | Casillas reales del usuario — la mitad automatizable (texto plano + link roto del footer) ya se cerró en `BOLT-09` |
 | `#RC-*` completo | Todo Rancho Cachimba (incluida la maquetación del hero: `#RC-20` del maestro, cards `RC-BOLT-01..06` en `feature/RanchocachimbaEtapa1`) | **En pausa por decisión del usuario** — prohibido por §0.4. Las generalizaciones *de plataforma* derivadas de ese análisis de diseño sí son de este tablero: `BOLT-06..08` (§2) |
 | `#DEUDA-05` (cabo) | Eliminar login muerto de `apps/accounts/` | Decisión explícita del usuario |
 | `#DEUDA-05` (hallazgo nuevo, PILOT-02) | `.claude/skills/andesscale-saas/SKILL.md` nunca se commiteó en ninguna rama (solo vivía sin trackear en el checkout principal) — se copió a `agent/ai-dlc-pilot` para no bloquear PILOT-02, pero el checkout principal/`develop` siguen sin el commit real | Decisión del usuario: ¿commitear el skill en `develop`/`main`, o dejarlo intencionalmente local? |
@@ -320,5 +336,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-23 | BOLT-06 | DONE | 146 tests OK (5 skip) / ruff limpio / migraciones limpias | `bbbd99b` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-07 | DONE | 150 tests OK (5 skip) / ruff limpio (3 archivos) / migración 0023 incluida | `0725d09` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-08 | DONE | 155 tests OK (5 skip) / ruff limpio / migraciones limpias | `c3e9f3c` (`agent/ai-dlc-pilot`) |
+| 2026-08-23 | BOLT-09 | DONE | 162 tests OK (5 skip) / ruff limpio (2 archivos, autofix) / migraciones limpias | *(pendiente de commit)* |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*
