@@ -143,8 +143,8 @@ branch.
 
 ---
 
-### [RC-BOLT-05] Franja de stats según mockup (fondo claro, copy rancho)
-- **Estado:** TODO
+### ✅ [RC-BOLT-05] Franja de stats según mockup (fondo claro, copy rancho) — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Frontend / Templates
 - **Variables requeridas:** ninguna (los números reales dependen de `#RC-01`, insumo del cliente)
 - **Archivos Afectados:** `templates/ranchocachimba/components/stats.html`
@@ -157,10 +157,11 @@ branch.
   4. Móvil: 2 columnas, sin divisores laterales (como el mockup a <900px).
   5. Alpine.js: ninguna. htmx: ninguna.
 
+- **Resultado:** `grid grid-cols-2 md:grid-cols-4`, fondo `var(--verde-claro)`, divisores al 13% de `--color-primary` (vía un `<style>` propio del componente con selector `#numeros .stats-grid > :not([hidden]) ~ :not([hidden])` — se probó `divide-primary/[0.13]` de Tailwind primero, pero **no compiló ninguna regla** con `--color-primary` definido como `var(...)` plano en `tailwind.config.js`, no como triple rgb; confirmado con `grep` sobre el `output.css` recompilado antes de descartar el enfoque). Número en `font-display` (Fraunces) 38px/700 `--color-primary`; label 12.5px debajo en un verde-grisáceo (`color-mix` entre `--color-primary` y `--gris-texto`). Copy: "8+ especies para conocer de cerca" / "— años criando border collies" / "— torneos internacionales" / "Maullín · a — min de Puerto Montt" — el mockup no distingue explícitamente número de label para la 4ª celda (es una frase de ubicación, no una cifra); se partió en "Maullín" (headline) + "a — min de Puerto Montt" (descriptor) para conservar el mismo ritmo visual de las otras 3 celdas. Cada `—` real lleva su comentario `{# valores reales: #RC-01 #}` en línea propia (`#BUG-01`). Móvil: `grid-cols-2` sin `divide-x` (solo `divide-y` hereda, sin divisores laterales por diseño del breakpoint).
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Sin copy de Servelec residual en el componente.
-  - [ ] Solo tokens del tema (cero hex nuevos); `font-display`, no serif hardcodeada.
-  - [ ] Gate real en verde. Sin side-effects fuera del alcance de la tarjeta.
+  - [x] Sin copy de Servelec residual en el componente (`grep` de "años de experiencia"/"clientes satisfechos"/"trabajos garantizados" → 0 resultados).
+  - [x] Solo tokens del tema (cero hex nuevos); `font-display` (Fraunces), sin serif hardcodeada.
+  - [x] Gate real en verde: 103 tests OK (1 skip), ruff n/a, migraciones limpias, `npx playwright test` 6/6 passed. Sin side-effects fuera del alcance de la tarjeta.
 
 ---
 

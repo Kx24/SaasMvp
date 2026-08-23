@@ -1,29 +1,52 @@
+{# ============================================================#}
+{#   FRANJA DE STATS — Rancho Cachimba (RC-BOLT-05)#}
+{#   Fondo claro, 4 celdas alineadas a la izquierda con divisores#}
+{#   verticales sutiles. Copy provisional del mockup -- los "—"#}
+{#   son placeholders de datos reales, ver #RC-01.#}
+{#   ============================================================ #}
 
-<section id="numeros" aria-label="Cifras de experiencia"
-         style="background:var(--color-primary); border-top:1px solid color-mix(in srgb, var(--color-accent) 15%, transparent); border-bottom:1px solid color-mix(in srgb, var(--color-accent) 15%, transparent);">
+<style>
+    /* divisores del grid de stats -- --color-primary al 13%, token que
+       Tailwind no puede expresar con divide-{color}/{opacity} (no es un
+       triple rgb, ver #AUD-11) */
+    #numeros .stats-grid > :not([hidden]) ~ :not([hidden]) {
+        border-color: color-mix(in srgb, var(--color-primary) 13%, transparent);
+    }
+</style>
+
+<section id="numeros" aria-label="Cifras de experiencia" style="background:var(--verde-claro);">
     <div class="max-w-6xl mx-auto px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x"
-             style="--tw-divide-opacity:1; border-color:color-mix(in srgb, var(--color-accent) 10%, transparent);">
+        <div class="stats-grid grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x">
 
-            <div class="px-8 py-12 text-center fade-up">
-                <div class="text-5xl md:text-6xl font-black mb-2"
-                     style="color:var(--color-accent); letter-spacing:-1px;">+15</div>
-                <div class="text-xs font-bold uppercase tracking-widest"
-                     style="color:rgba(255,255,255,0.5);">Años de experiencia</div>
+            <div class="px-6 py-6 fade-up">
+                <div class="font-display font-bold" style="font-size:38px; color:var(--color-primary);">8+</div>
+                <div class="mt-1" style="font-size:12.5px; color:color-mix(in srgb, var(--color-primary) 55%, var(--gris-texto));">
+                    especies para conocer de cerca
+                </div>
             </div>
 
-            <div class="px-8 py-12 text-center fade-up" style="animation-delay:0.1s;">
-                <div class="text-5xl md:text-6xl font-black mb-2"
-                     style="color:var(--color-accent); letter-spacing:-1px;">+200</div>
-                <div class="text-xs font-bold uppercase tracking-widest"
-                     style="color:rgba(255,255,255,0.5);">Clientes satisfechos</div>
+            <div class="px-6 py-6 fade-up" style="animation-delay:0.1s;">
+                <div class="font-display font-bold" style="font-size:38px; color:var(--color-primary);">—</div>
+                {# valores reales: #RC-01 #}
+                <div class="mt-1" style="font-size:12.5px; color:color-mix(in srgb, var(--color-primary) 55%, var(--gris-texto));">
+                    años criando border collies
+                </div>
             </div>
 
-            <div class="px-8 py-12 text-center fade-up" style="animation-delay:0.2s;">
-                <div class="text-5xl md:text-6xl font-black mb-2"
-                     style="color:var(--color-accent); letter-spacing:-1px;">100%</div>
-                <div class="text-xs font-bold uppercase tracking-widest"
-                     style="color:rgba(255,255,255,0.5);">Trabajos garantizados</div>
+            <div class="px-6 py-6 fade-up" style="animation-delay:0.2s;">
+                <div class="font-display font-bold" style="font-size:38px; color:var(--color-primary);">—</div>
+                {# valores reales: #RC-01 #}
+                <div class="mt-1" style="font-size:12.5px; color:color-mix(in srgb, var(--color-primary) 55%, var(--gris-texto));">
+                    torneos internacionales
+                </div>
+            </div>
+
+            <div class="px-6 py-6 fade-up" style="animation-delay:0.3s;">
+                <div class="font-display font-bold" style="font-size:38px; color:var(--color-primary);">Maullín</div>
+                {# valores reales: #RC-01 #}
+                <div class="mt-1" style="font-size:12.5px; color:color-mix(in srgb, var(--color-primary) 55%, var(--gris-texto));">
+                    a — min de Puerto Montt
+                </div>
             </div>
 
         </div>
