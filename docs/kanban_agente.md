@@ -259,6 +259,7 @@ CLOSE (actualizar card aquí + commit único con ID)
 | Fecha | Card | Resultado | Gatekeeper (tests/ruff/migr) | Commit |
 |---|---|---|---|---|
 | 2026-08-22 | PILOT-01 | DONE | 107 tests OK (5 skip) / ruff limpio / migraciones limpias | `acb20a9`, `e9f783d` (`agent/ai-dlc-pilot`) |
-| 2026-08-22 | PILOT-02 | DONE | 107 tests OK (5 skip) / ruff limpio (0 archivos .py tocados) / migraciones limpias | `78c4cdc` (`agent/ai-dlc-pilot`) |
+| 2026-08-22 | PILOT-02 | DONE | 107 tests OK (5 skip) / ruff limpio (0 archivos .py tocados) / migraciones limpias | `78c4cdc`, `f539d81` (`agent/ai-dlc-pilot`) |
+| 2026-08-22 | PILOT-03 | DONE | 112 tests OK (5 skip) / ruff limpio / migraciones limpias | `9e58de9` (`agent/ai-dlc-pilot`) |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*
