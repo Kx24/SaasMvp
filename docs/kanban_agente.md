@@ -147,18 +147,18 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Cero errores en Linter: no aplica a `.md`; en su lugar se corrió `python scripts/gatekeeper.py` (`ruff`/tests/migraciones) tras los cambios → `passed: true`, 107 tests OK (5 skip), `files_checked: 0` en ruff (correcto: esta card no tocó ningún `.py`).
   - [x] Sin side-effects fuera del alcance de la tarjeta — verificado 0 procesos `python.exe` huérfanos tras la corrida del gate.
 
-### [PILOT-03] Script orquestador con manejo de turnos
-- **Estado:** TODO
+### ✅ [PILOT-03] Script orquestador con manejo de turnos — **DONE (2026-08-22)**
 - **Componente:** DevOps
 - **Variables requeridas:** ninguna (el runner del agente provee su propia autenticación; el script no maneja API keys en código)
-- **Archivos Afectados:** `orchestrate.py` (raíz, nuevo)
+- **Archivos Afectados:** `orchestrate.py` (raíz, nuevo), `apps/core/tests/test_orchestrate.py` (nuevo, 5 tests)
 - **Contexto:** depende de PILOT-01 (gate parseable) y PILOT-02 (roles). Cierra el circuito planificador → dev → validador.
-- **Spec ejecutable:** `python orchestrate.py [--max-cards N] [--dry-run]` ejecuta el ciclo: turno planificador → turno dev/tester → gatekeeper → turno validador. Máximo **3 reintentos** por card en el paso REPAIR; al agotarlos marca la card `BLOCKED` con el último JSON del gatekeeper como diagnóstico y **pasa a la siguiente o termina** (nunca queda en loop). Log estructurado por turno en `scripts/output/orchestrator_{timestamp}.jsonl` (carpeta ya gitignorada, `#AUD-10`). `--dry-run` simula los turnos sin invocar agentes (para testear la máquina de estados sin costo).
+- **Decisión de diseño (aclarada durante la implementación, no estaba explícita en el spec original):** `orchestrate.py` implementa **solo la máquina de estados** — secuenciar turnos, contar reintentos, decidir `DONE`/`BLOCKED`/`REJECTED` — a través de un protocolo `AgentRunner` con 3 métodos (`run_planificador`/`run_dev_tester`/`run_validador`). **No invoca ningún agente real ni maneja credenciales**: conectar un agente real (CLI de Claude Code en modo no interactivo con los prompts de `.claude/workflows/`, o la API de Anthropic) es un paso de integración aparte, deliberadamente fuera de esta card — coincide con el propio DoD original ("agentes stub") y con la nota de "el script no maneja API keys en código". El runner por defecto (`NotWiredAgentRunner`) levanta `NotImplementedError` explícito en vez de fallar en silencio o simular un resultado falso.
+- **Resultado:** `python orchestrate.py [--max-cards N] [--dry-run]`. El bucle real: planificador → (dev_tester × hasta 3, corta en el primer `passed: true`) → si nunca pasó, `BLOCKED` sin correr validador; si pasó, validador → `DONE`/`REJECTED` según el veredicto. Log JSONL por turno en `scripts/output/orchestrator_{timestamp}.jsonl` (carpeta ya gitignorada). `--dry-run` usa `DryRunAgentRunner` (un card simulado, sin agente real, sin costo) — probado a mano: `DRY-RUN-CARD: DONE (intentos=1)`, exit 0, log JSONL de 4 líneas verificado.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Test de la máquina de estados escrito (Red → Green) con agentes stub: happy path (1 card → DONE), reintento (2 fallos + 1 éxito → DONE con `attempts: 3`), agotamiento (4 fallos → BLOCKED, sin 4º reintento).
-  - [ ] Implementación mínima que pase la suite de pruebas.
-  - [ ] Cero errores en Linter (`ruff check orchestrate.py`).
-  - [ ] Sin side-effects fuera del alcance de la tarjeta (no commitea por sí solo sin gate en verde; `--dry-run` no escribe nada fuera de `scripts/output/`).
+  - [x] Test de la máquina de estados escrito (Red → Green, rojo confirmado: `ModuleNotFoundError: No module named 'orchestrate'` antes de crear el script) con `ScriptedRunner` (stub): happy path (1 card → `DONE`, 1 intento) ✅; reintento (2 fallos + 1 éxito → `DONE` con `attempts: 3`, `dev_tester_calls == 3`) ✅; agotamiento (dev_tester siempre falla → `BLOCKED`, `attempts == MAX_REPAIR_ATTEMPTS == 3`, **nunca un 4º intento**, `validador_calls == 0`) ✅. Se agregaron 2 tests más allá del DoD mínimo (cola vacía sin efectos; `--max-cards` corta el loop) por ser casos borde directos de la misma máquina de estados, sin costo adicional de alcance.
+  - [x] Implementación mínima que pasa la suite completa: `apps.core.tests.test_orchestrate` → 5/5 OK. Gate completo (`scripts/gatekeeper.py`): 112 tests OK (5 skip, +5 de esta card sobre los 107 de PILOT-02).
+  - [x] Cero errores en Linter: `ruff check` (vía gatekeeper, alcance = archivos tocados) → `files_checked: 2, errors: 0`.
+  - [x] Sin side-effects fuera del alcance de la tarjeta: `--dry-run` verificado a mano — único archivo nuevo en `git status` tras correrlo es el JSONL en `scripts/output/`, confirmado gitignorado (`git check-ignore -v`). El script no ejecuta `git commit` en ningún punto (esa responsabilidad vive en la implementación real de `run_validador`, fuera de este script). 0 procesos `python.exe` huérfanos tras la corrida.
 
 ---
 
@@ -250,6 +250,7 @@ CLOSE (actualizar card aquí + commit único con ID)
 | `#MED-04` (mitad manual) | Prueba visual en Gmail/Outlook móvil | Casillas reales del usuario (la mitad automatizable puede promoverse a bolt cuando se agote §2) |
 | `#RC-*` completo | Todo Rancho Cachimba | **En pausa por decisión del usuario** — prohibido por §0.4 |
 | `#DEUDA-05` (cabo) | Eliminar login muerto de `apps/accounts/` | Decisión explícita del usuario |
+| `#DEUDA-05` (hallazgo nuevo, PILOT-02) | `.claude/skills/andesscale-saas/SKILL.md` nunca se commiteó en ninguna rama (solo vivía sin trackear en el checkout principal) — se copió a `agent/ai-dlc-pilot` para no bloquear PILOT-02, pero el checkout principal/`develop` siguen sin el commit real | Decisión del usuario: ¿commitear el skill en `develop`/`main`, o dejarlo intencionalmente local? |
 
 ---
 
