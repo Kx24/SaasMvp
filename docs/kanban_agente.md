@@ -190,18 +190,18 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Nota de cierre registrada en `KANBAN_PROYECTO.md` (§"Retomar aquí" con fecha 2026-08-23 y card `#DEUDA-05`), incluyendo el hallazgo del commit `d3bb7ba` no mergeado.
   - [x] Sin side-effects fuera del alcance: únicos archivos tocados = el retiro + los 2 kanbans; 0 procesos huérfanos.
 
-### [BOLT-02] Slugs reservados en `Plan` — cierre del DoD de `#AUD-01`
-- **Estado:** TODO
+### ✅ [BOLT-02] Slugs reservados en `Plan` — cierre del DoD de `#AUD-01` — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Backend
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `apps/orders/models.py` (validación en `Plan`), `apps/orders/tests/test_models.py` (o `test_urls.py`), migración solo si se agrega `validators=` a nivel de campo
+- **Archivos Afectados:** `apps/orders/models.py` (`RESERVED_PLAN_SLUGS` + `Plan.clean()` + `Plan.save()`), `apps/orders/tests/test_models.py` (+3 tests, `PlanReservedSlugTestCase`)
 - **Contexto:** cabo suelto explícito del kanban maestro (§7, `#AUD-01`, checkbox abierto): un `Plan` con slug `process`, `success` o `error` queda inalcanzable en silencio — `apps/orders/urls.py` resuelve esas rutas literales antes que `<slug:plan_slug>/`.
-- **Spec ejecutable:** `Plan.clean()` (y/o validator del campo `slug`) rechaza `{'process', 'success', 'error'}` con `ValidationError` que nombra el conflicto de ruta. Cubrir también `full_clean()` en `save()` si el modelo no lo llama hoy (verificar patrón existente del modelo antes de imponerlo).
+- **Resultado:** `Plan.clean()` rechaza `{'process', 'success', 'error'}` con `ValidationError` en el campo `slug` que nombra el conflicto de ruta. **Decisión de diseño:** `Plan.save()` llama `full_clean()` — ningún otro modelo del repo lo hace (verificado por grep), pero la card lo contemplaba explícitamente y sin eso la guardia no cubre creación programática (shell/scripts); desviación documentada en comentario en el código. Sin migración: la validación vive en `clean()`, no en `validators=` del campo. Los tests existentes que crean `Plan` mínimos (`name`/`slug`/`price`) pasan `full_clean()` sin cambios (todos los demás campos tienen default o `blank=True`).
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Test escrito que exprese la funcionalidad (Red → Green): crear `Plan(slug='process')` lanza `ValidationError`; los 3 slugs reservados cubiertos; un slug normal sigue pasando.
-  - [ ] Implementación mínima que pase la suite de pruebas.
-  - [ ] Cero errores en Linter (`ruff check`).
-  - [ ] Sin side-effects fuera del alcance de la tarjeta (planes existentes con slugs válidos no se ven afectados; `makemigrations --check` limpio o migración incluida).
+  - [x] Test Red → Green: rojo confirmado con 4 fallos `ValidationError not raised` (3 slugs reservados vía `full_clean()` en subTests + guardia en `save()`); slug normal en verde desde el rojo. Verde tras implementar.
+  - [x] Implementación mínima que pasa la suite completa: gatekeeper 115 tests OK (5 skip, +3 de esta card).
+  - [x] Cero errores en Linter: `ruff` en verde al 3er intento (REPAIR ×2 por `I001` — bloque de imports preexistente desordenado que se activó al tocar el archivo; resuelto con `ruff --fix`, solo reordena imports).
+  - [x] Sin side-effects: `makemigrations --check` limpio (sin migración, esperado); planes con slugs válidos intactos.
 
 ### [BOLT-03] `#MED-05` (a) — IP confiable detrás del proxy de Render
 - **Estado:** TODO
@@ -311,5 +311,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-22 | PILOT-02 | DONE | 107 tests OK (5 skip) / ruff limpio (0 archivos .py tocados) / migraciones limpias | `78c4cdc`, `f539d81` (`agent/ai-dlc-pilot`) |
 | 2026-08-22 | PILOT-03 | DONE | 112 tests OK (5 skip) / ruff limpio / migraciones limpias | `9e58de9` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-01 | DONE | 112 tests OK (5 skip) / ruff limpio / migraciones limpias | `7ff867a` (`agent/ai-dlc-pilot`) |
+| 2026-08-23 | BOLT-02 | DONE | 115 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | *(pendiente — se completa al commitear)* |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*

@@ -10,6 +10,7 @@ pero sin orden persistida.
 import re
 from unittest.mock import patch
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from apps.orders.models import Order, Plan
@@ -68,3 +69,40 @@ class OrderNumberGenerationTestCase(TestCase):
         order.save()
 
         self.assertEqual(order.order_number, original_number)
+
+
+class PlanReservedSlugTestCase(TestCase):
+    """
+    #AUD-01 (cabo suelto, BOLT-02): apps/orders/urls.py resuelve las rutas
+    literales process/, success/ y error/ ANTES que <slug:plan_slug>/. Un
+    Plan con uno de esos slugs queda inalcanzable en silencio (la URL del
+    plan la captura la ruta literal). El modelo debe rechazarlos.
+    """
+
+    RESERVED = ('process', 'success', 'error')
+
+    def _make_plan(self, slug):
+        return Plan(name='Plan X', slug=slug, price=10000)
+
+    def test_reserved_slugs_rejected_on_full_clean(self):
+        for slug in self.RESERVED:
+            with self.subTest(slug=slug):
+                with self.assertRaises(ValidationError) as ctx:
+                    self._make_plan(slug).full_clean()
+                errors = ctx.exception.message_dict
+                self.assertIn('slug', errors)
+                # El mensaje debe nombrar el conflicto de ruta, no ser genérico
+                self.assertIn('urls', ' '.join(errors['slug']).lower())
+
+    def test_reserved_slug_rejected_on_save(self):
+        # La guardia también aplica a creación programática (shell, scripts),
+        # no solo a formularios/admin que llaman full_clean().
+        with self.assertRaises(ValidationError):
+            self._make_plan('process').save()
+        self.assertFalse(Plan.objects.filter(slug='process').exists())
+
+    def test_normal_slug_still_valid(self):
+        plan = self._make_plan('plan-pro')
+        plan.full_clean()  # no debe lanzar
+        plan.save()
+        self.assertTrue(Plan.objects.filter(slug='plan-pro').exists())

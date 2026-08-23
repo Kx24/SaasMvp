@@ -16,16 +16,20 @@ import uuid
 from datetime import timedelta
 from decimal import Decimal
 
-from django.db import models
 from django.conf import settings
-from django.utils import timezone
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from django.db import models
 from django.urls import reverse
-
+from django.utils import timezone
 
 # ==============================================================================
 # PLAN - Planes de suscripción
 # ==============================================================================
+
+# #AUD-01: apps/orders/urls.py resuelve process/, success/ y error/ antes que
+# <slug:plan_slug>/ — un Plan con uno de estos slugs queda inalcanzable.
+RESERVED_PLAN_SLUGS = frozenset({'process', 'success', 'error'})
 
 class Plan(models.Model):
     """
@@ -170,7 +174,25 @@ class Plan(models.Model):
     
     def __str__(self):
         return f"{self.name} - ${self.price:,.0f} CLP"
-    
+
+    def clean(self):
+        super().clean()
+        if self.slug in RESERVED_PLAN_SLUGS:
+            raise ValidationError({
+                'slug': (
+                    f"'{self.slug}' está reservado: apps/orders/urls.py lo "
+                    f"resuelve como ruta literal antes que <slug:plan_slug>/, "
+                    f"y el checkout de este plan quedaría inalcanzable."
+                ),
+            })
+
+    def save(self, *args, **kwargs):
+        # Ningún otro modelo del repo llama full_clean() en save(); acá es
+        # deliberado (BOLT-02): la guardia debe cubrir también creación
+        # programática (shell/scripts), no solo formularios que validan.
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def get_features_list(self):
         """Retorna features como lista Python."""
         if isinstance(self.features, list):
