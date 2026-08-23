@@ -15,10 +15,10 @@
     <link rel="icon" href="{{ client.settings.favicon.url }}">
     {% endif %}
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts: fuente elegida por el tenant (#AUD-11 Paso 3) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family={% google_fonts_query client.settings.font_family %}&display=swap" rel="stylesheet">
 
     <!-- CSS global compilado (#AUD-11) — ver templates/base.html para la nota completa -->
     <link rel="stylesheet" href="{% static 'css/output.css' %}">

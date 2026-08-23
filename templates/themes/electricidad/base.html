@@ -17,10 +17,10 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     {% endif %}
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts: fuente de cuerpo elegida por el tenant (#AUD-11 Paso 3) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family={% google_fonts_query client.settings.font_family %}&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
     
     {# CSS global compilado (#AUD-11) — ver templates/base.html para la nota completa #}
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
@@ -34,7 +34,7 @@
             --color-primary:   {{ client.settings.primary_color|default:"#16a34a" }};
             --color-secondary: {{ client.settings.secondary_color|default:"#15803d" }};
             --color-accent:    {{ client.settings.accent_color|default:"#22c55e" }};
-            --font-sans:       'Inter';
+            --font-sans:       '{{ client.settings.font_family|default:"Inter" }}';
             --font-display:    'Outfit';
         }
 

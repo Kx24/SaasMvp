@@ -36,6 +36,7 @@ from django.utils import timezone
 from apps.accounts.decorators import tenant_member_required
 from apps.core.rate_limit import RateLimiter
 from apps.core.template_resolver import get_tenant_template, render_tenant_template
+from apps.tenants.fonts import FONT_CHOICES
 from apps.tenants.forms import BrandingForm
 from apps.tenants.models import ClientSettings
 
@@ -317,6 +318,7 @@ def dashboard_branding(request):
         'client': client,
         'settings': settings_obj,
         'form': form,
+        'font_choices': FONT_CHOICES,
     }
     return render(request, 'dashboard/branding.html', context)
 

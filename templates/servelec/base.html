@@ -30,7 +30,7 @@
         --color-primary:   {{ client.settings.primary_color|default:"#16a34a" }};
         --color-secondary: {{ client.settings.secondary_color|default:"#15803d" }};
         --color-accent:    {{ client.settings.accent_color|default:"#22c55e" }};
-        --font-sans:       'Inter';
+        --font-sans:       '{{ client.settings.font_family|default:"Inter" }}';
         --font-display:    'Outfit';
     }
 
