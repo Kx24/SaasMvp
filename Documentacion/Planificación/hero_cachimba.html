@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rancho Interactivo Cachimba · Hero de dos fotos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --verde-rancho:#064B20;
+  --verde-bosque:#0B642B;
+  --amarillo:#FFD500;
+  --amarillo-dorado:#EFB900;
+  --blanco:#FFFFFF;
+  --verde-claro:#EAF4EC;
+  --tierra:#6B4F32;
+  --carbon:#172019;
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--carbon);background:var(--blanco);-webkit-font-smoothing:antialiased}
+
+/* ── Tartán construido con la paleta de marca ───────────────── */
+.tartan{
+  background-color:var(--verde-rancho);
+  background-image:
+    repeating-linear-gradient(90deg,rgba(11,100,43,.95) 0 20px,transparent 20px 50px,rgba(107,79,50,.6) 50px 60px,transparent 60px 100px),
+    repeating-linear-gradient(0deg, rgba(11,100,43,.95) 0 20px,transparent 20px 50px,rgba(107,79,50,.6) 50px 60px,transparent 60px 100px),
+    repeating-linear-gradient(90deg,rgba(255,213,0,.9) 0 2px,transparent 2px 100px),
+    repeating-linear-gradient(0deg, rgba(255,213,0,.9) 0 2px,transparent 2px 100px);
+}
+
+/* ── Barra utilidad ─────────────────────────────────────────── */
+.util{background:var(--carbon);color:rgba(255,255,255,.72);font-size:12px;padding:7px 0}
+.util .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.util b{color:var(--amarillo);font-weight:600}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+
+/* ── Navbar ─────────────────────────────────────────────────── */
+nav{background:var(--verde-rancho);position:sticky;top:0;z-index:40}
+nav .wrap{display:flex;align-items:center;gap:28px;height:76px}
+.logo{
+  width:118px;height:52px;border:1.5px dashed rgba(255,213,0,.55);border-radius:8px;
+  display:grid;place-items:center;color:var(--amarillo);font-size:10px;text-align:center;
+  line-height:1.25;letter-spacing:.03em;flex:none
+}
+nav ul{list-style:none;display:flex;gap:26px;margin-left:auto}
+nav a{color:rgba(255,255,255,.9);text-decoration:none;font-size:14px;font-weight:500;padding:6px 0;border-bottom:2px solid transparent}
+nav a:hover{color:var(--amarillo);border-bottom-color:var(--amarillo)}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;
+  font-family:var(--sans);font-weight:600;text-decoration:none;transition:.16s;
+}
+.btn-primary{background:var(--amarillo);color:var(--verde-rancho);padding:13px 24px;border-radius:8px;font-size:15px}
+.btn-primary:hover{background:var(--amarillo-dorado)}
+.btn-ghost{background:transparent;color:var(--blanco);padding:13px 22px;border-radius:8px;border:1.5px solid rgba(255,255,255,.42);font-size:15px}
+.btn-ghost:hover{border-color:var(--amarillo);color:var(--amarillo)}
+.btn-sm{padding:9px 17px;font-size:13.5px;border-radius:7px}
+
+/* ── HERO de dos fotos ──────────────────────────────────────── */
+.hero{position:relative;background:var(--verde-rancho);overflow:hidden}
+.hero-grid{
+  display:grid;grid-template-columns:1.32fr 10px 1fr;
+  min-height:600px;align-items:stretch;
+}
+.hero.equilibrado .hero-grid{grid-template-columns:1fr 10px 1fr}
+
+.shot{position:relative;overflow:hidden;background:#0a3d1c}
+.shot .ph{
+  position:absolute;inset:0;display:grid;place-content:center;gap:9px;text-align:center;
+  color:rgba(255,255,255,.62);font-size:12.5px;letter-spacing:.05em;padding:24px;
+}
+.shot .ph .k{
+  font-family:var(--serif);font-size:19px;color:var(--amarillo);letter-spacing:0;font-weight:600
+}
+.shot .ph .n{font-size:11.5px;line-height:1.7;max-width:280px;margin:0 auto;color:rgba(255,255,255,.5)}
+.shot-a .ph{background:
+  linear-gradient(150deg,rgba(6,75,32,.55),rgba(23,32,25,.9)),
+  repeating-linear-gradient(45deg,rgba(255,255,255,.028) 0 12px,transparent 12px 24px)}
+.shot-b .ph{background:
+  linear-gradient(150deg,rgba(107,79,50,.5),rgba(6,75,32,.88)),
+  repeating-linear-gradient(45deg,rgba(255,255,255,.028) 0 12px,transparent 12px 24px)}
+
+/* costura tartán vertical entre las dos fotos */
+.seam{position:relative}
+.seam::after{content:"";position:absolute;inset:0}
+
+/* la foto B baja un poco: rompe la simetría */
+.shot-b{margin-top:0}
+.hero:not(.equilibrado) .shot-b{margin-top:64px;margin-bottom:-64px}
+
+/* bloque de texto que invade la foto A */
+.hero-copy{
+  position:absolute;left:0;bottom:0;width:min(640px,58%);
+  background:linear-gradient(90deg,var(--verde-rancho) 68%,rgba(6,75,32,.92));
+  padding:40px 46px 42px 28px;z-index:5;
+}
+.hero-copy::before{
+  content:"";position:absolute;left:0;right:0;top:-10px;height:10px;
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;color:var(--amarillo);
+  font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;margin-bottom:16px
+}
+.eyebrow .rule{width:34px;height:2px;background:var(--amarillo);display:block}
+h1{
+  font-family:var(--serif);font-size:clamp(34px,4.1vw,56px);line-height:1.04;
+  color:var(--blanco);font-weight:600;letter-spacing:-.018em;margin-bottom:16px;
+}
+h1 em{font-style:italic;color:var(--amarillo)}
+.lede{color:rgba(255,255,255,.82);font-size:16px;line-height:1.6;max-width:46ch;margin-bottom:26px}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap}
+
+/* etiquetas de directriz sobre cada foto */
+.pill{
+  position:absolute;z-index:6;background:rgba(23,32,25,.82);backdrop-filter:blur(4px);
+  color:var(--blanco);font-size:11px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
+  padding:7px 13px;border-radius:999px;border:1px solid rgba(255,213,0,.35);
+}
+.pill.a{top:26px;left:28px}
+.pill.b{top:90px;right:28px}
+.hero.equilibrado .pill.b{top:26px}
+
+/* ── Franja de datos ────────────────────────────────────────── */
+.stats{background:var(--verde-claro);border-top:none}
+.stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.stat{padding:26px 20px 24px;text-align:left}
+.stat .n{font-family:var(--serif);font-size:38px;line-height:1;color:var(--verde-rancho);font-weight:700}
+.stat .l{font-size:12.5px;color:#4a5a4f;margin-top:8px;line-height:1.4}
+.stat + .stat{border-left:1px solid rgba(6,75,32,.13)}
+.band{height:10px}
+
+/* ── Overlay mapa de componentes ────────────────────────────── */
+.ann{position:absolute;z-index:30;background:var(--amarillo);color:var(--verde-rancho);
+  font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:5px;font-family:ui-monospace,Menlo,monospace;
+  box-shadow:0 2px 10px rgba(0,0,0,.35);display:none;letter-spacing:.02em}
+body.map .ann{display:block}
+body.map .shot,body.map .hero-copy,body.map .stat,body.map nav .wrap{outline:1.5px dashed rgba(255,213,0,.75);outline-offset:-3px}
+
+.ctrl{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ctrl button{
+  background:var(--carbon);color:var(--blanco);border:1px solid rgba(255,255,255,.2);
+  padding:10px 15px;border-radius:9px;font-size:12.5px;cursor:pointer;font-family:var(--sans);font-weight:500
+}
+.ctrl button:hover{border-color:var(--amarillo);color:var(--amarillo)}
+.ctrl button.on{background:var(--amarillo);color:var(--verde-rancho);border-color:var(--amarillo);font-weight:600}
+
+/* ── Nota inferior ──────────────────────────────────────────── */
+.notes{padding:44px 0 70px;background:var(--blanco)}
+.notes h2{font-family:var(--serif);font-size:22px;color:var(--verde-rancho);margin-bottom:6px;font-weight:600}
+.notes p.sub{color:#5c6a60;font-size:13.5px;margin-bottom:22px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;background:var(--verde-rancho);color:#fff;padding:10px 13px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.tbl td{padding:10px 13px;border-bottom:1px solid #e6ece8;vertical-align:top}
+.tbl tr:nth-child(even) td{background:#fafcfa}
+.tbl code{background:var(--verde-claro);color:var(--verde-rancho);padding:1px 6px;border-radius:4px;font-size:12px}
+.chip{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:5px;font-weight:600}
+.chip.new{background:#fff3c4;color:#7a5c00}
+.chip.re{background:var(--verde-claro);color:var(--verde-rancho)}
+.chip.mod{background:#f3e6da;color:var(--tierra)}
+
+@media(max-width:900px){
+  .hero-grid{grid-template-columns:1fr;min-height:0}
+  .hero .seam{height:10px}
+  .hero:not(.equilibrado) .shot-b{margin:0}
+  .shot{min-height:260px}
+  .hero-copy{position:static;width:100%;padding:32px 28px 36px;background:var(--verde-rancho)}
+  .pill.b{top:auto;bottom:16px;right:16px}
+  .stats .wrap{grid-template-columns:repeat(2,1fr)}
+  .stat + .stat{border-left:none}
+  nav ul{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="util"><div class="wrap">
+  <span>Maullín · Región de Los Lagos</span>
+  <span>Visitas con reserva previa · <b>+56 9 ---- ----</b></span>
+</div></div>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">LOGO<br>CACHIMBA</div>
+    <ul>
+      <li><a href="#">El Rancho</a></li>
+      <li><a href="#">Experiencias</a></li>
+      <li><a href="#">El Pastor</a></li>
+      <li><a href="#">Visitar</a></li>
+    </ul>
+    <a class="btn btn-primary btn-sm" href="#">Reservar visita</a>
+    <span class="ann" style="top:6px;left:28px">components/navbar.html</span>
+  </div>
+</nav>
+
+<section class="hero" id="hero">
+  <div class="hero-grid">
+
+    <div class="shot shot-a">
+      <div class="ph">
+        <div class="k">FOTO A · Pastoreo</div>
+        <div>vertical 4:5 → recorte 3:4 en desktop</div>
+        <div class="n">Border collie en plena faena, ovejas en movimiento, pastor al fondo desenfocado. Luz baja de tarde. Tratamiento con más contraste y algo desaturada.</div>
+      </div>
+      <span class="pill a">El oficio</span>
+      <span class="ann" style="top:56px;left:28px">slot: hero_media_a</span>
+    </div>
+
+    <div class="seam tartan"></div>
+
+    <div class="shot shot-b">
+      <div class="ph">
+        <div class="k">FOTO B · Granja</div>
+        <div>vertical 4:5</div>
+        <div class="n">Niño o visitante con un animal — ciervo, burro o gallina. Contacto real, no pose. Luz cálida, tratamiento más saturado y suave que la foto A.</div>
+      </div>
+      <span class="pill b">La visita</span>
+      <span class="ann" style="top:120px;right:28px">slot: hero_media_b</span>
+    </div>
+
+  </div>
+
+  <div class="hero-copy">
+    <span class="eyebrow"><span class="rule"></span> Rancho Interactivo · Maullín</span>
+    <h1>Un rancho que se recorre.<br>Un oficio que <em>se mira en vivo</em>.</h1>
+    <p class="lede">Ciervos, burros, gallinas y pavos que puedes tocar — y demostraciones de pastoreo con border collies de competencia internacional.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#">Reservar visita</a>
+      <a class="btn btn-ghost" href="#">Ver el pastoreo →</a>
+    </div>
+    <span class="ann" style="top:-9px;left:28px">components/hero.html + hero_ctas.html</span>
+  </div>
+</section>
+
+<div class="band tartan"></div>
+
+<section class="stats">
+  <div class="wrap">
+    <div class="stat"><div class="n">8+</div><div class="l">especies para conocer de cerca</div>
+      <span class="ann" style="margin-top:6px;position:static;display:none">components/stats.html</span></div>
+    <div class="stat"><div class="n">—</div><div class="l">años criando border collies</div></div>
+    <div class="stat"><div class="n">—</div><div class="l">torneos internacionales</div></div>
+    <div class="stat"><div class="n">Maullín</div><div class="l">a — min de Puerto Montt</div></div>
+  </div>
+</section>
+
+<section class="notes">
+  <div class="wrap">
+    <h2>Mapa de componentes del hero</h2>
+    <p class="sub">Qué se reutiliza tal cual, qué se generaliza y qué es nuevo. La columna de la derecha es lo que hay que cambiar para que el componente sirva a los tres tenants, no solo a este.</p>
+    <table class="tbl">
+      <thead><tr><th style="width:24%">Componente</th><th style="width:13%">Estado</th><th>Qué hay que hacerle para que sea reutilizable</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>components/navbar.html</code></td>
+          <td><span class="chip re">Reutilizar</span></td>
+          <td>Ya existe compartido. Falta que el CTA del extremo derecho sea configurable por tenant (texto + destino) en vez de venir fijo por tema.</td>
+        </tr>
+        <tr>
+          <td><code>hero.html</code></td>
+          <td><span class="chip mod">Generalizar</span></td>
+          <td>Hoy existen tres versiones distintas (<code>servelec</code>, <code>andesscale</code>, <code>themes/default</code>). Proponer un solo <code>hero</code> con variante <code>layout</code>: <code>single</code> | <code>split</code>. Cachimba estrena <code>split</code>; Servelec sigue en <code>single</code> sin tocar nada.</td>
+        </tr>
+        <tr>
+          <td><code>slots/hero_media_a</code> · <code>_b</code></td>
+          <td><span class="chip new">Nuevo</span></td>
+          <td>Dos slots de media en vez de uno. Encaja con el patrón CDCA que ya usas: se resuelven por <code>MEDIA_SLOTS</code> y <code>slot_template</code>. <strong>Depende de la decisión de <code>#RC-02</code></strong> — si la galería no aguanta dos slots, esto se ata a <code>#DEUDA-02</code>.</td>
+        </tr>
+        <tr>
+          <td><code>hero_ctas.html</code></td>
+          <td><span class="chip re">Reutilizar</span></td>
+          <td>Existe en <code>servelec</code> y <code>themes/default</code>. Mover a <code>components/</code> compartido y parametrizar cantidad de botones (1 o 2) y estilo del secundario.</td>
+        </tr>
+        <tr>
+          <td><code>hero_overlay.html</code></td>
+          <td><span class="chip mod">Generalizar</span></td>
+          <td>Aquí el overlay no es una capa sobre la foto sino un bloque sólido que la invade. Agregar variante <code>mode="block"</code> junto a la actual <code>mode="scrim"</code>.</td>
+        </tr>
+        <tr>
+          <td><code>stats.html</code></td>
+          <td><span class="chip re">Reutilizar</span></td>
+          <td>Existe en <code>servelec</code>. Subirlo a <code>components/</code> y alimentarlo desde el CMS en vez de hardcodear los números en el template.</td>
+        </tr>
+        <tr>
+          <td><code>tartan</code> (franja / costura)</td>
+          <td><span class="chip new">Nuevo</span></td>
+          <td>Es CSS puro, cero imágenes: cuatro <code>repeating-linear-gradient</code> con los hex de la guía. Va en el CSS del tema, no como componente. Sirve igual en redes sociales — el diseñador puede exportarlo como patrón.</td>
+        </tr>
+        <tr>
+          <td><code>components/footer.html</code></td>
+          <td><span class="chip re">Reutilizar</span></td>
+          <td>Ya compartido. Solo verificar contraste del texto secundario sobre <code>#064B20</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="ctrl">
+  <button id="b-layout">Composición: pastoreo dominante</button>
+  <button id="b-map">Ver mapa de componentes</button>
+</div>
+
+<script>
+const hero = document.getElementById('hero');
+const bl = document.getElementById('b-layout');
+const bm = document.getElementById('b-map');
+
+bl.addEventListener('click', ()=>{
+  hero.classList.toggle('equilibrado');
+  bl.textContent = hero.classList.contains('equilibrado')
+    ? 'Composición: 50 / 50 equilibrado'
+    : 'Composición: pastoreo dominante';
+});
+
+bm.addEventListener('click', ()=>{
+  document.body.classList.toggle('map');
+  bm.classList.toggle('on');
+  bm.textContent = document.body.classList.contains('map')
+    ? 'Ocultar mapa de componentes'
+    : 'Ver mapa de componentes';
+});
+</script>
+</body>
+</html>
