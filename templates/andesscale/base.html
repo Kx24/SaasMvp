@@ -1,6 +1,5 @@
 {% load static %}
 {% load seo_tags %}
-{% load tenant_tags %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% seo_tags page_key|default:"home" %}
     {% block extra_seo %}{% endblock %}
-    {% tenant_custom_css %}
 
     {% if client.settings.favicon %}
     <link rel="icon" href="{{ client.settings.favicon.url }}">
