@@ -61,6 +61,18 @@
 
     body { font-family: var(--font-sans), system-ui, sans-serif; }
 
+    /* Patrón de tartán reutilizable (RC-BOLT-04) — CSS puro, tokens de
+       marca, cero imágenes. Único lugar que define este patrón en el
+       tema: úsese esta clase, no repetir los gradientes inline. */
+    .tartan {
+        background-color: var(--color-primary);
+        background-image:
+            repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-secondary) 95%, transparent) 0 20px, transparent 20px 50px, color-mix(in srgb, var(--tierra) 60%, transparent) 50px 60px, transparent 60px 100px),
+            repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-secondary) 95%, transparent) 0 20px, transparent 20px 50px, color-mix(in srgb, var(--tierra) 60%, transparent) 50px 60px, transparent 60px 100px),
+            repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 90%, transparent) 0 2px, transparent 2px 100px),
+            repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-accent) 90%, transparent) 0 2px, transparent 2px 100px);
+    }
+
     .text-gradient {
         background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
         -webkit-background-clip: text;

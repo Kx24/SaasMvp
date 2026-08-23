@@ -30,15 +30,8 @@
     /* la foto B baja un poco: rompe la simetría, como en el mockup aprobado */
     .hero-split .shot-b{margin-top:64px;margin-bottom:-64px;}
 
-    /* costura tartán entre las dos fotos — CSS puro, tokens de marca */
-    .hero-split .seam{
-        background-color:var(--color-primary);
-        background-image:
-            repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-secondary) 95%, transparent) 0 20px, transparent 20px 50px, color-mix(in srgb, var(--tierra) 60%, transparent) 50px 60px, transparent 60px 100px),
-            repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-secondary) 95%, transparent) 0 20px, transparent 20px 50px, color-mix(in srgb, var(--tierra) 60%, transparent) 50px 60px, transparent 60px 100px),
-            repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 90%, transparent) 0 2px, transparent 2px 100px),
-            repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-accent) 90%, transparent) 0 2px, transparent 2px 100px);
-    }
+    /* costura tartán entre las dos fotos: patrón definido en .tartan
+       (base.html del tema, RC-BOLT-04) — acá solo el sizing de la columna */
 
     .hero-split .pill{
         position:absolute;z-index:6;background:color-mix(in srgb, var(--carbon) 82%, transparent);
@@ -87,7 +80,7 @@
             <span class="pill a">El oficio</span>
         </div>
 
-        <div class="seam"></div>
+        <div class="seam tartan"></div>
 
         <div class="shot shot-b">
             {% if hero_media.1 %}

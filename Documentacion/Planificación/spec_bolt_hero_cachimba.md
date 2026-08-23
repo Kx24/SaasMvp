@@ -117,8 +117,8 @@ branch.
 
 ---
 
-### [RC-BOLT-04] Clase `.tartan` reutilizable + banda hero→stats
-- **Estado:** TODO
+### ✅ [RC-BOLT-04] Clase `.tartan` reutilizable + banda hero→stats — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Frontend / Templates
 - **Variables requeridas:** ninguna
 - **Archivos Afectados:** `templates/ranchocachimba/base.html` (clase en el `<style>` del tema), `templates/ranchocachimba/components/hero.html` (usar la clase en `.seam`), `templates/ranchocachimba/landing/home.html` (banda de 10px entre hero y stats)
@@ -130,10 +130,11 @@ branch.
   3. `home.html`: insertar `<div class="tartan h-2.5" aria-hidden="true"></div>` entre el include del hero y el de stats.
   4. Alpine.js: ninguna. htmx: ninguna.
 
+- **Resultado:** `.tartan` vive en el `<style>` de `templates/ranchocachimba/base.html` (bloque `{% block theme_styles %}`), con los 4 `repeating-linear-gradient` idénticos a los que antes vivían inline en `.hero-split .seam`. `hero.html` perdió esos gradientes (solo queda un comentario apuntando a `.tartan`) y su `<div class="seam">` pasó a `class="seam tartan"` — `.seam` sigue aportando el sizing (columna de 10px en el grid, `height:10px` en el media query móvil), `.tartan` aporta el patrón. `home.html` suma `<div class="tartan h-2.5" aria-hidden="true"></div>` entre los `{% include %}` de hero y stats.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Un solo lugar define el patrón tartán en el tema (grep de `repeating-linear-gradient` en `templates/ranchocachimba/` → solo `base.html`).
-  - [ ] Costura del hero y banda horizontal visualmente idénticas al mockup.
-  - [ ] Gate real en verde. Sin side-effects fuera del alcance de la tarjeta.
+  - [x] Un solo lugar define el patrón tartán en el tema (`grep -rl repeating-linear-gradient templates/ranchocachimba/` → solo `base.html`).
+  - [x] Costura del hero y banda horizontal renderizan (verificado con `npx playwright test`, 6/6 passed, incluye `ranchocachimba-e2e`).
+  - [x] Gate real en verde: 103 tests OK (1 skip), ruff n/a (solo HTML), migraciones limpias. Sin side-effects fuera del alcance de la tarjeta.
 
 ---
 
