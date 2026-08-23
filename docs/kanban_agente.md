@@ -257,18 +257,18 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Cero errores en Linter: ruff en verde (intentos: 1).
   - [x] Sin side-effects: los tests de rendering existentes de los temas siguen verdes; único "cambio visual" = el hallazgo incidental documentado.
 
-### [BOLT-07] CTA del navbar compartido configurable por tenant
-- **Estado:** TODO
+### ✅ [BOLT-07] CTA del navbar compartido configurable por tenant — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Multi-tenant
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `apps/tenants/models.py` (`ClientSettings`: 2 campos nuevos) + migración, `templates/components/navbar.html`, test de rendering en `apps/website/tests/`
-- **Contexto:** del mapa de componentes del análisis de diseño (`#RC-20` del maestro): el CTA principal del navbar debe ser configurable por tenant (texto + destino), no fijo por tema. El `templates/components/navbar.html` compartido (consumido por `themes/default` y `themes/electricidad`, verificado por grep) hoy **no tiene CTA de tenant** — solo links de auth. Nota de estado conocido: ese template aún interpola `primary_color` como hex inline (pre-`#AUD-11`); si se toca esa zona, migrarla a `var(--color-primary)` es parte del alcance.
-- **Spec ejecutable:** `ClientSettings.navbar_cta_text` y `navbar_cta_url` (CharField/URLField-o-CharField para permitir anclas `#contacto`, `blank=True`); el navbar compartido renderiza el botón CTA solo si `navbar_cta_text` está seteado (sin valor → comportamiento actual, sin botón), estilizado con tokens (`var(--color-accent)`/`var(--color-primary)`), desktop y móvil. Los navbars propios de `servelec`/`andesscale` no se tocan (pueden adoptar los campos en una card futura). Exposición en `BrandingForm` del dashboard: fuera de alcance (card aparte si el usuario la pide).
+- **Archivos Afectados:** `apps/tenants/models.py` (+migración `0023`), `templates/components/navbar_cta.html` (**nuevo** — única fuente del markup), `templates/components/navbar.html`, `templates/themes/default/components/navbar.html` y `templates/themes/electricidad/components/navbar.html` (includes de 1 línea), `apps/website/tests/test_navbar_cta.py` (4 tests)
+- **⚠️ Hallazgo del piloto (premisa de la card incorrecta):** el `components/navbar.html` compartido está **shadowed**: `themes/default` y `themes/electricidad` tienen su propio `components/navbar.html` y el `TenantTemplateLoader` los resuelve primero — el "consumido por ambos temas, verificado por grep" vio los `{% include %}` de los `base.html`, no la resolución real del loader. El CTA implementado solo en el compartido no renderizaba nunca para esos temas (descubierto por el test en rojo tras la primera implementación).
+- **Resultado:** `ClientSettings.navbar_cta_text` (max 60) y `navbar_cta_url` (CharField 255 — permite anclas `#contacto`), `blank=True` con default `''`. El markup del botón vive UNA sola vez en `components/navbar_cta.html` (parámetro `mode='mobile'`, mismo patrón que `media_collection`), incluido desde el navbar compartido y los dos overrides de tema (desktop + móvil en cada uno). Estilo con `var(--color-accent, var(--color-primary))` — compatible con la guardia de BOLT-06 (tokens en la intersección de contratos). Sin `navbar_cta_text` → cero cambios de HTML. `BrandingForm`: fuera de alcance, como pedía la card.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Test escrito (Red → Green): tenant de `themes/default` con `navbar_cta_text='Reservar visita'`/`navbar_cta_url='#contacto'` renderiza el botón con ese texto y href (rojo: hoy no existe); tenant sin setear los campos no muestra botón nuevo y el HTML actual no cambia.
-  - [ ] Implementación mínima que pase la suite de pruebas; migración incluida (`makemigrations --check` limpio).
-  - [ ] Cero errores en Linter (`ruff check`).
-  - [ ] Sin side-effects fuera del alcance de la tarjeta (navbars de `servelec`/`andesscale` intactos; smoke Playwright 6/6 si se corre).
+  - [x] Test Red → Green: rojo estructural (`FieldError`, campos inexistentes) + rojo conductual clave (CTA en el compartido no renderizaba por el shadowing — llevó al diseño correcto). Verde: texto+href renderizados, `count=2` (desktop+móvil), tokens presentes junto al botón, tenant sin CTA sin botón nuevo.
+  - [x] Implementación mínima + migración `0023` incluida; `makemigrations --check` limpio.
+  - [x] Cero errores en Linter (intentos: 2 — el 1º falló por I001+3×F401 **preexistentes** en `apps/tenants/models.py`, activados al tocar el archivo; autofix de ruff, solo imports).
+  - [x] Sin side-effects: navbars de `servelec`/`andesscale` intactos; suite completa en verde (150 tests).
 
 ### [BOLT-08] Generalizar `hero_ctas` a `templates/components/` (`design-system` §2a)
 - **Estado:** TODO
@@ -318,5 +318,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-23 | BOLT-04 | DONE | 133 tests OK (5 skip) / ruff limpio (5 archivos) / migraciones limpias | `9e8ab83` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-05 | DONE | 143 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | `40ffbfa` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-06 | DONE | 146 tests OK (5 skip) / ruff limpio / migraciones limpias | `bbbd99b` (`agent/ai-dlc-pilot`) |
+| 2026-08-23 | BOLT-07 | DONE | 150 tests OK (5 skip) / ruff limpio (3 archivos) / migración 0023 incluida | *(pendiente — se completa al commitear)* |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*

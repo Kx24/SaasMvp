@@ -8,13 +8,12 @@ Arquitectura:
 - ClientEmailSettings: Configuración de email por tenant
 - FormConfig: Configuración de formulario de contacto por tenant
 """
-from django.db import models
-from django.core.exceptions import ValidationError
-from django.utils.text import slugify
-from django.core.validators import MinValueValidator
 from cloudinary.models import CloudinaryField
+from django.db import models
+from django.utils.text import slugify
+
 from .fonts import FONT_CHOICES
-from apps.core.cloudinary_utils import cloudinary_upload_path
+
 
 # ==============================================================================
 class Client(models.Model):
@@ -284,6 +283,18 @@ class ClientSettings(models.Model):
     secondary_color = models.CharField(max_length=7, default='#1E40AF')
     accent_color = models.CharField(max_length=7, default='#F59E0B')
     font_family = models.CharField(max_length=100, choices=FONT_CHOICES, default='Inter')
+
+    # CTA principal del navbar compartido (BOLT-07, análisis de diseño #RC-20).
+    # CharField (no URLField) a propósito: permite anclas tipo '#contacto'.
+    # Sin navbar_cta_text el navbar no muestra botón (comportamiento previo).
+    navbar_cta_text = models.CharField(
+        max_length=60, blank=True, default='',
+        help_text="Texto del botón CTA del navbar (vacío = sin botón)",
+    )
+    navbar_cta_url = models.CharField(
+        max_length=255, blank=True, default='',
+        help_text="Destino del CTA: URL o ancla (ej: '#contacto')",
+    )
     
     # ==================== INFORMACIÓN ====================
     company_name = models.CharField(max_length=200, blank=True)
