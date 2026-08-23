@@ -75,11 +75,11 @@ branch.
 
 ---
 
-### [RC-BOLT-02] Barra de utilidad sobre el navbar
-- **Estado:** TODO
+### ✅ [RC-BOLT-02] Barra de utilidad sobre el navbar — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** Frontend / Templates
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `templates/ranchocachimba/components/utility_bar.html` (nuevo), `templates/ranchocachimba/base.html` (include)
+- **Archivos Afectados:** `templates/ranchocachimba/components/utility_bar.html` (nuevo), `templates/ranchocachimba/base.html` (include), `templates/ranchocachimba/components/navbar.html` (offset `top-8` — ver hallazgo 2)
 - **Contexto:** El mockup abre con una franja fina (`#172019` = `--carbon`) con ubicación ("Maullín · Región de Los Lagos") a la izquierda y "Visitas con reserva previa · **+56 9 ...**" (teléfono en `--color-accent`) a la derecha. No existe en ningún otro tema → por `#RC-09` es componente **de tema**, no de `templates/components/`.
 
 - **Spec ejecutable:**
@@ -88,11 +88,15 @@ branch.
   3. Datos desde `ClientSettings`: teléfono `client.settings.contact_phone` (link `tel:`), ubicación desde el campo de dirección/ciudad disponible en settings — no hardcodear "Maullín".
   4. Alpine.js: ninguna. htmx: ninguna. En móvil puede colapsar a una sola celda (ubicación) u ocultarse (`hidden sm:flex` en la derecha).
 
+- **Resultado:** `utility_bar.html` nuevo, incluido antes de `navbar.html` en `base.html`. Se renderiza siempre con altura fija `h-8` (32px) — aunque el tenant no tenga `address`/`contact_phone` configurados — para que el offset del navbar (ver hallazgo) tenga un valor estable de qué descontar, en vez de dejar un hueco en blanco cuando faltan datos. Ubicación: `client.settings.address` (no `city`, ese campo no existe en `ClientSettings` — ver hallazgo). Teléfono condicional a `contact_phone`, oculto en móvil (`hidden sm:flex`). Fondo `--carbon` vía una clase `.utility-bar` en un `<style>` propio del componente (no inline, mismo criterio que otros componentes del tema); acento del teléfono en `--color-accent`.
+  - **⚠️ Hallazgo 1 (premisa de la card ajustada):** `ClientSettings` no tiene un campo `city` separado — solo `address` (TextField). Se usa `address` solo, tal como permite el propio texto de la card ("campo de dirección/ciudad disponible en settings").
+  - **⚠️ Hallazgo 2 (coordinación con RC-BOLT-03, real, corregido acá):** la card original no listaba `navbar.html` en "Archivos Afectados", pero el navbar quedó `fixed top-0` en RC-BOLT-03 (ejecutada en esta misma sesión, minutos antes) — sin ajustar su offset, la barra nueva (también fija) habría quedado tapada por el navbar (mismo z-50, el navbar pinta encima por ir después en el DOM). Se cambió `top-0` → `top-8` en `navbar.html` (un solo valor, documentado con comentario) para que ambos se apilen sin superposición. Verificado con `boundingBox()` real vía Playwright: barra `y:0..32`, nav `y:32..110`, sin solapamiento.
+  - **⚠️ Hallazgo 3 (pre-existente, NO corregido — fuera de alcance de esta card):** el pill "El oficio" del hero (`hero.html`, `top:26px` dentro de `.shot-a`) queda oculto bajo el header fijo — esto ya pasaba **antes** de las 4 cards de hoy (el navbar ya era `fixed`/opaco con ~78px de alto, más que suficiente para tapar un elemento a 26px) porque `hero.html`/`home.html` nunca reservan espacio para el header fijo (`<main>` no tiene padding-top). El pill "La visita" (`top:90px` + `margin-top:64px` de `.shot-b`) sí queda visible (~154px, por debajo del header). No es un side-effect nuevo de esta card (el pill ya estaba 100% tapado antes de RC-BOLT-02), pero vale una card aparte para revisar el offset del contenido del hero contra el header fijo del tema.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Template creado en la ruta indicada respetando `#RC-09` (componente de tema, excepción por diseño único).
-  - [ ] Cero hex hardcodeados; solo tokens del `:root` del tema.
-  - [ ] Gate real en verde (tests + `makemigrations --check`).
-  - [ ] Sin side-effects fuera del alcance de la tarjeta.
+  - [x] Template creado en la ruta indicada respetando `#RC-09` (componente de tema, excepción por diseño único).
+  - [x] Cero hex hardcodeados; solo tokens del `:root` del tema (`--carbon`, `--color-accent`).
+  - [x] Gate real en verde: 103 tests OK (1 skip), ruff n/a, migraciones limpias. `npx playwright test` 6/6 passed + verificación de `boundingBox()` ad hoc (barra/nav sin solapamiento, no comiteada).
+  - [x] Sin side-effects fuera del alcance de la tarjeta más allá del ajuste de offset en `navbar.html`, documentado arriba como necesario para que la propia card funcione visualmente.
 
 ---
 

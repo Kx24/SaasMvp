@@ -1,0 +1,31 @@
+{% comment %}
+============================================================
+  BARRA DE UTILIDAD — Rancho Cachimba (RC-BOLT-02)
+  Franja fina sobre el navbar: ubicación + contacto rápido.
+  Componente DE TEMA (no templates/components/): diseño único de
+  este tema, sin equivalente en Servelec/andesscale/default (#RC-09).
+
+  Se renderiza siempre (h-8 fijo) aunque el tenant no tenga address/
+  contact_phone configurados -- así el offset "top-8" del navbar
+  (ver navbar.html) siempre calza con la altura real de esta franja,
+  en vez de dejar un hueco en blanco cuando faltan datos.
+============================================================
+{% endcomment %}
+<div class="utility-bar fixed top-0 inset-x-0 z-50 h-8 flex items-center">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 w-full flex items-center justify-between flex-wrap gap-4 text-xs">
+        <span class="text-white/72">{{ client.settings.address }}</span>
+
+        {% if client.settings.contact_phone %}
+        <span class="hidden sm:flex items-center gap-1.5 text-white/72">
+            Visitas con reserva previa ·
+            <a href="tel:{{ client.settings.contact_phone }}" class="font-semibold" style="color: var(--color-accent);">
+                {{ client.settings.contact_phone }}
+            </a>
+        </span>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .utility-bar { background: var(--carbon); }
+</style>
