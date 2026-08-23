@@ -167,6 +167,15 @@ CLOSE (actualizar card aquí + commit único con ID)
 > Seleccionados del kanban maestro por ser 100 % ejecutables desde el repo (sin secretos, sin insumos
 > del cliente, sin dashboards externos), de bajo acoplamiento entre sí y de 15–45 min cada uno.
 > Orden sugerido: BOLT-01 primero (asegura terreno firme); el resto es independiente.
+>
+> **BOLT-06..08 (agregados 2026-08-24):** derivan del análisis de diseño del hero de Rancho Cachimba
+> (`#RC-20` del maestro; spec detallada en `Documentacion/Planificación/spec_bolt_hero_cachimba.md`,
+> **en `feature/RanchocachimbaEtapa1` — no visible desde esta branch**, el contexto necesario está
+> copiado en cada card). Son la parte *de plataforma / system design* de ese análisis: mejoran a todos
+> los tenants y tocan solo código que existe en esta branch. La maquetación Rancho-específica quedó
+> fuera del piloto (§0.4 intacta, ver §3). La generalización de `stats.html` a componente compartido
+> se excluyó a propósito: solo 2 temas lo tienen y con layouts distintos — forzarla sería el
+> anti-patrón del "flag de más" que `docs/design-system.md` §2b prohíbe.
 
 ### [BOLT-01] Confirmar suite en verde tras el retiro de `apps/core/managers.py`
 - **Estado:** TODO
@@ -232,6 +241,45 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [ ] Cero errores en Linter (`ruff check`).
   - [ ] Sin side-effects fuera del alcance de la tarjeta (el comando sigue sin modificar datos — es solo lectura, como hoy).
 
+### [BOLT-06] Guardia del contrato de tokens CSS (`docs/design-system.md` §1)
+- **Estado:** TODO
+- **Componente:** UI
+- **Variables requeridas:** ninguna
+- **Archivos Afectados:** `apps/core/tests/test_theme_token_contract.py` (nuevo); temas solo si el test expone una violación vigente (arreglarla en la misma card como hallazgo incidental)
+- **Contexto:** al auditar el hero de Cachimba contra su tema (2026-08-24, feature branch) se encontraron **114 usos de `var(--primary|--secondary|--accent)` que ningún `:root` define** — los componentes consumían nombres cortos mientras el contrato define `--color-*`. La clase de bug es general y silenciosa (CSS inválido no lanza error): nada verifica que un tema consuma solo variables definidas. Mismo patrón de test anti-regresión que el de `CLOUDINARY_PRESETS` en `#AUD-10` (estático sobre el código fuente, sin runtime).
+- **Spec ejecutable:** test que, por cada tema presente en esta branch (`andesscale`, `servelec`, `themes/default`, `themes/electricidad`), recolecte las custom properties definidas en el bloque `:root` de su `base.html` y escanee por regex todos los `.html` del tema (más `templates/components/` compartidos, contra la intersección de contratos) exigiendo que todo `var(--x)` consumido esté definido, con whitelist para variables generadas (`--tw-*`). El rojo del arnés se demuestra con una violación sintética inyectada en el propio test (fixture de template inválido), no rompiendo un tema real. Cuando la branch de Rancho se integre, este test atrapará sus 114 usos rotos automáticamente.
+- **Definición de Terminado (DoD Verificable):**
+  - [ ] Test escrito que exprese la funcionalidad (Red → Green con la violación sintética; si un tema actual ya viola el contrato, el test lo expone y se corrige aquí, documentado como hallazgo incidental).
+  - [ ] Implementación mínima que pase la suite de pruebas.
+  - [ ] Cero errores en Linter (`ruff check`).
+  - [ ] Sin side-effects fuera del alcance de la tarjeta (cero cambios visuales en los temas salvo hallazgo incidental documentado).
+
+### [BOLT-07] CTA del navbar compartido configurable por tenant
+- **Estado:** TODO
+- **Componente:** Multi-tenant
+- **Variables requeridas:** ninguna
+- **Archivos Afectados:** `apps/tenants/models.py` (`ClientSettings`: 2 campos nuevos) + migración, `templates/components/navbar.html`, test de rendering en `apps/website/tests/`
+- **Contexto:** del mapa de componentes del análisis de diseño (`#RC-20` del maestro): el CTA principal del navbar debe ser configurable por tenant (texto + destino), no fijo por tema. El `templates/components/navbar.html` compartido (consumido por `themes/default` y `themes/electricidad`, verificado por grep) hoy **no tiene CTA de tenant** — solo links de auth. Nota de estado conocido: ese template aún interpola `primary_color` como hex inline (pre-`#AUD-11`); si se toca esa zona, migrarla a `var(--color-primary)` es parte del alcance.
+- **Spec ejecutable:** `ClientSettings.navbar_cta_text` y `navbar_cta_url` (CharField/URLField-o-CharField para permitir anclas `#contacto`, `blank=True`); el navbar compartido renderiza el botón CTA solo si `navbar_cta_text` está seteado (sin valor → comportamiento actual, sin botón), estilizado con tokens (`var(--color-accent)`/`var(--color-primary)`), desktop y móvil. Los navbars propios de `servelec`/`andesscale` no se tocan (pueden adoptar los campos en una card futura). Exposición en `BrandingForm` del dashboard: fuera de alcance (card aparte si el usuario la pide).
+- **Definición de Terminado (DoD Verificable):**
+  - [ ] Test escrito (Red → Green): tenant de `themes/default` con `navbar_cta_text='Reservar visita'`/`navbar_cta_url='#contacto'` renderiza el botón con ese texto y href (rojo: hoy no existe); tenant sin setear los campos no muestra botón nuevo y el HTML actual no cambia.
+  - [ ] Implementación mínima que pase la suite de pruebas; migración incluida (`makemigrations --check` limpio).
+  - [ ] Cero errores en Linter (`ruff check`).
+  - [ ] Sin side-effects fuera del alcance de la tarjeta (navbars de `servelec`/`andesscale` intactos; smoke Playwright 6/6 si se corre).
+
+### [BOLT-08] Generalizar `hero_ctas` a `templates/components/` (`design-system` §2a)
+- **Estado:** TODO
+- **Componente:** UI
+- **Variables requeridas:** ninguna
+- **Archivos Afectados:** `templates/components/hero_ctas.html` (nuevo), `templates/servelec/components/hero_ctas.html` y `templates/themes/default/components/hero_ctas.html` (pasan a wrappers o se retiran según cómo los consuma cada `hero.html`), tests de rendering existentes de esos temas
+- **Contexto:** caso legítimo de la regla `#RC-09`/§2a: `hero_ctas.html` existe en 2 temas de esta branch (`servelec`, `themes/default` — verificado). Precedente a imitar: `components/media_collection.html` (parámetro de modo + slots de override por ruta de template — no un "flag de más", §2b).
+- **Spec ejecutable:** componente compartido parametrizado con `{% include ... with %}`: textos/hrefs de primario y secundario, cantidad de botones (1 o 2 — el secundario solo se renderiza si recibe texto), y estilo del secundario vía parámetro simple u override por ruta de template si los estilos divergen de verdad. Cada tema queda con un wrapper de pocas líneas (o un `include` directo con parámetros desde su `hero.html`) que produce el mismo HTML visible que hoy. El tema de Rancho no existe en esta branch — no adaptarlo aquí (lo hará `#RC-20` al integrarse).
+- **Definición de Terminado (DoD Verificable):**
+  - [ ] Test escrito (Red → Green): rendering del home de `servelec` y `themes/default` contiene sus CTAs actuales (texto + href) servidos desde el componente compartido; el rojo se confirma sobre la ausencia del componente compartido antes del cambio.
+  - [ ] `grep` confirma que la estructura de botones vive en un solo archivo (los archivos por tema son wrappers/parámetros, sin duplicar el markup).
+  - [ ] Cero errores en Linter (`ruff check`) y suite completa en verde.
+  - [ ] Sin side-effects fuera del alcance de la tarjeta (HTML visible de ambos temas equivalente al actual; smoke Playwright 6/6 si se corre).
+
 ---
 
 ## §3 · BLOQUEADAS — requieren insumos externos (NO tomar, NO preguntar)
@@ -248,7 +296,7 @@ CLOSE (actualizar card aquí + commit único con ID)
 | `#MED-01` (cabo) | Confirmar cron `*/5` en plan free de Render | Dashboard de Render |
 | `#SEC-03` | Inventario de secretos + política de rotación | Lista real de env vars en Render (solo el usuario la ve) |
 | `#MED-04` (mitad manual) | Prueba visual en Gmail/Outlook móvil | Casillas reales del usuario (la mitad automatizable puede promoverse a bolt cuando se agote §2) |
-| `#RC-*` completo | Todo Rancho Cachimba | **En pausa por decisión del usuario** — prohibido por §0.4 |
+| `#RC-*` completo | Todo Rancho Cachimba (incluida la maquetación del hero: `#RC-20` del maestro, cards `RC-BOLT-01..06` en `feature/RanchocachimbaEtapa1`) | **En pausa por decisión del usuario** — prohibido por §0.4. Las generalizaciones *de plataforma* derivadas de ese análisis de diseño sí son de este tablero: `BOLT-06..08` (§2) |
 | `#DEUDA-05` (cabo) | Eliminar login muerto de `apps/accounts/` | Decisión explícita del usuario |
 | `#DEUDA-05` (hallazgo nuevo, PILOT-02) | `.claude/skills/andesscale-saas/SKILL.md` nunca se commiteó en ninguna rama (solo vivía sin trackear en el checkout principal) — se copió a `agent/ai-dlc-pilot` para no bloquear PILOT-02, pero el checkout principal/`develop` siguen sin el commit real | Decisión del usuario: ¿commitear el skill en `develop`/`main`, o dejarlo intencionalmente local? |
 
