@@ -270,18 +270,18 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Cero errores en Linter (intentos: 2 — el 1º falló por I001+3×F401 **preexistentes** en `apps/tenants/models.py`, activados al tocar el archivo; autofix de ruff, solo imports).
   - [x] Sin side-effects: navbars de `servelec`/`andesscale` intactos; suite completa en verde (150 tests).
 
-### [BOLT-08] Generalizar `hero_ctas` a `templates/components/` (`design-system` §2a)
-- **Estado:** TODO
+### ✅ [BOLT-08] Generalizar `hero_ctas` a `templates/components/` (`design-system` §2a) — **DONE (2026-08-23)**
+- **Estado:** ✅ DONE (2026-08-23)
 - **Componente:** UI
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `templates/components/hero_ctas.html` (nuevo), `templates/servelec/components/hero_ctas.html` y `templates/themes/default/components/hero_ctas.html` (pasan a wrappers o se retiran según cómo los consuma cada `hero.html`), tests de rendering existentes de esos temas
-- **Contexto:** caso legítimo de la regla `#RC-09`/§2a: `hero_ctas.html` existe en 2 temas de esta branch (`servelec`, `themes/default` — verificado). Precedente a imitar: `components/media_collection.html` (parámetro de modo + slots de override por ruta de template — no un "flag de más", §2b).
-- **Spec ejecutable:** componente compartido parametrizado con `{% include ... with %}`: textos/hrefs de primario y secundario, cantidad de botones (1 o 2 — el secundario solo se renderiza si recibe texto), y estilo del secundario vía parámetro simple u override por ruta de template si los estilos divergen de verdad. Cada tema queda con un wrapper de pocas líneas (o un `include` directo con parámetros desde su `hero.html`) que produce el mismo HTML visible que hoy. El tema de Rancho no existe en esta branch — no adaptarlo aquí (lo hará `#RC-20` al integrarse).
+- **Archivos Afectados:** `templates/components/hero_ctas_base.html` (nuevo — única fuente del markup), `templates/servelec/components/hero_ctas.html` y `templates/themes/default/components/hero_ctas.html` (ahora wrappers de 1 `include` con parámetros), `apps/website/tests/test_hero_ctas_component.py` (nuevo, 5 tests)
+- **Decisión de naming (desviación del literal de la card, justificada):** el compartido NO se llama `components/hero_ctas.html` como pedía la card — el `TenantTemplateLoader` resolvería ese nombre al wrapper del tema activo (`{tema}/components/hero_ctas.html`) y el include del wrapper **recursaría sobre sí mismo**. Es el mismo shadowing descubierto en BOLT-07; se usó `hero_ctas_base.html` (documentado en el propio template).
+- **Resultado:** componente parametrizado imitando `media_collection`: `primary_text/href/style`, `secondary_text/href/style`; el secundario solo se renderiza si recibe texto (1 o 2 botones sin flags extra, §2b); defaults = tema default (tokens del contrato, compatibles con la guardia BOLT-06). Wrapper servelec preserva su verde de marca `#1DB954` y textos ('Solicitar cotización'/'Ver servicios'); wrapper default usa los defaults ('Contáctanos'/'Ver servicios'). HTML visible equivalente al anterior. Tema de Rancho: no existe en esta branch, no se adaptó (lo hará `#RC-20`).
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Test escrito (Red → Green): rendering del home de `servelec` y `themes/default` contiene sus CTAs actuales (texto + href) servidos desde el componente compartido; el rojo se confirma sobre la ausencia del componente compartido antes del cambio.
-  - [ ] `grep` confirma que la estructura de botones vive en un solo archivo (los archivos por tema son wrappers/parámetros, sin duplicar el markup).
-  - [ ] Cero errores en Linter (`ruff check`) y suite completa en verde.
-  - [ ] Sin side-effects fuera del alcance de la tarjeta (HTML visible de ambos temas equivalente al actual; smoke Playwright 6/6 si se corre).
+  - [x] Test Red → Green: rojo `TemplateDoesNotExist: components/hero_ctas_base.html` + wrappers con markup duplicado (fallo del test estático). Verde: CTAs actuales de ambos temas servidos desde el compartido (texto+href+estilo verificados), secundario omitido sin texto.
+  - [x] `grep` confirma markup en un solo archivo: 2 `<svg>` en `hero_ctas_base.html`, 0 en ambos wrappers (además hay test estático permanente que lo vigila).
+  - [x] Cero errores en Linter y suite completa en verde: gatekeeper 155 tests OK (5 skip, +5 de esta card), intentos: 1.
+  - [x] Sin side-effects: HTML visible equivalente; guardia de tokens (BOLT-06) verde dentro de la suite.
 
 ---
 
@@ -319,5 +319,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-23 | BOLT-05 | DONE | 143 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | `40ffbfa` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-06 | DONE | 146 tests OK (5 skip) / ruff limpio / migraciones limpias | `bbbd99b` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-07 | DONE | 150 tests OK (5 skip) / ruff limpio (3 archivos) / migración 0023 incluida | `0725d09` (`agent/ai-dlc-pilot`) |
+| 2026-08-23 | BOLT-08 | DONE | 155 tests OK (5 skip) / ruff limpio / migraciones limpias | *(pendiente — se completa al commitear)* |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*

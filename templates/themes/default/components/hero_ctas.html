@@ -1,32 +1,8 @@
-
 {% comment %}
-       CTAs fijos del tema default.
-       Se incluyen desde components/slots/hero_overlay.html
-       cuando el slide activo es el hero default (sin item).  
+Wrapper del tema default de los CTAs del hero (BOLT-08): solo parámetros,
+el markup vive en components/hero_ctas_base.html (los defaults del
+compartido SON los de este tema — tokens del contrato). Se incluye desde
+components/slots/hero_overlay.html cuando el slide activo es el hero
+default (sin item).
 {% endcomment %}
-
-                        
-<a href="#contacto"
-   class="group px-8 py-4 font-black rounded-lg inline-flex items-center
-          justify-center gap-3 transition-all duration-300
-          hover:opacity-90 hover:-translate-y-0.5"
-   style="background: var(--color-accent, #f59e0b); color: var(--color-primary, #2563eb);">
-    Contáctanos
-    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform"
-         fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-    </svg>
-</a>
-<a href="#servicios"
-   class="group px-8 py-4 font-bold rounded-lg inline-flex items-center
-          justify-center gap-2 transition-all duration-300"
-   style="color:white; border:1.5px solid rgba(255,255,255,0.25);
-          background:rgba(255,255,255,0.08);">
-    Ver servicios
-    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform"
-         fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              stroke-width="2" d="M9 5l7 7-7 7"/>
-    </svg>
-</a>
+{% include 'components/hero_ctas_base.html' with secondary_text='Ver servicios' %}
