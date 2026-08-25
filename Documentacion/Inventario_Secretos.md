@@ -6,11 +6,11 @@ Fuente de verdad de **qué** secretos usa el sistema, **para qué**, y **dónde 
 
 ---
 
-## ⚠️ Hallazgo urgente — verificar antes de lo demás
+## Hallazgo verificado — cerrado, sin impacto en producción
 
-**`DJANGO_SUPERUSER_PASSWORD` no estaba declarada en `render.yaml`, ni siquiera como recordatorio.** `apps/tenants/management/commands/setup_production.py` (corre en cada build vía `build.sh`) creaba el primer superusuario de `/superadmin/` con usuario `admin` / email `admin@example.com`, y **si esa env var nunca se seteó, con la contraseña hardcodeada `admin123456`** — visible en el propio código fuente. El comando es idempotente (si ya existe un superuser, no hace nada más), así que esto solo importa para el **primer** deploy de la base de datos actual.
+**`DJANGO_SUPERUSER_PASSWORD` no estaba declarada en `render.yaml`, ni siquiera como recordatorio.** `apps/tenants/management/commands/setup_production.py` (corre en cada build vía `build.sh`) creaba el primer superusuario de `/superadmin/` con usuario `admin` / email `admin@example.com`, y si esa env var nunca se seteaba, con la contraseña hardcodeada `admin123456` — visible en el propio código fuente. El comando es idempotente (si ya existe un superuser, no hace nada más), así que esto solo podía importar para el **primer** deploy de la base de datos actual.
 
-**Acción pedida:** entrar a `/superadmin/` en producción y confirmar que el usuario `admin` (o el que sea el superuser actual) tiene una contraseña real, no `admin123456`. Si no estás seguro de cuál se usó en el primer deploy, cambiala ahora por las dudas — es gratis y toma un minuto. El código ya se corrigió (`apps/tenants/management/commands/setup_production.py`): de acá en más, si falta `DJANGO_SUPERUSER_PASSWORD` el build falla en vez de crear una cuenta con clave débil.
+**Verificado por el usuario (2026-08-25) entrando a `/superadmin/` en producción: esa contraseña nunca llegó a estar activa ahí.** Puede haberse usado en algún punto de desarrollo local, pero el superuser real de producción nunca tuvo la clave default — sin impacto, no hace falta rotar nada. El código igual queda corregido (`apps/tenants/management/commands/setup_production.py`): de acá en más, si falta `DJANGO_SUPERUSER_PASSWORD` el build falla en vez de crear una cuenta con clave débil, así que este riesgo no puede repetirse en un futuro re-deploy desde cero.
 
 ---
 
@@ -20,7 +20,7 @@ Fuente de verdad de **qué** secretos usa el sistema, **para qué**, y **dónde 
 |---|---|---|---|---|---|---|
 | `SECRET_KEY` | Firma de sesiones/cookies/tokens de Django | 🔴 Secreto crítico | `config/settings/production.py` | web, ambos crons | ✅ `generateValue: true` (Render la genera sola) | — |
 | `DATABASE_URL` | Conexión a Postgres (incluye password) | 🔴 Secreto crítico | `config/settings/production.py` | web, ambos crons | ✅ `fromDatabase` (automático) | — |
-| `DJANGO_SUPERUSER_PASSWORD` | Password del primer superusuario `/superadmin/` | 🔴 Secreto crítico | `apps/tenants/management/commands/setup_production.py` | web (solo en build) | ✅ `sync: false` *(agregado en esta card — antes no estaba)* | **☐ Verificar — ver hallazgo urgente arriba** |
+| `DJANGO_SUPERUSER_PASSWORD` | Password del primer superusuario `/superadmin/` | 🔴 Secreto crítico | `apps/tenants/management/commands/setup_production.py` | web (solo en build) | ✅ `sync: false` *(agregado en esta card — antes no estaba)* | ✅ Verificado 2026-08-25 — el superuser real nunca tuvo la clave default |
 | `EMAIL_HOST_PASSWORD` | Password SMTP (Zoho) | 🔴 Secreto crítico | `config/settings/production.py` | web, ambos crons (envían correo) | ✅ `sync: false` | ☐ |
 | `MP_ACCESS_TOKEN` | Token privado de MercadoPago (crea/consulta pagos) | 🔴 Secreto crítico | `apps/orders/services/mercadopago_service.py` | web (checkout) | ✅ `sync: false` *(agregado en esta card)* | ☐ |
 | `MP_WEBHOOK_SECRET` | Valida la firma HMAC de los webhooks de MP (`#AUD-02`) | 🔴 Secreto crítico | `apps/orders/services/mercadopago_service.py` | web (webhook) | ✅ `sync: false` *(agregado en esta card)* | ☐ |
