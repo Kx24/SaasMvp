@@ -13,11 +13,10 @@ Usa Django's send_mail con templates HTML.
 """
 
 import logging
-from typing import Optional
-from django.core.mail import send_mail, EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
+
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 from apps.core.models import EmailOutbox
 
@@ -95,7 +94,7 @@ class EmailService:
             # Renderizar templates (CPU local, no red -- esto SÍ puede
             # pasar dentro del request aunque EMAIL_ASYNC esté activo)
             html_content = render_to_string(f'emails/{template_name}.html', context)
-            text_content = strip_tags(html_content)
+            text_content = render_to_string(f'emails/{template_name}.txt', context)
 
             if getattr(settings, 'EMAIL_ASYNC', False) and not force_sync:
                 EmailOutbox.objects.create(
@@ -194,7 +193,7 @@ class EmailService:
         
         return self._send_email(
             to_email=user.email,
-            subject=f"🎉 ¡Bienvenido a Andesscale! - Configura tu contraseña",
+            subject="🎉 ¡Bienvenido a Andesscale! - Configura tu contraseña",
             template_name='welcome',
             context=context
         )

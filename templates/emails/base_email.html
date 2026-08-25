@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Andesscale{% endblock %}</title>
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
     <!--[if mso]>
     <noscript>
         <xml>
@@ -228,7 +230,7 @@
                     {% block footer %}
                     <p>
                         ¿Tienes dudas? Escríbenos a 
-                        <a href="/cdn-cgi/l/email-protection#e59e9ec5969095958a9791ba8088848c89c59898">{{ support_email }}</a>
+                        <a href="mailto:{{ support_email }}">{{ support_email }}</a>
                     </p>
                     <p class="text-muted" style="margin-top: 16px;">
                         © {% now "Y" %} {{ company_name }}. Todos los derechos reservados.

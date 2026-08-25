@@ -14,7 +14,9 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-08-22)
+## 🌙 Retomar aquí (actualizado 2026-08-23)
+
+**Piloto agéntico (rama `agent/ai-dlc-pilot`, 2026-08-23):** cerrado el cabo suelto de `#DEUDA-05`/`#MED-02` sobre `apps/core/managers.py` (card `BOLT-01` de `docs/kanban_agente.md`). Hallazgo: el commit que eliminaba esa copia muerta (`d3bb7ba`, en `feature/RanchocachimbaEtapa1`) **nunca llegó a `develop`**, así que el archivo seguía trackeado en la rama del piloto; se retiró ahí (0 imports en todo el repo — el único `TenantAwareManager` real vive en `apps/tenants/managers.py`) y la suite completa quedó confirmada en verde vía gatekeeper: 112 tests, 0 fallos, 5 skips, ruff y migraciones limpios. Al mergear `feature/RanchocachimbaEtapa1` y `agent/ai-dlc-pilot` el borrado convergerá sin conflicto (mismo resultado en ambas ramas).
 
 **El gate de seguridad de §4 está cerrado y commiteado.** `#AUD-01`, `#AUD-02`, `#AUD-03` y `#AUD-04` — los 4 bloqueadores P0 de la auditoría (checkout inalcanzable, webhook sin firma, fuga cross-tenant en login/dashboard, `render.yaml` roto) — están **DONE**, cada uno con TDD estricto (Rojo→Verde, ver detalle en §4 y §7) y verificados de punta a punta con `git stash` contra el estado original cuando aplicaba (`#AUD-04`). Commit `b5539f9` en `feature/RanchocachimbaEtapa1`. Archivos nuevos: `apps/orders/tests/`, `apps/website/tests/`, `apps/core/tests/`, `apps/accounts/decorators.py`, `ruff.toml`, `requirements-dev.txt`.
 
@@ -288,6 +290,7 @@ Primera herramienta Node/npm del repo (`package.json`, `@playwright/test`, chrom
 
 #### `#DEUDA-05` — Reconciliar README y skill con el código `[P2-Media]` `[S]` `[DevOps]`
 `check_tenant_setup` ya existe — actualizar README; corregir `ClientSettings.template` → `Client.template` en README y skill; `Procedimiento_Nuevo_Tenant.md` ya existe en `Documentacion/` — validar contenido.
+**Cabo cerrado (2026-08-23, `BOLT-01` en `agent/ai-dlc-pilot`):** la confirmación formal de suite en verde tras el retiro de `apps/core/managers.py` quedó hecha (112 tests OK, 5 skips, gatekeeper). Ojo: el commit original del retiro (`d3bb7ba`) vive solo en `feature/RanchocachimbaEtapa1` — el retiro se replicó en la rama del piloto porque nunca llegó a `develop`.
 
 #### `#FLOW-01` / `#FLOW-02` / `#PAY-02` — Flujo comercial repetible `[P2-Media]` `[M]`
 Procedimiento de ingreso de cliente + `check_tenant_setup` ampliado (SEOConfig completo, sin placeholders, `ClientEmailSettings`) + registro de fricciones del cobro manual de Cachimba (es la spec de `#FLOW-03`).

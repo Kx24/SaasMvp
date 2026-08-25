@@ -1,0 +1,33 @@
+{% comment %}
+Template: templates/emails/payment_success.txt
+Email texto plano de confirmación de pago.
+{% endcomment %}
+═══════════════════════════════════════════
+✅ PAGO CONFIRMADO - {{ company_name }}
+═══════════════════════════════════════════
+
+Hemos recibido tu pago correctamente. Ya puedes configurar tu sitio web.
+
+───────────────────────────────────────────
+DETALLES DE LA ORDEN
+───────────────────────────────────────────
+Orden: #{{ order.order_number }}
+Plan: {{ plan.name }}
+Monto pagado: ${{ order.amount|floatformat:0 }} CLP
+Email: {{ order.email }}
+
+───────────────────────────────────────────
+SIGUIENTE PASO
+───────────────────────────────────────────
+Configura tu sitio web en:
+{{ onboarding_url }}
+
+Este enlace es válido por {{ token_expires_hours }} horas. Después de ese
+tiempo, necesitarás contactarnos para obtener uno nuevo.
+
+Si no realizaste esta compra, por favor contáctanos inmediatamente a
+{{ support_email }}.
+
+═══════════════════════════════════════════
+© {% now "Y" %} {{ company_name }}. Todos los derechos reservados.
+═══════════════════════════════════════════

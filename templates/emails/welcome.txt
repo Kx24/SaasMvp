@@ -1,0 +1,36 @@
+{% comment %}
+Template: templates/emails/welcome.txt
+Email texto plano de bienvenida post-onboarding.
+{% endcomment %}
+═══════════════════════════════════════════
+🎉 ¡BIENVENIDO A {{ company_name }}!
+═══════════════════════════════════════════
+
+Hola {{ user.first_name|default:user.email }},
+
+Tu sitio web {{ client.name }} ha sido creado exitosamente.
+
+Tu sitio está disponible en:
+{{ site_url }}
+
+───────────────────────────────────────────
+CONFIGURA TU CONTRASEÑA
+───────────────────────────────────────────
+Para acceder a tu panel de administración, primero configura tu
+contraseña (enlace válido por 7 días):
+{{ set_password_url }}
+
+───────────────────────────────────────────
+QUÉ PUEDES HACER DESDE TU PANEL
+───────────────────────────────────────────
+- Editar el contenido de tu sitio (textos, imágenes)
+- Agregar y gestionar tus servicios
+- Ver los mensajes de contacto recibidos
+- Personalizar colores y branding
+- Conectar tu dominio propio (cuando estés listo)
+
+¿Necesitas ayuda? Escríbenos a {{ support_email }}.
+
+═══════════════════════════════════════════
+© {% now "Y" %} {{ company_name }}. Todos los derechos reservados.
+═══════════════════════════════════════════

@@ -34,7 +34,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.accounts.decorators import tenant_member_required
-from apps.core.rate_limit import RateLimiter
+from apps.core.rate_limit import RateLimiter, get_client_ip
 from apps.core.template_resolver import get_tenant_template, render_tenant_template
 from apps.tenants.fonts import FONT_CHOICES
 from apps.tenants.forms import BrandingForm
@@ -48,16 +48,8 @@ logger = logging.getLogger(__name__)
 # ============================================================
 # HELPERS
 # ============================================================
- 
-def get_client_ip(request):
-    """Obtiene la IP real del cliente considerando proxies."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0].strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR', '')
-    return ip[:45] if ip else None
-
+# get_client_ip vive en apps/core/rate_limit.py (#MED-05a: única función
+# canónica de resolución de IP, importada arriba — no duplicar acá).
 
 # ============================================================
 # PÁGINA PRINCIPAL
@@ -825,8 +817,6 @@ def gallery_item_add(request):
     gallery_type = request.POST.get('gallery_type', 'gallery')
     if gallery_type not in ('hero', 'gallery'):
         gallery_type = 'gallery'
-
-    tab = gallery_type
 
     # Verificar límite
     if gallery_type == 'hero':
