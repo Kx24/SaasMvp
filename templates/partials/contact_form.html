@@ -68,7 +68,7 @@
         <div x-data="{ focused: false }">
             <label for="phone" class="block text-sm font-medium text-slate-700 mb-2 transition-colors duration-300"
                    :class="focused ? 'text-primary' : 'text-slate-700'">
-                Teléfono <span class="text-slate-400 font-normal">(opcional)</span>
+                Teléfono <span class="text-slate-500 font-normal">(opcional)</span>
             </label>
             <input type="tel"
                    id="phone"
@@ -82,7 +82,7 @@
         <div x-data="{ focused: false }">
             <label for="company" class="block text-sm font-medium text-slate-700 mb-2 transition-colors duration-300"
                    :class="focused ? 'text-primary' : 'text-slate-700'">
-                Empresa <span class="text-slate-400 font-normal">(opcional)</span>
+                Empresa <span class="text-slate-500 font-normal">(opcional)</span>
             </label>
             <input type="text"
                    id="company"
@@ -121,7 +121,7 @@
                    :class="focused ? 'text-primary' : 'text-slate-700'">
                 Mensaje <span class="text-red-500">*</span>
             </label>
-            <span class="text-xs text-slate-400" x-text="charCount + ' caracteres'"></span>
+            <span class="text-xs text-slate-500" x-text="charCount + ' caracteres'"></span>
         </div>
         <textarea id="message"
                   name="message"
@@ -159,7 +159,7 @@
     <!-- Privacy note -->
     <p class="text-xs text-slate-500 text-center">
         Al enviar este formulario, aceptas nuestra
-        <a href="#" class="text-primary hover:underline transition-all duration-300">política de privacidad</a>.
+        <a href="#" class="text-primary-a11y underline transition-all duration-300">política de privacidad</a>.
     </p>
 </form>
 

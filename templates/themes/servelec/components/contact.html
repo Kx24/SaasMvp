@@ -9,15 +9,15 @@
 
             {# Info de contacto — lado izquierdo #}
             <div class="fade-up">
-                <span class="inline-block px-3 py-1 text-xs font-black uppercase tracking-widest rounded-sm mb-6"
-                      style="background:#1DB954; color:#FFFFFF;">Contacto</span>
+                <span class="inline-block px-3 py-1 text-xs font-black uppercase tracking-widest rounded-sm mb-6 bg-primary-a11y"
+                      style="color:#FFFFFF;">Contacto</span>
 
                 <h2 class="font-display text-4xl md:text-5xl font-black leading-tight mb-6"
                     style="letter-spacing:-0.02em; color:#121212;">
                     {% if contact_section %}{{ contact_section.title }}{% else %}Hablemos de tu proyecto{% endif %}
                 </h2>
 
-                <p class="text-lg mb-10" style="color:#A7A7A7;">
+                <p class="text-lg mb-10" style="color:#6b6b6b;">
                     {% if contact_section and contact_section.subtitle %}
                         {{ contact_section.subtitle }}
                     {% else %}
@@ -39,7 +39,7 @@
                             </svg>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold uppercase tracking-wider mb-0.5" style="color:#A7A7A7;">Email</div>
+                            <div class="text-xs font-semibold uppercase tracking-wider mb-0.5" style="color:#6b6b6b;">Email</div>
                             <div class="font-medium" style="color:#121212;">{{ client.settings.contact_email }}</div>
                         </div>
                     </a>
@@ -56,7 +56,7 @@
                             </svg>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold uppercase tracking-wider mb-0.5" style="color:#A7A7A7;">Teléfono</div>
+                            <div class="text-xs font-semibold uppercase tracking-wider mb-0.5" style="color:#6b6b6b;">Teléfono</div>
                             <div class="font-medium" style="color:#121212;">{{ client.settings.contact_phone }}</div>
                         </div>
                     </a>
@@ -73,7 +73,7 @@
                             </svg>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold uppercase tracking-wider mb-0.5" style="color:#A7A7A7;">Dirección</div>
+                            <div class="text-xs font-semibold uppercase tracking-wider mb-0.5" style="color:#6b6b6b;">Dirección</div>
                             <div class="font-medium" style="color:#121212;">{{ client.settings.address }}</div>
                         </div>
                     </div>

@@ -28,4 +28,17 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 20px 0 color-mix(in srgb, var(--color-primary) 50%, transparent);
   }
+
+  /*
+   * .text-primary-a11y / .bg-primary-a11y (#DS-03): variante WCAG AA de
+   * var(--color-primary) para texto sobre fondo claro o texto blanco
+   * sobre fondo de marca. El color de marca de un tenant no
+   * necesariamente alcanza 4.5:1 tal cual -- encontrado con axe-core
+   * contra servelec (verde #16a34a, contraste real de 2.6-3.3 en varios
+   * usos: badges, botones, links). Oscurecer con color-mix() en vez de
+   * fijar un tono nuevo mantiene el resultado ligado a la marca de cada
+   * tenant en vez de a un valor hardcodeado.
+   */
+  .text-primary-a11y { color: color-mix(in srgb, var(--color-primary) 100%, black 30%); }
+  .bg-primary-a11y { background-color: color-mix(in srgb, var(--color-primary) 100%, black 30%); }
 }

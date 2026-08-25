@@ -6,7 +6,7 @@
 
             <!-- Brand -->
             <div class="lg:col-span-2">
-                <a href="{% url 'home' %}" class="inline-block mb-6">
+                <a href="{% url 'home' %}" class="inline-block mb-6" aria-label="{{ client.name }}">
                     {% if client.settings.logo_footer %}
                     <img src="{{ client.settings.logo_footer.url }}" alt="{{ client.name }}" class="h-28 w-auto">
                     {% elif client.settings.logo %}
@@ -21,7 +21,7 @@
                     {% endif %}
                 </a>
 
-                <p class="mb-6 max-w-md text-sm leading-relaxed" style="color: rgba(255,255,255,0.45);">
+                <p class="mb-6 max-w-md text-sm leading-relaxed" style="color: rgba(255,255,255,0.7);">
                     {{ client.settings.description|default:"Servicios eléctricos profesionales. Ingeniería que impulsa procesos seguros y eficientes." }}
                 </p>
 
@@ -58,10 +58,10 @@
             <div>
                 <h4 class="font-semibold text-white text-sm mb-5 uppercase tracking-wider">Navegación</h4>
                 <ul class="space-y-3 text-sm">
-                    <li><a href="{% url 'home' %}" class="transition hover:opacity-100 opacity-50 hover:underline" style="color:rgba(255,255,255,0.6);">Inicio</a></li>
-                    <li><a href="#servicios" class="transition hover:opacity-100 opacity-50 hover:underline" style="color:rgba(255,255,255,0.6);">Servicios</a></li>
-                    <li><a href="#about" class="transition hover:opacity-100 opacity-50 hover:underline" style="color:rgba(255,255,255,0.6);">Nosotros</a></li>
-                    <li><a href="#contacto" class="transition hover:opacity-100 opacity-50 hover:underline" style="color:rgba(255,255,255,0.6);">Contacto</a></li>
+                    <li><a href="{% url 'home' %}" class="transition hover:underline" style="color:rgba(255,255,255,0.6);">Inicio</a></li>
+                    <li><a href="#servicios" class="transition hover:underline" style="color:rgba(255,255,255,0.6);">Servicios</a></li>
+                    <li><a href="#about" class="transition hover:underline" style="color:rgba(255,255,255,0.6);">Nosotros</a></li>
+                    <li><a href="#contacto" class="transition hover:underline" style="color:rgba(255,255,255,0.6);">Contacto</a></li>
                 </ul>
             </div>
 
@@ -101,13 +101,13 @@
     <!-- Bottom bar -->
     <div style="border-top: 1px solid rgba(255,255,255,0.07);">
         <div class="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-3">
-            <p class="text-xs" style="color:rgba(255,255,255,0.3);">
+            <p class="text-xs" style="color:rgba(255,255,255,0.55);">
                 © {% now "Y" %} {{ client.name }}-Ingeniería. Todos los derechos reservados.
             </p>
-            <p class="text-xs" style="color:rgba(255,255,255,0.2);">
+            <p class="text-xs" style="color:rgba(255,255,255,0.55);">
                 Desarrollado por
                 <a href="https://andesscale.com" target="_blank"
-                   class="transition"
+                   class="transition underline"
                    style="color: var(--color-primary);"
                    onmouseover="this.style.opacity='0.7'"
                    onmouseout="this.style.opacity='1'">
