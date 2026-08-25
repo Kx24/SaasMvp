@@ -25,7 +25,7 @@ def _make_tenant(slug):
     client = Client.objects.create(
         name=f'Tenant {slug}', slug=slug, company_name=f'{slug} SpA',
         contact_email=f'{slug}@test.com', contact_phone='+56900000001',
-        is_active=True, template='servelec',  # carpeta real en templates/
+        is_active=True, template='themes/servelec',  # carpeta real en templates/
     )
     Domain.objects.create(
         client=client, domain=f'{slug}.test',

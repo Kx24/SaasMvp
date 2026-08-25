@@ -41,16 +41,18 @@ class Client(models.Model):
     # ==================== NIVEL 3: TEMAS Y PLANES ====================
     
     # Estas opciones deben coincidir con las carpetas en templates/themes/
+    # #DEUDA-03: 'themes/industrial' se retiro (no tenia carpeta real, ver
+    # apps/tenants/tests_theme_consistency.py); 'servelec' se unifico bajo
+    # templates/themes/ junto al resto.
     THEME_CHOICES = [
-        ('themes/default',    'Tema Base (Servicios Profesionales)'),
-        ('servelec',          'Electricidad (Servelec)'),
-        ('themes/industrial', 'Industrial / Maquinaria'),
+        ('themes/default',  'Tema Base (Servicios Profesionales)'),
+        ('themes/servelec', 'Electricidad (Servelec)'),
     ]
-    
+
     template = models.CharField(
         max_length=50,
         choices=THEME_CHOICES,
-        default='default',
+        default='themes/default',
         help_text="Carpeta del tema visual a utilizar"
     )
 

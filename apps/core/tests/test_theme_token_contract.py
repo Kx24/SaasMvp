@@ -28,7 +28,7 @@ TEMPLATES_DIR = Path(settings.BASE_DIR) / 'templates'
 
 THEME_DIRS = {
     'andesscale': TEMPLATES_DIR / 'andesscale',
-    'servelec': TEMPLATES_DIR / 'servelec',
+    'servelec': TEMPLATES_DIR / 'themes' / 'servelec',
     'themes/default': TEMPLATES_DIR / 'themes' / 'default',
     'themes/electricidad': TEMPLATES_DIR / 'themes' / 'electricidad',
 }

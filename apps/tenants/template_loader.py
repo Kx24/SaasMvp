@@ -13,7 +13,7 @@ Nueva estructura (un directorio por cliente/marca):
     3. templates/{template_name}                   ← fallback global
 
 Ejemplos:
-  servelec  → templates/servelec/landing/home.html
+  servelec  → templates/themes/servelec/landing/home.html
   andesscale → templates/andesscale/landing/home.html
 
 Compatible con Django 5.2+
@@ -21,6 +21,7 @@ Compatible con Django 5.2+
 
 import logging
 from pathlib import Path
+
 from django.conf import settings
 from django.template import Origin, TemplateDoesNotExist
 from django.template.loaders.base import Loader as BaseLoader
@@ -67,7 +68,7 @@ class TenantTemplateLoader(BaseLoader):
                 client_folder = tenant.template.strip().lower()
 
             candidates = [
-                base_dir / client_folder / template_name,   # ej: templates/servelec/landing/home.html
+                base_dir / client_folder / template_name,   # ej: templates/themes/servelec/landing/home.html
                 base_dir / 'default'    / template_name,   # fallback genérico
                 base_dir / template_name,                   # fallback global (base.html, errors/, etc.)
             ]

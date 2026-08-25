@@ -8,6 +8,7 @@ Uso:
 """
 
 from django.core.management.base import BaseCommand
+
 from apps.orders.models import Plan
 
 
@@ -41,7 +42,7 @@ class Command(BaseCommand):
                     'Soporte por email',
                     '2 meses de garantía',
                 ],
-                'available_themes': ['default'],
+                'available_themes': ['themes/default'],
                 'max_pages': 5,
                 'max_services': 10,
                 'max_images': 30,
@@ -71,7 +72,7 @@ class Command(BaseCommand):
                     'Soporte prioritario',
                     'Capacitación incluida',
                 ],
-                'available_themes': ['default', 'electricidad', 'industrial'],
+                'available_themes': ['themes/default', 'themes/servelec'],
                 'max_pages': 10,
                 'max_services': 20,
                 'max_images': 100,
@@ -102,7 +103,7 @@ class Command(BaseCommand):
                     'Actualizaciones prioritarias',
                     'Backup diario',
                 ],
-                'available_themes': ['default', 'electricidad', 'industrial', 'custom'],
+                'available_themes': ['themes/default', 'themes/servelec'],
                 'max_pages': 50,
                 'max_services': 100,
                 'max_images': 500,

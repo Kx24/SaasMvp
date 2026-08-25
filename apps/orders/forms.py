@@ -10,7 +10,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
-from apps.tenants.models import Client, Domain
+from apps.tenants.models import Client
 
 
 class ClientOnboardingForm(forms.Form):
@@ -170,12 +170,10 @@ class ClientOnboardingForm(forms.Form):
         # Configurar opciones de tema según el plan
         if available_themes:
             theme_choices = []
+            # Claves = valores reales de Client.THEME_CHOICES (#DEUDA-03).
             theme_labels = {
-                'default': ('Tema Estándar', 'Diseño limpio y profesional'),
-                'electricidad': ('Electricidad', 'Ideal para servicios eléctricos'),
-                'industrial': ('Industrial', 'Para empresas de manufactura'),
-                'construccion': ('Construcción', 'Perfecto para constructoras'),
-                'servicios': ('Servicios Profesionales', 'Consultorías y asesorías'),
+                'themes/default':  ('Tema Estándar', 'Diseño limpio y profesional'),
+                'themes/servelec': ('Electricidad', 'Ideal para servicios eléctricos'),
             }
             
             for theme_slug in available_themes:
@@ -194,9 +192,9 @@ class ClientOnboardingForm(forms.Form):
         else:
             # Default si no se especifican temas
             self.fields['template'].choices = [
-                ('default', 'Tema Estándar - Diseño limpio y profesional')
+                ('themes/default', 'Tema Estándar - Diseño limpio y profesional')
             ]
-            self.fields['template'].initial = 'default'
+            self.fields['template'].initial = 'themes/default'
     
     def clean_slug(self):
         """Valida y genera slug si está vacío."""

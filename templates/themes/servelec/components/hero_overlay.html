@@ -86,7 +86,7 @@
 
     {# Efectos del tema — siempre presentes #}
     <canvas id="electricCanvas" class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
-    {% include "servelec/components/hero_effects.html" %}
+    {% include "themes/servelec/components/hero_effects.html" %}
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true"
          style="background:linear-gradient(to right, rgba(11,40,24,0.75) 40%, rgba(11,40,24,0.25) 100%);"></div>
     <div class="absolute left-0 top-0 bottom-0 w-0.5 opacity-40" aria-hidden="true"
@@ -137,7 +137,7 @@
                 {# Default → CTAs del tema #}
                 <template x-if="active.is_default">
                     <div class="flex flex-col sm:flex-row gap-4">
-                        {% include "servelec/components/hero_ctas.html" %}
+                        {% include "themes/servelec/components/hero_ctas.html" %}
                     </div>
                 </template>
 
@@ -177,7 +177,7 @@
 {% endif %}
 {% endwith %}
 <canvas id="electricCanvas" class="absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
-{% include "servelec/components/hero_effects.html" %}
+{% include "themes/servelec/components/hero_effects.html" %}
 <div class="absolute inset-0 pointer-events-none" aria-hidden="true"
      style="background:linear-gradient(to right, rgba(11,40,24,0.75) 40%, rgba(11,40,24,0.25) 100%);"></div>
 <div class="absolute left-0 top-0 bottom-0 w-0.5 opacity-40" aria-hidden="true"
@@ -200,7 +200,7 @@
         </p>
         {% endif %}
         <div class="flex flex-col sm:flex-row gap-4 fade-up" style="animation-delay:0.3s;">
-            {% include "servelec/components/hero_ctas.html" %}
+            {% include "themes/servelec/components/hero_ctas.html" %}
         </div>
     </div>
 </div>

@@ -1,4 +1,4 @@
-﻿{% extends "servelec/base.html" %}
+﻿{% extends "themes/servelec/base.html" %}
 {% load website_tags static %}
 
 {# ============================================================#}
@@ -11,16 +11,16 @@
 {% block content %}
 
     {# Sección estática — solo tú la editas #}
-    {% include "servelec/components/hero.html" %}
+    {% include "themes/servelec/components/hero.html" %}
 
     {# Sección estática — solo tú la editas #}
-    {% include "servelec/components/stats.html" %}
+    {% include "themes/servelec/components/stats.html" %}
 
     {# Sección dinámica — el cliente edita desde el CMS #}
-    {% include "servelec/components/services.html" %}
+    {% include "themes/servelec/components/services.html" %}
 
     {# Sección dinámica — el cliente edita desde el CMS #}
-    {% include "servelec/components/about.html" %}
+    {% include "themes/servelec/components/about.html" %}
 
     {% comment %}
 
@@ -61,10 +61,10 @@
         {% endif %}
 
     {# Sección estática — solo tú la editas #}
-    {% include "servelec/components/cta.html" %}
+    {% include "themes/servelec/components/cta.html" %}
 
     {# Sección dinámica — el cliente edita desde el CMS #}
-    {% include "servelec/components/contact.html" %}
+    {% include "themes/servelec/components/contact.html" %}
 
 {% endblock %}
 

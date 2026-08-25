@@ -23,7 +23,7 @@ from django.test import TestCase
 
 SHARED = 'components/hero_ctas_base.html'
 WRAPPERS = {
-    'servelec': Path(settings.BASE_DIR) / 'templates' / 'servelec' / 'components' / 'hero_ctas.html',
+    'servelec': Path(settings.BASE_DIR) / 'templates' / 'themes' / 'servelec' / 'components' / 'hero_ctas.html',
     'themes/default': Path(settings.BASE_DIR) / 'templates' / 'themes' / 'default' / 'components' / 'hero_ctas.html',
 }
 
@@ -34,7 +34,7 @@ class HeroCtasSharedComponentTestCase(TestCase):
         get_template(SHARED)
 
     def test_servelec_wrapper_renders_current_ctas(self):
-        html = render_to_string('servelec/components/hero_ctas.html')
+        html = render_to_string('themes/servelec/components/hero_ctas.html')
         self.assertIn('Solicitar cotización', html)
         self.assertIn('href="#contacto"', html)
         self.assertIn('Ver servicios', html)

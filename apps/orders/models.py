@@ -93,8 +93,8 @@ class Plan(models.Model):
     
     # ==================== TEMAS DISPONIBLES ====================
     
-    # Temas que puede elegir el cliente con este plan
-    # Ejemplo: ["default"] para Essential, ["default", "electricidad", "industrial"] para Pro
+    # Temas que puede elegir el cliente con este plan. Valores = Client.THEME_CHOICES.
+    # Ejemplo: ["themes/default"] para Essential, ["themes/default", "themes/servelec"] para Pro
     available_themes = models.JSONField(
         default=list,
         blank=True,

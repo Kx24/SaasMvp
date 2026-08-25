@@ -32,7 +32,7 @@ TENANTS = [
         'slug': 'servelec-e2e',
         'name': 'Servelec E2E',
         'domain': 'servelec-e2e.localhost',
-        'template': 'servelec',
+        'template': 'themes/servelec',
         'primary_color': '#16a34a',
     },
     {
