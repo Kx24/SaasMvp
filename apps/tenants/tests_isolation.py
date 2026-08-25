@@ -30,7 +30,7 @@ from django.urls import reverse
 
 from apps.accounts.models import UserProfile
 from apps.tenants.models import Client, Domain
-from apps.website.models import ContactSubmission, GalleryItem, Service
+from apps.website.models import ContactSubmission, GalleryItem, Section, Service
 
 
 class TenantHomePageLeakTestCase(TestCase):
@@ -100,8 +100,11 @@ class TenantDashboardObjectIsolationTestCase(TestCase):
         cls.client_b.settings.enable_gallery = True
         cls.client_b.settings.save()
 
+        cls.gallery_section_a = Section.objects.create(
+            client=cls.client_a, section_type='gallery', title='Galería A',
+        )
         cls.gallery_item_a = GalleryItem.objects.create(
-            client=cls.client_a, gallery_type='gallery',
+            client=cls.client_a, section=cls.gallery_section_a,
             image='tenants/tenant-a/gallery/secreto', title='Foto de A',
         )
         cls.contact_a = ContactSubmission.objects.create(

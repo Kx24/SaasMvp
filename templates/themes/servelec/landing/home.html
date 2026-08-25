@@ -28,7 +28,7 @@
         Solo se renderiza si:
          1. ClientSettings.enable_gallery = True
          2. Section(section_type='gallery', is_active=True) existe
-         3. Hay GalleryItem(gallery_type='gallery', is_active=True)
+         3. Hay GalleryItem(section=<esa Section 'gallery'>, is_active=True)
     
     {% endcomment %}
     {% get_section 'gallery' as gallery_section %}

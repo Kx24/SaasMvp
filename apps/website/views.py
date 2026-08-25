@@ -31,6 +31,7 @@ import logging
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.decorators import tenant_member_required
@@ -491,10 +492,26 @@ def edit_service_dashboard(request, service_id):
     else:
         form = ServiceForm(instance=service)
 
+    settings = getattr(request.client, 'settings', None)
+    gallery_enabled = bool(settings and settings.enable_gallery)
+    gallery_items = []
+    gallery_limit = 0
+    if gallery_enabled:
+        gallery_items = list(
+            GalleryItem.objects.filter(client=request.client, service=service)
+            .order_by('order', 'created_at')
+        )
+        gallery_limit = settings.gallery_images_limit
+
     context = {
         'client': request.client,
         'service': service,
         'form': form,
+        'gallery_enabled': gallery_enabled,
+        'gallery_items': gallery_items,
+        'gallery_limit': gallery_limit,
+        'gallery_used': len(gallery_items),
+        'gallery_at_limit': len(gallery_items) >= gallery_limit if gallery_enabled else False,
     }
     return render_tenant_template(request, 'dashboard/edit_service.html', context)
 
@@ -765,11 +782,22 @@ toggle_service_active = toggle_service
 # DASHBOARD - GALERÍA
 # ============================================================
 
+def _gallery_item_redirect_url(item):
+    """URL (resuelta, usable en redirect() y en templates) a la que volver
+    tras editar/eliminar/togglear un GalleryItem, según su dueño
+    (#DEUDA-02: reemplaza el switch sobre gallery_type)."""
+    if item.role == 'hero':
+        return reverse('dashboard_portada')
+    if item.service_id:
+        return reverse('edit_service_dashboard', kwargs={'service_id': item.service_id})
+    return reverse('dashboard_gallery')
+
+
 @tenant_member_required
 def dashboard_gallery(request):
     """
     Vista de galería de imágenes del sitio.
-    Solo gestiona gallery_type='gallery' — portada tiene su propia vista.
+    Solo gestiona la Section 'gallery' — portada tiene su propia vista.
     """
     client = request.client
     settings = getattr(client, 'settings', None)
@@ -778,10 +806,16 @@ def dashboard_gallery(request):
         messages.error(request, 'El módulo de imágenes no está activado para este sitio.')
         return redirect('dashboard')
 
+    gallery_section, _ = Section.objects.get_or_create(
+        client=client,
+        section_type='gallery',
+        defaults={'title': '', 'subtitle': '', 'description': '', 'order': 0}
+    )
+
     gallery_items = list(
         GalleryItem.objects.filter(
             client=client,
-            gallery_type='gallery',
+            section=gallery_section,
         ).order_by('order', 'created_at')
     )
 
@@ -814,26 +848,42 @@ def gallery_item_add(request):
     if request.method != 'POST':
         return redirect('dashboard_portada')
 
-    gallery_type = request.POST.get('gallery_type', 'gallery')
-    if gallery_type not in ('hero', 'gallery'):
-        gallery_type = 'gallery'
+    service_id = request.POST.get('service_id')
+    owner_kwargs = {}
 
-    # Verificar límite
-    if gallery_type == 'hero':
-        count = GalleryItem.objects.filter(
-            client=client, gallery_type='hero', is_default=False
-        ).count()
-        limit = settings.hero_images_limit
-        redirect_url = 'dashboard_portada'
-    else:
-        count = GalleryItem.objects.filter(
-            client=client, gallery_type='gallery'
-        ).count()
+    if service_id:
+        service = get_object_or_404(Service, id=service_id, client=client)
+        owner_kwargs = {'service': service}
+        count = GalleryItem.objects.filter(client=client, service=service).count()
         limit = settings.gallery_images_limit
-        redirect_url = 'dashboard_gallery'
+        redirect_url = reverse('edit_service_dashboard', kwargs={'service_id': service.id})
+        tipo = f'galería de "{service.name}"'
+    else:
+        gallery_type = request.POST.get('gallery_type', 'gallery')
+        if gallery_type not in ('hero', 'gallery'):
+            gallery_type = 'gallery'
+        section, _ = Section.objects.get_or_create(
+            client=client,
+            section_type=gallery_type,
+            defaults={'title': '', 'subtitle': '', 'description': '', 'order': 0}
+        )
+        owner_kwargs = {'section': section}
+
+        if gallery_type == 'hero':
+            count = GalleryItem.objects.filter(
+                client=client, section=section, is_default=False
+            ).count()
+            limit = settings.hero_images_limit
+            redirect_url = 'dashboard_portada'
+        else:
+            count = GalleryItem.objects.filter(
+                client=client, section=section
+            ).count()
+            limit = settings.gallery_images_limit
+            redirect_url = 'dashboard_gallery'
+        tipo = 'portada' if gallery_type == 'hero' else 'galería'
 
     if count >= limit:
-        tipo = 'portada' if gallery_type == 'hero' else 'galería'
         messages.error(request, f'Has alcanzado el límite de {limit} imágenes de {tipo}.')
         return redirect(redirect_url)
 
@@ -866,7 +916,6 @@ def gallery_item_add(request):
     # Crear el item directamente sin pasar por GalleryItemForm
     GalleryItem.objects.create(
         client=client,
-        gallery_type=gallery_type,
         image=public_id,
         title=request.POST.get('title', '').strip(),
         caption=request.POST.get('caption', '').strip(),
@@ -874,9 +923,9 @@ def gallery_item_add(request):
         cta_url=request.POST.get('cta_url', '').strip(),
         is_default=False,
         is_active=True,
+        **owner_kwargs,
     )
 
-    tipo = 'portada' if gallery_type == 'hero' else 'galería'
     messages.success(request, f'Imagen agregada a {tipo}.')
     return redirect(redirect_url)
  
@@ -885,7 +934,7 @@ def gallery_item_add(request):
 def gallery_item_edit(request, item_id):
     client = request.client
     item = get_object_or_404(GalleryItem, id=item_id, client=client)
-    redirect_url = 'dashboard_portada' if item.gallery_type == 'hero' else 'dashboard_gallery'
+    redirect_url = _gallery_item_redirect_url(item)
 
     if request.method == 'POST':
         item.title   = request.POST.get('title', '').strip()
@@ -929,6 +978,7 @@ def gallery_item_edit(request, item_id):
     context = {
         'client': client,
         'item': item,
+        'back_url': redirect_url,
     }
     return render(request, 'dashboard/gallery_item_edit.html', context)
  
@@ -946,11 +996,11 @@ def gallery_item_delete(request, item_id):
         return redirect('dashboard_gallery')
  
     if request.method == 'POST':
-        tab = item.gallery_type
+        redirect_url = _gallery_item_redirect_url(item)
         item.delete()
         messages.success(request, 'Imagen eliminada.')
-        return redirect(f"/dashboard/gallery/?tab={tab}")
- 
+        return redirect(redirect_url)
+
     return redirect('dashboard_gallery')
  
  
@@ -967,8 +1017,8 @@ def gallery_item_toggle(request, item_id):
         item.save(update_fields=['is_active', 'updated_at'])
         estado = 'visible' if item.is_active else 'oculta'
         messages.success(request, f'Imagen marcada como {estado}.')
- 
-    return redirect(f"/dashboard/gallery/?tab={item.gallery_type}")
+
+    return redirect(_gallery_item_redirect_url(item))
  
 
 @tenant_member_required
@@ -993,7 +1043,7 @@ def dashboard_portada(request):
     hero_items = list(
         GalleryItem.objects.filter(
             client=client,
-            gallery_type='hero',
+            section=hero_section,
         ).order_by('order', 'created_at')
     )
 

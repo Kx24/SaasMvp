@@ -183,6 +183,50 @@
         </div>
 
     </form>
+
+    {% if service and gallery_enabled %}
+    <div class="mt-8 bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <p class="text-sm font-semibold text-slate-700">Galería de fotos</p>
+                <p class="text-xs text-slate-500">Fotos adicionales de este servicio (además de la imagen principal de arriba)</p>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-full
+                {% if gallery_at_limit %}bg-amber-50 text-amber-700
+                {% else %}bg-slate-100 text-slate-500{% endif %}">
+                {{ gallery_used }} de {{ gallery_limit }} usadas
+            </span>
+        </div>
+
+        {% if gallery_items %}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            {% for item in gallery_items %}
+            {% include 'dashboard/partials/gallery_item_card.html' with item=item %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if gallery_at_limit %}
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+            Has alcanzado el límite de {{ gallery_limit }} fotos. Elimina una para poder subir otra.
+        </div>
+        {% else %}
+        <form method="post"
+              action="{% url 'gallery_item_add' %}"
+              enctype="multipart/form-data"
+              class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="service_id" value="{{ service.id }}">
+            {% include 'dashboard/partials/gallery_upload_area.html' %}
+            <button type="submit"
+                    class="w-full btn-primary py-2.5 px-4 rounded-lg text-sm font-semibold">
+                Subir foto
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
 </div>
 
 <script>

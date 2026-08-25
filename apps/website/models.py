@@ -17,22 +17,22 @@
 #   2. Si tiene video Cloudinary: CloudinaryField('video', resource_type='video', folder=...)
 #   3. Si tiene video externo (YouTube/Vimeo): URLField normal
 #   4. No tocar cloudinary_utils.py ni cloudinary_tags.py — ya soportan los nuevos tipos.
-#   + gallery_type: distingue 'hero' (portada) de 'gallery' (sección galería)
 #   + is_default:   marca la imagen seed provista al entregar el sitio.
 #                   Siempre disponible como fallback — no depende de is_active.
 #                   Protegida contra eliminación en la vista del dashboard.
 #
-# MIGRACIÓN: no destructiva. Los GalleryItem existentes quedan con
-#   gallery_type='gallery' (default) e is_default=False (default).
+# #DEUDA-02 (Fase 1): GalleryItem.gallery_type (enum fijo hero/gallery) se
+#   reemplazó por FKs a Section/Service — el rol sale de a qué está linkeada
+#   la imagen, no de un campo propio. Ver docstring de GalleryItem.
 # =============================================================================
 
+from cloudinary.models import CloudinaryField
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
-from cloudinary.models import CloudinaryField
 
-from apps.tenants.managers import TenantAwareManager
 from apps.core.cloudinary_utils import cloudinary_upload_path
-
+from apps.tenants.managers import TenantAwareManager
 
 # =============================================================================
 # SECTION MODEL
@@ -400,35 +400,6 @@ class ContactSubmission(models.Model):
 # Copiar este bloque como base para nuevas secciones.
 # =============================================================================
 
-# class GalleryItem(models.Model):
-#     """
-#     Ítem de galería de fotos del cliente.
-#     Estructura en Cloudinary: tenants/{slug}/gallery/
-#     """
-#     client  = models.ForeignKey('tenants.Client', on_delete=models.CASCADE, related_name='gallery')
-#     title   = models.CharField(max_length=200, blank=True)
-#     caption = models.TextField(blank=True)
-#     order   = models.PositiveIntegerField(default=0)
-#
-#     image = CloudinaryField(
-#         'image',
-#         folder=cloudinary_upload_path('gallery'),
-#         blank=True, null=True,
-#     )
-#
-#     objects = TenantAwareManager()
-#
-#     def get_image_url(self, preset='gallery_full'):
-#         if not self.image:
-#             return '/static/img/placeholder.jpg'
-#         from apps.core.cloudinary_utils import get_cloudinary_url
-#         return get_cloudinary_url(self.image, preset)
-#
-#     class Meta:
-#         ordering = ['order']
-#         verbose_name = 'Foto de Galería'
-
-
 # class CatalogItem(models.Model):
 #     """
 #     Ítem de catálogo de productos.
@@ -461,37 +432,39 @@ class ContactSubmission(models.Model):
 
 class GalleryItem(models.Model):
     """
-    Ítem de imagen para portada (hero) o galería de sección.
- 
-    gallery_type distingue el uso:
-      'hero'    → slideshow de fondo en la portada del sitio
-      'gallery' → sección galería de la página
- 
+    Ítem de imagen del pool único del tenant (#DEUDA-02).
+
+    El "rol" de una imagen ya no es un enum propio (gallery_type, retirado):
+    sale de a qué está linkeada.
+      - section    → el rol es section.section_type (hero, gallery, o
+                     cualquier otro SECTION_TYPES futuro, sin tocar este
+                     modelo de nuevo).
+      - service    → foto de la galería de ese Service (capacidad nueva:
+                     antes Service.image era un único CloudinaryField).
+    Exactamente uno de los dos debe estar seteado (ver clean()) — nunca
+    ambos, nunca ninguno.
+
     is_default=True marca la imagen seed entregada al provisionar el sitio.
     Esta imagen siempre está disponible como fallback del hero,
     independientemente de is_active. El cliente puede ocultarla
     (is_active=False) pero no eliminarla desde el dashboard.
- 
+
     Los límites de imágenes por tipo se controlan desde:
       ClientSettings.hero_images_limit    (default: 3)
-      ClientSettings.gallery_images_limit (default: 20)
- 
+      ClientSettings.gallery_images_limit (default: 20, también aplica a
+                                            galerías de Service)
+
     Estructura en Cloudinary: tenants/{slug}/gallery/
- 
+
     Uso en template — portada:
         {% get_hero_images as hero_items %}
         Hero slideshow con hero_items, fallback al default si está vacío.
- 
+
     Uso en template — galería:
         {% get_gallery as gallery_items %}
         {% include 'components/hero_gallery.html' with items=gallery_items mode="gallery" layout="grid" %}
     """
- 
-    GALLERY_TYPE_CHOICES = [
-        ('hero',    'Portada del sitio'),
-        ('gallery', 'Galería de imágenes'),
-    ]
- 
+
     # --- CORE ---
     client = models.ForeignKey(
         'tenants.Client',
@@ -499,16 +472,28 @@ class GalleryItem(models.Model):
         related_name='gallery',
         verbose_name='Cliente',
     )
- 
-    # --- TIPO ---
-    gallery_type = models.CharField(
-        max_length=20,
-        choices=GALLERY_TYPE_CHOICES,
-        default='gallery',
-        verbose_name='Tipo',
-        help_text='Portada: imagen de fondo del hero. Galería: sección de imágenes.',
+
+    # --- DUEÑO (exactamente uno, ver clean()) ---
+    section = models.ForeignKey(
+        'Section',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='gallery_items',
+        verbose_name='Sección',
+        help_text='El rol de la imagen (portada, galería, etc.) sale del section_type de esta sección.',
     )
- 
+
+    service = models.ForeignKey(
+        'Service',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='gallery_items',
+        verbose_name='Servicio',
+        help_text='Foto de la galería de este servicio.',
+    )
+
     is_default = models.BooleanField(
         default=False,
         verbose_name='Imagen por defecto',
@@ -576,29 +561,51 @@ class GalleryItem(models.Model):
     objects = TenantAwareManager()
  
     class Meta:
-        ordering = ['gallery_type', 'order', 'created_at']
+        ordering = ['section', 'service', 'order', 'created_at']
         verbose_name = 'Imagen'
         verbose_name_plural = 'Imágenes del sitio'
         indexes = [
-            models.Index(fields=['client', 'gallery_type', 'is_active']),
-            models.Index(fields=['client', 'gallery_type', 'order']),
+            models.Index(fields=['client', 'section', 'is_active']),
+            models.Index(fields=['client', 'service', 'is_active']),
             models.Index(fields=['client', 'is_default']),
         ]
- 
+
+    @property
+    def role(self):
+        """Rol de la imagen, derivado del dueño (reemplaza el gallery_type viejo)."""
+        if self.section_id:
+            return self.section.section_type
+        if self.service_id:
+            return 'service'
+        return 'sin_dueño'
+
+    def clean(self):
+        super().clean()
+        if bool(self.section_id) == bool(self.service_id):
+            raise ValidationError(
+                'Debe estar linkeada a exactamente una Section o un Service (no ambos, no ninguno).'
+            )
+        if self.section_id and self.section.client_id != self.client_id:
+            raise ValidationError('La Section pertenece a otro cliente.')
+        if self.service_id and self.service.client_id != self.client_id:
+            raise ValidationError('El Service pertenece a otro cliente.')
+
     def __str__(self):
-        tipo = self.get_gallery_type_display()
         label = self.title if self.title else f'Imagen #{self.pk}'
         default_tag = ' [default]' if self.is_default else ''
-        return f"{self.client.name} — {tipo} — {label}{default_tag}"
- 
+        return f"{self.client.name} — {self.role} — {label}{default_tag}"
+
     def save(self, *args, **kwargs):
-        # Auto-asignar order al final dentro del mismo tipo si no se especifica
+        self.full_clean()
+        # Auto-asignar order al final dentro del mismo dueño si no se especifica
         if not self.order:
             from django.db.models import Max
-            max_order = GalleryItem.objects.filter(
-                client=self.client,
-                gallery_type=self.gallery_type,
-            ).aggregate(Max('order'))['order__max']
+            owner_filter = {'client': self.client}
+            if self.section_id:
+                owner_filter['section_id'] = self.section_id
+            else:
+                owner_filter['service_id'] = self.service_id
+            max_order = GalleryItem.objects.filter(**owner_filter).aggregate(Max('order'))['order__max']
             self.order = (max_order or 0) + 10
         super().save(*args, **kwargs)
  
@@ -618,9 +625,3 @@ class GalleryItem(models.Model):
             return '/static/img/placeholder-gallery.jpg'
         from apps.core.cloudinary_utils import get_cloudinary_url
         return get_cloudinary_url(self.image, preset)
-    
-    def get_background_image_url(self, preset='hero'):
-        if not self.background_image:
-            return None
-        from apps.core.cloudinary_utils import get_cloudinary_url
-        return get_cloudinary_url(self.background_image, preset)

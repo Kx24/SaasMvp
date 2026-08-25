@@ -1,3 +1,4 @@
+import logging
 
 from django import template
 
@@ -5,6 +6,7 @@ from apps.tenants.fonts import google_fonts_query as _google_fonts_query
 from apps.tenants.models import FormConfig
 from apps.website.models import GalleryItem, Section, Service
 
+logger = logging.getLogger(__name__)
 register = template.Library()
 
 
@@ -131,7 +133,7 @@ def get_gallery(context):
 
     return GalleryItem.objects.filter(
         client=client,
-        gallery_type='gallery',
+        section__section_type='gallery',
         is_active=True,
     ).order_by('order', 'created_at')
 
@@ -142,7 +144,7 @@ def get_hero_images(context):
 
     Lógica:
       1. Si enable_gallery está desactivado → []
-      2. Obtiene imágenes activas (is_default=False, gallery_type='hero')
+      2. Obtiene imágenes activas (is_default=False, linkeadas a la Section hero)
       3. Si show_default_hero=True o no hay imágenes activas → antepone el hero default
       4. El hero default se representa como None — el template lo detecta
          y renderiza el diseño base del tema
@@ -160,7 +162,7 @@ def get_hero_images(context):
     active = list(
         GalleryItem.objects.filter(
             client=client,
-            gallery_type='hero',
+            section__section_type='hero',
             is_active=True,
         ).order_by('order', 'created_at')
     )
