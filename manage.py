@@ -7,6 +7,14 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+
+    # Evita UnicodeEncodeError al escribir emojis en consolas Windows (cp1252)
+    # desde management commands. No-op en Linux/Render (ya UTF-8). #FLOW-01.
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
