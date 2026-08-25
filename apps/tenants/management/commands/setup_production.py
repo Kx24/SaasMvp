@@ -18,9 +18,9 @@ Variables de entorno relevantes:
 """
 
 import os
-from django.core.management.base import BaseCommand
+
 from django.contrib.auth import get_user_model
-from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 
 User = get_user_model()
 
@@ -205,10 +205,21 @@ class Command(BaseCommand):
             self.stdout.write(f'   ℹ️  Superusuario ya existe: {superuser.username}')
             return
 
-        password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin123456')
+        # #SEC-03: antes caía a la contraseña hardcodeada 'admin123456' si
+        # DJANGO_SUPERUSER_PASSWORD no estaba seteada -- en un primer
+        # deploy sin esa env var, la cuenta /superadmin/ de producción
+        # quedaba con usuario "admin" y esa contraseña, público en este
+        # archivo. Falla fuerte, mismo patrón que SECRET_KEY/EMAIL_HOST_USER
+        # (#AUD-07/#AUD-12) en vez de crear una cuenta con clave débil.
+        password = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
+        if not password:
+            raise CommandError(
+                'DJANGO_SUPERUSER_PASSWORD no está seteada -- no se crea el '
+                'superusuario con una contraseña por defecto. Configurala en '
+                'las env vars de Render y volvé a correr el deploy.'
+            )
         User.objects.create_superuser(username=username, email=email, password=password)
         self.stdout.write(self.style.SUCCESS(f'   ✅ Superusuario "{username}" creado'))
-        self.stdout.write(self.style.WARNING(f'   ⚠️  Password: {password} (cambiar en producción!)'))
 
     def _setup_initial_content(self, tenant_slug):
         from apps.tenants.models import Client

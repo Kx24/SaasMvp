@@ -28,6 +28,22 @@ REQUIRED_WEB_ENV_KEYS = {
     'EMAIL_HOST',
     'EMAIL_PORT',
     'EMAIL_USE_TLS',
+    # #SEC-03: inventario de secretos -- estas 3 categorías no estaban
+    # declaradas en el blueprint (ni siquiera como sync:false) antes de
+    # esta card, así que nadie auditando render.yaml podía saber que el
+    # checkout, la subida de media o el primer superusuario las
+    # necesitan. Esta lista es el inventario real, verificado: si alguien
+    # borra una declaración sin querer, este test lo detecta.
+    'EMAIL_HOST_USER',
+    'EMAIL_HOST_PASSWORD',
+    'DJANGO_SUPERUSER_PASSWORD',
+    'MP_ACCESS_TOKEN',
+    'MP_PUBLIC_KEY',
+    'MP_WEBHOOK_SECRET',
+    'MP_SANDBOX',
+    'CLOUDINARY_CLOUD_NAME',
+    'CLOUDINARY_API_KEY',
+    'CLOUDINARY_API_SECRET',
 }
 
 

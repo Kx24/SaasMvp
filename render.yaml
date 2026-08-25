@@ -87,11 +87,49 @@ services:
       - key: EMAIL_USE_TLS
         value: "True"
 
-      # Estas las configuras manualmente en Render Dashboard (son secretas)
-      # - key: EMAIL_HOST_USER
-      #   sync: false
-      # - key: EMAIL_HOST_PASSWORD
-      #   sync: false
+      # Estas se configuran manualmente en Render Dashboard (son secretas).
+      # sync: false = Render las preserva entre syncs del blueprint, no las
+      # pisa ni las borra -- declararlas acá es solo para que el inventario
+      # de #SEC-03 esté completo, no cambia ningún valor real.
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+
+      # Cuenta /superadmin/ inicial (#SEC-03): setup_production falla el
+      # build si falta -- antes caía a una contraseña hardcodeada
+      # ('admin123456') visible en el código fuente. Sin efecto en deploys
+      # posteriores al primero (el comando es idempotente: si ya existe un
+      # superuser, no toca nada).
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+
+      # ===============================================
+      # MERCADOPAGO (checkout) -- no declaradas antes en este blueprint
+      # ===============================================
+      - key: MP_ACCESS_TOKEN
+        sync: false
+      - key: MP_PUBLIC_KEY
+        sync: false
+      - key: MP_WEBHOOK_SECRET
+        sync: false
+      # MP_SANDBOX: default True en el código (modo sandbox, seguro) si no
+      # se setea. Pasar a "False" es una decisión de negocio (habilita
+      # cobros reales) -- no se fija un valor acá a propósito, se decide
+      # y setea manualmente en Render cuando el cliente esté listo para
+      # cobrar de verdad.
+      - key: MP_SANDBOX
+        sync: false
+
+      # ===============================================
+      # CLOUDINARY (media) -- no declaradas antes en este blueprint
+      # ===============================================
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
 
   # =================================================================
   # CRON JOB - Digest de mensajes de contacto
