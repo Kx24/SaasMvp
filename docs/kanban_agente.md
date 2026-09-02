@@ -340,8 +340,8 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Cero errores en Linter: ruff en verde (intentos: 2 — 1º activó 4 hallazgos preexistentes en `email_service.py` al tocar el archivo — `I001`, 2×`F401`, `F541` — mismo patrón que BOLT-02/03/07; autofix de ruff, sin cambio de comportamiento).
   - [x] Sin side-effects fuera del alcance de la tarjeta: `makemigrations --check --dry-run` limpio; `contact_digest.html`/`contact_notification.html`/`contact_confirmation.html` no tocados (su flujo de texto plano ya era correcto); único cambio visual = el link del footer y los 2 meta tags nuevos.
 
-### [BOLT-10] `CLAUDE.md`/`SKILL.md` — corregir cita de `THEME_CHOICES` desactualizada + guardia anti-drift
-- **Estado:** TODO
+### ✅ [BOLT-10] `CLAUDE.md`/`SKILL.md` — corregir cita de `THEME_CHOICES` desactualizada + guardia anti-drift — **DONE (2026-09-01)**
+- **Estado:** ✅ DONE (2026-09-01)
 - **Componente:** DevOps / Docs
 - **Variables requeridas:** ninguna
 - **Archivos esperados:** `CLAUDE.md` (línea ~47, ~52), `.claude/skills/andesscale-saas/SKILL.md`
@@ -362,14 +362,25 @@ CLOSE (actualizar card aquí + commit único con ID)
   `Client.THEME_CHOICES` desde `apps/tenants/models.py` y falle si `CLAUDE.md`/`SKILL.md` mencionan
   un valor de tema que no está en esa lista actual (o si falta alguno que sí está). Rojo esperado
   hoy: `'servelec'` y `'ranchocachimba'` aparecen citados sin estar en `THEME_CHOICES`.
+- **Resultado:** `apps/core/tests/test_docs_theme_choices.py` (nuevo, 2 tests) lee `Client.THEME_CHOICES`
+  en vivo (import real, no parsing de AST — a diferencia de `BOLT-06`, acá no hay riesgo de clave
+  duplicada evaluada en runtime) y compara contra la cita literal `` `THEME_CHOICES`: `'v1'`,
+  `'v2'`... `` extraída de `CLAUDE.md` y de `SKILL.md` con una regex — falla si un valor citado no
+  está en el modelo real o si falta alguno. `CLAUDE.md` y `SKILL.md` corregidos a `'themes/default'`,
+  `'themes/servelec'`; se agregó una nota aparte (fuera de la cita, así el regex de la guardia no
+  la captura) aclarando que `'themes/ranchocachimba'` existe solo en `feature/RanchocachimbaEtapa1`.
+  La lista de temas de "antes de escribir un componente nuevo" (línea ~52 de `CLAUDE.md`, ~31 del
+  skill) también se corrigió por ser el mismo hallazgo, aunque no está cubierta por el test estático
+  (es prosa libre, no una cita mecánica — cubrirla con regex sería frágil).
 - **Definición de Terminado (DoD):**
-  - [ ] Test Red→Green: rojo confirmado citando las líneas exactas de `CLAUDE.md`/`SKILL.md` que
-    fallan hoy; verde tras corregir el texto a `'themes/default'`, `'themes/servelec'` (y una nota
-    de que `'themes/ranchocachimba'` existe solo en `feature/RanchocachimbaEtapa1`, no en esta
-    rama/`develop` — no inventar un tercer valor que no está en el modelo real de esta rama).
-  - [ ] Gatekeeper en verde (suite completa + ruff + migraciones).
-  - [ ] Sin tocar nada de Rancho Cachimba ni el contenido del resto de `CLAUDE.md`/`SKILL.md` fuera
-    de la cita puntual de `THEME_CHOICES`.
+  - [x] Test Red → Green: rojo confirmado (2/2 fallos exactos: `CLAUDE.md`/`SKILL.md` citaban
+    `{'servelec', 'ranchocachimba'}` en vez de faltarles `'themes/servelec'` y sobrarles esos dos).
+    Verde tras corregir ambos archivos.
+  - [x] Gatekeeper en verde: 200 tests OK (5 skip, +2 de esta card), ruff limpio (1 archivo: el test
+    nuevo), migraciones limpias. Intentos: 1.
+  - [x] Sin tocar nada de Rancho Cachimba ni el contenido del resto de `CLAUDE.md`/`SKILL.md` fuera
+    de la cita puntual de `THEME_CHOICES` — diff revisado línea por línea antes de aprobar (4
+    líneas en `CLAUDE.md`, 10 en `SKILL.md`, ambas acotadas a los dos párrafos citados).
 
 ---
 
@@ -410,5 +421,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-23 | BOLT-08 | DONE | 155 tests OK (5 skip) / ruff limpio / migraciones limpias | `c3e9f3c` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-09 | DONE | 162 tests OK (5 skip) / ruff limpio (2 archivos, autofix) / migraciones limpias | `2593784` (`agent/ai-dlc-pilot`) |
 | 2026-09-01 | SYNC (no es card) | rama actualizada a `develop` vía `git merge --ff-only` (traía 14 commits, incl. el merge del propio piloto `45eca7b` del 2026-08-24) | 198 tests OK (5 skip) / ruff limpio / migraciones limpias | `0e2e7c5` (tip post-sync, `agent/ai-dlc-pilot`) |
+| 2026-09-01 | BOLT-10 | DONE | 200 tests OK (5 skip, +2) / ruff limpio (1 archivo) / migraciones limpias | *(pendiente, se completa tras el commit de este turno)* |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*

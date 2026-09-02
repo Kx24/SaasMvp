@@ -23,13 +23,15 @@ existen en disco**:
 - Sin tenant (`request.client is None`, dominio de sistema): solo `templates/{name}`.
 
 `client.template` es `Client.template` (`THEME_CHOICES`: `'themes/default'`,
-`'servelec'`, `'ranchocachimba'`) — **no existe** un campo `template` en
-`ClientSettings`, aunque el nombre invite a confundirlos. Las vistas nunca arman
-esta ruta a mano: llaman `apps.core.template_resolver.render_tenant_template(request, template_path, context)`,
+`'themes/servelec'`) — **no existe** un campo `template` en
+`ClientSettings`, aunque el nombre invite a confundirlos. (`'themes/ranchocachimba'`
+existe solo en `feature/RanchocachimbaEtapa1`, no en `develop`/esta rama.) Las
+vistas nunca arman esta ruta a mano: llaman `apps.core.template_resolver.render_tenant_template(request, template_path, context)`,
 que delega 100% en el loader.
 
 **Antes de escribir un componente nuevo:** revisar si ya existe en 2+ temas
-(`servelec`, `themes/default`, `ranchocachimba`, `andesscale`). Si es así,
+(`themes/servelec`, `themes/default`, `andesscale`; `ranchocachimba` solo en
+`feature/RanchocachimbaEtapa1`). Si es así,
 generalizarlo a `templates/components/` en vez de duplicarlo — contrato
 completo y precedente real (`components/media_collection.html`, parámetro
 `mode="slideshow"|"grid"` + slots de override por ruta de template) en

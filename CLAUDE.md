@@ -44,12 +44,12 @@ Dependencias de desarrollo (`ruff`, `bandit`, `coverage`, `pyyaml`) en `requirem
 **Resolución de tenant:** `apps/tenants/middleware.py` inyecta `request.client` según el `Host` header (allowlist dinámica de dominios, ver `Domain` model). `localhost` es `SYSTEM_DOMAIN` (bypass, `request.client = None`), no un tenant real — no confundir con "usa el primer cliente activo" (ese comportamiento no existe hoy, hay un test con skip documentando la duda en `apps/tenants/tests.py`).
 
 **Resolución de templates:** `apps/tenants/template_loader.py::TenantTemplateLoader`. Dado `template_name` (ej. `'landing/home.html'`), busca en este orden:
-1. `templates/{tenant.template}/{template_name}` — `tenant.template` es el campo `Client.template` (`THEME_CHOICES`: `'themes/default'`, `'servelec'`, `'ranchocachimba'`), o `tenant.slug` si `template` no está seteado.
+1. `templates/{tenant.template}/{template_name}` — `tenant.template` es el campo `Client.template` (`THEME_CHOICES`: `'themes/default'`, `'themes/servelec'`), o `tenant.slug` si `template` no está seteado. (`'themes/ranchocachimba'` existe solo en `feature/RanchocachimbaEtapa1`, no en esta rama.)
 2. `templates/{template_name}` — fallback global, así es como resuelven `base.html`, `templates/components/*.html`, `templates/emails/*.html`, etc. compartidos entre temas.
 
 Las vistas llaman `apps.core.template_resolver.render_tenant_template(request, template_path, context)` — **no** arman la ruta a mano (`f'tenants/{slug}/...'`); eso ya no existe, lo resuelve el loader.
 
-Antes de escribir un componente nuevo: revisar si ya existe en 2+ temas (`servelec`, `themes/default`, `ranchocachimba`, `andesscale`); si es así, generalizarlo a `templates/components/` en vez de duplicarlo. Contrato completo y precedente real (`components/media_collection.html`, parámetro `mode` + slots de override por ruta de template) en `docs/design-system.md`.
+Antes de escribir un componente nuevo: revisar si ya existe en 2+ temas (`themes/servelec`, `themes/default`, `andesscale`; `ranchocachimba` solo en `feature/RanchocachimbaEtapa1`); si es así, generalizarlo a `templates/components/` en vez de duplicarlo. Contrato completo y precedente real (`components/media_collection.html`, parámetro `mode` + slots de override por ruta de template) en `docs/design-system.md`.
 
 **Brand tokens por tenant:** `ClientSettings` (color primario/secundario/accent, fuentes, logo) se inyecta como CSS custom properties — no hay valores de marca hardcodeados en JS/Tailwind config. Preferir utilidades Tailwind sobre `style=""` inline en templates nuevos (preferencia explícita del usuario).
 
