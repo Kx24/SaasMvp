@@ -2,7 +2,7 @@
 
 Leer esto **al empezar** una sesión de trabajo visual/de diseño (hoy el caso real es Rancho Cachimba, `#RC-09` en adelante — landing por componente, sección por sección). No reemplaza `docs/design-system.md` (el contrato técnico: qué token, qué componente reusar) — este documento es el *proceso* para llegar a ese contrato desde una inspiración suelta, no el contrato en sí.
 
-> Precedente real que ya funcionó con este mismo método: `#RC-20` (hero de Rancho Cachimba). Mockup → spec escrita (`Documentacion/Planificación/spec_bolt_hero_cachimba.md`) analizada contra `docs/design-system.md` → 6 cards atómicas (`RC-BOLT-01..06`) → implementadas con TDD. Cerraron las 6 sin retrabajo. Este documento generaliza ese método para que no haya que re-derivarlo cada vez.
+> Precedente real que ya funcionó con este mismo método: `#RC-20` (hero de Rancho Cachimba). Mockup → spec escrita (`Documentacion/Planificacion/spec_bolt_hero_cachimba.md`) analizada contra `docs/design-system.md` → 6 cards atómicas (`RC-BOLT-01..06`) → implementadas con TDD. Cerraron las 6 sin retrabajo. Este documento generaliza ese método para que no haya que re-derivarlo cada vez.
 
 ---
 
@@ -45,7 +45,7 @@ Acá es donde la dirección de arte se vuelve implementable. Preguntas obligator
 Este es el paso que en `#RC-20` encontró que la cita "`hero` con variante `layout: single|split`" no existía en el código — verificar contra el código real, no contra lo que dice la documentación vieja, es parte del método, no un extra.
 
 ### Fase 4 — Spec escrita → cards atómicas
-Mismo formato que `Documentacion/Planificación/spec_bolt_hero_cachimba.md`: un documento que analiza el mockup/dirección contra el contrato técnico, documenta qué propuestas se rechazan y por qué, y termina en una lista de cards atómicas — cada una con alcance chico, DoD claro, y numeradas `RC-BOLT-NN` (para no chocar con los `BOLT-NN` de `docs/kanban_agente.md` en `agent/ai-dlc-pilot`, que por regla `§0.4` no toca nada de Rancho Cachimba).
+Mismo formato que `Documentacion/Planificacion/spec_bolt_hero_cachimba.md`: un documento que analiza el mockup/dirección contra el contrato técnico, documenta qué propuestas se rechazan y por qué, y termina en una lista de cards atómicas — cada una con alcance chico, DoD claro, y numeradas `RC-BOLT-NN` (para no chocar con los `BOLT-NN` de `docs/kanban_agente.md` en `agent/ai-dlc-pilot`, que por regla `§0.4` no toca nada de Rancho Cachimba).
 
 ### Fase 5 — Implementar con el mismo gate de siempre
 TDD (rojo confirmado antes del fix), `ruff check` en los archivos tocados, suite Django completa, `npx playwright test` — que desde `#DS-03` incluye el gate de accesibilidad real (`WCAG2A/AA` vía `axe-core`, 0 violaciones exigido). Cualquier componente nuevo que use texto sobre `var(--color-primary)`/`bg-primary` en fondo claro: usar `.text-primary-a11y`/`.bg-primary-a11y` (`static/css/input.css`, agregadas en `#DS-03`) en vez de las utilidades crudas — el color de marca del tenant no garantiza 4.5:1 por sí solo.

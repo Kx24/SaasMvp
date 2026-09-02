@@ -1,6 +1,6 @@
 # 🧭 Procedimiento canónico: Agregar un nuevo tenant
 
-Este documento reemplaza tener que re-derivar los pasos de onboarding cada vez que entra un cliente nuevo. Es el runbook de referencia; los kanbans por-cliente (ej. `KanBan_RanchoCachimba.md`) deben **seguir este procedimiento**, no reinventarlo.
+Este documento reemplaza tener que re-derivar los pasos de onboarding cada vez que entra un cliente nuevo. Es el runbook de referencia; los kanbans por-cliente (ej. `Documentacion/Archivo/Kanban_Onboarding_RanchoCachimba.md`, archivado) deben **seguir este procedimiento**, no reinventarlo.
 
 > Alcance: alta *pre-pago / manual* (equipo interno da de alta al cliente). Distinto del onboarding *post-pago* automático de `apps/orders/` (disparado por MercadoPago) — no mezclar ambos flujos.
 

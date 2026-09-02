@@ -1,7 +1,7 @@
 # Especificación BOLT — Hero Rancho Cachimba (análisis de diseño)
 
 Generada según `docs/prompt_design_system.md` a partir del mockup aprobado
-`Documentacion/Planificación/hero_cachimba.html` (commit `dd340dd`, #RC-06b),
+`Documentacion/Planificacion/hero_cachimba.html` (commit `dd340dd`, #RC-06b),
 contrastado contra `docs/design-system.md` y el código real del tema
 `templates/ranchocachimba/`. **Esta sesión no modificó código de producción.**
 
