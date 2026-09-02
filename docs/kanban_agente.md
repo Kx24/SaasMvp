@@ -11,6 +11,35 @@
 
 ---
 
+## 🔄 SYNC 2026-09-01 — ronda 2 arranca aquí
+
+**Hallazgo al retomar la sesión:** este archivo (y esta rama) llevaban desde el 2026-08-23 sin
+saber que `agent/ai-dlc-pilot` **ya se había mergeado a `develop`** (commit `45eca7b`,
+2026-08-24) y que `develop` había seguido avanzando 14 commits más — `#DEUDA-03`, `#DS-03`,
+`#DEUDA-02` Fase 1, `#FLOW-01`/`#FLOW-02`, `#SEC-03`, todos cerrados con el mismo rigor TDD (ver
+`Documentacion/KANBAN_PROYECTO.md`, "Retomar aquí"). §1/§2 de este archivo (`PILOT-01..03`,
+`BOLT-01..09`) siguen siendo el registro histórico correcto de lo que este piloto entregó; no se
+reescriben.
+
+**Acciones de esta sesión (sync, no una card — sin test posible, es alineación de rama/entorno):**
+- `git merge --ff-only origin/develop` en esta rama y worktree — sin conflictos (el piloto nunca
+  tuvo commits propios divergentes de `develop`, la relación siempre fue de ancestro directo).
+  Pusheado a `origin/agent/ai-dlc-pilot`.
+- Gate re-verificado tras el sync: **198 tests OK, 5 skips, ruff limpio, migraciones limpias.**
+- Venv dedicado del worktree creado (ver §0.-1) — antes no existía, el gate corría contra el venv
+  del checkout principal.
+- `Documentacion/KANBAN_PROYECTO.md`: corregida la nota stale "`#MED-04`/`#MED-05`... sin mergear"
+  (ya estaban mergeados desde el 24).
+- §0.0 (estructura del repo) actualizada abajo contra el estado real post-merge (temas movidos a
+  `templates/themes/`, pool de galería en `apps/website/models.py`).
+- **Hallazgo nuevo, va a §2 como `BOLT-10`:** `CLAUDE.md`/`SKILL.md` citan `THEME_CHOICES` como
+  `'themes/default'`, `'servelec'`, `'ranchocachimba'` — desactualizado desde `#DEUDA-03`
+  (2026-08-24): el valor real en `apps/tenants/models.py` hoy es solo `[('themes/default', ...),
+  ('themes/servelec', ...)]` (RC no está mergeado a `develop`, `servelec` se unificó bajo
+  `themes/`). Nadie lo tocó porque `#DEUDA-03` no pasó por `CLAUDE.md`/`SKILL.md`.
+
+---
+
 ## §0 · PRECONDICIONES DE EJECUCIÓN (leer antes de tomar cualquier card)
 
 ### 0.-1 Rama y entorno de ejecución de este piloto (desde PILOT-01, 2026-08-22)
@@ -37,8 +66,20 @@ Todo el trabajo de este kanban corre en una rama y un worktree dedicados, **sepa
   principal entre llamadas** (no persiste `cd` de una llamada a la siguiente, a diferencia de lo que
   suele asumirse). Cada comando dirigido al worktree necesita su propio `cd
   "C:\Users\sanch\Documents\Proyectos\SaaSMVP-agentic-pilot" &&` al principio.
+- **Entorno virtual del worktree (creado 2026-09-01):** `env/` (gitignorado, patrón `ENV/`/`env` en
+  `.gitignore`) — venv dedicado con `requirements.txt` + `requirements-dev.txt` instalados. Antes se
+  corría el gatekeeper contra el venv del checkout principal (`../SaaSMVP/env`), lo cual violaba el
+  aislamiento que este documento pide en otros puntos. Invocar `./env/Scripts/python.exe
+  scripts/gatekeeper.py` (Windows) — no asumir que `python`/`pip` del PATH global tienen Django
+  instalado. Si el worktree se recrea, recrear también este venv (`python -m venv env && ./env/Scripts/python.exe -m pip install -r requirements.txt -r requirements-dev.txt`) antes de correr el gatekeeper.
 
-### 0.0 Estructura real del repo (verificada 2026-08-22 — NO usar `docs/Structure.md`, está desactualizado)
+### 0.0 Estructura real del repo (re-verificada 2026-09-01 tras el sync con `develop` — NO usar `docs/Structure.md`, está desactualizado)
+
+**Cambios reales desde la última verificación (2026-08-22), por `#DEUDA-03`/`#DEUDA-02` Fase 1 en
+`develop`:** `templates/servelec/` se movió a `templates/themes/servelec/` (unificación de temas,
+`THEME_CHOICES` de `Client` ahora es solo `[('themes/default', ...), ('themes/servelec', ...)]`);
+`GalleryItem.gallery_type` fue reemplazado por FKs `section`/`service` (`apps/website/models.py`).
+Ver `BOLT-10` en §2 para el hallazgo de docs desactualizadas que esto dejó.
 
 ```
 apps/
@@ -299,6 +340,37 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Cero errores en Linter: ruff en verde (intentos: 2 — 1º activó 4 hallazgos preexistentes en `email_service.py` al tocar el archivo — `I001`, 2×`F401`, `F541` — mismo patrón que BOLT-02/03/07; autofix de ruff, sin cambio de comportamiento).
   - [x] Sin side-effects fuera del alcance de la tarjeta: `makemigrations --check --dry-run` limpio; `contact_digest.html`/`contact_notification.html`/`contact_confirmation.html` no tocados (su flujo de texto plano ya era correcto); único cambio visual = el link del footer y los 2 meta tags nuevos.
 
+### [BOLT-10] `CLAUDE.md`/`SKILL.md` — corregir cita de `THEME_CHOICES` desactualizada + guardia anti-drift
+- **Estado:** TODO
+- **Componente:** DevOps / Docs
+- **Variables requeridas:** ninguna
+- **Archivos esperados:** `CLAUDE.md` (línea ~47, ~52), `.claude/skills/andesscale-saas/SKILL.md`
+  (línea ~25-26), test nuevo (sugerido: `apps/core/tests/test_docs_theme_choices.py` o ampliar
+  `apps/tenants/tests_theme_consistency.py` si ya cubre algo similar — el Dev/Tester decide tras
+  revisar ese archivo).
+- **Contexto:** hallazgo de esta sesión (ver nota de SYNC arriba). `#DEUDA-03` (2026-08-24, `develop`)
+  cambió `Client.THEME_CHOICES` a `[('themes/default', 'Tema Base...'), ('themes/servelec',
+  'Electricidad (Servelec)')]` (movió `servelec` bajo `templates/themes/`, retiró el tema
+  `'themes/industrial'` huérfano). Ni `CLAUDE.md` ni el skill de dominio se actualizaron: ambos
+  siguen citando `THEME_CHOICES: 'themes/default', 'servelec', 'ranchocachimba'` — dos valores que
+  ya no existen en el campo real (`'servelec'` sin el prefijo `themes/` nunca fue un valor válido
+  del choices, era una referencia de carpeta antigua; `'ranchocachimba'` no está mergeado a
+  `develop`). Cualquier agente/dev que confíe en esa cita para razonar sobre temas válidos en esta
+  rama parte de un dato falso.
+- **Spec del test (a escribir por Dev/Tester):** un test estático (mismo patrón que `BOLT-06`,
+  `test_theme_token_contract.py`: leer el archivo fuente, no evaluar en runtime) que parsee
+  `Client.THEME_CHOICES` desde `apps/tenants/models.py` y falle si `CLAUDE.md`/`SKILL.md` mencionan
+  un valor de tema que no está en esa lista actual (o si falta alguno que sí está). Rojo esperado
+  hoy: `'servelec'` y `'ranchocachimba'` aparecen citados sin estar en `THEME_CHOICES`.
+- **Definición de Terminado (DoD):**
+  - [ ] Test Red→Green: rojo confirmado citando las líneas exactas de `CLAUDE.md`/`SKILL.md` que
+    fallan hoy; verde tras corregir el texto a `'themes/default'`, `'themes/servelec'` (y una nota
+    de que `'themes/ranchocachimba'` existe solo en `feature/RanchocachimbaEtapa1`, no en esta
+    rama/`develop` — no inventar un tercer valor que no está en el modelo real de esta rama).
+  - [ ] Gatekeeper en verde (suite completa + ruff + migraciones).
+  - [ ] Sin tocar nada de Rancho Cachimba ni el contenido del resto de `CLAUDE.md`/`SKILL.md` fuera
+    de la cita puntual de `THEME_CHOICES`.
+
 ---
 
 ## §3 · BLOQUEADAS — requieren insumos externos (NO tomar, NO preguntar)
@@ -337,5 +409,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-23 | BOLT-07 | DONE | 150 tests OK (5 skip) / ruff limpio (3 archivos) / migración 0023 incluida | `0725d09` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-08 | DONE | 155 tests OK (5 skip) / ruff limpio / migraciones limpias | `c3e9f3c` (`agent/ai-dlc-pilot`) |
 | 2026-08-23 | BOLT-09 | DONE | 162 tests OK (5 skip) / ruff limpio (2 archivos, autofix) / migraciones limpias | `2593784` (`agent/ai-dlc-pilot`) |
+| 2026-09-01 | SYNC (no es card) | rama actualizada a `develop` vía `git merge --ff-only` (traía 14 commits, incl. el merge del propio piloto `45eca7b` del 2026-08-24) | 198 tests OK (5 skip) / ruff limpio / migraciones limpias | `0e2e7c5` (tip post-sync, `agent/ai-dlc-pilot`) |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*
