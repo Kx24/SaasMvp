@@ -86,7 +86,16 @@ Detalle completo en `Documentacion/KANBAN_PROYECTO.md` §2. Resumen:
 - `feature/RanchocachimbaEtapa1` — trabajo de Rancho Cachimba (tema, contenido, provisioning) **en pausa** por decisión del usuario (necesita tiempo de diseño/investigación) — no tocar sin que lo pida explícitamente.
 - Antes de asumir que una branch está actualizada en GitHub: correr `git status --short --branch` y `git log origin/<branch>..<branch> --oneline`. Ya pasó que trabajo de una sesión completa quedó sin pushear.
 
+## Automatización Git/GitHub (MCP)
+
+Este repo usa el GitHub MCP Server oficial (`github/github-mcp-server`), configurado en `.mcp.json` (scope de proyecto) como binario local + PAT — la variante remota con OAuth (`api.githubcopilot.com/mcp/` + `claude mcp login github`) falla con `Incompatible auth server: does not support dynamic client registration`, es una incompatibilidad conocida de Claude Code con ese endpoint, no un error de configuración. Detalle completo, instalación y variante Docker en `MANUAL_MCP_GITHUB.md`. Reglas operativas mientras el MCP esté disponible en la sesión:
+
+1. **Sincronización antes de cerrar o cambiar de rama:** antes de dar una tarea por terminada o hacer `checkout`/`switch` a otra branch, correr `git status --short --branch` y `git log origin/<branch>..<branch> --oneline` (o el tool equivalente del MCP) en la branch actual. Si hay commits sin pushear, avisar explícitamente al usuario — no asumir que "ya se sincronizará después" (esto ya causó que trabajo de una sesión completa quedara sin pushear).
+2. **Cherry-pick asistido hacia `develop`:** antes de aplicar `git cherry-pick <sha>` sobre `develop`, mostrar el diff exacto del/los commit(s) a aplicar (`git show <sha>` o `git diff <sha>^..<sha>`) y pedir confirmación explícita del usuario antes de ejecutar el cherry-pick. Nunca encadenar varios cherry-picks sin repetir esta confirmación por commit (o por tanda, si el usuario ya aprobó el lote completo).
+3. **PR hacia `develop` al cerrar una tanda de commits etiquetados:** al terminar un conjunto de commits con el mismo prefijo de card (`AUD-XX`, `RC-XX`, `MED-XX`, etc.), preparar el PR (título, resumen de los commits incluidos, branch base `develop`) usando las herramientas del GitHub MCP y **confirmar con el usuario antes de crearlo** — mismo criterio que el cherry-pick asistido: nunca abrir un PR de forma silenciosa.
+
 ## Dónde mirar primero
 
 - `Documentacion/KANBAN_PROYECTO.md` — qué está hecho, qué falta, por qué, en qué orden. Sección **"🌙 Retomar aquí"** al inicio siempre tiene el estado más reciente.
 - `apps/*/tests/` — el comportamiento esperado documentado como test vale más que el docstring de al lado.
+- `MANUAL_MCP_GITHUB.md` — instalación, configuración y uso del GitHub MCP Server (PRs, estado de CI, branches) desde Claude Code.
