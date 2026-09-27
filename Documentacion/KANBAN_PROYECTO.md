@@ -16,7 +16,10 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-08-24)
+## 🌙 Retomar aquí (actualizado 2026-09-27)
+
+**🚨 Incidente `servelec-ingenieria.cl` en NXDOMAIN (2026-09-27) — mitigado con URL temporal, solución definitiva bloqueada por credenciales NIC.** NIC Chile delega el dominio a `ns1/ns2/ns3.dnsmisitio.net` (Bluehosting) y los tres responden `REFUSED`: la zona ya no existe en ese proveedor. Web **y correo** (MX/SPF/DKIM de Zoho) caídos a nivel DNS. Render y Django estaban sanos: `curl --resolve servelec-ingenieria.cl:443:216.24.57.16` → 200 con cert válido y el tenant correcto. La clave NIC la tiene un tercero y no estará disponible en el corto plazo → mitigación con `servelec.andesscale.com` (card `#OPS-01` en §5, pendientes operativos ahí). Prevención: `check_tenant_setup --check-dns` + checklist de custodia DNS en `Procedimiento_Nuevo_Tenant.md` §4.
+
 
 **`agent/ai-dlc-pilot` mergeado a `develop` y pusheado a GitHub (2026-08-24).** Las 9 cards `BOLT-01..09` (ver nota del piloto más abajo) ya están en `develop` — commit de merge `45eca7b`, gate re-verificado ahí: 162 tests OK (1 skip), `ruff` limpio en los archivos que trajo, `makemigrations --check` limpio. Este archivo se reconcilió con la versión más completa (traída de `feature/RanchocachimbaEtapa1`) en el mismo commit.
 
@@ -327,6 +330,19 @@ Ya había HSTS/nosniff/X-Frame/cookies seguras. Agregado: **CSP** (`django-csp==
 
 #### ✅ `#SEC-03` — Inventario de secretos `[P2-Media]` `[S]` `[DevOps]` — **DONE (2026-08-24, en `develop`, commit `5229215`)**
 `.env` verificado fuera del historial ✅ (ya lo estaba). **Hallazgo encontrado y corregido en el camino, verificado sin impacto:** `setup_production.py` (corre en cada build) creaba el primer superusuario de `/superadmin/` con la contraseña hardcodeada `admin123456` si `DJANGO_SUPERUSER_PASSWORD` no estaba seteada — visible en el código fuente, y esa env var nunca estuvo declarada en `render.yaml` ni como recordatorio. El comando es idempotente (solo importa para el primer deploy de la base actual). Fix: mismo patrón fail-fast que `SECRET_KEY`/`EMAIL_HOST_USER` (`#AUD-07`/`#AUD-12`) — sin la env var, el build falla en vez de crear una cuenta con clave débil. **El usuario confirmó (2026-08-25) entrando a `/superadmin/` en producción que esa clave nunca estuvo activa ahí** — sin impacto real, cerrado. Segundo hallazgo: `render.yaml` nunca declaraba (ni como `sync: false`) las credenciales de MercadoPago ni Cloudinary pese a que el checkout y la subida de media las usan en producción — agregadas como `sync: false` (no cambia ningún valor real). `MP_SANDBOX` se agrega también pero deliberadamente sin fijar valor — pasarla a `False` habilita cobros reales, decisión de negocio que no le corresponde a este commit. **Resultado:** `.env.example` nuevo (no existía — el README ya instruía "cp .env.example .env", paso roto), `Documentacion/Inventario_Secretos.md` nuevo (tabla completa variable/sensibilidad/servicios + política de rotación por tipo), `apps/core/tests/test_render_config.py` extendido con las 10 keys nuevas (rojo confirmado vía `git stash`), `apps/tenants/tests_setup_production.py` (3 tests nuevos). Suite completa 198 tests OK (5 skip), gatekeeper en verde, `ruff`/`bandit`/`makemigrations --check` limpios. **Fuera de alcance, documentado:** confirmar qué está realmente seteado hoy en el dashboard de Render — requiere acceso que este documento no tiene (columna "¿Configurado en Render?" queda para completar a mano), mismo cabo suelto que `#AUD-04` ya tenía pendiente.
+
+#### `#OPS-01` — Incidente DNS `servelec-ingenieria.cl` + chequeo DNS en el gate `[P0-Crítica]` `[S]` `[DevOps]` — **código DONE (2026-09-27, `feature/dns-check`); operación pendiente**
+**Diagnóstico:** lame delegation. NIC (`a.nic.cl`) → `ns*.dnsmisitio.net` (Bluehosting) → `REFUSED` para SOA/A/MX. Resolvers públicos: SERVFAIL (8.8.8.8, 1.1.1.1), timeout (9.9.9.9). Sin DS en `.cl`. La app sirve bien el tenant si se salta el DNS. **Código:** `check_tenant_setup --check-dns` (opt-in, stdlib `socket.getaddrinfo`; FAIL si un `Domain` activo no resuelve), 5 tests en `apps/tenants/tests_check_tenant_setup.py` (rojo confirmado: `_resolve` no existía); verificado contra DNS real, detecta `servelec-ingenieria.cl` caído y resuelve `andesscale.com`. `render.yaml`: `servelec.andesscale.com` agregado a `EXTRA_DOMAINS` (3 servicios). Runbook §4: checklist de custodia NIC/zona/correo, corrección de `CNAME @` (inválido en el apex) → `A @ 216.24.57.1` + `CNAME www`, diagnóstico de NXDOMAIN y contingencia `<slug>.andesscale.com`.
+
+**Pendiente operativo (usuario):**
+- [ ] Cloudflare (`andesscale.com`): `CNAME servelec → saasmvp-kajv.onrender.com`, DNS only.
+- [ ] Render → Custom Domains: agregar `servelec.andesscale.com`, esperar el certificado.
+- [ ] `/superadmin/` → Dominios: `servelec.andesscale.com`, client Servelec, `is_primary=False`, activo.
+- [ ] Avisar al cliente: URL temporal + **recepción de correo caída** hasta recuperar el DNS.
+- [ ] Definitivo (a): el tercero recupera la clave en nic.cl, o el cliente pide transferir la titularidad.
+- [ ] Definitivo (b), sin NIC: quien tenga la cuenta de Bluehosting reactiva la zona (la delegación ya apunta ahí).
+- [ ] Definitivo (c): zona en Cloudflare (A @ 216.24.57.1, CNAME www, MX Zoho 10/20/50, SPF `v=spf1 include:zoho.com ~all`, DKIM del panel Zoho) + cambio de NS en NIC.
+- [ ] Al volver el dominio: `check_tenant_setup servelec --check-dns --settings=config.settings.production` en verde; decidir si `servelec.andesscale.com` queda como alias o se retira.
 
 ---
 

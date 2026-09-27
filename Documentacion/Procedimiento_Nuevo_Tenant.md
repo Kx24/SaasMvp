@@ -92,11 +92,46 @@ python manage.py update_domain <slug-cliente> --domain=<nuevo-dominio.cl> --sett
 python manage.py check_tenant_setup <slug-cliente> --settings=config.settings.production
 ```
 
+**Antes de tocar el DNS: checklist de custodia (`#OPS-01`)**
+
+Lección del incidente de `servelec-ingenieria.cl` (2026-09-27): la zona DNS desapareció del hosting al que NIC delegaba el dominio (Bluehosting, `ns*.dnsmisitio.net`). Web y correo quedaron en NXDOMAIN, y nadie de nuestro lado tenía la clave NIC para corregirlo. Render y Django estaban perfectos. Antes de lanzar, dejar registrado en la ficha del cliente:
+
+- [ ] **Titular del dominio en NIC Chile** y **quién custodia la clave** (persona + email de recuperación). Si la tiene un tercero, pedir acceso o la transferencia de titularidad *antes* del lanzamiento, no durante una caída.
+- [ ] **Dónde vive la zona hoy:** `nslookup -type=NS <dominio> a.nic.cl`. Si apunta a un hosting (cPanel, Bluehosting, etc.), la zona depende de que ese plan siga pagado. Estándar recomendado: mover la zona a Cloudflare (plan Free, igual que `andesscale.com`).
+- [ ] **Inventario de registros de correo** (MX, SPF, DKIM, verificaciones) exportado *antes* de cambiar NS. Si no se recrean en la zona nueva, el correo del cliente se cae junto con el cambio.
+
 **Render (dominio custom):**
 1. Agregar el dominio del cliente y su variante `www.` a `EXTRA_DOMAINS` en `render.yaml`, commitear.
-2. Render → Settings → Custom Domains → agregar el dominio.
-3. En el proveedor DNS del cliente: `CNAME @ → <servicio>.onrender.com` (o el registro que indique Render).
-4. Verificar `https://<dominio>` sirve la landing correcta (o "En construcción" si sigue activo ese modo).
+2. Render → Settings → Custom Domains → agregar el dominio (apex y `www`).
+3. En el proveedor DNS del cliente (NIC Chile **no aloja registros**, solo delega NS):
+   - `A @ → 216.24.57.1` (confirmar la IP que muestra Render en Custom Domains). **`CNAME @` no es válido en el apex**: rompe MX/TXT del mismo nombre.
+   - `CNAME www → saasmvp-kajv.onrender.com`. En Cloudflare, dejarlo en **DNS only** (nube gris) para que Render emita el certificado.
+   - Conservar MX/SPF/DKIM del correo del cliente.
+4. Verificar resolución y sitio:
+   ```bash
+   python manage.py check_tenant_setup <slug-cliente> --check-dns --settings=config.settings.production
+   ```
+   ```powershell
+   Resolve-DnsName <dominio> -Type A -Server 8.8.8.8 -DnsOnly       # esperado 216.24.57.x
+   Resolve-DnsName www.<dominio> -Type CNAME -Server 1.1.1.1 -DnsOnly
+   Resolve-DnsName <dominio> -Type MX -Server 8.8.8.8 -DnsOnly      # el correo sigue vivo
+   curl.exe -sI https://<dominio>/
+   ```
+5. Verificar que `https://<dominio>` sirve la landing correcta (o "En construcción" si sigue activo ese modo).
+
+**Diagnóstico si el dominio da `DNS_PROBE_FINISHED_NXDOMAIN` / SERVFAIL:**
+1. `nslookup -type=NS <dominio> a.nic.cl` muestra a quién delega NIC.
+2. `nslookup -type=SOA <dominio> <ns-delegado>`: si responde `REFUSED`, la zona no existe en ese proveedor (lame delegation) y el problema no es de Render ni de Django.
+3. Descartar la app saltándose el DNS: `curl -sI --resolve <dominio>:443:216.24.57.1 https://<dominio>/`. Un 200 confirma que Render y el tenant están bien.
+
+**Contingencia sin acceso a NIC: URL temporal `<slug>.andesscale.com`**
+
+Si el DNS del cliente cae y no hay credenciales NIC a mano, se publica el sitio bajo un subdominio nuestro (usado con Servelec, 2026-09-27):
+1. `render.yaml`: agregar `<slug>.andesscale.com` a `EXTRA_DOMAINS` (los 3 servicios) y deployar. Sin esto Django responde 400 `DisallowedHost`.
+2. Cloudflare, zona `andesscale.com`: `CNAME <slug> → saasmvp-kajv.onrender.com`, DNS only.
+3. Render → Custom Domains → agregar `<slug>.andesscale.com` y esperar el certificado.
+4. `/superadmin/` → Dominios → agregar `<slug>.andesscale.com` con `is_primary=False` (el primario sigue siendo el dominio real; **no** usar `update_domain`, porque cambia el primario).
+5. Avisar al cliente: el sitio queda en la URL temporal, pero **el correo del dominio real sigue caído** hasta recuperar el DNS.
 
 ---
 
@@ -117,6 +152,7 @@ python manage.py check_tenant_setup <slug-cliente> --settings=config.settings.pr
 | `provision_tenant <slug> --industry=... --theme=...` | Alta completa de un tenant nuevo |
 | `update_domain <slug> --domain=...` | Cambia/crea el dominio principal de un tenant existente (no toca otros tenants) |
 | `check_tenant_setup <slug>` / `--all` / `--warn-only` | Audita tema, dominio, email, SEO, contenido — gate real (exit ≠ 0 con fallos, salvo `--warn-only`) |
+| `check_tenant_setup <slug> --check-dns` | Además resuelve cada dominio activo en DNS público (requiere red) — detecta NXDOMAIN/SERVFAIL |
 | `list_tenants` | Panorama de todos los tenants activos |
 | `python manage.py test apps.tenants.tests_isolation` | Verifica aislamiento de datos entre tenants (suite Django, no management command) |
 
