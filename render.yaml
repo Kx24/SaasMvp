@@ -73,7 +73,7 @@ services:
       # Dominios adicionales permitidos (separados por coma)
       # Agregar aquí los dominios de tus clientes
       - key: EXTRA_DOMAINS
-        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl"
+        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,servelec.andesscale.com"
 
       # ===============================================
       # EMAIL (Zoho Mail)
@@ -172,7 +172,7 @@ services:
         value: "servelec"
 
       - key: EXTRA_DOMAINS
-        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl"
+        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,servelec.andesscale.com"
 
       - key: EMAIL_HOST
         value: "smtp.zoho.com"
@@ -226,7 +226,7 @@ services:
         value: "servelec"
 
       - key: EXTRA_DOMAINS
-        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl"
+        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,servelec.andesscale.com"
 
       - key: EMAIL_HOST
         value: "smtp.zoho.com"
