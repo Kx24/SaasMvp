@@ -20,6 +20,8 @@
 
 **🚨 Incidente `servelec-ingenieria.cl` en NXDOMAIN (2026-09-27) — mitigado con URL temporal, solución definitiva bloqueada por credenciales NIC.** NIC Chile delega el dominio a `ns1/ns2/ns3.dnsmisitio.net` (Bluehosting) y los tres responden `REFUSED`: la zona ya no existe en ese proveedor. Web **y correo** (MX/SPF/DKIM de Zoho) caídos a nivel DNS. Render y Django estaban sanos: `curl --resolve servelec-ingenieria.cl:443:216.24.57.16` → 200 con cert válido y el tenant correcto. La clave NIC la tiene un tercero y no estará disponible en el corto plazo → mitigación con `servelec.andesscale.com` (card `#OPS-01` en §5, pendientes operativos ahí). Prevención: `check_tenant_setup --check-dns` + checklist de custodia DNS en `Procedimiento_Nuevo_Tenant.md` §4.
 
+**▶️ Próxima sesión — empezar por la épica `#PREV` (URL temporal `<slug>.andesscale.com`, estrategia en `MASTER_PLAN_Y_ARQUITECTURA.md` §4.6, branch `agent/ai-dlc-pilot`).** Orden: `#PREV-00` (integrar lo pendiente de la sesión 2026-09-27) → `#PREV-01` (bug real: el checkout crea `<slug>.onrender.com`, inalcanzable) → `#PREV-02` (noindex) → `#PREV-03` (preview que se salta `mode_under_construction`) → `#PREV-04` (alta en 1 paso). Hay una **decisión del usuario pendiente antes de `#PREV-01`**: wildcard `*.andesscale.com` en Render o alta manual por cliente. Detalle y DoD de cada card en §5, justo después de `#OPS-01`.
+
 
 **`agent/ai-dlc-pilot` mergeado a `develop` y pusheado a GitHub (2026-08-24).** Las 9 cards `BOLT-01..09` (ver nota del piloto más abajo) ya están en `develop` — commit de merge `45eca7b`, gate re-verificado ahí: 162 tests OK (1 skip), `ruff` limpio en los archivos que trajo, `makemigrations --check` limpio. Este archivo se reconcilió con la versión más completa (traída de `feature/RanchocachimbaEtapa1`) en el mismo commit.
 
@@ -343,6 +345,38 @@ Ya había HSTS/nosniff/X-Frame/cookies seguras. Agregado: **CSP** (`django-csp==
 - [ ] Definitivo (b), sin NIC: quien tenga la cuenta de Bluehosting reactiva la zona (la delegación ya apunta ahí).
 - [ ] Definitivo (c): zona en Cloudflare (A @ 216.24.57.1, CNAME www, MX Zoho 10/20/50, SPF `v=spf1 include:zoho.com ~all`, DKIM del panel Zoho) + cambio de NS en NIC.
 - [ ] Al volver el dominio: `check_tenant_setup servelec --check-dns --settings=config.settings.production` en verde; decidir si `servelec.andesscale.com` queda como alias o se retira.
+
+### Épica `#PREV` — URL temporal `<slug>.andesscale.com` (preview, pruebas, contingencia DNS)
+
+Estrategia, encaje comercial y riesgos: `MASTER_PLAN_Y_ARQUITECTURA.md` §4.6 (hoy solo en `agent/ai-dlc-pilot`). Nació del incidente `#OPS-01`. Todas las cards siguen el arnés §2: rojo confirmado, suite verde, `ruff` en archivos tocados, `makemigrations --check`, un commit por card. Branch sugerida: `feature/preview-domains` desde `develop` **después** de mergear `feature/dns-check`, porque `#PREV-04` reutiliza `--check-dns`.
+
+#### `#PREV-00` — Integrar lo pendiente de la sesión 2026-09-27 `[P0-Crítica]` `[S]` `[DevOps]` *(prerequisito, mayormente del usuario)*
+- [ ] Commitear `MASTER_PLAN_Y_ARQUITECTURA.md` (§4.6 + fila Kanban + fila Cloudflare §1.2) en `agent/ai-dlc-pilot`; decidir si el plan maestro llega a `develop` (hoy no existe ahí).
+- [ ] Push de `feature/dns-check` (worktree `../SaaSMVP-dns-check`, 2 commits `OPS-01`, sin pushear) + PR → `develop` (confirmar antes de crear, CLAUDE.md §MCP) → `main` para el deploy de `render.yaml`.
+- [ ] Pasos manuales de `#OPS-01` (Cloudflare CNAME `servelec`, Render Custom Domain, fila `Domain` no primaria) y verificación en vivo de `https://servelec.andesscale.com`.
+- [ ] **Decisión del usuario:** (a) wildcard `*.andesscale.com` (confirmar soporte y costo en el plan Render vigente, ~$29.78/mes hoy) o (b) alta manual en 4 pasos por cliente. Condiciona el alcance de `#PREV-01` y `#PREV-04`.
+
+#### ✅ `#PREV-01` — Onboarding pagado crea un subdominio que no abre `[P1-Alta]` `[S]` `[Backend]` — **DONE (2026-10-05)**
+**Bug verificado en código:** `apps/orders/views_onboarding.py::process_onboarding` creaba `Domain(f"{slug}.{settings.BASE_DOMAIN}", is_primary=True)` y en producción `BASE_DOMAIN="onrender.com"` → `<slug>.onrender.com`, que no apunta a nuestro servicio. Todo cliente del checkout quedaba con un dominio primario inaccesible.
+- [x] Setting nuevo `PREVIEW_DOMAIN` (`config/settings/base.py`/`production.py`, `render.yaml` = `andesscale.com`). `process_onboarding` lo usa para el subdominio en vez de `BASE_DOMAIN`; si no está configurado, no crea un dominio roto (loguea y lo deja para el alta manual).
+- [x] **Hallazgo real al escribir el test:** el default de `PREVIEW_DOMAIN=None` en `base.py` rompía `test_pay03_e2e_sandbox.py` (dev/test heredan de `base.py`, no de `production.py`) — el onboarding dejaba de crear *cualquier* `Domain` en local. Fix: `base.py` default a `PREVIEW_DOMAIN=BASE_DOMAIN` (sin conflicto en dev); solo `production.py` lo exige separado de `BASE_DOMAIN` (ahí es donde `BASE_DOMAIN="onrender.com"` es el problema).
+- [x] Test rojo→verde confirmado con `git stash`/revert manual contra el código original: `apps/orders/tests/test_preview_domain.py`.
+- [x] **Hallazgo incidental:** tocar `views_onboarding.py`/`middleware.py`/`base.py`/`production.py` activó el gate de ruff del propio `scripts/gatekeeper.py` (cuenta todo archivo en el diff vs. `HEAD`, no solo las líneas tocadas) contra ~26 errores preexistentes en esos archivos. Limpiados con `ruff --fix` + un `per-file-ignore` nuevo en `ruff.toml` para `config/settings/production.py` (F403/F405 son inherentes a su `from .base import *` documentado, no deuda real).
+- [ ] Auditoría de producción (cuántos `Domain` existen hoy en `.onrender.com`) y el alta manual en sí quedan pendientes de la decisión de wildcard vs. manual (`#PREV-00`).
+
+#### ✅ `#PREV-02` + `#PREV-03` — SEO de preview + bypass de `mode_under_construction` `[P1-Alta]`/`[P2-Media]` `[Backend]`/`[Database]` — **DONE (2026-10-05)**
+Implementadas juntas (mismo punto de entrada, `TenantMiddleware` Caso A) en un solo commit — "sub-entregable coherente" (`CLAUDE.md` §TDD) en vez de forzar un split artificial de hunks interdependientes.
+- [x] **#PREV-02:** en vez de tocar `seo_tags.py`/templates, la señal va 100% por headers HTTP en el middleware (`_apply_preview_seo_headers`): `X-Robots-Tag: noindex, nofollow` + `Link: <...>; rel="canonical"` (Google soporta `rel=canonical` vía header, no solo `<link>`) en cualquier dominio no-primario con un primario distinto activo. Dominio primario (caso Plan Esencial sin dominio propio) → sin headers, se indexa normal.
+- [x] **#PREV-03:** campo `Domain.is_preview` (migración `0026_domain_is_preview`), independiente de `is_primary`/`domain_type` a propósito. El gate de "en construcción" en el middleware ahora se salta si el dominio de la request es `is_preview=True` — el cliente ve el sitio real ahí aunque el dominio público siga mostrando `under_construction.html`.
+- [x] `_detect_tenant` ahora retorna `(client, domain_obj)` en vez de solo `client`; `request.tenant_domain` queda disponible para quien lo necesite.
+- [x] 4 tests nuevos en `apps/tenants/tests.py::PreviewDomainMiddlewareTestCase`, rojo confirmado contra el middleware original (revert temporal) antes del fix. Corrida `tests_isolation` sin regresiones.
+- [ ] Riesgo conocido sin resolver: la preview es pública para quien tenga la URL — protegerla con token/login queda fuera de alcance salvo que el usuario lo pida.
+
+#### `#PREV-04` — Alta de preview en un paso `[P2-Media]` `[S]` `[Backend]` `[DevOps]`
+- [ ] Management command `add_preview_domain <slug>`: crea `Domain(<slug>.{PREVIEW_DOMAIN}, is_primary=False, is_preview=True)` (o `is_primary=True` si el cliente no tiene otro dominio), es idempotente y **no** toca el primario existente (a diferencia de `update_domain`). Si la opción es (b), imprime los 3 pasos manuales restantes. Cierra con `check_tenant_setup <slug> --check-dns`.
+- [ ] Si la opción es (a) wildcard: `.{PREVIEW_DOMAIN}` en `ALLOWED_HOSTS` de `production.py`. Revisar explícitamente el trade-off de `CSRF_TRUSTED_ORIGINS` (hoy sin wildcards a propósito, CSRF-04) y dejar la decisión escrita en el comentario del bloque.
+- [ ] Actualizar `Procedimiento_Nuevo_Tenant.md`: la preview pasa a ser un paso estándar del onboarding (§1/§4), no solo contingencia.
+- [ ] Tests del comando: idempotencia, no pisa el primario, primario cuando no hay otro dominio.
 
 ---
 
