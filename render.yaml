@@ -66,6 +66,11 @@ services:
       - key: BASE_DOMAIN
         value: "onrender.com"
 
+      # Dominio de preview/contingencia por tenant (<slug>.PREVIEW_DOMAIN),
+      # separado de BASE_DOMAIN (#PREV-01) -- ver MASTER_PLAN_Y_ARQUITECTURA.md §4.6
+      - key: PREVIEW_DOMAIN
+        value: "andesscale.com"
+
       # Tenant por defecto (cuando no se detecta dominio)
       - key: DEFAULT_TENANT_SLUG
         value: "servelec"
@@ -168,6 +173,11 @@ services:
       - key: BASE_DOMAIN
         value: "onrender.com"
 
+      # Dominio de preview/contingencia por tenant (<slug>.PREVIEW_DOMAIN),
+      # separado de BASE_DOMAIN (#PREV-01) -- ver MASTER_PLAN_Y_ARQUITECTURA.md §4.6
+      - key: PREVIEW_DOMAIN
+        value: "andesscale.com"
+
       - key: DEFAULT_TENANT_SLUG
         value: "servelec"
 
@@ -221,6 +231,11 @@ services:
 
       - key: BASE_DOMAIN
         value: "onrender.com"
+
+      # Dominio de preview/contingencia por tenant (<slug>.PREVIEW_DOMAIN),
+      # separado de BASE_DOMAIN (#PREV-01) -- ver MASTER_PLAN_Y_ARQUITECTURA.md §4.6
+      - key: PREVIEW_DOMAIN
+        value: "andesscale.com"
 
       - key: DEFAULT_TENANT_SLUG
         value: "servelec"

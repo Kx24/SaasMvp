@@ -21,3 +21,9 @@ select = ["E", "F", "I"]
 ignore = [
     "E501",  # línea larga: no forzar rewrap de código legacy
 ]
+
+[lint.per-file-ignores]
+# "from .base import *" es el patrón deliberado de config/settings/production.py
+# (ver su propio docstring) -- cualquier settings file que extienda base.py así
+# siempre va a disparar F403/F405, no es código sin revisar.
+"config/settings/production.py" = ["F403", "F405"]
