@@ -124,14 +124,16 @@ Lección del incidente de `servelec-ingenieria.cl` (2026-09-27): la zona DNS des
 2. `nslookup -type=SOA <dominio> <ns-delegado>`: si responde `REFUSED`, la zona no existe en ese proveedor (lame delegation) y el problema no es de Render ni de Django.
 3. Descartar la app saltándose el DNS: `curl -sI --resolve <dominio>:443:216.24.57.1 https://<dominio>/`. Un 200 confirma que Render y el tenant están bien.
 
-**Contingencia sin acceso a NIC: URL temporal `<slug>.andesscale.com`**
+**URL de preview `<slug>.andesscale.com`: preview estándar, pruebas y contingencia DNS**
 
-Si el DNS del cliente cae y no hay credenciales NIC a mano, se publica el sitio bajo un subdominio nuestro (usado con Servelec, 2026-09-27):
-1. `render.yaml`: agregar `<slug>.andesscale.com` a `EXTRA_DOMAINS` (los 3 servicios) y deployar. Sin esto Django responde 400 `DisallowedHost`.
+Desde `#PREV-01..04`, `<slug>.{PREVIEW_DOMAIN}` ya no es solo el parche de contingencia que se usó con Servelec (2026-09-27) — es un paso estándar disponible desde el día 1 de cualquier onboarding: el cliente revisa su sitio ahí antes de tener su dominio propio configurado, incluso con `mode_under_construction` activo en el dominio público (el preview lo esquiva, `#PREV-03`). También sigue sirviendo como contingencia si el DNS del cliente cae, igual que con Servelec.
+
+1. `render.yaml`: agregar `<slug>.andesscale.com` a `EXTRA_DOMAINS` (los 3 servicios) y deployar. Sin esto Django responde 400 `DisallowedHost`. *(Si en el futuro se adopta el wildcard `*.andesscale.com` — decisión pendiente, `#PREV-00` — este paso deja de ser necesario; `add_preview_domain` detecta eso solo y no imprime pasos manuales.)*
 2. Cloudflare, zona `andesscale.com`: `CNAME <slug> → saasmvp-kajv.onrender.com`, DNS only.
 3. Render → Custom Domains → agregar `<slug>.andesscale.com` y esperar el certificado.
-4. `/superadmin/` → Dominios → agregar `<slug>.andesscale.com` con `is_primary=False` (el primario sigue siendo el dominio real; **no** usar `update_domain`, porque cambia el primario).
-5. Avisar al cliente: el sitio queda en la URL temporal, pero **el correo del dominio real sigue caído** hasta recuperar el DNS.
+4. `python manage.py add_preview_domain <slug> --settings=config.settings.production`: crea el `Domain` con `is_preview=True` (idempotente, no toca el primario si el cliente ya tiene uno propio) y te dice si todavía faltan los pasos 1-3. **No** usar `update_domain` para esto, porque reemplaza el primario.
+5. Verificar con el comando que el propio `add_preview_domain` imprime al final (`check_tenant_setup <slug> --check-dns`).
+6. Si el motivo fue una caída de DNS del cliente (no un onboarding nuevo), avisarle: el sitio queda en la URL temporal, pero **el correo del dominio real sigue caído** hasta recuperar el DNS.
 
 ---
 
