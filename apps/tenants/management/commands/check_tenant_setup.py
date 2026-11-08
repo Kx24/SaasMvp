@@ -21,8 +21,16 @@ Uso:
     python manage.py check_tenant_setup mi-empresa
     python manage.py check_tenant_setup --all
     python manage.py check_tenant_setup mi-empresa --warn-only
+    python manage.py check_tenant_setup mi-empresa --check-dns
+
+--check-dns (#OPS-01) resuelve cada Domain activo del tenant contra el
+DNS publico. Opt-in porque requiere red. Nacio del incidente de
+servelec-ingenieria.cl (2026-09-27): la zona desaparecio del proveedor
+DNS delegado en NIC y el dominio quedo en NXDOMAIN mientras Render y
+Django servian el sitio perfecto -- invisible para el resto del gate.
 """
 import re
+import socket
 from pathlib import Path
 
 from django.conf import settings
@@ -51,6 +59,13 @@ def _find_placeholder(text):
     return None
 
 
+def _resolve(host):
+    """IPs a las que resuelve `host`. Lanza socket.gaierror si no resuelve
+    (NXDOMAIN, SERVFAIL, zona inexistente en el proveedor DNS)."""
+    infos = socket.getaddrinfo(host, 443, proto=socket.IPPROTO_TCP)
+    return sorted({info[4][0] for info in infos})
+
+
 class Command(BaseCommand):
     help = (
         'Audita el estado de provisioning de uno o varios tenants '
@@ -76,10 +91,17 @@ class Command(BaseCommand):
             help='Solo reportar: no terminar con error aunque haya fallos '
                  '(comportamiento informativo original del comando)'
         )
+        parser.add_argument(
+            '--check-dns',
+            action='store_true',
+            help='Verificar que cada dominio activo resuelva en DNS publico '
+                 '(requiere red; detecta NXDOMAIN/SERVFAIL)'
+        )
 
     def handle(self, *args, **options):
         slug = options.get('slug')
         check_all = options['all']
+        self.check_dns = options['check_dns']
 
         if not slug and not check_all:
             raise CommandError('Debes pasar un slug o usar --all')
@@ -117,6 +139,8 @@ class Command(BaseCommand):
         failures = []
         self._check_theme(client, failures)
         self._check_domain(client, failures)
+        if self.check_dns:
+            self._check_dns(client, failures)
         self._check_email(client, failures)
         self._check_seo(client, failures)
         self._check_sections(client, failures)
@@ -144,6 +168,20 @@ class Command(BaseCommand):
             self.stdout.write(f'[OK]   Dominio principal: {domain.domain}')
         else:
             self._fail(failures, 'Dominio', 'El tenant no tiene ningún dominio asignado.')
+
+    def _check_dns(self, client, failures):
+        hosts = client.domains.filter(is_active=True).order_by('domain').values_list('domain', flat=True)
+        for host in hosts:
+            try:
+                ips = _resolve(host)
+            except (socket.gaierror, UnicodeError):
+                self._fail(
+                    failures, 'DNS',
+                    f'{host} no resuelve (NXDOMAIN/SERVFAIL): revisar la delegacion NS '
+                    'en NIC y que la zona exista en el proveedor DNS.'
+                )
+                continue
+            self.stdout.write(f'[OK]   DNS {host} -> {", ".join(ips)}')
 
     def _check_email(self, client, failures):
         has_contact_form = FormConfig.objects.filter(client=client).exists()

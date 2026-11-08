@@ -11,7 +11,9 @@ tenant tiene formulario de contacto. Con fallos → CommandError (exit != 0);
 Convención de tests de la app tenants: archivo PLANO tests_*.py (§0.0 del
 kanban agéntico) — no crear apps/tenants/tests/.
 """
+import socket
 from io import StringIO
+from unittest import mock
 
 from django.core.management import CommandError, call_command
 from django.test import TestCase
@@ -142,3 +144,60 @@ class CheckTenantSetupGateTestCase(TestCase):
         self._run('solo-lectura')
         self.assertEqual(seo_before, list(SEOConfig.objects.filter(client=client).values()))
         self.assertEqual(sections_before, list(Section.objects.filter(client=client).values()))
+
+
+RESOLVE = 'apps.tenants.management.commands.check_tenant_setup._resolve'
+
+
+class CheckTenantSetupDnsTestCase(TestCase):
+    """--check-dns (#OPS-01): detecta un dominio que no resuelve.
+
+    Incidente 2026-09-27: servelec-ingenieria.cl quedó en NXDOMAIN (la zona
+    desapareció del proveedor DNS delegado) mientras Render y Django servían
+    el sitio perfecto -- ningún chequeo del repo lo podía ver. El flag es
+    opt-in para que CI y el resto de la suite no dependan de la red.
+    """
+
+    def _run(self, *args, **kwargs):
+        out = StringIO()
+        call_command('check_tenant_setup', *args, stdout=out, stderr=out, **kwargs)
+        return out.getvalue()
+
+    def test_unresolvable_domain_fails(self):
+        _complete_tenant('dns-caido')
+        with mock.patch(RESOLVE, side_effect=socket.gaierror(11001, 'getaddrinfo failed')):
+            with self.assertRaises(CommandError) as ctx:
+                self._run('dns-caido', check_dns=True)
+        self.assertIn('no resuelve', str(ctx.exception))
+        self.assertIn('dns-caido.test', str(ctx.exception))
+
+    def test_resolvable_domain_passes(self):
+        _complete_tenant('dns-ok')
+        with mock.patch(RESOLVE, return_value=['216.24.57.1']):
+            output = self._run('dns-ok', check_dns=True)
+        self.assertIn('dns-ok.test', output)
+        self.assertNotIn('[FAIL]', output)
+
+    def test_every_active_domain_is_checked(self):
+        client = _complete_tenant('dns-multi')
+        Domain.objects.create(client=client, domain='www.dns-multi.test',
+                              domain_type='custom', is_active=True)
+        Domain.objects.create(client=client, domain='viejo.dns-multi.test',
+                              domain_type='custom', is_active=False)
+        with mock.patch(RESOLVE, return_value=['216.24.57.1']) as resolve:
+            self._run('dns-multi', check_dns=True)
+        checked = sorted(c.args[0] for c in resolve.call_args_list)
+        self.assertEqual(checked, ['dns-multi.test', 'www.dns-multi.test'])
+
+    def test_without_flag_does_not_touch_network(self):
+        _complete_tenant('dns-sin-flag')
+        with mock.patch(RESOLVE) as resolve:
+            self._run('dns-sin-flag')
+        resolve.assert_not_called()
+
+    def test_warn_only_reports_but_does_not_raise(self):
+        _complete_tenant('dns-warn')
+        with mock.patch(RESOLVE, side_effect=socket.gaierror(11001, 'getaddrinfo failed')):
+            output = self._run('dns-warn', check_dns=True, warn_only=True)
+        self.assertIn('[FAIL]', output)
+        self.assertIn('no resuelve', output)

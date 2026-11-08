@@ -188,7 +188,14 @@ class Domain(models.Model):
         default=False,
         help_text="¿Dominio verificado? (DNS configurado)"
     )
-    
+
+    is_preview = models.BooleanField(
+        default=False,
+        help_text="Dominio de preview/contingencia: si el cliente está en "
+                   "mode_under_construction, este dominio sigue mostrando "
+                   "el sitio real (#PREV-03)."
+    )
+
     verification_token = models.CharField(
         max_length=64,
         blank=True,

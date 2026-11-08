@@ -4,10 +4,12 @@ Tests para TenantMiddleware.
 Los signals crean automáticamente ClientSettings, por lo que
 no debemos crearlos manualmente en setUp.
 """
-from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import AnonymousUser
-from .models import Client, ClientSettings, Domain
+from django.http import HttpResponse
+from django.test import RequestFactory, TestCase
+
 from .middleware import TenantMiddleware
+from .models import Client, ClientSettings, Domain
 
 
 class TenantMiddlewareTestCase(TestCase):
@@ -287,3 +289,107 @@ class DomainIndexTestCase(TestCase):
             ['client', 'is_primary', 'is_active'], indexes,
             f"Domain._meta.indexes no tiene (client, is_primary, is_active); tiene: {indexes}",
         )
+
+
+class PreviewDomainMiddlewareTestCase(TestCase):
+    """
+    #PREV-02/#PREV-03: un dominio de preview no debe competir en SEO con
+    el dominio real del cliente, y un dominio marcado is_preview debe
+    seguir mostrando el sitio real aunque el cliente esté en
+    mode_under_construction.
+    """
+
+    def setUp(self):
+        self.client_obj = Client.objects.create(
+            name='Preview Client',
+            company_name='Preview Company',
+            contact_email='preview@test.com',
+            is_active=True,
+        )
+        self.primary_domain = Domain.objects.create(
+            client=self.client_obj,
+            domain='cliente-real.cl',
+            domain_type='custom',
+            is_primary=True,
+            is_active=True,
+            is_verified=True,
+        )
+        self.factory = RequestFactory()
+
+        def dummy_view(request):
+            return HttpResponse('ok')
+
+        self.middleware = TenantMiddleware(dummy_view)
+
+    def test_non_primary_domain_gets_noindex_and_canonical_to_primary(self):
+        preview_domain = Domain.objects.create(
+            client=self.client_obj,
+            domain='cliente.andesscale.com',
+            domain_type='subdomain',
+            is_primary=False,
+            is_active=True,
+            is_verified=True,
+        )
+
+        request = self.factory.get('/alguna-pagina/', HTTP_HOST=preview_domain.domain)
+        request.user = AnonymousUser()
+
+        response = self.middleware(request)
+
+        self.assertEqual(response['X-Robots-Tag'], 'noindex, nofollow')
+        self.assertEqual(
+            response['Link'],
+            '<https://cliente-real.cl/alguna-pagina/>; rel="canonical"',
+        )
+
+    def test_primary_domain_is_not_noindexed(self):
+        request = self.factory.get('/', HTTP_HOST=self.primary_domain.domain)
+        request.user = AnonymousUser()
+
+        response = self.middleware(request)
+
+        self.assertNotIn('X-Robots-Tag', response)
+        self.assertNotIn('Link', response)
+
+    def test_preview_domain_bypasses_under_construction(self):
+        self.client_obj.mode_under_construction = True
+        self.client_obj.save()
+        preview_domain = Domain.objects.create(
+            client=self.client_obj,
+            domain='cliente.andesscale.com',
+            domain_type='subdomain',
+            is_primary=False,
+            is_active=True,
+            is_verified=True,
+            is_preview=True,
+        )
+
+        request = self.factory.get('/', HTTP_HOST=preview_domain.domain)
+        request.user = AnonymousUser()
+
+        response = self.middleware(request)
+
+        self.assertEqual(response.content, b'ok')
+
+    def test_non_preview_domain_still_shows_under_construction(self):
+        """Un dominio no-primario que NO está marcado is_preview (ej. un
+        alias legacy) no debe saltarse el modo construcción -- el bypass
+        es por is_preview, no por is_primary."""
+        self.client_obj.mode_under_construction = True
+        self.client_obj.save()
+        alias_domain = Domain.objects.create(
+            client=self.client_obj,
+            domain='alias-legacy.cl',
+            domain_type='custom',
+            is_primary=False,
+            is_active=True,
+            is_verified=True,
+            is_preview=False,
+        )
+
+        request = self.factory.get('/', HTTP_HOST=alias_domain.domain)
+        request.user = AnonymousUser()
+
+        response = self.middleware(request)
+
+        self.assertNotEqual(response.content, b'ok')

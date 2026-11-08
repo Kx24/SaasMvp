@@ -8,10 +8,9 @@ Compatible con Django 5.2+
 
 import os
 from pathlib import Path
-from decouple import config
+
 import dj_database_url
 from decouple import config
-
 
 # =============================================================================
 # PATHS
@@ -32,6 +31,16 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Dominio base para subdominios
 BASE_DOMAIN = config('BASE_DOMAIN', default='andesscale.cl')
+
+# Dominio de preview/contingencia (<slug>.PREVIEW_DOMAIN) para el onboarding
+# pagado -- separado de BASE_DOMAIN porque en producción BASE_DOMAIN vale
+# "onrender.com" (dominio de la plataforma, no resuelve al servicio) (#PREV-01).
+# Default = BASE_DOMAIN: en dev/test no hay conflicto (BASE_DOMAIN es un
+# placeholder razonable ahí), así que el onboarding sigue creando un Domain
+# como antes del fix. production.py pisa esto explícitamente SIN heredar
+# BASE_DOMAIN -- ahí sí hay que configurarlo aparte o el onboarding queda
+# sin Domain (ver ese archivo).
+PREVIEW_DOMAIN = config('PREVIEW_DOMAIN', default=BASE_DOMAIN)
 
 # Tenant por defecto cuando no se detecta ninguno
 DEFAULT_TENANT_SLUG = config('DEFAULT_TENANT_SLUG', default=None)
@@ -352,9 +361,6 @@ LOGIN_REDIRECT_URL = '/superadmin/nuevo/'
 
 
 
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
 
 # ==============================================================================
 # MERCADO PAGO

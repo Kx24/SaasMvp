@@ -14,10 +14,11 @@ Usar con: DJANGO_SETTINGS_MODULE=config.settings.production
 Configuración de producción — Django Multi-Tenant SaaS
 config/settings/production.py
 """
-from .base import *
 import os
+
 import dj_database_url
 
+from .base import *
 from .security_headers import CONTENT_SECURITY_POLICY, PERMISSIONS_POLICY  # noqa: F401
 
 # ==============================================================================
@@ -55,6 +56,13 @@ def _with_www_variants(hosts):
     return expanded
 
 BASE_DOMAIN = (os.environ.get('BASE_DOMAIN', '') or '').strip().lower()
+
+# Dominio de preview/contingencia para el onboarding pagado (#PREV-01).
+# Deliberadamente NO entra en _tenant_hosts/ALLOWED_HOSTS acá: cada
+# <slug>.PREVIEW_DOMAIN sigue necesitando su propia alta en EXTRA_DOMAINS
+# (o un wildcard, decisión pendiente -- ver #PREV-00/#PREV-04) para que
+# Django acepte el Host header.
+PREVIEW_DOMAIN = (os.environ.get('PREVIEW_DOMAIN', '') or '').strip().lower() or None
 
 _tenant_hosts = set()
 if BASE_DOMAIN:
