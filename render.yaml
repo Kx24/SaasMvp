@@ -62,9 +62,11 @@ services:
       # CONFIGURACIÓN MULTI-TENANT
       # ===============================================
 
-      # Dominio base para subdominios (ej: demo.tuapp.cl)
+      # Dominio raíz del SaaS: production.py lo agrega (apex + www) a
+      # ALLOWED_HOSTS y CSRF_TRUSTED_ORIGINS, y EmailService lo usa como
+      # fallback de URL. Valor real del dashboard (confirmado 2026-11-08).
       - key: BASE_DOMAIN
-        value: "onrender.com"
+        value: "andesscale.com"
 
       # Dominio de preview/contingencia por tenant (<slug>.PREVIEW_DOMAIN),
       # separado de BASE_DOMAIN (#PREV-01) -- ver MASTER_PLAN_Y_ARQUITECTURA.md §4.6
@@ -183,7 +185,7 @@ services:
         sync: false
 
       - key: BASE_DOMAIN
-        value: "onrender.com"
+        value: "andesscale.com"
 
       # Dominio de preview/contingencia por tenant (<slug>.PREVIEW_DOMAIN),
       # separado de BASE_DOMAIN (#PREV-01) -- ver MASTER_PLAN_Y_ARQUITECTURA.md §4.6
@@ -241,7 +243,7 @@ services:
         sync: false
 
       - key: BASE_DOMAIN
-        value: "onrender.com"
+        value: "andesscale.com"
 
       # Dominio de preview/contingencia por tenant (<slug>.PREVIEW_DOMAIN),
       # separado de BASE_DOMAIN (#PREV-01) -- ver MASTER_PLAN_Y_ARQUITECTURA.md §4.6
