@@ -99,3 +99,5 @@ Este repo usa el GitHub MCP Server oficial (`github/github-mcp-server`), configu
 - `Documentacion/KANBAN_PROYECTO.md` — qué está hecho, qué falta, por qué, en qué orden. Sección **"🌙 Retomar aquí"** al inicio siempre tiene el estado más reciente.
 - `apps/*/tests/` — el comportamiento esperado documentado como test vale más que el docstring de al lado.
 - `MANUAL_MCP_GITHUB.md` — instalación, configuración y uso del GitHub MCP Server (PRs, estado de CI, branches) desde Claude Code.
+- Skill `andesscale-saas` (`.claude/skills/andesscale-saas/SKILL.md`) — profundiza en resolución de templates, filtrado por tenant y provisioning; cárgalo para trabajo específico de tenants/temas en vez de releer este archivo entero.
+- `.idea/runConfigurations/` — los comandos frecuentes de arriba como run configurations de PyCharm (IDE principal desde 2026-11). Intérprete: `env/Scripts/python.exe` de este checkout.

@@ -44,6 +44,14 @@ staticfiles/
 scripts/output/*
 !scripts/output/.gitkeep
 
+# ─── PyCharm / JetBrains ────────────────────────────
+# Config local del IDE fuera del repo; solo se comparten las run
+# configurations (runserver, tests, ruff) para que un checkout nuevo
+# arranque con los mismos comandos de CLAUDE.md.
+.idea/*
+!.idea/runConfigurations/
+.venv/
+
 # ─── Archivos de sistema ────────────────────────────
 .DS_Store
 Thumbs.db
