@@ -92,6 +92,19 @@ services:
       - key: EMAIL_USE_TLS
         value: "True"
 
+      # #OPS-03: envío síncrono. "true" SOLO cuando exista el cron
+      # send-pending-emails en Render; sin él, los correos se encolan en
+      # EmailOutbox y nunca salen. (Default del código: False.)
+      - key: EMAIL_ASYNC
+        value: "False"
+
+      # URL pública base para los links de los correos (onboarding,
+      # set-password, dashboard) y de Order.get_onboarding_url. Sin ella el
+      # código cae a http://localhost:8000 (#OPS-03). Valor por servicio en
+      # el dashboard, ej. https://andesscale.com (sin "/" final).
+      - key: BASE_URL
+        sync: false
+
       # Estas se configuran manualmente en Render Dashboard (son secretas).
       # sync: false = Render las preserva entre syncs del blueprint, no las
       # pisa ni las borra -- declararlas acá es solo para que el inventario

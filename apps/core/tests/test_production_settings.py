@@ -127,13 +127,24 @@ def _get_production_email_async_value(extra_env: dict) -> subprocess.CompletedPr
 
 class ProductionEmailAsyncConfigTestCase(SimpleTestCase):
     """
-    #MED-01: SMTP real bloquea el hilo del request 1-3s por envío. En
-    producción, EMAIL_ASYNC debe estar activo por defecto (encolar en
-    EmailOutbox en vez de abrir la conexión SMTP dentro del request).
+    #MED-01: SMTP real bloquea el hilo del request 1-3s por envío; con
+    EMAIL_ASYNC=True se encola en EmailOutbox y un cron hace el envío real.
+
+    #OPS-03: el default pasa a False. El cron `send-pending-emails` de
+    render.yaml nunca existió en Render (confirmado 2026-11-08: solo está
+    el web service, el blueprint no se sincroniza), así que con True por
+    defecto todo correo transaccional quedaba encolado y nunca salía. Async
+    se activa solo explícitamente, cuando el cron exista de verdad.
     """
 
-    def test_email_async_is_true_by_default_in_production(self):
+    def test_email_async_is_false_by_default_in_production(self):
         result = _get_production_email_async_value({})
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), 'False')
+
+    def test_email_async_can_be_enabled_explicitly(self):
+        result = _get_production_email_async_value({'EMAIL_ASYNC': 'true'})
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), 'True')

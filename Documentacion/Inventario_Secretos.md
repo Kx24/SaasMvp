@@ -19,7 +19,7 @@ Fuente de verdad de **qué** secretos usa el sistema, **para qué**, y **dónde 
 | Variable | Para qué | Sensibilidad | Dónde se lee | Servicios que la necesitan | Declarada en `render.yaml` | ¿Configurada en Render? |
 |---|---|---|---|---|---|---|
 | `SECRET_KEY` | Firma de sesiones/cookies/tokens de Django | 🔴 Secreto crítico | `config/settings/production.py` | web, ambos crons | ✅ `generateValue: true` (Render la genera sola) | — |
-| `DATABASE_URL` | Conexión a Postgres (incluye password) | 🔴 Secreto crítico | `config/settings/production.py` | web, ambos crons | ✅ `fromDatabase` (automático) | — |
+| `DATABASE_URL` | Conexión a Postgres **Neon** (incluye password) | 🔴 Secreto crítico | `config/settings/production.py` | web, ambos crons | ✅ `sync: false` (`#OPS-02`; antes `fromDatabase` a una Postgres de Render ya eliminada) | ✅ Verificado 2026-11-08 — web apunta al pooler de Neon |
 | `DJANGO_SUPERUSER_PASSWORD` | Password del primer superusuario `/superadmin/` | 🔴 Secreto crítico | `apps/tenants/management/commands/setup_production.py` | web (solo en build) | ✅ `sync: false` *(agregado en esta card — antes no estaba)* | ✅ Verificado 2026-08-25 — el superuser real nunca tuvo la clave default |
 | `EMAIL_HOST_PASSWORD` | Password SMTP (Zoho) | 🔴 Secreto crítico | `config/settings/production.py` | web, ambos crons (envían correo) | ✅ `sync: false` | ☐ |
 | `MP_ACCESS_TOKEN` | Token privado de MercadoPago (crea/consulta pagos) | 🔴 Secreto crítico | `apps/orders/services/mercadopago_service.py` | web (checkout) | ✅ `sync: false` *(agregado en esta card)* | ☐ |
@@ -35,9 +35,10 @@ Fuente de verdad de **qué** secretos usa el sistema, **para qué**, y **dónde 
 | `EXTRA_DOMAINS` | Dominios custom de clientes, separados por coma | 🟢 Config (lista pública igual) | `config/settings/production.py` | web, ambos crons | ✅ | ✅ |
 | `EMAIL_HOST` | Servidor SMTP | 🟢 Config | `config/settings/production.py` | web, ambos crons | ✅ `value: "smtp.zoho.com"` | ✅ |
 | `EMAIL_PORT` / `EMAIL_USE_TLS` / `EMAIL_USE_SSL` | Config de conexión SMTP | 🟢 Config | `config/settings/production.py` | web, ambos crons | ✅ (`EMAIL_USE_SSL` no declarada, tiene default seguro) | ✅ |
-| `EMAIL_ASYNC` | Encolar emails vs. enviar sync (`#MED-01`) | 🟢 Config | `config/settings/production.py` (`default=True`) | web | No declarada (usa el default) | — |
+| `EMAIL_ASYNC` | Encolar emails (`EmailOutbox` + cron) vs. enviar sync (`#MED-01`) | 🟢 Config — **`true` solo con el cron creado** | `config/settings/production.py` (`default=False` desde `#OPS-03`) | web | ✅ `value: "False"` (`#OPS-03`) | ☐ — el cron `send-pending-emails` no existe en Render (2026-11-08) |
 | `DEFAULT_FROM_EMAIL` / `SUPPORT_EMAIL` | Remitente / casilla de soporte mostrada al usuario | 🟢 Config | `config/settings/base.py` | web | No declaradas (usan default) | — |
-| `BASE_URL` | URL base para links absolutos en emails | 🟢 Config | `config/settings/base.py` | web | No declarada (usa default `localhost`, **revisar si hace falta en prod**) | ☐ |
+| `BASE_URL` | URL base de los links de correos (onboarding, set-password, dashboard) y `Order.get_onboarding_url` | 🟢 Config — **crítica** | `config/settings/base.py` | web | ✅ `sync: false` (`#OPS-03`) | ☐ Sin ella los links apuntan a `http://localhost:8000` |
+| `PREVIEW_DOMAIN` | Dominio de las URLs `<slug>.PREVIEW_DOMAIN` del onboarding (`#PREV-01`) | 🟢 Config | `config/settings/production.py` | web, ambos crons | ✅ `value: "andesscale.com"` | ☐ El blueprint no se sincroniza: hay que setearla a mano |
 | `DEBUG` | Nunca debe ser `True` en producción | 🟢 Config | `config/settings/production.py` | web, ambos crons | ✅ `value: "False"` | ✅ |
 | `RENDER_EXTERNAL_HOSTNAME` | La provee Render automáticamente, no se configura a mano | 🟢 Auto | `config/settings/base.py`, `setup_production.py` | web | Automática de Render | — |
 | `TENANT_DOMAINS` | Mapeo tenant→dominios para `setup_production` (formato `slug:dom1,dom2\|slug2:...`) | 🟢 Config | `apps/tenants/management/commands/setup_production.py` | web (build) | No declarada — **solo se usa si hay más de 1 tenant en el mismo deploy** | ☐ Confirmar si aplica |
@@ -51,7 +52,7 @@ No hay rotación automatizada — es manual, y por eso queda documentada acá qu
 | Variable | Cuándo rotar | Cómo, sin causar downtime |
 |---|---|---|
 | `SECRET_KEY` | Solo ante sospecha de compromiso — rotarla sin necesidad invalida **todas** las sesiones activas y las firmas de `cookies`/tokens en tránsito. | Generar una nueva (`django.core.management.utils.get_random_secret_key()`), setear en Render, redeploy. Todos los usuarios logueados pierden sesión. |
-| `DATABASE_URL` | Si Render la rota (cambio de plan, etc.) o ante sospecha de compromiso. | La gestiona Render vía `fromDatabase` — no se edita a mano salvo migrar de proveedor. |
+| `DATABASE_URL` | Ante sospecha de compromiso o si cambia la password del rol en Neon. | Resetear la password del rol en Neon, copiar el connection string nuevo (endpoint `-pooler`) al dashboard de Render, redeploy. Hay un corte breve entre el reset y el redeploy. |
 | `MP_ACCESS_TOKEN` / `MP_WEBHOOK_SECRET` / `MP_PUBLIC_KEY` | Cada 6-12 meses como buena práctica, o inmediato ante sospecha. `MP_WEBHOOK_SECRET` **tiene que rotarse coordinado**: cambiarla en el panel de MP primero, verificar que el webhook nuevo firma con la clave nueva, recién ahí actualizar Render (si se invierte el orden, los webhooks entrantes fallan validación durante la ventana — `#AUD-02` los devuelve `401`, no se pierden pero sí se acumulan hasta que MP reintente). |
 | `CLOUDINARY_API_SECRET` / `CLOUDINARY_API_KEY` | Ante sospecha de compromiso, o si se detecta uso anómalo en el dashboard de Cloudinary. | Regenerar en el panel de Cloudinary, actualizar Render, redeploy — no requiere coordinar nada externo (a diferencia del webhook de MP). |
 | `EMAIL_HOST_PASSWORD` | Según la política de Zoho / cuando cambie quien administra la casilla. | Cambiar en Zoho, actualizar Render. Sin downtime — solo afecta el próximo envío. |

@@ -28,6 +28,11 @@ REQUIRED_WEB_ENV_KEYS = {
     'EMAIL_HOST',
     'EMAIL_PORT',
     'EMAIL_USE_TLS',
+    # #OPS-03: EMAIL_ASYNC (default False, el cron no existe en Render) y
+    # BASE_URL (links de los correos; sin ella caen a localhost:8000).
+    'EMAIL_ASYNC',
+    'BASE_URL',
+    'PREVIEW_DOMAIN',
     # #SEC-03: inventario de secretos -- estas 3 categorías no estaban
     # declaradas en el blueprint (ni siquiera como sync:false) antes de
     # esta card, así que nadie auditando render.yaml podía saber que el
