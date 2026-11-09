@@ -3,8 +3,8 @@
 #
 # Este archivo define la infraestructura en Render:
 # - Web service (Django app)
-# - Cron job (digest de contactos)
-# - PostgreSQL database
+# - Cron jobs (digest de contactos, envío de emails encolados)
+# - La base de datos NO vive acá: es Neon Postgres, externa (#OPS-02)
 #
 # Para desplegar: conecta tu repo de GitHub a Render
 # Render detectará este archivo automáticamente
@@ -52,11 +52,11 @@ services:
       - key: DEBUG
         value: "False"
 
-      # Base de datos (se conecta automáticamente)
+      # Base de datos: Neon Postgres (externa a Render, #OPS-02). El
+      # connection string se configura a mano en Render Dashboard en cada
+      # servicio; sync: false evita que un sync del blueprint lo pise.
       - key: DATABASE_URL
-        fromDatabase:
-          name: saasmvp-db
-          property: connectionString
+        sync: false
 
       # ===============================================
       # CONFIGURACIÓN MULTI-TENANT
@@ -165,10 +165,9 @@ services:
       - key: DEBUG
         value: "False"
 
+      # Neon, mismo valor que el web service (#OPS-02).
       - key: DATABASE_URL
-        fromDatabase:
-          name: saasmvp-db
-          property: connectionString
+        sync: false
 
       - key: BASE_DOMAIN
         value: "onrender.com"
@@ -224,10 +223,9 @@ services:
       - key: DEBUG
         value: "False"
 
+      # Neon, mismo valor que el web service (#OPS-02).
       - key: DATABASE_URL
-        fromDatabase:
-          name: saasmvp-db
-          property: connectionString
+        sync: false
 
       - key: BASE_DOMAIN
         value: "onrender.com"
@@ -254,11 +252,7 @@ services:
       # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: configurar manualmente en
       # Render Dashboard para este servicio también (son secretas).
 
-# =================================================================
-# DATABASE - PostgreSQL
-# =================================================================
-databases:
-  - name: saasmvp-db
-    plan: free
-    region: oregon
-    # ipAllowList: []  # Permitir todas las IPs (default)
+# Sin bloque `databases:` a propósito (#OPS-02): producción usa Neon
+# Postgres, externa a Render. Una Postgres gestionada por Render en plan
+# free sería una base vacía (y con vencimiento) a la que un sync del
+# blueprint repuntaría DATABASE_URL.

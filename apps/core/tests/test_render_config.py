@@ -109,6 +109,22 @@ class RenderYamlStructureTestCase(SimpleTestCase):
         cron = self._service_by_name('send-pending-emails')
         self.assertIn('send_pending_emails', cron.get('command', ''))
 
-    def test_database_service_declared(self):
-        self.assertTrue(self.config.get('databases'), "sin bloque databases")
-        self.assertEqual(self.config['databases'][0]['name'], 'saasmvp-db')
+    def test_database_url_is_external_neon_not_render_managed(self):
+        """
+        #OPS-02: la base de producción es Neon, configurada a mano en el
+        dashboard de Render. El blueprint declaraba una Postgres gestionada
+        por Render (`databases: saasmvp-db`, plan free) y bindeaba
+        DATABASE_URL con `fromDatabase` en los 3 servicios: un sync del
+        blueprint podía repuntar web y crons a esa base vacía. DATABASE_URL
+        debe ser `sync: false` en todos los servicios, sin bloque databases.
+        """
+        self.assertNotIn(
+            'databases', self.config,
+            "render.yaml declara una DB gestionada por Render; producción usa Neon",
+        )
+        for service in self.config['services']:
+            name = service.get('name')
+            db_vars = [v for v in service.get('envVars', []) if v['key'] == 'DATABASE_URL']
+            self.assertEqual(len(db_vars), 1, f"{name}: DATABASE_URL no declarada exactamente 1 vez")
+            self.assertNotIn('fromDatabase', db_vars[0], f"{name}: DATABASE_URL atada a una DB de Render")
+            self.assertIs(db_vars[0].get('sync'), False, f"{name}: DATABASE_URL debe ser sync: false")
