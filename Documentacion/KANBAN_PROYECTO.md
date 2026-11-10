@@ -16,7 +16,23 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-11-09)
+## 🌙 Retomar aquí (actualizado 2026-11-10)
+
+**🧭 Cambio de énfasis (2026-11-09): consolidar lo que existe antes de sumar features.** Ritmo: **2 días/semana × 4–5 h**, cada día = Bloque A (~2 h) + Bloque B (~2 h) + cierre (suite + `ruff` + `makemigrations`, commit, actualizar esta sección, push desde PyCharm). Regla: ningún día cierra con la suite en rojo ni trabajo sin commit; una card que no entra en 2 h se parte en dos.
+
+**▶️ Próximo día de trabajo: Día 1.**
+
+| Día | Bloque A | Bloque B |
+|---|---|---|
+| 1 | Push de `e14ae85` + smoke test de producción (checklist del PR #2) | `#DB-02`: snapshot de Neon + restore probado en branch, con tiempos |
+| 2 | Reorganizar este kanban: tablero corto (activo/siguiente/bloqueado), historial a archivo aparte, Supabase → Neon aquí y en `CLAUDE.md` | `ruff --fix` (72 autofixables) + revisar los 7 restantes |
+| 3 | Borrar rutas duplicadas legacy (`edit_section`/`edit_section_dashboard`, `edit_service`/`edit_service_dashboard`, `add_service`/`create_service`, `delete_service`) y el login inalcanzable de `apps/accounts/views.py` | Flags `enable_blog`/`enable_testimonials` sin módulo detrás: eliminar o documentar |
+| 4 | `TenantOwnedMixin` (filtro por `request.client` estructural en vistas del dashboard) | Separar `apps/website/views.py` (1.099 líneas) por módulo |
+| 5 | Clase `Module` + registro (nombre, flag, límites, URLs, menú, componente público) | Menú del dashboard generado desde el registro |
+
+**Después de la consolidación (épica `#MOD`, cards por escribir al llegar):** módulo **Media** (~5 días: `MediaAsset` imagen / video Cloudinary / embed YouTube-Vimeo, subida directa navegador→Cloudinary firmada, multi-archivo, límites por plan, migración `Section.image`/`Service.image`/`GalleryItem` = `#DEUDA-02` Fase 2) → **dashboard mobile-first** para que el cliente suba solo (~4 días, flujo "Publicar", grilla tipo Instagram; DoD: una persona no técnica sube contenido sin ayuda) → **Rancho Cachimba** con Tailwind + htmx + `{% include %}`, sin biblioteca de componentes, solo lo que Cachimba necesita (meta realista: mediados de febrero 2027). Decisiones tomadas: sin DaisyUI/Preline por ahora, video por Cloudinary **y** por link, los clientes suben su propio contenido.
+
+**Decisiones del usuario fuera de las sesiones de código:** cron `send-pending-emails` en Render (pagado; condición para volver a `EMAIL_ASYNC=true`), `#PREV-00` (wildcard vs alta manual), credenciales NIC (`#OPS-01`), reunir material de Cachimba (`#RC-01`, en paralelo).
 
 **✅ `#OPS-02` y `#OPS-03` cerrados y en producción (2026-11-09) — PR #2 `develop`→`main` mergeado (`f140bf0`).** Gate previo en `develop`: 219 tests OK (1 skip), `makemigrations --check` limpio, 79 errores de ruff preexistentes (deuda conocida, fuera del gate). El usuario cargó en el dashboard de Render `BASE_URL`, `PREVIEW_DOMAIN`, `EMAIL_ASYNC=False` y `DATABASE_URL` (Neon), con lo que se cumplen los pendientes manuales de ambas cards. `MP_*` queda sin configurar a propósito (checkout pospuesto: no cobra, el webhook responde 401). El release trajo migraciones `core 0001`, `orders 0002`, `tenants 0019–0026` y `website 0019–0022` (0021/0022 migran `gallery_type` a FKs y eliminan la columna). **Pendiente:** smoke test post-deploy (checklist en el cuerpo del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant) y confirmar que el deploy de Render quedó en verde. **Sigue abierto:** `contact-digest` y `send-pending-emails` no existen como crons (volver a `EMAIL_ASYNC=true` solo tras crear el cron), decisión `#PREV-00` (wildcard vs alta manual), credenciales NIC para `#OPS-01`, wording "Supabase" en este documento y `CLAUDE.md` (producción es Neon). PRs y push se hacen ahora desde PyCharm (Pull Requests / `Ctrl+Shift+K`), no por el MCP.
 
