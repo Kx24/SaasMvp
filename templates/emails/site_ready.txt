@@ -1,0 +1,29 @@
+{% comment %}
+Template: templates/emails/site_ready.txt
+Email texto plano de confirmación de sitio publicado.
+{% endcomment %}
+═══════════════════════════════════════════
+🚀 ¡TU SITIO ESTÁ LISTO!
+═══════════════════════════════════════════
+
+{{ client.name }} ya está publicado y disponible para el mundo.
+
+Visita tu sitio en:
+{{ site_url }}
+
+Panel de administración:
+{{ dashboard_url }}
+
+───────────────────────────────────────────
+TIPS PARA EMPEZAR
+───────────────────────────────────────────
+1. Comparte tu sitio en tus redes sociales y tarjetas de presentación
+2. Agrega tus servicios desde el panel de administración
+3. Sube fotos de calidad -- las imágenes profesionales marcan la diferencia
+4. Conecta tu dominio propio cuando estés listo
+
+¡Gracias por confiar en nosotros!
+
+═══════════════════════════════════════════
+© {% now "Y" %} {{ company_name }}. Todos los derechos reservados.
+═══════════════════════════════════════════

@@ -42,8 +42,9 @@ import cloudinary
 import cloudinary.api
 import cloudinary.uploader
 
-from django.core.management.base import BaseCommand, CommandError
 from django.apps import apps
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +78,7 @@ class Command(BaseCommand):
             '--output',
             type=str,
             default=None,
-            help='Ruta del archivo CSV de salida (default: cloudinary_audit_<timestamp>.csv).',
+            help='Ruta del archivo CSV de salida (default: scripts/output/cloudinary_audit_<timestamp>.csv).',
         )
         parser.add_argument(
             '--tenant',
@@ -141,7 +142,15 @@ class Command(BaseCommand):
 
         # 5. Exportar CSV
         if report:
-            output_path = output_path or f"cloudinary_audit_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            if not output_path:
+                # #AUD-10: antes caía suelto en la raíz del repo (3 CSVs
+                # trackeados por accidente) -- default a scripts/output/,
+                # nunca la raíz.
+                output_dir = os.path.join(settings.BASE_DIR, 'scripts', 'output')
+                os.makedirs(output_dir, exist_ok=True)
+                output_path = os.path.join(
+                    output_dir, f"cloudinary_audit_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                )
             self._export_csv(
                 output_path=output_path,
                 cloudinary_ids=cloudinary_ids,

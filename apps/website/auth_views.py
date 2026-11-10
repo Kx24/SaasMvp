@@ -2,12 +2,51 @@
 Vistas de autenticación para clientes
 apps/website/auth_views.py
 """
+import hashlib
+
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib import messages
+from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
+
+from apps.core.rate_limit import RateLimiter
+
+# #MED-05b: mismo texto para credenciales inválidas y para rate limit —
+# el bloqueo no debe filtrar información (ni existencia de usuario ni
+# existencia del límite), solo cambia el status code (429 vs 200).
+LOGIN_GENERIC_ERROR = 'Usuario o contraseña incorrectos.'
+
+
+def _login_rate_limiter(request, username):
+    # Por IP+username (+tenant, que RateLimiter ya incluye): un atacante
+    # distribuido no bloquea a un usuario ajeno desde otra IP, y una IP
+    # compartida (NAT) no bloquea a todos los usuarios a la vez.
+    username_hash = hashlib.sha256(username.strip().lower().encode()).hexdigest()[:12]
+    return RateLimiter(
+        request,
+        scope='login',
+        limit=getattr(settings, 'RATE_LIMIT_LOGIN_LIMIT', 5),
+        period=getattr(settings, 'RATE_LIMIT_LOGIN_PERIOD', 300),
+        key_extra=username_hash,
+    )
+
+
+def _user_belongs_to_tenant(user, request):
+    """
+    #AUD-03: además de autenticar, el login debe verificar que el usuario
+    pertenezca al tenant del dominio visitado. Superusers y staff (acceso
+    de Django admin, no ligado a un tenant) quedan exentos.
+    """
+    if user.is_superuser or user.is_staff:
+        return True
+
+    client = getattr(request, 'client', None)
+    profile = getattr(user, 'profile', None)
+
+    return client is not None and profile is not None and profile.client_id == client.id
 
 
 @never_cache
@@ -38,9 +77,19 @@ def client_login(request):
         username = request.POST.get('username', '')
         password = request.POST.get('password', '')
 
+        limiter = _login_rate_limiter(request, username)
+        if limiter.is_exceeded():
+            # #MED-05b: bloqueado — ni la contraseña correcta entra (si
+            # entrara, el 429 confirmaría credenciales válidas igual).
+            messages.error(request, LOGIN_GENERIC_ERROR)
+            context = {
+                'client': request.client if hasattr(request, 'client') else None,
+            }
+            return render(request, 'auth/login.html', context, status=429)
+
         user = authenticate(request, username=username, password=password)
 
-        if user is not None:
+        if user is not None and _user_belongs_to_tenant(user, request):
             login(request, user)  # rota CSRF token + cicla sesión
 
             if user.is_superuser or user.is_staff:
@@ -53,7 +102,8 @@ def client_login(request):
             return redirect('home')
 
         # Genérico a propósito — no filtra existencia de usuario
-        messages.error(request, 'Usuario o contraseña incorrectos.')
+        limiter.increment()  # solo los intentos FALLIDOS consumen cupo
+        messages.error(request, LOGIN_GENERIC_ERROR)
 
     context = {
         'client': request.client if hasattr(request, 'client') else None,

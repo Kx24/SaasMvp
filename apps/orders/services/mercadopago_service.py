@@ -12,11 +12,10 @@ Documentación MP:
 - https://www.mercadopago.cl/developers/es/reference/payments/_payments/post
 """
 
-import logging
-import hmac
 import hashlib
-from typing import Dict, Any, Optional
-from decimal import Decimal
+import hmac
+import logging
+from typing import Any, Dict, Optional
 
 import mercadopago
 from django.conf import settings
@@ -269,9 +268,17 @@ class MercadoPagoService:
         Formato: ts=timestamp,v1=hash
         """
         if not self.webhook_secret:
-            logger.warning("[MP Service] Webhook secret no configurado, saltando validación")
-            return True  # En desarrollo, permitir sin validación
-        
+            if settings.DEBUG:
+                logger.warning(
+                    "[MP Service] Webhook secret no configurado (DEBUG) - saltando validación"
+                )
+                return True  # Solo en desarrollo, nunca en producción
+            logger.error(
+                "[MP Service] Webhook secret no configurado fuera de DEBUG - rechazando "
+                "(fail-closed)"
+            )
+            return False
+
         signature_header = request.headers.get('x-signature', '')
         request_id = request.headers.get('x-request-id', '')
         

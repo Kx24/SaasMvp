@@ -16,16 +16,20 @@ import uuid
 from datetime import timedelta
 from decimal import Decimal
 
-from django.db import models
 from django.conf import settings
-from django.utils import timezone
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from django.db import models
 from django.urls import reverse
-
+from django.utils import timezone
 
 # ==============================================================================
 # PLAN - Planes de suscripción
 # ==============================================================================
+
+# #AUD-01: apps/orders/urls.py resuelve process/, success/ y error/ antes que
+# <slug:plan_slug>/ — un Plan con uno de estos slugs queda inalcanzable.
+RESERVED_PLAN_SLUGS = frozenset({'process', 'success', 'error'})
 
 class Plan(models.Model):
     """
@@ -89,8 +93,8 @@ class Plan(models.Model):
     
     # ==================== TEMAS DISPONIBLES ====================
     
-    # Temas que puede elegir el cliente con este plan
-    # Ejemplo: ["default"] para Essential, ["default", "electricidad", "industrial"] para Pro
+    # Temas que puede elegir el cliente con este plan. Valores = Client.THEME_CHOICES.
+    # Ejemplo: ["themes/default"] para Essential, ["themes/default", "themes/servelec"] para Pro
     available_themes = models.JSONField(
         default=list,
         blank=True,
@@ -170,7 +174,25 @@ class Plan(models.Model):
     
     def __str__(self):
         return f"{self.name} - ${self.price:,.0f} CLP"
-    
+
+    def clean(self):
+        super().clean()
+        if self.slug in RESERVED_PLAN_SLUGS:
+            raise ValidationError({
+                'slug': (
+                    f"'{self.slug}' está reservado: apps/orders/urls.py lo "
+                    f"resuelve como ruta literal antes que <slug:plan_slug>/, "
+                    f"y el checkout de este plan quedaría inalcanzable."
+                ),
+            })
+
+    def save(self, *args, **kwargs):
+        # Ningún otro modelo del repo llama full_clean() en save(); acá es
+        # deliberado (BOLT-02): la guardia debe cubrir también creación
+        # programática (shell/scripts), no solo formularios que validan.
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def get_features_list(self):
         """Retorna features como lista Python."""
         if isinstance(self.features, list):
@@ -453,13 +475,18 @@ class Order(models.Model):
         super().save(*args, **kwargs)
     
     def _generate_order_number(self):
-        """Genera número de orden único: ORD-YYYY-NNNN"""
+        """
+        Genera número de orden único: ORD-YYYY-XXXXXX.
+
+        Derivado del uuid (ya asignado en memoria por el default del campo,
+        antes del INSERT) en vez de un count() de la tabla: dos órdenes
+        creadas en paralelo nunca comparten uuid, así que nunca compiten
+        por el mismo order_number. Un count()+1 sí compite: dos requests
+        que leen el mismo count antes de que cualquiera inserte generan el
+        mismo número y la segunda falla con IntegrityError (unique=True).
+        """
         year = timezone.now().year
-        # Contar órdenes del año actual
-        count = Order.objects.filter(
-            created_at__year=year
-        ).count() + 1
-        return f"ORD-{year}-{count:04d}"
+        return f"ORD-{year}-{self.uuid.hex[:6].upper()}"
     
     # ==================== MÉTODOS DE ESTADO ====================
     
@@ -516,12 +543,17 @@ class Order(models.Model):
         return self
     
     def mark_as_completed(self, client):
-        """Marca la orden como completada tras el onboarding."""
+        """
+        Marca la orden como completada tras el onboarding.
+
+        Conserva onboarding_token: onboarding_success_view busca la orden
+        por ese token justo después de completar, y onboarding_view ya
+        corta el flujo antes (status == 'completed' -> página de éxito/
+        resumen) así que dejarlo no reabre el formulario.
+        """
         self.status = 'completed'
         self.client = client
         self.completed_at = timezone.now()
-        self.onboarding_token = None
-        self.token_expires_at = None
         self.save()
         return self
     

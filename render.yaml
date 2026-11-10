@@ -3,10 +3,18 @@
 #
 # Este archivo define la infraestructura en Render:
 # - Web service (Django app)
-# - PostgreSQL database
+# - Cron jobs (digest de contactos, envío de emails encolados)
+# - La base de datos NO vive acá: es Neon Postgres, externa (#OPS-02)
 #
 # Para desplegar: conecta tu repo de GitHub a Render
 # Render detectará este archivo automáticamente
+#
+# #AUD-04: el cron estaba insertado en medio de la lista de servicios y
+# arrastraba buildCommand/startCommand/healthCheckPath/envVars bajo su
+# propia entrada -- el servicio web (saasmvp) quedaba sin ninguno de esos
+# campos. Si Render re-sincronizaba el blueprint, el deploy web perdía
+# build/start command y todas las variables de entorno. Cada servicio
+# declara ahora su configuración completa y propia.
 
 services:
   # =================================================================
@@ -19,87 +27,247 @@ services:
     plan: free
     branch: main
 
-# =================================================================
-# Cron Jobs para activar digest y purga de mensajes contacto
-# =================================================================
-
-  - type: cron
-    name: contact-digest
-    schedule: "0 8 * * 1"   # Lunes 8am
-    command: python manage.py send_contact_digest
-    
     # Build & Start
     buildCommand: "./build.sh"
     startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
-    
+
     # Health Check
     healthCheckPath: /
-    
+
     # Variables de entorno
     envVars:
       # Python
       - key: PYTHON_VERSION
         value: "3.11.0"
-      
+
       # Django Settings
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.production
-      
+
       # Seguridad (generada automáticamente)
       - key: SECRET_KEY
         generateValue: true
-      
+
       # Debug (siempre False en producción)
       - key: DEBUG
         value: "False"
-      
-      # Base de datos (se conecta automáticamente)
+
+      # Base de datos: Neon Postgres (externa a Render, #OPS-02). El
+      # connection string se configura a mano en Render Dashboard en cada
+      # servicio; sync: false evita que un sync del blueprint lo pise.
       - key: DATABASE_URL
-        fromDatabase:
-          name: saasmvp-db
-          property: connectionString
-      
+        sync: false
+
       # ===============================================
       # CONFIGURACIÓN MULTI-TENANT
       # ===============================================
-      
-      # Dominio base para subdominios (ej: demo.tuapp.cl)
+
+      # Dominio raíz del SaaS: production.py lo agrega (apex + www) a
+      # ALLOWED_HOSTS y CSRF_TRUSTED_ORIGINS, y EmailService lo usa como
+      # fallback de URL. Valor real del dashboard (confirmado 2026-11-08).
       - key: BASE_DOMAIN
-        value: "onrender.com"
-      
+        value: "andesscale.com"
+
+      # Dominio de preview/contingencia por tenant (<slug>.PREVIEW_DOMAIN),
+      # separado de BASE_DOMAIN (#PREV-01) -- ver MASTER_PLAN_Y_ARQUITECTURA.md §4.6
+      - key: PREVIEW_DOMAIN
+        value: "andesscale.com"
+
       # Tenant por defecto (cuando no se detecta dominio)
       - key: DEFAULT_TENANT_SLUG
         value: "servelec"
-      
+
       # Dominios adicionales permitidos (separados por coma)
       # Agregar aquí los dominios de tus clientes
       - key: EXTRA_DOMAINS
-        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl"
-      
+        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,servelec.andesscale.com"
+
       # ===============================================
       # EMAIL (Zoho Mail)
       # ===============================================
       - key: EMAIL_HOST
         value: "smtp.zoho.com"
-      
+
       - key: EMAIL_PORT
         value: "587"
-      
+
       - key: EMAIL_USE_TLS
         value: "True"
-      
-      # Estas las configuras manualmente en Render Dashboard (son secretas)
-      # - key: EMAIL_HOST_USER
-      #   sync: false
-      # - key: EMAIL_HOST_PASSWORD
-      #   sync: false
 
-# =================================================================
-# DATABASE - PostgreSQL
-# =================================================================
-databases:
-  - name: saasmvp-db
-    plan: free
+      # #OPS-03: envío síncrono. "true" SOLO cuando exista el cron
+      # send-pending-emails en Render; sin él, los correos se encolan en
+      # EmailOutbox y nunca salen. (Default del código: False.)
+      - key: EMAIL_ASYNC
+        value: "False"
+
+      # URL pública base para los links de los correos (onboarding,
+      # set-password, dashboard) y de Order.get_onboarding_url. Sin ella el
+      # código cae a http://localhost:8000 (#OPS-03). Valor por servicio en
+      # el dashboard, ej. https://andesscale.com (sin "/" final).
+      - key: BASE_URL
+        sync: false
+
+      # Estas se configuran manualmente en Render Dashboard (son secretas).
+      # sync: false = Render las preserva entre syncs del blueprint, no las
+      # pisa ni las borra -- declararlas acá es solo para que el inventario
+      # de #SEC-03 esté completo, no cambia ningún valor real.
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+
+      # Cuenta /superadmin/ inicial (#SEC-03): setup_production falla el
+      # build si falta -- antes caía a una contraseña hardcodeada
+      # ('admin123456') visible en el código fuente. Sin efecto en deploys
+      # posteriores al primero (el comando es idempotente: si ya existe un
+      # superuser, no toca nada).
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+
+      # ===============================================
+      # MERCADOPAGO (checkout) -- no declaradas antes en este blueprint
+      # ===============================================
+      - key: MP_ACCESS_TOKEN
+        sync: false
+      - key: MP_PUBLIC_KEY
+        sync: false
+      - key: MP_WEBHOOK_SECRET
+        sync: false
+      # MP_SANDBOX: default True en el código (modo sandbox, seguro) si no
+      # se setea. Pasar a "False" es una decisión de negocio (habilita
+      # cobros reales) -- no se fija un valor acá a propósito, se decide
+      # y setea manualmente en Render cuando el cliente esté listo para
+      # cobrar de verdad.
+      - key: MP_SANDBOX
+        sync: false
+
+      # ===============================================
+      # CLOUDINARY (media) -- no declaradas antes en este blueprint
+      # ===============================================
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+  # =================================================================
+  # CRON JOB - Digest de mensajes de contacto
+  # =================================================================
+  - type: cron
+    name: contact-digest
+    runtime: python
     region: oregon
-    # ipAllowList: []  # Permitir todas las IPs (default)
+    plan: free
+    branch: main
+    schedule: "0 8 * * 1"   # Lunes 8am
+    buildCommand: "pip install -r requirements.txt"
+    command: "python manage.py send_contact_digest"
 
+    # Mismas variables que el servicio web: el comando lee Client,
+    # ContactSubmission y envía correo, así que necesita DB + settings de
+    # Django + credenciales SMTP igual que el web service.
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: DEBUG
+        value: "False"
+
+      # Neon, mismo valor que el web service (#OPS-02).
+      - key: DATABASE_URL
+        sync: false
+
+      - key: BASE_DOMAIN
+        value: "andesscale.com"
+
+      # Dominio de preview/contingencia por tenant (<slug>.PREVIEW_DOMAIN),
+      # separado de BASE_DOMAIN (#PREV-01) -- ver MASTER_PLAN_Y_ARQUITECTURA.md §4.6
+      - key: PREVIEW_DOMAIN
+        value: "andesscale.com"
+
+      - key: DEFAULT_TENANT_SLUG
+        value: "servelec"
+
+      - key: EXTRA_DOMAINS
+        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,servelec.andesscale.com"
+
+      - key: EMAIL_HOST
+        value: "smtp.zoho.com"
+
+      - key: EMAIL_PORT
+        value: "587"
+
+      - key: EMAIL_USE_TLS
+        value: "True"
+      # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: configurar manualmente en
+      # Render Dashboard para este servicio también (son secretas).
+
+  # =================================================================
+  # CRON JOB - Envío de emails encolados (#MED-01)
+  # =================================================================
+  - type: cron
+    name: send-pending-emails
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    schedule: "*/5 * * * *"   # cada 5 minutos -- confirmar que el plan free de Render admite intervalos sub-horarios antes de sincronizar
+    buildCommand: "pip install -r requirements.txt"
+    command: "python manage.py send_pending_emails"
+
+    # Mismas variables que el servicio web: el comando lee/escribe
+    # EmailOutbox y envía por SMTP, necesita DB + settings de Django +
+    # credenciales SMTP igual que el web service.
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: DEBUG
+        value: "False"
+
+      # Neon, mismo valor que el web service (#OPS-02).
+      - key: DATABASE_URL
+        sync: false
+
+      - key: BASE_DOMAIN
+        value: "andesscale.com"
+
+      # Dominio de preview/contingencia por tenant (<slug>.PREVIEW_DOMAIN),
+      # separado de BASE_DOMAIN (#PREV-01) -- ver MASTER_PLAN_Y_ARQUITECTURA.md §4.6
+      - key: PREVIEW_DOMAIN
+        value: "andesscale.com"
+
+      - key: DEFAULT_TENANT_SLUG
+        value: "servelec"
+
+      - key: EXTRA_DOMAINS
+        value: "servelec-ingenieria.cl,www.servelec-ingenieria.cl,servelec.andesscale.com"
+
+      - key: EMAIL_HOST
+        value: "smtp.zoho.com"
+
+      - key: EMAIL_PORT
+        value: "587"
+
+      - key: EMAIL_USE_TLS
+        value: "True"
+      # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: configurar manualmente en
+      # Render Dashboard para este servicio también (son secretas).
+
+# Sin bloque `databases:` a propósito (#OPS-02): producción usa Neon
+# Postgres, externa a Render. Una Postgres gestionada por Render en plan
+# free sería una base vacía (y con vencimiento) a la que un sync del
+# blueprint repuntaría DATABASE_URL.

@@ -8,12 +8,12 @@ Arquitectura:
 - ClientEmailSettings: Configuración de email por tenant
 - FormConfig: Configuración de formulario de contacto por tenant
 """
-from django.db import models
-from django.core.exceptions import ValidationError
-from django.utils.text import slugify
-from django.core.validators import MinValueValidator
 from cloudinary.models import CloudinaryField
-from apps.core.cloudinary_utils import cloudinary_upload_path
+from django.db import models
+from django.utils.text import slugify
+
+from .fonts import FONT_CHOICES
+
 
 # ==============================================================================
 class Client(models.Model):
@@ -41,16 +41,18 @@ class Client(models.Model):
     # ==================== NIVEL 3: TEMAS Y PLANES ====================
     
     # Estas opciones deben coincidir con las carpetas en templates/themes/
+    # #DEUDA-03: 'themes/industrial' se retiro (no tenia carpeta real, ver
+    # apps/tenants/tests_theme_consistency.py); 'servelec' se unifico bajo
+    # templates/themes/ junto al resto.
     THEME_CHOICES = [
-        ('themes/default',    'Tema Base (Servicios Profesionales)'),
-        ('servelec',          'Electricidad (Servelec)'),
-        ('themes/industrial', 'Industrial / Maquinaria'),
+        ('themes/default',  'Tema Base (Servicios Profesionales)'),
+        ('themes/servelec', 'Electricidad (Servelec)'),
     ]
-    
+
     template = models.CharField(
         max_length=50,
         choices=THEME_CHOICES,
-        default='default',
+        default='themes/default',
         help_text="Carpeta del tema visual a utilizar"
     )
 
@@ -186,7 +188,14 @@ class Domain(models.Model):
         default=False,
         help_text="¿Dominio verificado? (DNS configurado)"
     )
-    
+
+    is_preview = models.BooleanField(
+        default=False,
+        help_text="Dominio de preview/contingencia: si el cliente está en "
+                   "mode_under_construction, este dominio sigue mostrando "
+                   "el sitio real (#PREV-03)."
+    )
+
     verification_token = models.CharField(
         max_length=64,
         blank=True,
@@ -203,6 +212,10 @@ class Domain(models.Model):
         indexes = [
             models.Index(fields=['domain']),
             models.Index(fields=['client', 'is_active']),
+            # Cubre Client.primary_domain (filter is_primary+is_active) y
+            # el dedup de save() (filter client+is_primary) -- el índice
+            # de arriba no incluye is_primary (#MED-03).
+            models.Index(fields=['client', 'is_primary', 'is_active']),
         ]
     
     def __str__(self):
@@ -277,7 +290,20 @@ class ClientSettings(models.Model):
     
     primary_color = models.CharField(max_length=7, default='#3B82F6')
     secondary_color = models.CharField(max_length=7, default='#1E40AF')
-    font_family = models.CharField(max_length=100, default='Inter, sans-serif')
+    accent_color = models.CharField(max_length=7, default='#F59E0B')
+    font_family = models.CharField(max_length=100, choices=FONT_CHOICES, default='Inter')
+
+    # CTA principal del navbar compartido (BOLT-07, análisis de diseño #RC-20).
+    # CharField (no URLField) a propósito: permite anclas tipo '#contacto'.
+    # Sin navbar_cta_text el navbar no muestra botón (comportamiento previo).
+    navbar_cta_text = models.CharField(
+        max_length=60, blank=True, default='',
+        help_text="Texto del botón CTA del navbar (vacío = sin botón)",
+    )
+    navbar_cta_url = models.CharField(
+        max_length=255, blank=True, default='',
+        help_text="Destino del CTA: URL o ancla (ej: '#contacto')",
+    )
     
     # ==================== INFORMACIÓN ====================
     company_name = models.CharField(max_length=200, blank=True)

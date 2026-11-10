@@ -1,39 +1,28 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dashboard{% endblock %} | {{ client.name }}</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    {# CSS global compilado (#AUD-11) — ver templates/base.html para la nota completa. #}
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.16.2/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary:   '{{ client.settings.primary_color|default:"#1DB954" }}',
-                        secondary: '{{ client.settings.secondary_color|default:"#15803d" }}',
-                    },
-                    fontFamily: { 'sans': ['Inter', 'system-ui', 'sans-serif'] },
-                }
-            }
-        }
-    </script>
-    
+
     <style>
         :root {
-            --primary:   {{ client.settings.primary_color|default:"#1DB954" }};
-            --secondary: {{ client.settings.secondary_color|default:"#15803d" }};
+            --color-primary:   {{ client.settings.primary_color|default:"#1DB954" }};
+            --color-secondary: {{ client.settings.secondary_color|default:"#15803d" }};
+            --font-sans:       'Inter';
         }
 
-        body { font-family: 'Inter', system-ui, sans-serif; }
+        body { font-family: var(--font-sans), system-ui, sans-serif; }
 
         .nav-item {
             color: #64748b;
@@ -41,41 +30,43 @@
             border-left: 3px solid transparent;
         }
         .nav-item:hover {
-            background: color-mix(in srgb, var(--primary) 8%, transparent);
-            color: var(--primary);
+            background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+            color: var(--color-primary);
         }
         .nav-item.active {
-            background: color-mix(in srgb, var(--primary) 12%, transparent);
-            color: var(--primary);
-            border-left-color: var(--primary);
+            background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+            color: var(--color-primary);
+            border-left-color: var(--color-primary);
             font-weight: 600;
         }
 
+        {# Estilo propio del dashboard (bg sólido, no gradiente) -- distinto#}
+{#           al .btn-primary de los temas públicos, no se comparte esa clase. #}
         .btn-primary {
-            background: var(--primary);
+            background: var(--color-primary);
             color: #fff;
             transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
         }
         .btn-primary:hover {
             opacity: 0.88;
             transform: translateY(-1px);
-            box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 30%, transparent);
+            box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 30%, transparent);
         }
 
         .badge-primary {
-            background: color-mix(in srgb, var(--primary) 12%, transparent);
-            color: var(--primary);
+            background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+            color: var(--color-primary);
         }
 
         input:focus, textarea:focus, select:focus {
             outline: none;
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent) !important;
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
         }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--primary) 50%, #ccc); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-primary) 50%, #ccc); border-radius: 3px; }
 
         [x-cloak] { display: none !important; }
     </style>

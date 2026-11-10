@@ -1,0 +1,41 @@
+{% comment %}
+Par de CTAs del hero, compartido entre temas (BOLT-08, design-system §2a).
+Única fuente del markup de botones — los temas lo consumen vía un wrapper
+{tema}/components/hero_ctas.html de pocas líneas:
+
+  {% include 'components/hero_ctas_base.html' with
+      primary_text='...' primary_href='#contacto' primary_style='...'
+      secondary_text='...' secondary_href='#servicios' secondary_style='...' %}
+
+Defaults = tema default (tokens del contrato). El botón secundario solo se
+renderiza si recibe secondary_text (1 o 2 botones, sin flags extra — §2b).
+
+Naming: NO llamar a este archivo components/hero_ctas.html — el
+TenantTemplateLoader lo resolvería al wrapper del tema activo y el include
+recursaría (shadowing, mismo hallazgo que BOLT-07).
+{% endcomment %}
+<a href="{{ primary_href|default:'#contacto' }}"
+   class="group px-8 py-4 font-black rounded-lg inline-flex items-center
+          justify-center gap-3 transition-all duration-300
+          hover:opacity-90 hover:-translate-y-0.5"
+   style="{{ primary_style|default:'background: var(--color-accent, #f59e0b); color: var(--color-primary, #2563eb);' }}">
+    {{ primary_text|default:'Contáctanos' }}
+    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform"
+         fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+    </svg>
+</a>
+{% if secondary_text %}
+<a href="{{ secondary_href|default:'#servicios' }}"
+   class="group px-8 py-4 font-bold rounded-lg inline-flex items-center
+          justify-center gap-2 transition-all duration-300"
+   style="{{ secondary_style|default:'color:white; border:1.5px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.08);' }}">
+    {{ secondary_text }}
+    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform"
+         fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+</a>
+{% endif %}

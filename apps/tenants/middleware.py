@@ -10,9 +10,10 @@ Actúa como reemplazo dinámico de ALLOWED_HOSTS.
 
 import logging
 import threading
+
 from django.conf import settings
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.utils.deprecation import MiddlewareMixin
 
 logger = logging.getLogger(__name__)
@@ -55,27 +56,37 @@ class TenantMiddleware(MiddlewareMixin):
         host = request.get_host().split(':')[0].lower()
         
         # 2. Detectar Tenant en Base de Datos
-        client = self._detect_tenant(request, host)
-        
+        client, domain_obj = self._detect_tenant(request, host)
+
         # CASO A: Es un Tenant Válido
         if client:
             request.client = client
+            request.tenant_domain = domain_obj
             set_current_tenant(client)
             logger.debug(f"[Tenant] Matched: {host} -> {client.slug}")
 
-            if client.mode_under_construction and not request.path.startswith(self.CONSTRUCTION_BYPASS_PREFIXES):
+            # #PREV-03: un dominio marcado is_preview se salta el modo
+            # construcción -- el cliente revisa el sitio real ahí aunque el
+            # dominio público siga mostrando "en construcción".
+            is_preview_bypass = bool(domain_obj and domain_obj.is_preview)
+            if (
+                client.mode_under_construction
+                and not request.path.startswith(self.CONSTRUCTION_BYPASS_PREFIXES)
+                and not is_preview_bypass
+            ):
                 response = render(request, 'errors/under_construction.html', {'client': client})
                 clear_current_tenant()
-                return response
+                return self._apply_preview_seo_headers(request, response, client, domain_obj)
 
             response = self.get_response(request)
             clear_current_tenant()
-            return response
-            
+            return self._apply_preview_seo_headers(request, response, client, domain_obj)
+
         # CASO B: Es un Dominio de Sistema (Admin, Marketing, Infraestructura)
         # Permitimos pasar sin tenant (request.client = None)
         if self._is_system_domain(host):
             request.client = None
+            request.tenant_domain = None
             logger.debug(f"[Tenant] System Domain Allowed: {host}")
             return self.get_response(request)
 
@@ -85,14 +96,16 @@ class TenantMiddleware(MiddlewareMixin):
         return self._handle_no_tenant(request, host)
 
     def _detect_tenant(self, request, host):
-        """Busca el tenant en la BD."""
+        """Busca el tenant en la BD. Retorna (client, domain_obj)."""
         from apps.tenants.models import Client, Domain
-        
-        # 1. Parámetro GET (Dev)
+
+        # 1. Parámetro GET (Dev) -- atajo sin Domain real detrás, así que
+        # domain_obj siempre es None (sin noindex ni bypass de construcción).
         if settings.DEBUG:
             tenant_slug = request.GET.get('tenant')
             if tenant_slug:
-                return Client.objects.filter(slug=tenant_slug, is_active=True).first()
+                client = Client.objects.filter(slug=tenant_slug, is_active=True).first()
+                return client, None
 
         # 2. Búsqueda por Dominio (Prod)
         try:
@@ -101,11 +114,26 @@ class TenantMiddleware(MiddlewareMixin):
                 is_active=True,
                 client__is_active=True
             )
-            return domain_obj.client
+            return domain_obj.client, domain_obj
         except Domain.DoesNotExist:
             pass
-            
-        return None
+
+        return None, None
+
+    def _apply_preview_seo_headers(self, request, response, client, domain_obj):
+        """#PREV-02: un dominio no-primario con un primario distinto activo
+        no debe competir en SEO con el dominio real del cliente."""
+        if response is None or not domain_obj or domain_obj.is_primary:
+            return response
+
+        primary = client.primary_domain
+        if not primary or primary.domain == domain_obj.domain:
+            return response
+
+        response['X-Robots-Tag'] = 'noindex, nofollow'
+        canonical_url = f"https://{primary.domain}{request.path}"
+        response['Link'] = f'<{canonical_url}>; rel="canonical"'
+        return response
 
     def _is_system_domain(self, host):
         """Verifica si es un dominio de infraestructura permitido."""

@@ -25,36 +25,32 @@
 #
 # =============================================================================
 
+import json
 import logging
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
+
 from django.contrib import messages
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from .models import Section, Service, ContactSubmission, GalleryItem
-from .forms import SectionForm, ServiceForm, ContactForm, GalleryItemForm
+from django.utils import timezone
+
+from apps.accounts.decorators import tenant_member_required
+from apps.core.rate_limit import RateLimiter, get_client_ip
+from apps.core.template_resolver import get_tenant_template, render_tenant_template
+from apps.tenants.fonts import FONT_CHOICES
 from apps.tenants.forms import BrandingForm
 from apps.tenants.models import ClientSettings
-import json
-from django.utils import timezone
-from apps.core.template_resolver import get_tenant_template, render_tenant_template
-from apps.core.rate_limit import RateLimiter
- 
+
+from .forms import ContactForm, GalleryItemForm, SectionForm, ServiceForm
+from .models import ContactSubmission, GalleryItem, Section, Service
+
 logger = logging.getLogger(__name__)
 
 # ============================================================
 # HELPERS
 # ============================================================
- 
-def get_client_ip(request):
-    """Obtiene la IP real del cliente considerando proxies."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0].strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR', '')
-    return ip[:45] if ip else None
-
+# get_client_ip vive en apps/core/rate_limit.py (#MED-05a: única función
+# canónica de resolución de IP, importada arriba — no duplicar acá).
 
 # ============================================================
 # PÁGINA PRINCIPAL
@@ -255,7 +251,7 @@ def login_modal(request):
 # DASHBOARD PRINCIPAL
 # ============================================================
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def dashboard(request):
     """
     Vista principal del dashboard.
@@ -290,7 +286,7 @@ def dashboard(request):
     # Dashboard usa template del tenant si existe
     return render_tenant_template(request, 'dashboard/index.html', context)
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def dashboard_branding(request):
     """
     Vista de personalización: colores, logo, info empresa, redes sociales, SEO.
@@ -315,6 +311,7 @@ def dashboard_branding(request):
         'client': client,
         'settings': settings_obj,
         'form': form,
+        'font_choices': FONT_CHOICES,
     }
     return render(request, 'dashboard/branding.html', context)
 
@@ -322,7 +319,7 @@ def dashboard_branding(request):
 # DASHBOARD - SECCIONES
 # ============================================================
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def dashboard_sections(request):
     """
     Lista de secciones editables (hero, about, contact) + servicios
@@ -343,7 +340,7 @@ def dashboard_sections(request):
     return render_tenant_template(request, 'dashboard/sections.html', context)
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def edit_section_dashboard(request, section_id):
     """
     Editar una sección desde el dashboard
@@ -401,7 +398,7 @@ def edit_section_dashboard(request, section_id):
 # DASHBOARD - SERVICIOS
 # ============================================================
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def dashboard_services(request):
     """Lista de servicios"""
     services = Service.objects.filter(
@@ -415,7 +412,7 @@ def dashboard_services(request):
     return render_tenant_template(request, 'dashboard/services.html', context)
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def create_service_dashboard(request):
     """Crear servicio desde dashboard"""
     if request.method == 'POST':
@@ -453,7 +450,7 @@ def create_service_dashboard(request):
     return render_tenant_template(request, 'dashboard/edit_service.html', context)
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def edit_service_dashboard(request, service_id):
     """Editar servicio desde dashboard"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
@@ -495,15 +492,31 @@ def edit_service_dashboard(request, service_id):
     else:
         form = ServiceForm(instance=service)
 
+    settings = getattr(request.client, 'settings', None)
+    gallery_enabled = bool(settings and settings.enable_gallery)
+    gallery_items = []
+    gallery_limit = 0
+    if gallery_enabled:
+        gallery_items = list(
+            GalleryItem.objects.filter(client=request.client, service=service)
+            .order_by('order', 'created_at')
+        )
+        gallery_limit = settings.gallery_images_limit
+
     context = {
         'client': request.client,
         'service': service,
         'form': form,
+        'gallery_enabled': gallery_enabled,
+        'gallery_items': gallery_items,
+        'gallery_limit': gallery_limit,
+        'gallery_used': len(gallery_items),
+        'gallery_at_limit': len(gallery_items) >= gallery_limit if gallery_enabled else False,
     }
     return render_tenant_template(request, 'dashboard/edit_service.html', context)
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def delete_service_dashboard(request, service_id):
     """Eliminar servicio desde dashboard"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
@@ -521,7 +534,7 @@ def delete_service_dashboard(request, service_id):
     return render_tenant_template(request, 'dashboard/delete_service.html', context)
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def toggle_service(request, service_id):
     """Activar / desactivar un servicio"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
@@ -535,7 +548,7 @@ def toggle_service(request, service_id):
     })
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def toggle_service_featured(request, service_id):
     """Destacar / quitar destacado de un servicio"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
@@ -549,7 +562,7 @@ def toggle_service_featured(request, service_id):
     })
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def reorder_services(request):
     """Reordenar servicios (drag & drop)"""
     if request.method == 'POST':
@@ -580,7 +593,7 @@ def reorder_services(request):
 # EDICIÓN INLINE (HTMX)
 # ============================================================
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def edit_section(request, section_id):
     """Editar sección con HTMX"""
     section = get_object_or_404(Section, id=section_id, client=request.client)
@@ -609,7 +622,7 @@ def edit_section(request, section_id):
     })
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def cancel_edit_section(request, section_id):
     """Cancelar edición de sección"""
     section = get_object_or_404(Section, id=section_id, client=request.client)
@@ -620,7 +633,7 @@ def cancel_edit_section(request, section_id):
     })
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def edit_service(request, service_id):
     """Editar servicio con HTMX"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
@@ -649,7 +662,7 @@ def edit_service(request, service_id):
     })
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def add_service(request):
     """Agregar servicio con HTMX"""
     if request.method == 'POST':
@@ -677,7 +690,7 @@ def add_service(request):
     })
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def delete_service(request, service_id):
     """Eliminar servicio con HTMX"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
@@ -697,7 +710,7 @@ def delete_service(request, service_id):
     })
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def cancel_edit_service(request, service_id):
     """Cancelar edición de servicio"""
     service = get_object_or_404(Service, id=service_id, client=request.client)
@@ -712,7 +725,7 @@ def cancel_edit_service(request, service_id):
 # DASHBOARD - CONTACTOS
 # ============================================================
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def dashboard_contacts(request):
     """Lista de mensajes de contacto"""
     contacts = ContactSubmission.objects.filter(
@@ -731,7 +744,7 @@ def dashboard_contacts(request):
     return render_tenant_template(request, 'dashboard/contacts.html', context)
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def mark_contact_read(request, contact_id):
     """Marcar contacto como leído"""
     if request.method == 'POST':
@@ -746,7 +759,7 @@ def mark_contact_read(request, contact_id):
     return redirect('dashboard_contacts')
 
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def mark_contact_replied(request, contact_id):
     """Marcar contacto como respondido"""
     if request.method == 'POST':
@@ -769,11 +782,22 @@ toggle_service_active = toggle_service
 # DASHBOARD - GALERÍA
 # ============================================================
 
-@login_required(login_url='/auth/login/')
+def _gallery_item_redirect_url(item):
+    """URL (resuelta, usable en redirect() y en templates) a la que volver
+    tras editar/eliminar/togglear un GalleryItem, según su dueño
+    (#DEUDA-02: reemplaza el switch sobre gallery_type)."""
+    if item.role == 'hero':
+        return reverse('dashboard_portada')
+    if item.service_id:
+        return reverse('edit_service_dashboard', kwargs={'service_id': item.service_id})
+    return reverse('dashboard_gallery')
+
+
+@tenant_member_required
 def dashboard_gallery(request):
     """
     Vista de galería de imágenes del sitio.
-    Solo gestiona gallery_type='gallery' — portada tiene su propia vista.
+    Solo gestiona la Section 'gallery' — portada tiene su propia vista.
     """
     client = request.client
     settings = getattr(client, 'settings', None)
@@ -782,10 +806,16 @@ def dashboard_gallery(request):
         messages.error(request, 'El módulo de imágenes no está activado para este sitio.')
         return redirect('dashboard')
 
+    gallery_section, _ = Section.objects.get_or_create(
+        client=client,
+        section_type='gallery',
+        defaults={'title': '', 'subtitle': '', 'description': '', 'order': 0}
+    )
+
     gallery_items = list(
         GalleryItem.objects.filter(
             client=client,
-            gallery_type='gallery',
+            section=gallery_section,
         ).order_by('order', 'created_at')
     )
 
@@ -802,7 +832,7 @@ def dashboard_gallery(request):
     return render(request, 'dashboard/gallery.html', context)
  
  
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def gallery_item_add(request):
     """
     Subir nueva imagen. Maneja image manualmente via Cloudinary —
@@ -818,28 +848,42 @@ def gallery_item_add(request):
     if request.method != 'POST':
         return redirect('dashboard_portada')
 
-    gallery_type = request.POST.get('gallery_type', 'gallery')
-    if gallery_type not in ('hero', 'gallery'):
-        gallery_type = 'gallery'
+    service_id = request.POST.get('service_id')
+    owner_kwargs = {}
 
-    tab = gallery_type
-
-    # Verificar límite
-    if gallery_type == 'hero':
-        count = GalleryItem.objects.filter(
-            client=client, gallery_type='hero', is_default=False
-        ).count()
-        limit = settings.hero_images_limit
-        redirect_url = 'dashboard_portada'
-    else:
-        count = GalleryItem.objects.filter(
-            client=client, gallery_type='gallery'
-        ).count()
+    if service_id:
+        service = get_object_or_404(Service, id=service_id, client=client)
+        owner_kwargs = {'service': service}
+        count = GalleryItem.objects.filter(client=client, service=service).count()
         limit = settings.gallery_images_limit
-        redirect_url = 'dashboard_gallery'
+        redirect_url = reverse('edit_service_dashboard', kwargs={'service_id': service.id})
+        tipo = f'galería de "{service.name}"'
+    else:
+        gallery_type = request.POST.get('gallery_type', 'gallery')
+        if gallery_type not in ('hero', 'gallery'):
+            gallery_type = 'gallery'
+        section, _ = Section.objects.get_or_create(
+            client=client,
+            section_type=gallery_type,
+            defaults={'title': '', 'subtitle': '', 'description': '', 'order': 0}
+        )
+        owner_kwargs = {'section': section}
+
+        if gallery_type == 'hero':
+            count = GalleryItem.objects.filter(
+                client=client, section=section, is_default=False
+            ).count()
+            limit = settings.hero_images_limit
+            redirect_url = 'dashboard_portada'
+        else:
+            count = GalleryItem.objects.filter(
+                client=client, section=section
+            ).count()
+            limit = settings.gallery_images_limit
+            redirect_url = 'dashboard_gallery'
+        tipo = 'portada' if gallery_type == 'hero' else 'galería'
 
     if count >= limit:
-        tipo = 'portada' if gallery_type == 'hero' else 'galería'
         messages.error(request, f'Has alcanzado el límite de {limit} imágenes de {tipo}.')
         return redirect(redirect_url)
 
@@ -872,7 +916,6 @@ def gallery_item_add(request):
     # Crear el item directamente sin pasar por GalleryItemForm
     GalleryItem.objects.create(
         client=client,
-        gallery_type=gallery_type,
         image=public_id,
         title=request.POST.get('title', '').strip(),
         caption=request.POST.get('caption', '').strip(),
@@ -880,18 +923,18 @@ def gallery_item_add(request):
         cta_url=request.POST.get('cta_url', '').strip(),
         is_default=False,
         is_active=True,
+        **owner_kwargs,
     )
 
-    tipo = 'portada' if gallery_type == 'hero' else 'galería'
     messages.success(request, f'Imagen agregada a {tipo}.')
     return redirect(redirect_url)
  
  
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def gallery_item_edit(request, item_id):
     client = request.client
     item = get_object_or_404(GalleryItem, id=item_id, client=client)
-    redirect_url = 'dashboard_portada' if item.gallery_type == 'hero' else 'dashboard_gallery'
+    redirect_url = _gallery_item_redirect_url(item)
 
     if request.method == 'POST':
         item.title   = request.POST.get('title', '').strip()
@@ -935,11 +978,12 @@ def gallery_item_edit(request, item_id):
     context = {
         'client': client,
         'item': item,
+        'back_url': redirect_url,
     }
     return render(request, 'dashboard/gallery_item_edit.html', context)
  
  
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def gallery_item_delete(request, item_id):
     """
     Eliminar ítem. Protege imágenes default contra eliminación.
@@ -952,15 +996,15 @@ def gallery_item_delete(request, item_id):
         return redirect('dashboard_gallery')
  
     if request.method == 'POST':
-        tab = item.gallery_type
+        redirect_url = _gallery_item_redirect_url(item)
         item.delete()
         messages.success(request, 'Imagen eliminada.')
-        return redirect(f"/dashboard/gallery/?tab={tab}")
- 
+        return redirect(redirect_url)
+
     return redirect('dashboard_gallery')
  
  
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def gallery_item_toggle(request, item_id):
     """
     Activar/desactivar ítem.
@@ -973,11 +1017,11 @@ def gallery_item_toggle(request, item_id):
         item.save(update_fields=['is_active', 'updated_at'])
         estado = 'visible' if item.is_active else 'oculta'
         messages.success(request, f'Imagen marcada como {estado}.')
- 
-    return redirect(f"/dashboard/gallery/?tab={item.gallery_type}")
+
+    return redirect(_gallery_item_redirect_url(item))
  
 
-@login_required(login_url='/auth/login/')
+@tenant_member_required
 def dashboard_portada(request):
     """
     Vista de Portada: imagen de fondo del hero default + toggle show_default_hero
@@ -999,7 +1043,7 @@ def dashboard_portada(request):
     hero_items = list(
         GalleryItem.objects.filter(
             client=client,
-            gallery_type='hero',
+            section=hero_section,
         ).order_by('order', 'created_at')
     )
 

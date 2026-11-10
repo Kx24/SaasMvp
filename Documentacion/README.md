@@ -199,13 +199,13 @@ project_root/
  
 ```bash
 python manage.py create_tenant          # Crea tenant interactivo
-python manage.py provision_tenant       # Provisionamiento completo con seed data
+python manage.py provision_tenant --industry=<rubro> --theme=<Client.THEME_CHOICES>  # Alta completa con seed data (#FLOW-01)
+python manage.py check_tenant_setup <slug>  # Gate de QA: tema, dominio, email, SEO, contenido
 python manage.py list_tenants           # Lista todos los tenants activos
-python manage.py create_localhost_client # Crea tenant para dev local
-python manage.py update_domain          # Actualiza dominio de un tenant
+python manage.py update_domain <slug> --domain=<dominio>  # Actualiza el dominio principal de un tenant
 python manage.py check_cloudinary       # Verifica configuración Cloudinary
 python manage.py cloudinary_usage       # Reporte de uso de Cloudinary
-python manage.py test_isolation         # Tests de aislamiento entre tenants
+python manage.py test apps.tenants.tests_isolation  # Aislamiento entre tenants (suite, no management command -- #MED-02)
 ```
  
 **Relación con otros módulos:** Provee `request.client` a `website`, `accounts`, `orders` y `marketing`. Es la dependencia base de todo el sistema.
@@ -722,7 +722,7 @@ cp .env.example .env
 python manage.py migrate --settings=config.settings.development
  
 # 6. Crear tenant de desarrollo local
-python manage.py create_localhost_client --settings=config.settings.development
+python manage.py provision_tenant dev-local --industry=servicios_profesionales --theme=themes/default --settings=config.settings.development
  
 # 7. Crear superusuario
 python manage.py createsuperuser --settings=config.settings.development

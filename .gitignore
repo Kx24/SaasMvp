@@ -10,11 +10,47 @@ ENV/
 # ─── Base de datos local ────────────────────────────
 db.sqlite3
 db.sqlite3-journal
+db_e2e.sqlite3
+db_e2e.sqlite3-journal
+db_production_test.sqlite3
 
 # ─── Archivos temporales y cache ────────────────────
 __pycache__/
 *.py[cod]
 *.pyc
+
+# ─── Node / Playwright (#TOOL-01) ───────────────────
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# ─── Build de Tailwind (#AUD-11) ────────────────────
+# Generado por `npm run build:css` / build.sh -- nunca a mano.
+# IMPORTANTE: correr `npm run build:css` una vez después de clonar el
+# repo, o el sitio se sirve sin ningún estilo (ver CLAUDE.md).
+static/css/output.css
+
+# ─── Static files recolectados (#AUD-10) ────────────
+# Generado por `collectstatic` en cada deploy (build.sh) -- nunca a
+# mano, nunca se commitea. Estaba trackeado por accidente (134 archivos).
+staticfiles/
+
+# ─── Reportes generados por management commands (#AUD-10) ──
+# scripts/output/.gitkeep se mantiene para que la carpeta exista en un
+# checkout nuevo; el contenido real (CSVs de auditoría, etc.) no se
+# commitea -- se regenera corriendo el comando correspondiente.
+scripts/output/*
+!scripts/output/.gitkeep
+
+# ─── PyCharm / JetBrains ────────────────────────────
+# Config local del IDE fuera del repo; solo se comparten las run
+# configurations (runserver, tests, ruff) para que un checkout nuevo
+# arranque con los mismos comandos de CLAUDE.md.
+.idea/*
+!.idea/runConfigurations/
+.venv/
 
 # ─── Archivos de sistema ────────────────────────────
 .DS_Store

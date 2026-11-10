@@ -1,0 +1,32 @@
+{% comment %}
+Template: templates/emails/contact_received.txt
+Email texto plano de notificación de contacto (al dueño del sitio).
+{% endcomment %}
+═══════════════════════════════════════════
+📬 NUEVO MENSAJE DE CONTACTO - {{ client.name }}
+═══════════════════════════════════════════
+
+Has recibido un nuevo mensaje a través de tu sitio web {{ client.name }}.
+
+───────────────────────────────────────────
+DATOS DEL CONTACTO
+───────────────────────────────────────────
+{% if contact.name %}Nombre: {{ contact.name }}
+{% endif %}Email: {{ contact.email }}
+{% if contact.phone %}Teléfono: {{ contact.phone }}
+{% endif %}{% if contact.subject %}Asunto: {{ contact.subject }}
+{% endif %}
+───────────────────────────────────────────
+MENSAJE
+───────────────────────────────────────────
+{{ contact.message }}
+
+───────────────────────────────────────────
+Responder por email: {{ contact.email }}
+{% if contact.phone %}Llamar: {{ contact.phone }}{% endif %}
+
+Este mensaje fue enviado desde el formulario de contacto de tu sitio web.
+
+═══════════════════════════════════════════
+© {% now "Y" %} {{ company_name }}. Todos los derechos reservados.
+═══════════════════════════════════════════

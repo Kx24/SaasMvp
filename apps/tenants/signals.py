@@ -10,7 +10,8 @@ Usa get_or_create para evitar duplicados.
 """
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Client, ClientSettings, ClientEmailSettings, FormConfig
+
+from .models import Client, ClientEmailSettings, ClientSettings, FormConfig
 
 
 @receiver(post_save, sender=Client)
@@ -27,7 +28,7 @@ def create_client_related_objects(sender, instance, created, **kwargs):
         defaults={
             'primary_color': '#3B82F6',
             'secondary_color': '#1E40AF',
-            'font_family': 'Inter, sans-serif',
+            'font_family': 'Inter',
             'company_name': instance.company_name or instance.name,
         }
     )

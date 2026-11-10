@@ -1,3 +1,44 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Componentes compartidos entre temas (#AUD-11/#TOOL-04).
+ *
+ * Regla: una clase entra acá SOLO cuando ya existe casi idéntica en 2+
+ * temas (ver docs/design-system.md). No es un lugar para "por si
+ * acaso" -- todavía hay clases claramente propias de un tema (ej.
+ * .electric-glow, .stripe-card) que se quedan en el <style> de su
+ * base.html porque de verdad son de ese tema nomás.
+ */
+@layer components {
+  /*
+   * .btn-primary: estaba casi duplicada byte a byte en servelec,
+   * themes/electricidad y ranchocachimba (gradiente primary->secondary +
+   * sombra tintada). Generalizada acá con color-mix() para la sombra en
+   * vez de rgba() hardcodeado (electricidad tenía el rgba fijo en verde,
+   * roto para cualquier otro color de marca).
+   */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    box-shadow: 0 4px 14px 0 color-mix(in srgb, var(--color-primary) 40%, transparent);
+    transition: all 0.3s ease;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 color-mix(in srgb, var(--color-primary) 50%, transparent);
+  }
+
+  /*
+   * .text-primary-a11y / .bg-primary-a11y (#DS-03): variante WCAG AA de
+   * var(--color-primary) para texto sobre fondo claro o texto blanco
+   * sobre fondo de marca. El color de marca de un tenant no
+   * necesariamente alcanza 4.5:1 tal cual -- encontrado con axe-core
+   * contra servelec (verde #16a34a, contraste real de 2.6-3.3 en varios
+   * usos: badges, botones, links). Oscurecer con color-mix() en vez de
+   * fijar un tono nuevo mantiene el resultado ligado a la marca de cada
+   * tenant en vez de a un valor hardcodeado.
+   */
+  .text-primary-a11y { color: color-mix(in srgb, var(--color-primary) 100%, black 30%); }
+  .bg-primary-a11y { background-color: color-mix(in srgb, var(--color-primary) 100%, black 30%); }
+}

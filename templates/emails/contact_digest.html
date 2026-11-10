@@ -1,17 +1,17 @@
-{# =============================================================================
-   templates/emails/contact_digest.html
-   Resumen periódico de mensajes de contacto para el tenant.
-   Hereda de base_email.html — usa los mismos estilos inline.
-   Variables de contexto:
-     client          → instancia de Client
-     contacts_new    → QuerySet de mensajes nuevos
-     contacts_read   → QuerySet de mensajes leídos
-     contacts_replied→ QuerySet de mensajes respondidos
-     period_label    → str "últimas 24 horas" | "última semana"
-     total           → int total de mensajes en el período
-     dashboard_url   → str URL del dashboard de contactos
-     purge_info      → str | None descripción de mensajes purgados (si aplica)
-============================================================================= #}
+{# =============================================================================#}
+{#   templates/emails/contact_digest.html#}
+{#   Resumen periódico de mensajes de contacto para el tenant.#}
+{#   Hereda de base_email.html — usa los mismos estilos inline.#}
+{#   Variables de contexto:#}
+{#     client          → instancia de Client#}
+{#     contacts_new    → QuerySet de mensajes nuevos#}
+{#     contacts_read   → QuerySet de mensajes leídos#}
+{#     contacts_replied→ QuerySet de mensajes respondidos#}
+{#     period_label    → str "últimas 24 horas" | "última semana"#}
+{#     total           → int total de mensajes en el período#}
+{#     dashboard_url   → str URL del dashboard de contactos#}
+{#     purge_info      → str | None descripción de mensajes purgados (si aplica)#}
+{#============================================================================= #}
 {% extends 'emails/base_email.html' %}
 
 {% block content %}

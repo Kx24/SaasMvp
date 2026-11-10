@@ -57,7 +57,7 @@
                                      focus:outline-none focus:border-primary transition-colors resize-none">{{ item.caption }}</textarea>
                 </div>
 
-                {% if item.gallery_type == 'hero' %}
+                {% if item.role == 'hero' %}
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">
@@ -102,7 +102,7 @@
             </div>
 
             <div class="mt-6 flex items-center justify-between">
-                <a href="{% if item.gallery_type == 'hero' %}{% url 'dashboard_portada' %}{% else %}{% url 'dashboard_gallery' %}{% endif %}"
+                <a href="{{ back_url }}"
                    class="text-sm text-slate-500 hover:text-slate-700 transition-colors">
                     Cancelar
                 </a>

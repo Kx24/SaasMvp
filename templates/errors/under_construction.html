@@ -1,3 +1,4 @@
+{% load static %}
 {% with s=client.settings %}
 <!DOCTYPE html>
 <html lang="es">
@@ -16,28 +17,33 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    {# Página aislada del layout del tenant a propósito: sin navbar/footer del tema #}
-    <script src="https://cdn.tailwindcss.com"></script>
+    {# Página aislada del layout del tenant a propósito: sin navbar/footer del tema.#}
+{#       CSS global compilado (#AUD-11) — ver templates/base.html para la nota completa. #}
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
 
     <style>
+        {# Renombrado de --brand-primary/--brand-secondary a --color-primary/#}
+{#           --color-secondary -- tercera convención de nombres distinta que#}
+{#           tenía esta página (#AUD-11 normaliza a un solo nombre en todos lados). #}
         :root {
-            --brand-primary: {{ s.primary_color|default:'#3B82F6' }};
-            --brand-secondary: {{ s.secondary_color|default:'#1E40AF' }};
+            --color-primary: {{ s.primary_color|default:'#3B82F6' }};
+            --color-secondary: {{ s.secondary_color|default:'#1E40AF' }};
+            --font-sans: 'Inter';
         }
-        body { font-family: 'Inter', system-ui, sans-serif; }
+        body { font-family: var(--font-sans), system-ui, sans-serif; }
         .brand-bg {
             background: linear-gradient(135deg,
-                color-mix(in srgb, var(--brand-primary) 8%, white),
-                color-mix(in srgb, var(--brand-secondary) 12%, white));
+                color-mix(in srgb, var(--color-primary) 8%, white),
+                color-mix(in srgb, var(--color-secondary) 12%, white));
         }
-        .brand-btn { background-color: var(--brand-primary); }
-        .brand-btn:hover { background-color: var(--brand-secondary); }
-        .brand-text { color: var(--brand-primary); }
-        .brand-text:hover { color: var(--brand-secondary); }
-        .brand-ring:focus { outline: none; border-color: var(--brand-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 40%, transparent); }
-        .brand-icon-circle { background-color: color-mix(in srgb, var(--brand-primary) 15%, white); color: var(--brand-primary); }
-        .social-btn { background-color: var(--brand-primary); }
-        .social-btn:hover { background-color: var(--brand-secondary); }
+        .brand-btn { background-color: var(--color-primary); }
+        .brand-btn:hover { background-color: var(--color-secondary); }
+        .brand-text { color: var(--color-primary); }
+        .brand-text:hover { color: var(--color-secondary); }
+        .brand-ring:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+        .brand-icon-circle { background-color: color-mix(in srgb, var(--color-primary) 15%, white); color: var(--color-primary); }
+        .social-btn { background-color: var(--color-primary); }
+        .social-btn:hover { background-color: var(--color-secondary); }
     </style>
 </head>
 <body class="bg-white text-slate-900 antialiased">

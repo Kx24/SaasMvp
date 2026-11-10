@@ -112,31 +112,19 @@ CLOUDINARY_PRESETS = {
     'gallery_card': {
         'crop': 'fill', 'width': 800, 'height': 600,
         'gravity': 'auto',
-        'quality': 'auto',
+        'fetch_format': 'auto', 'quality': 'auto',
     },
     'gallery_full': {
-        'crop': 'fill', 'width': 1920, 'height': 1080,
-        'gravity': 'auto',
-        'quality': 'auto',
+        'crop': 'limit', 'width': 1920, 'height': 1080,
+        'fetch_format': 'auto', 'quality': 'auto',
     },
     'gallery_thumb': {
         'crop': 'fill', 'width': 400, 'height': 300,
-        'quality': 'auto',
+        'fetch_format': 'auto', 'quality': 'auto',
     },
     'gallery_mobile': {
         'crop': 'fill', 'width': 480, 'height': 320,
-        'quality': 'auto',
-    },
-    # --- HEROGALLERY ---
-       'gallery_card': {
-       'width': 800, 'height': 600,
-       'crop': 'fill', 'gravity': 'auto',
-       'format': 'auto', 'quality': 'auto',
-    },
-   'gallery_full': {
-       'width': 1920, 'height': 1080,
-       'crop': 'limit',
-       'format': 'auto', 'quality': 'auto',
+        'fetch_format': 'auto', 'quality': 'auto',
     },
 
     # --- CATÁLOGO ---

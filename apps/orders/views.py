@@ -12,17 +12,19 @@ Flujo completo:
 
 import json
 import logging
-import uuid
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST, require_GET
+
 from django.conf import settings
 from django.db import transaction
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
-from .models import Plan, Order, PaymentLog
-from .services.mercadopago_service import MercadoPagoService, MercadoPagoError
+from apps.core.rate_limit import RateLimiter, get_client_ip
+
+from .models import Order, PaymentLog, Plan
 from .services.email_service import send_payment_success_email  # Card A6
+from .services.mercadopago_service import MercadoPagoError, MercadoPagoService
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +70,23 @@ def process_payment_view(request):
     
     URL: POST /checkout/process/
     """
+    # #MED-05b: límite por IP+tenant contra card testing (probar tarjetas
+    # robadas en loop). Cada intento cuenta, válido o no — un atacante no
+    # manda payloads válidos de cortesía.
+    limiter = RateLimiter(
+        request,
+        scope='checkout',
+        limit=getattr(settings, 'RATE_LIMIT_CHECKOUT_LIMIT', 10),
+        period=getattr(settings, 'RATE_LIMIT_CHECKOUT_PERIOD', 600),
+    )
+    if limiter.is_exceeded():
+        return JsonResponse({
+            'success': False,
+            'error': 'No se pudo procesar el pago. Intenta nuevamente más tarde.',
+            'code': 'RATE_LIMITED'
+        }, status=429)
+    limiter.increment()
+
     try:
         # Parsear JSON del body
         try:
@@ -190,14 +209,17 @@ def process_payment_view(request):
                     )
                     
                     # =========================================================
-                    # CARD A6: ENVIAR EMAIL DE PAGO EXITOSO
+                    # CARD A6: ENVIAR EMAIL DE PAGO EXITOSO (tras commit)
                     # =========================================================
-                    try:
-                        send_payment_success_email(order)
-                        logger.info(f"[Checkout] Email de pago exitoso enviado a: {order.email}")
-                    except Exception as e:
-                        # No fallar el proceso si el email falla
-                        logger.error(f"[Checkout] Error enviando email de pago: {e}")
+                    def _send_checkout_success_email(order=order):
+                        try:
+                            send_payment_success_email(order)
+                            logger.info(f"[Checkout] Email de pago exitoso enviado a: {order.email}")
+                        except Exception as e:
+                            # No fallar el proceso si el email falla
+                            logger.error(f"[Checkout] Error enviando email de pago: {e}")
+
+                    transaction.on_commit(_send_checkout_success_email)
                     # =========================================================
                     
                     # URL de éxito
@@ -347,14 +369,13 @@ def mercadopago_webhook_view(request):
             logger.warning("[MP Webhook] data.id vacío")
             return HttpResponse(status=200)
         
-        # Validar firma (opcional pero recomendado)
+        # Validar firma (obligatoria - #AUD-02)
         mp_service = MercadoPagoService()
-        
-        # En producción, descomentar validación:
-        # if not mp_service.validate_webhook_signature(request):
-        #     logger.warning("[MP Webhook] Firma inválida")
-        #     return HttpResponse(status=401)
-        
+
+        if not mp_service.validate_webhook_signature(request):
+            logger.warning("[MP Webhook] Firma inválida o ausente - rechazado")
+            return HttpResponse(status=401)
+
         # Consultar estado real del pago en MP
         payment_data = mp_service.get_payment(data_id)
         
@@ -409,13 +430,16 @@ def mercadopago_webhook_view(request):
                 logger.info(f"[MP Webhook] Orden marcada como pagada: {order.order_number}")
                 
                 # =========================================================
-                # CARD A6: ENVIAR EMAIL DE PAGO EXITOSO (desde webhook)
+                # CARD A6: ENVIAR EMAIL DE PAGO EXITOSO (desde webhook, tras commit)
                 # =========================================================
-                try:
-                    send_payment_success_email(order)
-                    logger.info(f"[MP Webhook] Email de pago exitoso enviado a: {order.email}")
-                except Exception as e:
-                    logger.error(f"[MP Webhook] Error enviando email de pago: {e}")
+                def _send_webhook_success_email(order=order):
+                    try:
+                        send_payment_success_email(order)
+                        logger.info(f"[MP Webhook] Email de pago exitoso enviado a: {order.email}")
+                    except Exception as e:
+                        logger.error(f"[MP Webhook] Error enviando email de pago: {e}")
+
+                transaction.on_commit(_send_webhook_success_email)
                 # =========================================================
             
             elif payment_status == 'rejected':
@@ -435,8 +459,11 @@ def mercadopago_webhook_view(request):
     
     except Exception as e:
         logger.exception(f"[MP Webhook] Error: {e}")
-        # Siempre retornar 200 para que MP no reintente
-        return HttpResponse(status=200)
+        # 500 para que MP SÍ reintente -- devolver 200 acá hacía que una
+        # excepción inesperada (no un "ignorar" legítimo, esos ya
+        # retornan 200 explícito arriba) se tradujera en notificación
+        # perdida para siempre, no reintentada (#AUD-08).
+        return HttpResponse(status=500)
 
 
 @csrf_exempt
@@ -450,13 +477,6 @@ def mercadopago_webhook_get(request):
 # ==============================================================================
 # HELPERS
 # ==============================================================================
-
-def get_client_ip(request):
-    """Obtiene la IP real del cliente."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0].strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+# get_client_ip vive en apps/core/rate_limit.py (#MED-05a: única función
+# canónica de resolución de IP, importada arriba — no duplicar acá).
 

@@ -1,0 +1,25 @@
+{% comment %}
+CTA principal del navbar, configurable por tenant (BOLT-07, #RC-20).
+Única fuente del markup del botón: los navbars (el compartido y los
+overrides de tema que lo shadowean vía loader) lo incluyen con
+  {% include 'components/navbar_cta.html' %}                (desktop)
+  {% include 'components/navbar_cta.html' with mode='mobile' %}
+Sin ClientSettings.navbar_cta_text seteado no se renderiza nada
+(comportamiento previo intacto). Tokens del contrato, no hex.
+{% endcomment %}
+{% if client.settings.navbar_cta_text %}
+{% if mode == 'mobile' %}
+<a href="{{ client.settings.navbar_cta_url|default:'#contacto' }}"
+   @click="mobileMenuOpen = false"
+   class="navbar-cta block w-full px-4 py-3 text-white rounded-lg text-center font-semibold transition hover:opacity-90"
+   style="background: var(--color-accent, var(--color-primary));">
+    {{ client.settings.navbar_cta_text }}
+</a>
+{% else %}
+<a href="{{ client.settings.navbar_cta_url|default:'#contacto' }}"
+   class="navbar-cta px-5 py-2 text-white rounded-lg font-semibold shadow-sm transition hover:opacity-90"
+   style="background: var(--color-accent, var(--color-primary));">
+    {{ client.settings.navbar_cta_text }}
+</a>
+{% endif %}
+{% endif %}

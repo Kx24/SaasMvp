@@ -15,10 +15,32 @@
 # SCOPES sugeridos: 'contact', 'login', 'password_reset'
 # =============================================================================
 
-from django.core.cache import cache
 import logging
 
+from django.conf import settings
+from django.core.cache import cache
+
 logger = logging.getLogger(__name__)
+
+
+def get_client_ip(request) -> str:
+    """
+    Resuelve la IP real del cliente detrás del proxy (#MED-05a / BOLT-03).
+
+    X-Forwarded-For es attacker-controlled salvo los últimos N valores, que
+    los appendean los proxies confiables delante de la app (Render escribe
+    la IP del cliente que se le conectó al final del header). Por eso se
+    toma el valor a TRUSTED_PROXY_COUNT posiciones desde la derecha
+    (setting, default 1) — nunca el primero de la cadena. Sin header, cae
+    a REMOTE_ADDR.
+    """
+    xff = request.META.get('HTTP_X_FORWARDED_FOR')
+    if xff:
+        parts = [p.strip() for p in xff.split(',') if p.strip()]
+        if parts:
+            trusted = getattr(settings, 'TRUSTED_PROXY_COUNT', 1)
+            return parts[max(len(parts) - trusted, 0)][:45]
+    return (request.META.get('REMOTE_ADDR') or 'unknown')[:45]
 
 
 class RateLimiter:
@@ -32,30 +54,27 @@ class RateLimiter:
         period:     Ventana de tiempo en segundos (default: 600 = 10 min)
     """
 
-    def __init__(self, request, scope: str, limit: int = 3, period: int = 600):
+    def __init__(self, request, scope: str, limit: int = 3, period: int = 600,
+                 key_extra: str = ''):
         self.limit = limit
         self.period = period
-        self.key = self._build_key(request, scope)
+        self.key = self._build_key(request, scope, key_extra)
 
-    def _build_key(self, request, scope: str) -> str:
+    def _build_key(self, request, scope: str, key_extra: str = '') -> str:
         """
-        Construye la cache key: rl:{scope}:{tenant_id}:{ip}
+        Construye la cache key: rl:{scope}:{tenant_id}:{ip}[:{key_extra}]
 
         Usa tenant_id para que el límite sea por tenant, no global.
         Si no hay cliente (misconfiguration), usa 'unknown'.
+        key_extra permite dimensiones adicionales (ej: hash del username en
+        login, #MED-05b) — debe venir ya saneado (hex/slug, sin espacios).
         """
         tenant_id = getattr(request.client, 'id', 'unknown') if hasattr(request, 'client') else 'unknown'
-        ip = self._get_ip(request)
-        return f"rl:{scope}:{tenant_id}:{ip}"
-
-    def _get_ip(self, request) -> str:
-        """Obtiene la IP real considerando proxies (Render usa X-Forwarded-For)."""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
-        else:
-            ip = request.META.get('REMOTE_ADDR', 'unknown')
-        return ip[:45]
+        ip = get_client_ip(request)
+        key = f"rl:{scope}:{tenant_id}:{ip}"
+        if key_extra:
+            key += f":{key_extra}"
+        return key
 
     def current_count(self) -> int:
         """Retorna el número de intentos actuales en la ventana."""

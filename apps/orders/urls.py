@@ -10,19 +10,15 @@ Estructura:
 """
 
 from django.urls import path
+
 from . import views
 
 # IMPORTANTE: Necesario para namespace en config/urls.py
 app_name = 'orders'
 
 urlpatterns = [
-    # Checkout por plan
-    path(
-        '<slug:plan_slug>/',
-        views.checkout_view,
-        name='checkout'
-    ),
-    # Procesar pago
+    # Procesar pago (debe ir antes que <slug:plan_slug>/, si no Django
+    # lo captura como checkout_view(plan_slug='process') -> 404 real)
     path(
         'process/',
         views.process_payment_view,
@@ -39,5 +35,11 @@ urlpatterns = [
         'error/',
         views.checkout_error_view,
         name='checkout_error'
+    ),
+    # Checkout por plan (patrón genérico, va al final)
+    path(
+        '<slug:plan_slug>/',
+        views.checkout_view,
+        name='checkout'
     ),
 ]

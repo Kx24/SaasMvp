@@ -92,7 +92,9 @@
                     </a>
                     {% endif %}
                 </div>
-                
+
+                {% include 'components/navbar_cta.html' %}
+
                 <!-- Autenticación -->
                 <div class="flex items-center gap-3 pl-6 border-l border-gray-200">
                     {% if user.is_authenticated %}
@@ -183,6 +185,8 @@
                     {% endif %}
                 </div>
                 
+                {% include 'components/navbar_cta.html' with mode='mobile' %}
+
                 <!-- Auth Mobile -->
                 <div class="pt-4 border-t border-gray-100 space-y-3">
                     {% if user.is_authenticated %}

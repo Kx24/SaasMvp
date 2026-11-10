@@ -13,11 +13,12 @@ Usa Django's send_mail con templates HTML.
 """
 
 import logging
-from typing import Optional
-from django.core.mail import send_mail, EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
+
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+
+from apps.core.models import EmailOutbox
 
 logger = logging.getLogger(__name__)
 
@@ -40,26 +41,47 @@ class EmailService:
         )
         self.base_url = getattr(settings, 'BASE_URL', 'https://andesscale.cl')
     
+    def _site_url(self, client) -> str:
+        """
+        URL pública del sitio del tenant, para links en emails.
+
+        Prioriza el dominio primario real (Domain.is_primary) para que
+        tenants con dominio propio (ej. ranchocachimba.cl) no reciban
+        links a un subdominio *.andesscale.cl que no usan. Cae a
+        BASE_DOMAIN solo si el tenant todavía no tiene ningún dominio
+        activo (ej. onboarding recién creado).
+        """
+        url = client.get_absolute_url()
+        if url:
+            return url
+        base_domain = getattr(settings, 'BASE_DOMAIN', 'andesscale.cl')
+        return f"https://{client.slug}.{base_domain}"
+
     def _send_email(
         self,
         to_email: str,
         subject: str,
         template_name: str,
         context: dict,
-        reply_to: str = None
+        reply_to: str = None,
+        force_sync: bool = False,
     ) -> bool:
         """
         Método interno para enviar emails con template HTML.
-        
+
         Args:
             to_email: Destinatario
             subject: Asunto del email
             template_name: Nombre del template (sin extensión)
             context: Contexto para el template
             reply_to: Email de respuesta (opcional)
-        
+            force_sync: ignora EMAIL_ASYNC y envía de inmediato (para
+                emails "urgentes" como configurar/recuperar contraseña,
+                donde el usuario está esperando en el momento -- no tiene
+                sentido que dependan del próximo cron).
+
         Returns:
-            bool: True si se envió correctamente
+            bool: True si se envió (o encoló) correctamente
         """
         try:
             # Agregar variables comunes al contexto
@@ -68,11 +90,24 @@ class EmailService:
                 'support_email': getattr(settings, 'SUPPORT_EMAIL', 'soporte@andesscale.cl'),
                 'company_name': 'Andesscale',
             })
-            
-            # Renderizar templates
+
+            # Renderizar templates (CPU local, no red -- esto SÍ puede
+            # pasar dentro del request aunque EMAIL_ASYNC esté activo)
             html_content = render_to_string(f'emails/{template_name}.html', context)
-            text_content = strip_tags(html_content)
-            
+            text_content = render_to_string(f'emails/{template_name}.txt', context)
+
+            if getattr(settings, 'EMAIL_ASYNC', False) and not force_sync:
+                EmailOutbox.objects.create(
+                    to_email=to_email,
+                    from_email=self.from_email,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    reply_to=reply_to or '',
+                )
+                logger.info(f"[Email] Encolado '{template_name}' para {to_email}")
+                return True
+
             # Crear email
             email = EmailMultiAlternatives(
                 subject=subject,
@@ -82,13 +117,13 @@ class EmailService:
                 reply_to=[reply_to] if reply_to else None
             )
             email.attach_alternative(html_content, "text/html")
-            
+
             # Enviar
             email.send(fail_silently=False)
-            
+
             logger.info(f"[Email] Enviado '{template_name}' a {to_email}")
             return True
-            
+
         except Exception as e:
             logger.error(f"[Email] Error enviando '{template_name}' a {to_email}: {e}")
             return False
@@ -146,7 +181,7 @@ class EmailService:
         Template: emails/welcome.html
         """
         set_password_url = f"{self.base_url}/auth/set-password/{invitation_token}/"
-        site_url = f"https://{client.slug}.andesscale.cl"  # Ajustar según tu config
+        site_url = self._site_url(client)
         
         context = {
             'client': client,
@@ -158,7 +193,7 @@ class EmailService:
         
         return self._send_email(
             to_email=user.email,
-            subject=f"🎉 ¡Bienvenido a Andesscale! - Configura tu contraseña",
+            subject="🎉 ¡Bienvenido a Andesscale! - Configura tu contraseña",
             template_name='welcome',
             context=context
         )
@@ -180,15 +215,15 @@ class EmailService:
         
         Template: emails/site_ready.html
         """
-        site_url = f"https://{client.slug}.andesscale.cl"
-        
+        site_url = self._site_url(client)
+
         context = {
             'client': client,
             'user': user,
             'site_url': site_url,
             'dashboard_url': f"{self.base_url}/dashboard/",
         }
-        
+
         return self._send_email(
             to_email=user.email,
             subject=f"🚀 ¡Tu sitio {client.name} está listo!",
@@ -256,12 +291,13 @@ class EmailService:
         }
         
         subject = "🔐 Recupera tu contraseña" if is_reset else "🔐 Configura tu contraseña"
-        
+
         return self._send_email(
             to_email=user.email,
             subject=f"{subject} | Andesscale",
             template_name='set_password',
-            context=context
+            context=context,
+            force_sync=True,
         )
     
     # =========================================================================

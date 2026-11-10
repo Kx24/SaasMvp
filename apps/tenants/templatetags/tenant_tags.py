@@ -120,29 +120,6 @@ def tenant_include(context, template_name):
     return f"<!-- Template not found: {template_name} -->"
 
 
-@register.inclusion_tag('partials/tenant_css.html', takes_context=True)
-def tenant_custom_css(context):
-    """
-    Incluye CSS personalizado del tenant si existe.
-    
-    Busca en: /media/tenants/{slug}/css/custom.css
-    
-    Uso en base.html:
-        {% tenant_custom_css %}
-    """
-    request = context.get('request')
-    client = context.get('client') or getattr(request, 'client', None)
-    
-    css_url = None
-    
-    if client:
-        css_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / 'css' / 'custom.css'
-        if css_path.exists():
-            css_url = f"{settings.MEDIA_URL}tenants/{client.slug}/css/custom.css"
-    
-    return {'css_url': css_url}
-
-
 @register.simple_tag(takes_context=True)
 def tenant_template_exists(context, template_name):
     """

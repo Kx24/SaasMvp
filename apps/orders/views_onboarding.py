@@ -11,27 +11,26 @@ Flujo:
 """
 
 import logging
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import Http404
-from django.contrib.auth.models import User
-from django.contrib.auth import login
-from django.db import transaction
-from django.utils import timezone
-from django.conf import settings
-from django.contrib import messages
 import uuid
 
-from .models import Order, Plan
-from .forms import ClientOnboardingForm
-from apps.tenants.models import Client, Domain, ClientSettings
-from apps.website.models import Section
-from apps.accounts.models import UserProfile
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.models import User
+from django.db import transaction
+from django.http import Http404
+from django.shortcuts import redirect, render
+from django.utils import timezone
 
+from apps.accounts.models import UserProfile
 from apps.orders.services.email_service import (
-    send_payment_success_email,
-    send_welcome_email,
     send_site_ready_email,
+    send_welcome_email,
 )
+from apps.tenants.models import Client, ClientSettings, Domain
+from apps.website.models import Section
+
+from .forms import ClientOnboardingForm
+from .models import Order
 
 logger = logging.getLogger(__name__)
 
@@ -81,16 +80,18 @@ def onboarding_view(request, token):
             'message': 'El enlace ha expirado. Por favor contacta a soporte.'
         })
     
-    # Marcar que comenzó el onboarding
-    if order.status == 'paid':
-        order.start_onboarding()
-    
     # Obtener temas disponibles según el plan
     available_themes = order.plan.get_available_themes_list()
     if not available_themes:
         available_themes = ['default']
-    
+
     if request.method == 'POST':
+        # Marcar que comenzó el onboarding -- solo en POST: un GET (link
+        # preview de un cliente de correo, prefetch del browser) no debe
+        # mutar el estado de la orden (#AUD-09).
+        if order.status == 'paid':
+            order.start_onboarding()
+
         form = ClientOnboardingForm(
             request.POST,
             request.FILES,
@@ -108,7 +109,7 @@ def onboarding_view(request, token):
                 )
                 
                 # Redirigir a página de éxito
-                return redirect('orders:onboarding_success', token=token)
+                return redirect('onboarding_success', token=token)
                 
             except Exception as e:
                 logger.exception(f"[Onboarding] Error procesando: {e}")
@@ -157,7 +158,7 @@ def onboarding_success_view(request, token):
         raise Http404("Orden no encontrada")
     
     if order.status != 'completed' or not order.client:
-        return redirect('orders:onboarding', token=token)
+        return redirect('onboarding', token=token)
     
     # Obtener el usuario creado
     user_profile = UserProfile.objects.filter(client=order.client).first()
@@ -167,7 +168,7 @@ def onboarding_success_view(request, token):
         'client': order.client,
         'user_profile': user_profile,
         'site_url': order.client.get_absolute_url(),
-        'dashboard_url': f"/dashboard/",  # Ajustar según tu URL
+        'dashboard_url': "/dashboard/",  # Ajustar según tu URL
     }
     
     return render(request, 'orders/onboarding_success.html', context)
@@ -218,22 +219,35 @@ def process_onboarding(order: Order, data: dict) -> tuple:
     logger.info(f"[Onboarding] Client creado: {client.slug}")
     
     # =========================================================================
-    # 2. CREAR DOMINIO (SUBDOMINIO AUTOMÁTICO)
+    # 2. CREAR DOMINIO (SUBDOMINIO DE PREVIEW)
     # =========================================================================
-    
-    base_domain = getattr(settings, 'BASE_DOMAIN', 'andesscale.cl')
-    subdomain = f"{client.slug}.{base_domain}"
-    
-    Domain.objects.create(
-        client=client,
-        domain=subdomain,
-        domain_type='subdomain',
-        is_primary=True,
-        is_active=True,
-        is_verified=True,  # Subdominio propio, siempre verificado
-    )
-    
-    logger.info(f"[Onboarding] Domain creado: {subdomain}")
+    # #PREV-01: BASE_DOMAIN en producción es "onrender.com" (dominio de la
+    # plataforma, no resuelve a este servicio) -- usarlo acá dejaba a todo
+    # cliente del checkout con un Domain primario inalcanzable. PREVIEW_DOMAIN
+    # es el dominio que sí tenemos bajo control (ver MASTER_PLAN_Y_ARQUITECTURA.md
+    # §4.6). Si no está configurado, no se crea un dominio roto: el cliente
+    # queda sin Domain hasta el alta manual.
+
+    preview_domain = getattr(settings, 'PREVIEW_DOMAIN', None)
+
+    if preview_domain:
+        subdomain = f"{client.slug}.{preview_domain}"
+
+        Domain.objects.create(
+            client=client,
+            domain=subdomain,
+            domain_type='subdomain',
+            is_primary=True,
+            is_active=True,
+            is_verified=True,  # Subdominio propio, siempre verificado
+        )
+
+        logger.info(f"[Onboarding] Domain creado: {subdomain}")
+    else:
+        logger.warning(
+            f"[Onboarding] PREVIEW_DOMAIN no configurado — cliente "
+            f"'{client.slug}' queda sin Domain, requiere alta manual."
+        )
     
     # =========================================================================
     # 3. ACTUALIZAR CLIENT SETTINGS
@@ -293,13 +307,18 @@ def process_onboarding(order: Order, data: dict) -> tuple:
     
     # Generar token para configurar contraseña
     invitation_token = uuid.uuid4()
-    
-    profile = UserProfile.objects.create(
+
+    # create_user() dispara un signal post_save que ya crea un UserProfile
+    # vacío (apps/accounts/models.py::create_or_update_user_profile) -> un
+    # segundo .create() con el mismo user choca con el OneToOneField.
+    profile, _ = UserProfile.objects.update_or_create(
         user=user,
-        client=client,
-        role='owner',
-        invitation_token=invitation_token,
-        invitation_expires_at=timezone.now() + timezone.timedelta(days=7),
+        defaults={
+            'client': client,
+            'role': 'owner',
+            'invitation_token': invitation_token,
+            'invitation_expires_at': timezone.now() + timezone.timedelta(days=7),
+        },
     )
     
     logger.info(f"[Onboarding] UserProfile creado: {user.email} -> {client.slug}")
@@ -351,22 +370,25 @@ def process_onboarding(order: Order, data: dict) -> tuple:
     logger.info(f"[Onboarding] Orden completada: {order.order_number}")
     
     # =========================================================================
-    # 8. ENVIAR EMAILS
+    # 8. ENVIAR EMAILS (diferidos a que la transacción confirme)
     # =========================================================================
-    
-    # Email de bienvenida con link para configurar contraseña
-    try:
-        send_welcome_email(client, user, str(profile.invitation_token))
-        logger.info(f"[Onboarding] Email de bienvenida enviado a: {user.email}")
-    except Exception as e:
-        logger.error(f"[Onboarding] Error enviando email de bienvenida: {e}")
-    
-    # Email de sitio listo (opcional, puede enviarse después)
-    try:
-        send_site_ready_email(client, user)
-        logger.info(f"[Onboarding] Email de sitio listo enviado a: {user.email}")
-    except Exception as e:
-        logger.error(f"[Onboarding] Error enviando email de sitio listo: {e}")
-    
-    return client, user  
+
+    def _send_welcome_email(client=client, user=user, token=str(profile.invitation_token)):
+        try:
+            send_welcome_email(client, user, token)
+            logger.info(f"[Onboarding] Email de bienvenida enviado a: {user.email}")
+        except Exception as e:
+            logger.error(f"[Onboarding] Error enviando email de bienvenida: {e}")
+
+    def _send_site_ready_email(client=client, user=user):
+        try:
+            send_site_ready_email(client, user)
+            logger.info(f"[Onboarding] Email de sitio listo enviado a: {user.email}")
+        except Exception as e:
+            logger.error(f"[Onboarding] Error enviando email de sitio listo: {e}")
+
+    transaction.on_commit(_send_welcome_email)
+    transaction.on_commit(_send_site_ready_email)
+
+    return client, user
     
