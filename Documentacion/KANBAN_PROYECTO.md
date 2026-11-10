@@ -20,7 +20,7 @@
 
 **🧭 Cambio de énfasis (2026-11-09): consolidar lo que existe antes de sumar features.** Ritmo: **2 días/semana × 4–5 h**, cada día = Bloque A (~2 h) + Bloque B (~2 h) + cierre (suite + `ruff` + `makemigrations`, commit, actualizar esta sección, push desde PyCharm). Regla: ningún día cierra con la suite en rojo ni trabajo sin commit; una card que no entra en 2 h se parte en dos.
 
-**▶️ Próximo día de trabajo: Día 1.**
+**▶️ Próxima sesión: corta (~1 h) → solo Día 1 · Bloque A** (push de `e14ae85`/`1e4ebcd` + smoke test de producción). `#DB-02` (Bloque B) pasa al día siguiente completo, no se empieza a medias: requiere tiempo para el restore y medir tiempos. Si sobra tiempo: corregir Supabase → Neon en `CLAUDE.md` (≈15 min, adelanto del Día 2).
 
 | Día | Bloque A | Bloque B |
 |---|---|---|
