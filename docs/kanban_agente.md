@@ -11,6 +11,35 @@
 
 ---
 
+## 🔄 SYNC 2026-11-12 — ronda 3 arranca aquí
+
+**Cambios de entorno desde la ronda 2 (prevalecen sobre §0.-1, que queda como registro histórico):**
+- El worktree `SaaSMVP-agentic-pilot` **ya no existe** (unificación de repo, 2026-11-08). Esta ronda
+  corre en el checkout único `C:\Users\sanch\Documents\Proyectos\SaaSMVP`, con su venv (`env/`).
+- **Rama de trabajo:** `agent/fase1-seguridad`, creada desde `develop` *después* de que el usuario
+  haga push de `develop`. Nunca commitear directo en `develop` ni en `main`. No hacer push: el
+  usuario revisa y abre el PR hacia `develop` desde PyCharm.
+- El kanban maestro se reescribió (2026-11-12): `Documentacion/KANBAN_PROYECTO.md` usa prefijos
+  nuevos (`CONS`, `SEC`, `LEY`…, ver su diccionario). Cada bolt de esta ronda indica su card maestra.
+  Contexto: `Documentacion/SEGURIDAD.md`, `Documentacion/ARQUITECTURA.md`.
+- **Gate verificado el 2026-11-12 en este checkout:** `python scripts/gatekeeper.py` → `passed: true`,
+  219 tests (5 skip en modo gatekeeper), ruff y migraciones limpias. `python orchestrate.py --dry-run`
+  funciona; los 9 tests de `test_orchestrate`/`test_gatekeeper` pasan.
+- **`orchestrate.py` sigue sin agente real conectado** (`NotWiredAgentRunner` → `NotImplementedError`
+  sin `--dry-run`). Las rondas 1 y 2 se ejecutaron con una sesión de Claude Code siguiendo
+  `.claude/workflows/01→02→03` por card; esta ronda se ejecuta igual.
+- **Excepción a §0.4, autorizada por el usuario el 2026-11-12 y solo para `BOLT-16`:** aplicar
+  `ruff --fix` al lint preexistente. El resto de §0.4 sigue vigente (nada de Rancho Cachimba; no
+  eliminar `login_view`/`logout_view` de `apps/accounts/views.py`).
+- Al cerrar cada bolt, además de este archivo: agregar una línea en
+  `Documentacion/historico/KANBAN_HISTORICO.md` y quitar (o acotar) la card maestra en
+  `Documentacion/KANBAN_PROYECTO.md`, en el mismo commit.
+
+**Orden obligatorio de la ronda 3:** `BOLT-11` → `BOLT-12` → `BOLT-13` → `BOLT-14` → `BOLT-15` → `BOLT-16`
+(`BOLT-11` es la red de seguridad; `BOLT-16` toca muchos archivos y va al final para no chocar).
+
+---
+
 ## 🔄 SYNC 2026-09-01 — ronda 2 arranca aquí
 
 **Hallazgo al retomar la sesión:** este archivo (y esta rama) llevaban desde el 2026-08-23 sin
@@ -381,6 +410,82 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Sin tocar nada de Rancho Cachimba ni el contenido del resto de `CLAUDE.md`/`SKILL.md` fuera
     de la cita puntual de `THEME_CHOICES` — diff revisado línea por línea antes de aprobar (4
     líneas en `CLAUDE.md`, 10 en `SKILL.md`, ambas acotadas a los dos párrafos citados).
+
+### [BOLT-11] `CONS-10` — Tests de render de la home por tema
+- **Estado:** TODO
+- **Componente:** Backend / Tests
+- **Variables requeridas:** ninguna
+- **Archivos Afectados:** `apps/website/tests/test_home_render.py` (nuevo). No se toca código de la app.
+- **Contexto:** `apps/website/views.py::home` entrega un contexto fijo (`hero`, `about`, `contact_section`, `services`, `form`) y cada tema arma su `landing/home.html` a mano. No existe ningún test que renderice la home completa por tema; es la red de seguridad que necesitan `CONS-07`, `COMP-01` y `MOD-01`. Resolución de templates: `apps/tenants/template_loader.py` (`client.template` para `themes/default` y `themes/servelec`; el tenant con `slug == 'andesscale'` resuelve a `templates/andesscale/`). Patrón de test por HTTP con `HTTP_HOST` por tenant: `apps/tenants/tests_isolation.py` y `apps/website/tests/test_font_family_rendering.py`.
+- **Definición de Terminado (DoD Verificable):**
+  - [ ] Un test por tema (`themes/default`, `themes/servelec`, `andesscale`): crea `Client` + `Domain` + `ClientSettings` + secciones `hero`/`about`/`contact` + 2 `Service`, hace `GET /` con el host del tenant y verifica 200 y que aparecen el título del hero, el nombre de cada servicio y el formulario de contacto.
+  - [ ] Un test por tema con contenido mínimo (sin `about`, sin servicios): la home responde 200 (no 500).
+  - [ ] Rojo confirmado de forma honesta: como la card solo agrega tests, demostrar que cada test detecta una regresión rompiendo temporalmente un include del tema (y revertirlo) — registrar el resultado aquí.
+  - [ ] Si algún tema falla al renderizar con datos válidos, es un **hallazgo incidental**: documentarlo aquí; arreglarlo solo si es un cambio mínimo de template, si no marcar `BLOCKED`.
+  - [ ] Gatekeeper en verde; sin cambios fuera de `apps/website/tests/`.
+
+### [BOLT-12] `SEC-07` — Sin datos personales en logs + login sin enumeración
+- **Estado:** TODO
+- **Componente:** Backend / Seguridad
+- **Variables requeridas:** ninguna
+- **Archivos Afectados:** `apps/accounts/views.py`, `apps/orders/views.py`, `apps/orders/views_onboarding.py`, `apps/orders/services/email_service.py`, `apps/orders/services/mercadopago_service.py`, helper nuevo en `apps/core/` (p. ej. `apps/core/logging_utils.py`), tests nuevos.
+- **Contexto:** `Documentacion/SEGURIDAD.md` §2 (`SEC-07`) y Ley 21.719 art. 14 quinquies. Unas 20 líneas de log interpolan el email del usuario o comprador (ubicarlas con `grep -rnE "logger\.\w+\(.*(email|username)" apps --include=*.py`, excluyendo tests). Además `apps/accounts/views.py` registra y responde distinto para "email inexistente" y "contraseña incorrecta".
+- **Definición de Terminado (DoD Verificable):**
+  - [ ] Helper único que convierte un email en un identificador no reversible y estable (hash con sal derivada de `SECRET_KEY`, truncado), con test propio.
+  - [ ] Ninguna llamada a `logger` en `apps/` (fuera de tests) interpola un email crudo: usa el helper, el `pk` del usuario o el `order_number`.
+  - [ ] Test con `assertLogs` por flujo (login fallido, reset de contraseña, checkout, onboarding, envío de correo) que falla si el email literal aparece en algún registro. Rojo confirmado antes del cambio.
+  - [ ] En `apps/accounts/views.py`, los mensajes al usuario y los logs de "email inexistente" y "contraseña incorrecta" son indistinguibles. **No eliminar** `login_view`/`logout_view` (§0.4).
+  - [ ] No se cambia el nivel ni la cantidad de eventos registrados, solo su contenido. Gatekeeper en verde.
+
+### [BOLT-13] `SEC-11` — Validación de subidas en el servidor
+- **Estado:** TODO
+- **Componente:** Backend / Seguridad
+- **Variables requeridas:** ninguna (Cloudinary siempre mockeado en tests)
+- **Archivos Afectados:** `apps/website/views.py` (puntos con `request.FILES`: branding, secciones, servicios, galería, portada), `apps/website/forms.py` si corresponde, `apps/core/cloudinary_utils.py::validate_image_file`, tests nuevos en `apps/website/tests/`.
+- **Contexto:** `validate_image_file` y `validate_video_file` existen en `apps/core/cloudinary_utils.py` pero ninguna vista los llama (verificado por grep el 2026-11-12). Hoy cualquier archivo que el navegador envíe llega a `upload_to_cloudinary`. `validate_image_file` valida por extensión y admite `svg` por defecto.
+- **Definición de Terminado (DoD Verificable):**
+  - [ ] Toda vista que recibe un archivo lo valida antes de subirlo, por un único camino (no repetir la lógica en cada vista).
+  - [ ] La validación comprueba el contenido real (Pillow puede abrirlo como imagen), no solo la extensión; rechaza SVG y archivos sobre el tamaño máximo.
+  - [ ] Tests (rojo confirmado): un `.txt` renombrado a `.jpg`, un SVG y un archivo sobre el límite son rechazados con mensaje al usuario y **sin** llamar a `upload_to_cloudinary` (mock); una imagen válida sigue subiendo.
+  - [ ] Los límites `hero_images_limit`/`gallery_images_limit` siguen funcionando igual. Gatekeeper en verde.
+
+### [BOLT-14] `LEY-03` (parcial) — Purga de contactos independiente del digest
+- **Estado:** TODO
+- **Componente:** Backend / Datos personales
+- **Variables requeridas:** ninguna
+- **Archivos Afectados:** `apps/tenants/management/commands/send_contact_digest.py` (`_purge_old_contacts` y quien lo llama), tests nuevos en `apps/tenants/`.
+- **Contexto:** Ley 21.719 art. 14 d) y `Documentacion/SEGURIDAD.md` §3. `_purge_old_contacts` solo corre dentro del envío del digest, así que un tenant con `auto_purge_enabled=True` y `digest_enabled=False` nunca purga. Además solo borra `status in ['read','replied']` con `is_spam=False`: los mensajes `new` y los marcados como spam no se borran nunca. Retención: `ClientSettings.inbox_retention_days` (mínimo 7).
+- **Definición de Terminado (DoD Verificable):**
+  - [ ] La purga corre para todo tenant con `auto_purge_enabled=True`, tenga o no el digest activo (rojo confirmado con un tenant sin digest).
+  - [ ] Los mensajes con `is_spam=True` más antiguos que la retención se purgan.
+  - [ ] Los mensajes `new` más antiguos que la retención: **no cambiar el comportamiento** (borrar un lead no leído es una decisión del usuario); dejar un test que documente el comportamiento actual y anotar la decisión pendiente aquí y en `LEY-03` del maestro.
+  - [ ] `--dry-run` no borra nada (test). Un tenant con `auto_purge_enabled=False` no pierde ningún mensaje (test).
+  - [ ] Fuera de alcance: retención de `Order`, `PaymentLog`, `EmailOutbox` (resto de `LEY-03`). Gatekeeper en verde.
+
+### [BOLT-15] `SEC-05` — Django Admin y vistas internas limitadas por tenant
+- **Estado:** TODO
+- **Componente:** Backend / Seguridad
+- **Variables requeridas:** ninguna
+- **Archivos Afectados:** `apps/orders/admin.py` (`OrderAdmin`, `PaymentLogAdmin`), `apps/tenants/admin.py` (`ClientEmailSettingsAdmin`, `ClientSettingsAdmin`, `FormConfigAdmin`, `DomainAdmin`), `apps/marketing/admin.py` (`SEOConfigAdmin`), `apps/accounts/admin.py` (`UserProfileAdmin`), `apps/tenants/views.py` (`onboarding_view`, `tenant_list`), tests nuevos.
+- **Contexto:** `Documentacion/SEGURIDAD.md` §2 (`SEC-05`). El patrón correcto ya existe: `apps/accounts/mixins.py::TenantAdminMixin` (atributo `tenant_field`), usado en `apps/website/admin.py`. `PaymentLog` no tiene FK directa al tenant: usar `tenant_field = 'order__client'` y verificar que `save_model`/`formfield_for_foreignkey` del mixin no fallen con un campo relacionado. `Order.client` puede ser nulo (órdenes sin sitio creado): un staff de tenant no debe verlas. `/superadmin/nuevo/` y `/tenants/` hoy solo piden `is_staff`.
+- **Definición de Terminado (DoD Verificable):**
+  - [ ] Los 8 `ModelAdmin` listados heredan `TenantAdminMixin` con el `tenant_field` correcto.
+  - [ ] Test por admin (rojo confirmado): con 2 tenants, un usuario `is_staff` no-superuser del tenant A con el permiso `view_*` solo ve en la lista los registros de A; un superuser ve todo.
+  - [ ] `onboarding_view` y `tenant_list` exigen superuser; test: staff no-superuser recibe redirección o 403.
+  - [ ] `ClientAdmin` y `PlanAdmin` quedan como están (globales, solo útiles a superuser): documentarlo aquí, no cambiarlos.
+  - [ ] Sin migraciones. Gatekeeper en verde.
+
+### [BOLT-16] `CONS-03` — `ruff --fix` del lint preexistente
+- **Estado:** TODO
+- **Componente:** DevOps / Calidad
+- **Variables requeridas:** ninguna
+- **Archivos Afectados:** los que reporte `python -m ruff check apps/ config/` (79 errores al 2026-11-09, 72 con autofix).
+- **Contexto:** **Excepción explícita a §0.4, autorizada por el usuario el 2026-11-12** (ver SYNC de esa fecha). Va al final de la ronda porque toca muchos archivos. El gate de ruff del gatekeeper solo mira archivos tocados: tras el autofix los revisará todos, así que los errores sin autofix quedarán a la vista.
+- **Definición de Terminado (DoD Verificable):**
+  - [ ] `python -m ruff check apps/ config/ --fix` aplicado (solo fixes seguros; **no** usar `--unsafe-fixes`).
+  - [ ] Cada error restante: corregido a mano si es trivial y sin cambio de comportamiento, o listado aquí con archivo, regla y motivo. No silenciar con `noqa` en bloque.
+  - [ ] El diff no contiene cambios de lógica: solo imports, orden, espacios y variables sin uso. Si un fix elimina un import usado por efecto secundario (signals, registro de admin), revertir ese fix y anotarlo.
+  - [ ] Suite completa y `makemigrations --check --dry-run` en verde. Conteo de errores de ruff antes y después registrado en §4.
 
 ---
 

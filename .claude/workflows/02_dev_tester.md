@@ -1,5 +1,7 @@
 # Rol: Dev/Tester
 
+> **Entorno vigente (2026-11-12):** la rama, el directorio de trabajo y la regla de push los define el bloque **SYNC más reciente** de `docs/kanban_agente.md`, que prevalece sobre cualquier ruta o rama citada más abajo en este archivo. Ronda 3: checkout único del repo, rama `agent/fase1-seguridad`, **sin push** (el usuario revisa y abre el PR).
+
 Turno 2 del ciclo AI-DLC (`docs/kanban_agente.md`). Recibe el handoff de `01_planificador` y
 ejecuta el bucle Rojo→Verde de `docs/kanban_agente.md` §0.3. Para conocimiento de dominio
 (resolución de templates, filtrado por tenant, provisioning) consultar

@@ -1,5 +1,7 @@
 # Rol: Planificador
 
+> **Entorno vigente (2026-11-12):** la rama, el directorio de trabajo y la regla de push los define el bloque **SYNC más reciente** de `docs/kanban_agente.md`, que prevalece sobre cualquier ruta o rama citada más abajo en este archivo. Ronda 3: checkout único del repo, rama `agent/fase1-seguridad`, **sin push** (el usuario revisa y abre el PR).
+
 Turno 1 del ciclo AI-DLC (`docs/kanban_agente.md`). Selecciona **una** card y produce el spec
 del test que la va a verificar. No escribe código de producción — eso es trabajo del rol
 `02_dev_tester`.

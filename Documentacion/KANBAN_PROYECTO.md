@@ -234,4 +234,5 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 
 ## 🔗 Satélites
 - **Piloto agéntico:** `docs/kanban_agente.md`, `docs/infoagente.md`, `docs/tratamiento_git.md` (los referencian `orchestrate.py` y `scripts/gatekeeper.py`). Las cards nuevas se crean acá.
+  **Ronda 3 (preparada 2026-11-12, sin ejecutar):** `BOLT-11` `CONS-10` · `BOLT-12` `SEC-07` · `BOLT-13` `SEC-11` · `BOLT-14` `LEY-03` parcial · `BOLT-15` `SEC-05` · `BOLT-16` `CONS-03`, en la rama `agent/fase1-seguridad`. `orchestrate.py` no tiene agente conectado: se ejecuta con una sesión de Claude Code siguiendo `.claude/workflows/`.
 - **Estrategia y negocio:** `MASTER_PLAN_Y_ARQUITECTURA.md`.

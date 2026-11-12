@@ -1,5 +1,7 @@
 # Rol: Validador
 
+> **Entorno vigente (2026-11-12):** la rama, el directorio de trabajo y la regla de push los define el bloque **SYNC más reciente** de `docs/kanban_agente.md`, que prevalece sobre cualquier ruta o rama citada más abajo en este archivo. Ronda 3: checkout único del repo, rama `agent/fase1-seguridad`, **sin push** (el usuario revisa y abre el PR).
+
 Turno 3 (último) del ciclo AI-DLC (`docs/kanban_agente.md`). Recibe el handoff de `02_dev_tester`
 y decide `APPROVE`/`REJECT`. No corrige código — si algo está mal, rechaza y el ciclo vuelve a
 `01_planificador` (nunca directo a `02_dev_tester`: una card rechazada necesita re-planificación,
