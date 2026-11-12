@@ -19,6 +19,7 @@
 | `#SEC-02` | Headers de seguridad: CSP + Permissions-Policy (`/checkout/` excluido a propósito) | 2026-08-22 | — |
 | `#SEC-03` | `setup_production` ya no crea superusuario con clave hardcodeada; inventario de secretos | 2026-08-24 | `5229215` |
 | `#AUD-12` | `DEBUG=False` fijo en producción, sin override por env var | 2026-08-22 | — |
+| `SEC-07` | Logs sin emails (`email_ref`, guardia AST) y login sin enumeración. Hallazgos corregidos: `/auth/set-password/` y `/auth/forgot-password/` daban 500 (métodos de `UserProfile` inexistentes) y `'dashboard:home'` inexistente | 2026-11-12 | `BOLT-12` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
 

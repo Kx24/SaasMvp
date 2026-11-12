@@ -78,7 +78,7 @@
 | Día | Bloque A | Bloque B |
 |---|---|---|
 | D2 | `SEC-05` Admin y vistas internas limitadas por tenant | `SEC-06` Credenciales SMTP/API cifradas |
-| D3 | `SEC-07` Sin datos personales en logs + login sin enumeración | `SEC-08` + `CONS-04` Un solo login y borrar rutas legacy |
+| D3 | `SEC-08` Un solo login (+ open redirect de `next`) | `CONS-04` Borrar rutas legacy |
 | D4 | `LEY-01` Consentimiento en contacto y onboarding | `LEY-01` Página de política de privacidad (contenidos del art. 14 ter) |
 | D5 | `LEY-03` Purga de contactos (bug) + `SEC-11` validación de subidas | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
 
@@ -157,8 +157,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `SEC-05` | Admin y vistas internas por tenant | P0 | M | `TenantAdminMixin` en `OrderAdmin`, `PaymentLogAdmin`, `ClientEmailSettingsAdmin`, `ClientSettingsAdmin`, `FormConfigAdmin`, `DomainAdmin`, `SEOConfigAdmin`, `UserProfileAdmin`; `/superadmin/nuevo/` y `/tenants/` solo superuser. Test con 2 tenants y un staff no-superuser |
 | `SEC-06` | Credenciales cifradas en reposo | P0 | M | `smtp_password`/`api_key` cifrados (Fernet) con clave en variable de entorno + migración de datos; test: el valor en base no es el texto ingresado |
-| `SEC-07` | Sin datos personales en logs | P0 | S | ~20 líneas de log usan ID o hash; login y reset no distinguen "email inexistente". Test con `assertLogs` |
-| `SEC-08` | Un solo login | P1 | M | Resuelta la colisión `/auth/`; métodos de invitación de `UserProfile` implementados o sus llamadas eliminadas; `apps/accounts` ≥ 70 % de cobertura |
+| `SEC-08` | Un solo login | P1 | M | Resuelta la colisión `/auth/`; validar `next` con `url_has_allowed_host_and_scheme` (hoy `login_view` redirige a cualquier URL); `apps/accounts` ≥ 70 % de cobertura. Los métodos de invitación ya existen (`BOLT-12`) |
 | `SEC-10` | Dependencias | P0 | M | `pip-audit` en `requirements-dev.txt` y sin vulnerabilidades conocidas; Django en el último 5.2.x; `gunicorn` actualizado; fuera `djangorestframework` y herramientas de desarrollo de `requirements.txt`; misma versión de Python en Render y local |
 | `SEC-11` | Validación de subidas | P1 | S | Toda subida pasa por `validate_image_file` (tipo real, tamaño, sin SVG); test con archivo inválido |
 | `SEC-12` | Integración continua | P1 | M | GitHub Actions en cada push/PR: suite, aislamiento, `makemigrations --check`, `bandit -ll`, `pip-audit` |

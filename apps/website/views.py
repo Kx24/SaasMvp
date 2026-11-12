@@ -35,6 +35,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.decorators import tenant_member_required
+from apps.core.logging_utils import email_ref
 from apps.core.rate_limit import RateLimiter, get_client_ip
 from apps.core.template_resolver import get_tenant_template, render_tenant_template
 from apps.tenants.fonts import FONT_CHOICES
@@ -189,7 +190,7 @@ def contact_submit(request):
  
     logger.info(
         f"[Contact] Submission #{contact.id} for {request.client.slug} "
-        f"from {contact.email} | source={contact.form_source} "
+        f"from {email_ref(contact.email)} | source={contact.form_source} "
         f"| intent={cleaned.get('intent', '?')} | spam={is_spam}"
     )
  

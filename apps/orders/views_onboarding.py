@@ -105,7 +105,7 @@ def onboarding_view(request, token):
                 
                 logger.info(
                     f"[Onboarding] Completado: {order.order_number} - "
-                    f"Client: {client.slug} - User: {user.email}"
+                    f"Client: {client.slug} - user_id={user.pk}"
                 )
                 
                 # Redirigir a página de éxito
@@ -299,7 +299,7 @@ def process_onboarding(order: Order, data: dict) -> tuple:
     user.set_unusable_password()
     user.save()
     
-    logger.info(f"[Onboarding] User creado: {user.email}")
+    logger.info(f"[Onboarding] User creado user_id={user.pk}")
     
     # =========================================================================
     # 5. CREAR USER PROFILE
@@ -321,7 +321,7 @@ def process_onboarding(order: Order, data: dict) -> tuple:
         },
     )
     
-    logger.info(f"[Onboarding] UserProfile creado: {user.email} -> {client.slug}")
+    logger.info(f"[Onboarding] UserProfile creado user_id={user.pk} -> {client.slug}")
     
     # =========================================================================
     # 6. CREAR CONTENIDO INICIAL
@@ -376,14 +376,14 @@ def process_onboarding(order: Order, data: dict) -> tuple:
     def _send_welcome_email(client=client, user=user, token=str(profile.invitation_token)):
         try:
             send_welcome_email(client, user, token)
-            logger.info(f"[Onboarding] Email de bienvenida enviado a: {user.email}")
+            logger.info(f"[Onboarding] Email de bienvenida enviado user_id={user.pk}")
         except Exception as e:
             logger.error(f"[Onboarding] Error enviando email de bienvenida: {e}")
 
     def _send_site_ready_email(client=client, user=user):
         try:
             send_site_ready_email(client, user)
-            logger.info(f"[Onboarding] Email de sitio listo enviado a: {user.email}")
+            logger.info(f"[Onboarding] Email de sitio listo enviado user_id={user.pk}")
         except Exception as e:
             logger.error(f"[Onboarding] Error enviando email de sitio listo: {e}")
 

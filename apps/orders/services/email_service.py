@@ -18,6 +18,7 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
+from apps.core.logging_utils import email_ref
 from apps.core.models import EmailOutbox
 
 logger = logging.getLogger(__name__)
@@ -105,7 +106,7 @@ class EmailService:
                     text_content=text_content,
                     reply_to=reply_to or '',
                 )
-                logger.info(f"[Email] Encolado '{template_name}' para {to_email}")
+                logger.info(f"[Email] Encolado '{template_name}' para {email_ref(to_email)}")
                 return True
 
             # Crear email
@@ -121,11 +122,11 @@ class EmailService:
             # Enviar
             email.send(fail_silently=False)
 
-            logger.info(f"[Email] Enviado '{template_name}' a {to_email}")
+            logger.info(f"[Email] Enviado '{template_name}' a {email_ref(to_email)}")
             return True
 
         except Exception as e:
-            logger.error(f"[Email] Error enviando '{template_name}' a {to_email}: {e}")
+            logger.error(f"[Email] Error enviando '{template_name}' a {email_ref(to_email)}: {type(e).__name__}")
             return False
     
     # =========================================================================

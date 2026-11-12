@@ -426,18 +426,24 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Hallazgo incidental documentado aquí y en el maestro.
   - [x] Gatekeeper en verde: 244 tests (5 skip), ruff limpio (1 archivo), migraciones limpias. Sin cambios fuera de `apps/website/tests/` salvo tableros.
 
-### [BOLT-12] `SEC-07` — Sin datos personales en logs + login sin enumeración
-- **Estado:** TODO
+### ✅ [BOLT-12] `SEC-07` — Sin datos personales en logs + login sin enumeración — **DONE (2026-11-12)**
+- **Estado:** ✅ DONE (2026-11-12)
 - **Componente:** Backend / Seguridad
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `apps/accounts/views.py`, `apps/orders/views.py`, `apps/orders/views_onboarding.py`, `apps/orders/services/email_service.py`, `apps/orders/services/mercadopago_service.py`, helper nuevo en `apps/core/` (p. ej. `apps/core/logging_utils.py`), tests nuevos.
-- **Contexto:** `Documentacion/SEGURIDAD.md` §2 (`SEC-07`) y Ley 21.719 art. 14 quinquies. Unas 20 líneas de log interpolan el email del usuario o comprador (ubicarlas con `grep -rnE "logger\.\w+\(.*(email|username)" apps --include=*.py`, excluyendo tests). Además `apps/accounts/views.py` registra y responde distinto para "email inexistente" y "contraseña incorrecta".
+- **Archivos Afectados:** `apps/core/logging_utils.py` (nuevo, `email_ref`), `apps/accounts/views.py`, `apps/accounts/models.py`, `apps/orders/views.py`, `apps/orders/views_onboarding.py`, `apps/orders/services/{email_service,mercadopago_service,order_processor}.py`, `apps/core/management/commands/send_pending_emails.py`, `apps/website/views.py`; tests `apps/core/tests/test_logging_pii.py` (13) y `apps/accounts/tests.py` (8, primeros tests de la app).
+- **Resultado:** `email_ref(email)` = `email:<12 hex>` (HMAC-SHA256 con clave derivada de `SECRET_KEY`, normaliza mayúsculas/espacios). 24 llamadas a `logger` dejaron de interpolar emails: usan `email_ref`, `user_id` o `order_number`. Los errores de SMTP se loguean por tipo de excepción, no por mensaje (puede contener la dirección). Login de `apps/accounts`: mismo mensaje ("Email o contraseña incorrectos.") y mismo log para email inexistente y contraseña incorrecta. Guardia estática (AST) sobre todo `apps/` impide reintroducir un email en un log.
+- **⚠️ Hallazgos incidentales corregidos (bloqueaban el DoD de "reset sin enumeración"):**
+  1. `UserProfile.generate_invitation_token()`, `is_invitation_valid()` y `clear_invitation()` no existían, pero `set_password_view` y `request_password_reset_view` los llamaban → **500 en `/auth/set-password/<token>/`** (el enlace del correo de bienvenida tras el onboarding pagado) y **500 en `/auth/forgot-password/` para todo email registrado** (302 para uno inexistente: enumeración). Implementados en `apps/accounts/models.py` sobre los campos que ya existían (sin migración).
+  2. `apps/accounts/views.py` redirigía 5 veces a `'dashboard:home'`, namespace inexistente (la ruta es `'dashboard'`) → 500 justo después de guardar la contraseña. Mismo tipo de bug que `#PAY-03`. Corregido.
+  3. `login_view` escribía `UserProfile.last_login_at`, campo inexistente (la vista es inalcanzable por la colisión `/auth/`, `SEC-08`; se quitó la escritura, `login()` ya actualiza `User.last_login`). No se eliminó la vista (§0.4).
+- **Fuera de alcance, anotado en `SEC-08`:** `login_view` redirige a `next` sin validar el host (open redirect si la vista llegara a ser alcanzable). Las IP siguen en logs de rate limit/honeypot (uso legítimo de seguridad).
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Helper único que convierte un email en un identificador no reversible y estable (hash con sal derivada de `SECRET_KEY`, truncado), con test propio.
-  - [ ] Ninguna llamada a `logger` en `apps/` (fuera de tests) interpola un email crudo: usa el helper, el `pk` del usuario o el `order_number`.
-  - [ ] Test con `assertLogs` por flujo (login fallido, reset de contraseña, checkout, onboarding, envío de correo) que falla si el email literal aparece en algún registro. Rojo confirmado antes del cambio.
-  - [ ] En `apps/accounts/views.py`, los mensajes al usuario y los logs de "email inexistente" y "contraseña incorrecta" son indistinguibles. **No eliminar** `login_view`/`logout_view` (§0.4).
-  - [ ] No se cambia el nivel ni la cantidad de eventos registrados, solo su contenido. Gatekeeper en verde.
+  - [x] Helper único con test propio (estable, no contiene el email, depende de `SECRET_KEY`, vacíos).
+  - [x] Ninguna llamada a `logger` en `apps/` interpola un email crudo (guardia AST + guardia de literales).
+  - [x] `assertLogs` en envío/encolado de correo, reset (existente e inexistente) y login fallido; rojo confirmado antes del cambio (7 fallos).
+  - [x] Login: mensajes y logs indistinguibles; `login_view`/`logout_view` conservadas.
+  - [x] Mismos eventos y niveles, solo cambia el contenido. Rojo de `apps/accounts/tests.py` confirmado con `git stash` del modelo (7 errores).
+  - [x] Gatekeeper en verde: 265 tests (5 skip), ruff limpio en 12 archivos (autofix de imports preexistentes en 3), migraciones limpias.
 
 ### [BOLT-13] `SEC-11` — Validación de subidas en el servidor
 - **Estado:** TODO
@@ -530,5 +536,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-09-01 | SYNC (no es card) | rama actualizada a `develop` vía `git merge --ff-only` (traía 14 commits, incl. el merge del propio piloto `45eca7b` del 2026-08-24) | 198 tests OK (5 skip) / ruff limpio / migraciones limpias | `0e2e7c5` (tip post-sync, `agent/ai-dlc-pilot`) |
 | 2026-09-01 | BOLT-10 | DONE | 200 tests OK (5 skip, +2) / ruff limpio (1 archivo) / migraciones limpias | `2066f60` (`agent/ai-dlc-pilot`) |
 | 2026-11-12 | BOLT-11 | DONE (+ hallazgo DEUDA-08, SEC-17) | 244 tests OK (5 skip) / ruff limpio (1 archivo) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
+| 2026-11-12 | BOLT-12 | DONE (+ 3 hallazgos corregidos: métodos de invitación, `dashboard:home`, `last_login_at`) | 265 tests OK (5 skip) / ruff limpio (12 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*

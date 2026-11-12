@@ -9,10 +9,11 @@ Centraliza la lógica de:
 """
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from django.db import transaction
 
-from ..models import Plan, Order
+from ..models import Order, Plan
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ class OrderProcessor:
             
             logger.info(
                 f"[OrderProcessor] Orden creada: {order.order_number} "
-                f"- Plan: {plan.name} - Email: {email}"
+                f"- Plan: {plan.name}"
             )
             
             return order

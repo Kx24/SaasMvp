@@ -4,10 +4,14 @@ Modelo de Accounts - Vincula usuarios a tenants
 
 Cada usuario (excepto superusers) pertenece a UN tenant.
 """
-from django.db import models
+import uuid
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -91,6 +95,35 @@ class UserProfile(models.Model):
     @property
     def can_edit(self):
         return self.role in ['owner', 'admin', 'editor']
+
+    # --- Invitación / recuperación de contraseña -----------------------
+    # apps/accounts/views.py (set_password_view, request_password_reset_view)
+    # llamaba estos tres métodos sin que existieran: AttributeError -> 500 en
+    # el enlace del correo de bienvenida y en "olvidé mi contraseña" para
+    # cualquier email registrado (BOLT-12, hallazgo incidental).
+
+    def generate_invitation_token(self, days=7):
+        """Genera un token nuevo de un solo uso, válido `days` días. Devuelve el UUID."""
+        now = timezone.now()
+        self.invitation_token = uuid.uuid4()
+        self.invitation_expires_at = now + timedelta(days=days)
+        self.invited_at = now
+        self.save(update_fields=['invitation_token', 'invitation_expires_at', 'invited_at', 'updated_at'])
+        return self.invitation_token
+
+    def is_invitation_valid(self):
+        """True si hay token y no expiró. Sin fecha de expiración se considera inválido."""
+        return bool(
+            self.invitation_token
+            and self.invitation_expires_at
+            and self.invitation_expires_at > timezone.now()
+        )
+
+    def clear_invitation(self):
+        """Invalida el token (se usa una sola vez)."""
+        self.invitation_token = None
+        self.invitation_expires_at = None
+        self.save(update_fields=['invitation_token', 'invitation_expires_at', 'updated_at'])
 
 
 # ============================================================

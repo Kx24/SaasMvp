@@ -20,6 +20,8 @@ from typing import Any, Dict, Optional
 import mercadopago
 from django.conf import settings
 
+from apps.core.logging_utils import email_ref
+
 logger = logging.getLogger(__name__)
 
 
@@ -144,7 +146,7 @@ class MercadoPagoService:
         if idempotency_key:
             request_options["idempotency_key"] = idempotency_key
         
-        logger.info(f"[MP Service] Procesando pago: ${amount} CLP - {email}")
+        logger.info(f"[MP Service] Procesando pago: ${amount} CLP - {email_ref(email)}")
         logger.debug(f"[MP Service] Payment data: {payment_data}")
         
         try:

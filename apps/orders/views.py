@@ -214,7 +214,7 @@ def process_payment_view(request):
                     def _send_checkout_success_email(order=order):
                         try:
                             send_payment_success_email(order)
-                            logger.info(f"[Checkout] Email de pago exitoso enviado a: {order.email}")
+                            logger.info(f"[Checkout] Email de pago exitoso enviado (orden {order.order_number})")
                         except Exception as e:
                             # No fallar el proceso si el email falla
                             logger.error(f"[Checkout] Error enviando email de pago: {e}")
@@ -435,7 +435,7 @@ def mercadopago_webhook_view(request):
                 def _send_webhook_success_email(order=order):
                     try:
                         send_payment_success_email(order)
-                        logger.info(f"[MP Webhook] Email de pago exitoso enviado a: {order.email}")
+                        logger.info(f"[MP Webhook] Email de pago exitoso enviado (orden {order.order_number})")
                     except Exception as e:
                         logger.error(f"[MP Webhook] Error enviando email de pago: {e}")
 
