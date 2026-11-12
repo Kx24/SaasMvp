@@ -1,0 +1,2 @@
+# Binarios: sin conversion de fin de linea (core.autocrlf los corromperia al hacer checkout)
+*.pdf binary
