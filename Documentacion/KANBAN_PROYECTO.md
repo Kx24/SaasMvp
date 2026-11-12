@@ -79,8 +79,8 @@
 |---|---|---|
 | D2 | `SEC-05` Admin y vistas internas limitadas por tenant | `SEC-06` Credenciales SMTP/API cifradas |
 | D3 | `SEC-07` Sin datos personales en logs + login sin enumeración | `SEC-08` + `CONS-04` Un solo login y borrar rutas legacy |
-| D4 | `LEY-01` Consentimiento en contacto y onboarding | `LEY-01` Página de política de privacidad por tenant (necesita `LEY-00`) |
-| D5 | `SEC-11` Validación de subidas en el servidor | `LEY-05` + `LEY-06` Registro de tratamiento y procedimiento de brechas (documentos) |
+| D4 | `LEY-01` Consentimiento en contacto y onboarding | `LEY-01` Página de política de privacidad (contenidos del art. 14 ter) |
+| D5 | `LEY-03` Purga de contactos (bug) + `SEC-11` validación de subidas | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
 
 ### Fase 2 — Consolidación (D6–D11, diciembre)
 | Día | Bloque A | Bloque B |
@@ -93,7 +93,7 @@
 | D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` Flags sin módulo |
 
 ### Fase 3 — Módulos y dashboard (~20 días, enero–febrero 2027)
-Orden: `COMP-02` (1 d) → `COMP-01` (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` (1 d) → `LEY-02` + `LEY-03` (2 d) → `SEC-13` + `SEC-14` + `SEC-15` (2 d).
+Orden: `COMP-02` (1 d) → `COMP-01` (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` (1 d) → `LEY-02` + resto de `LEY-03` (2 d) → `LEY-04` + `LEY-07` (1 d) → `SEC-13` + `SEC-14` + `SEC-15` (2 d).
 Después: `MOD-02` (opción B) y Rancho Cachimba — **no antes de marzo de 2027** (la meta anterior de mediados de febrero no cabe).
 
 Las estimaciones no están medidas; recalibrar al cerrar cada fase.
@@ -104,7 +104,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 
 | ID | Qué falta |
 |---|---|
-| `LEY-00` | Ubicar `Informe_Cumplimiento_Ley21719.md` (lo cita `MASTER_PLAN` §1.4, no está en el repo). Lo necesita `LEY-01` |
+| `LEY-00` | Ubicar `Informe_Cumplimiento_Ley21719.md` (lo cita `MASTER_PLAN` §1.4, no está en el repo). Ya no bloquea: el texto de la ley está en `Documentacion/`. Sí conviene que un abogado revise la política (`LEY-01`) y el contrato (`LEY-07`) |
 | `SEC-16` | Activar 2FA en Render, Neon, Cloudinary, Cloudflare, Zoho y GitHub; revisar qué cuentas `staff`/superuser existen en producción |
 | `OPS-01` | Servelec: `servelec-ingenieria.cl` en NXDOMAIN (web **y correo** caídos), mitigado con `servelec.andesscale.com`. Definitivo: recuperar la clave NIC, o reactivar la zona en Bluehosting, o zona en Cloudflare + cambio de NS (A `@` 216.24.57.1, CNAME `www`, MX Zoho 10/20/50, SPF `v=spf1 include:zoho.com ~all`, DKIM). Confirmar en vivo los pasos de la mitigación |
 | `PREV-00` | Decidir: wildcard `*.andesscale.com` (~US$29,78/mes) vs alta manual con `add_preview_domain` |
@@ -167,16 +167,16 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `SEC-14` | Salidas sin escapar | P2 | M | Revisados los 21 avisos de `mark_safe`; JSON-LD escapa `</`; `bandit` en 0 Medium o justificados |
 | `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |
 
-### `LEY` — Ley 21.719
+### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`)
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `LEY-01` | Consentimiento y política de privacidad | P0 | L | Checkbox no pre-marcado + fecha + versión de política guardados en `ContactSubmission` y en el onboarding; página de política real por tenant (hoy el enlace es `href="#"`) |
-| `LEY-02` | Derechos del titular | P1 | M | Comando o pantalla que exporta en JSON los datos de una persona y permite bloquearla/suprimirla; plazo de respuesta documentado |
-| `LEY-03` | Retención y purga | P2 | M | Purga de contactos independiente de `digest_enabled` (bug actual); política para `Order`, `PaymentLog`, `EmailOutbox` |
-| `LEY-04` | Contratos con proveedores | P2 | S | DPA o cláusulas con Neon, Render, Cloudinary y Zoho archivados |
-| `LEY-05` | Registro de actividades de tratamiento | P1 | S | Documento: qué datos, para qué, base de licitud, quién accede, cuánto se guardan; roles responsable/encargado |
-| `LEY-06` | Procedimiento de brechas | P1 | S | Documento: detección, registro, evaluación y notificación |
-| `LEY-07` | Contrato de encargo con clientes | P2 | M | Cláusula de tratamiento de datos en el contrato (junto a `BIZ-03`) |
+| `LEY-01` | Consentimiento y política de privacidad (art. 12 y 14 ter) | P0 | L | Checkbox no pre-marcado con fecha, versión de política e IP guardados en `ContactSubmission` y en el onboarding (prueba del consentimiento). Página de política por tenant y de AndesScale con los contenidos del art. 14 ter, fecha y versión; el enlace del formulario deja de ser `href="#"` |
+| `LEY-02` | Derechos del titular (art. 4–11) | P1 | M | Canal de solicitudes (correo o formulario) + registro de cada solicitud con fecha y respuesta; comando que exporta en JSON y suprime los datos de una persona; bloqueo temporal. Plazos: 30 días corridos, bloqueo en 2 días hábiles |
+| `LEY-03` | Retención y purga (art. 14 d y principio de proporcionalidad) | P1 | M | Purga de contactos independiente de `digest_enabled` (bug actual) e incluyendo `new`/spam; plazos definidos para `Order`, `PaymentLog`, `EmailOutbox`; plazo publicado en la política |
+| `LEY-04` | Proveedores y transferencia internacional (art. 15 bis, 27–28) | P2 | S | DPA o cláusulas contractuales de Neon, Render, Cloudinary y Zoho archivados; listados en la política |
+| `LEY-05` | Registro de tratamientos y bases de licitud (art. 13, 14, 14 quáter) | P1 | S | Documento por tratamiento: datos, finalidad, base de licitud, quién accede, conservación, proveedores. Incluye decidir si se sigue guardando IP y user-agent |
+| `LEY-06` | Procedimiento de brechas (art. 14 sexies) | P1 | S | Documento + plantilla de registro: detección, evaluación de riesgo, reporte a la Agencia, aviso al cliente responsable cuando AndesScale es encargado, aviso a titulares cuando corresponde |
+| `LEY-07` | Contrato de encargo con clientes (art. 15 bis) | P1 | M | Cláusula con objeto, duración, finalidad, tipo de datos, categorías de titulares y obligaciones; autorización escrita de sub-encargados (Neon, Render, Cloudinary, Zoho); devolución o supresión al terminar (une con `BIZ-03`). Sin código; revisar con abogado |
 
 ### Negocio, datos y operación
 | ID | Card | P | Esf. | Nota |

@@ -35,6 +35,7 @@
 |---|---|
 | [`Procedimiento_Nuevo_Tenant.md`](Procedimiento_Nuevo_Tenant.md) | Runbook de alta de cliente (+ checklist de custodia DNS) |
 | [`Inventario_Secretos.md`](Inventario_Secretos.md) | Qué env vars/secretos existen y dónde viven |
+| [`Ley-21719_13-DIC-2024.pdf`](Ley-21719_13-DIC-2024.pdf) | Texto oficial de la Ley 21.719 (BCN, rige el 1-dic-2026). Su aplicación a la plataforma está en `SEGURIDAD.md` §3 |
 
 ## 5. Piloto agéntico (se queda en `docs/` porque el código lo referencia por ruta)
 

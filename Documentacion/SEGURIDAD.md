@@ -40,21 +40,39 @@
 
 ## 3. Ley 21.719 (protección de datos personales) — rige desde el 1-dic-2026
 
-**Rol de AndesScale:** *responsable* de los datos de sus propios compradores y usuarios (`Order`, `PaymentLog`, `User`/`UserProfile`); *encargado* de los leads que cada cliente recibe en su sitio (`ContactSubmission`), por cuenta de ese cliente.
+**Fuente:** texto oficial en [`Ley-21719_13-DIC-2024.pdf`](Ley-21719_13-DIC-2024.pdf) (BCN, versión con la modificación de la Ley 21.806 del 05-feb-2026). Los artículos citados son los de la Ley 19.628 tal como quedan modificados. Vigencia: día primero del mes 24 tras la publicación (art. primero transitorio) = **1-dic-2026**. Lectura técnica, no asesoría jurídica.
 
-| Dato personal | Modelo | Obligación | Estado | Card |
-|---|---|---|---|---|
-| Nombre, email, teléfono, mensaje, IP de quien escribe por el formulario | `website.ContactSubmission` | Consentimiento informado, política de privacidad visible | El aviso enlaza a `href="#"`; sin checkbox ni registro del consentimiento | `LEY-01` |
-| Email, nombre, RUT, dirección, IP del comprador | `orders.Order` | Base de licitud, información al titular | Sin aceptación de términos en el onboarding | `LEY-01` |
-| Todos los anteriores | — | Derechos de acceso, rectificación, supresión, oposición, portabilidad y bloqueo | Nada implementado (sin exportación, sin bloqueo, borrado físico) | `LEY-02` |
-| Leads, pagos, correos encolados | `ContactSubmission`, `PaymentLog`, `EmailOutbox` | Conservar solo lo necesario | Purga solo de contactos y con un bug (depende de `digest_enabled`) | `LEY-03` |
-| Todo (Neon, Render, Cloudinary, Zoho fuera de Chile) | — | Transferencia internacional con garantías, contratos con encargados | Sin DPA documentados | `LEY-04` |
-| Todo | — | Registro de actividades de tratamiento y definición de roles | No existe | `LEY-05` |
-| Todo | — | Detectar, registrar y notificar brechas de seguridad | No existe | `LEY-06` |
-| Leads de cada cliente | `ContactSubmission` | Contrato de encargo con cada cliente | No existe (se une a `BIZ-03`) | `LEY-07` |
-| Credenciales y datos en logs | `ClientEmailSettings`, logs | Medidas de seguridad apropiadas | Ver `SEC-06`, `SEC-07` | — |
+### 3.1 Rol de AndesScale
+- **Responsable** (art. 2 n) de los datos de sus compradores y usuarios: `Order`, `PaymentLog`, `User`/`UserProfile`.
+- **Encargado o tercero mandatario** (art. 2 x, art. 15 bis) de los leads que cada cliente recibe en su sitio (`ContactSubmission`): los trata por cuenta del cliente, que es el responsable.
+- Neon, Render, Cloudinary y Zoho son a su vez encargados de AndesScale (sub-encargo): el art. 15 bis exige **autorización específica y por escrito** del responsable para delegar.
 
-`LEY-00`: `Informe_Cumplimiento_Ley21719.md` (citado en `MASTER_PLAN` §1.4) no está en el repo; ubicarlo antes de redactar la política.
+### 3.2 Obligaciones y estado
+
+| Artículo | Qué exige | Estado en la plataforma | Card |
+|---|---|---|---|
+| **12** Consentimiento | Libre, informado, específico, previo e inequívoco (acto afirmativo); revocable por un medio equivalente; **el responsable debe poder probarlo** | Formulario de contacto sin checkbox ni registro; el aviso enlaza a `href="#"` | `LEY-01` |
+| **13** Otras bases de licitud | c) ejecución de contrato o **medidas precontractuales a solicitud del titular**; d) interés legítimo. El responsable debe acreditar la base | Sin base documentada por tratamiento. Un formulario de contacto puede apoyarse en 13 c), pero entonces aplica el 14 d) | `LEY-05` |
+| **14 d)** | Suprimir o anonimizar los datos obtenidos para medidas precontractuales | Leads sin purga efectiva (bug de `digest_enabled`); borrado solo manual | `LEY-03` |
+| **14 ter** Información y transparencia | Publicar de forma permanente la política (con fecha y versión) y: identidad y contacto del responsable, canal para solicitudes, categorías de datos, universo de personas, destinatarios, finalidades, base de licitud, medidas de seguridad, derechos del titular y recurso ante la Agencia, transferencias internacionales y sus garantías, plazo de conservación, origen de los datos, derecho a retirar el consentimiento, decisiones automatizadas | No existe política publicada, ni de AndesScale ni por tenant | `LEY-01` |
+| **4–9** Derechos | Acceso, rectificación, supresión, oposición, portabilidad, no ser objeto de decisiones automatizadas | Sin exportación ni supresión asistida | `LEY-02` |
+| **10–11** Procedimiento | Canal sencillo y gratuito (correo o formulario); acusar recibo; responder en **30 días corridos** (prorrogables 30 una vez); **bloqueo temporal en 2 días hábiles**; guardar respaldo de la respuesta; informar el recurso ante la Agencia | No hay canal ni registro de solicitudes | `LEY-02` |
+| **14 quáter** Protección desde el diseño y por defecto | Tratar solo los datos estrictamente necesarios | `FormConfig` permite activar muchos campos; se guarda IP y user-agent de cada lead y orden | `LEY-05` |
+| **14 quinquies** Seguridad | Medidas acordes al riesgo: cifrado, confidencialidad/integridad/disponibilidad, **capacidad de restaurar**, **verificación regular**; ante un incidente, el responsable debe acreditar sus medidas. Aplica también al encargado | Ver §1 y §2: credenciales en claro, sin backup probado, sin CI | `SEC-05`, `SEC-06`, `SEC-07`, `SEC-10`, `SEC-12`, `DB-02` |
+| **14 sexies** Brechas | Reportar a la Agencia sin dilaciones indebidas cuando haya riesgo razonable; **registrar** naturaleza, efectos, categorías, número de afectados y medidas; avisar a los titulares si son datos sensibles, de menores de 14 o económicos. El encargado debe reportar al responsable | No existe procedimiento ni registro | `LEY-06`, `SEC-15` |
+| **15 bis** Encargo | Contrato con objeto, duración, finalidad, tipo de datos, categorías de titulares, derechos y obligaciones; prohibido usar los datos para otro fin; sub-encargo solo con autorización escrita; al terminar, **suprimir o devolver** los datos | No hay contrato de encargo con los clientes | `LEY-07`, `BIZ-03` |
+| **27–28** Transferencia internacional | Lícita con país adecuado, cláusulas contractuales u otras garantías, o cuando es necesaria para ejecutar un contrato con el titular | Datos en proveedores fuera de Chile sin contratos archivados | `LEY-04` |
+| **15 ter** Evaluación de impacto | Obligatoria para perfiles automatizados, tratamiento masivo, monitoreo de zonas públicas o datos sensibles | En principio no aplica (sin datos sensibles ni gran escala); confirmar si un cliente pide capturar datos de salud o de menores | — |
+| **49–51** Modelo de prevención | Voluntario; certificarlo es atenuante | No abordado | Congelado |
+
+### 3.3 Sanciones (art. 34 bis a 37 y sexto transitorio)
+- **Leves** (p. ej. incumplir el deber de información del 14 ter, no tener canal de contacto, responder tarde): amonestación o multa de hasta 5.000 UTM.
+- **Graves** (tratar datos sin consentimiento ni otra base, vulnerar la confidencialidad o las obligaciones de seguridad, omitir comunicaciones o registros de brechas, impedir el ejercicio de derechos, transferir datos al extranjero contra la ley): hasta 10.000 UTM.
+- **Gravísimas** (tratamiento fraudulento, omitir deliberadamente una brecha, incumplir resoluciones de la Agencia): hasta 20.000 UTM.
+- Durante los **primeros 12 meses** de vigencia, a las empresas de menor tamaño (Ley 20.416) la Agencia **puede** aplicar una amonestación escrita en lugar de multa; queda registrada. Los estándares de información y seguridad se diferencian por tamaño de empresa mediante instrucción general de la Agencia (art. 14 septies), aún por conocerse.
+- Atenuantes: reparación, colaboración, ausencia de sanciones previas, autodenuncia.
+
+`LEY-00`: `Informe_Cumplimiento_Ley21719.md` (citado en `MASTER_PLAN` §1.4) sigue sin estar en el repo; con el texto de la ley ya no bloquea, pero conviene recuperarlo.
 
 ## 4. Cómo repetir el chequeo
 
