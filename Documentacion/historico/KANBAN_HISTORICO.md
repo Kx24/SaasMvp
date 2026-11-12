@@ -36,6 +36,7 @@
 | `#PAY-03` | E2E pago→onboarding→tenant con MP mockeado (parcial: falta pasada manual sandbox). Encontró 2 bugs reales (`NoReverseMatch`, token limpiado antes de tiempo) | 2026-08-22 | `37d09c7` |
 | `#MED-01` | Correo asíncrono: `EmailOutbox` + comando `send_pending_emails` | 2026-08-22 | — |
 | `#MED-04` (mitad) | Texto plano real por template + link de soporte reparado + dark-mode | 2026-08-23 | `2593784` |
+| `LEY-03` (parte) | Purga de contactos independiente del digest e incluye spam antiguo; `--dry-run` sin borrar | 2026-11-12 | `BOLT-14` |
 
 ## Base de datos y rendimiento
 

@@ -459,18 +459,21 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Límites `hero_images_limit`/`gallery_images_limit` sin cambios (suite existente en verde).
   - [x] Gatekeeper en verde: 274 tests (5 skip), ruff limpio (4 archivos; autofix de 2 errores preexistentes en `cloudinary_utils.py`), migraciones limpias.
 
-### [BOLT-14] `LEY-03` (parcial) — Purga de contactos independiente del digest
-- **Estado:** TODO
+### ✅ [BOLT-14] `LEY-03` (parcial) — Purga de contactos independiente del digest — **DONE (2026-11-12)**
+- **Estado:** ✅ DONE (2026-11-12)
 - **Componente:** Backend / Datos personales
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `apps/tenants/management/commands/send_contact_digest.py` (`_purge_old_contacts` y quien lo llama), tests nuevos en `apps/tenants/`.
-- **Contexto:** Ley 21.719 art. 14 d) y `Documentacion/SEGURIDAD.md` §3. `_purge_old_contacts` solo corre dentro del envío del digest, así que un tenant con `auto_purge_enabled=True` y `digest_enabled=False` nunca purga. Además solo borra `status in ['read','replied']` con `is_spam=False`: los mensajes `new` y los marcados como spam no se borran nunca. Retención: `ClientSettings.inbox_retention_days` (mínimo 7).
+- **Archivos Afectados:** `apps/tenants/management/commands/send_contact_digest.py` (`_purge_all` nuevo, `_purge_old_contacts`), `apps/tenants/tests_contact_purge.py` (8 tests, nuevo).
+- **Resultado:** el comando purga en cada corrida, **antes** del digest, a todo tenant activo con `auto_purge_enabled=True` (o solo al de `--tenant`), tenga o no el digest activo. Se purgan los mensajes más viejos que `inbox_retention_days` (mínimo 7) leídos/respondidos y **todo lo marcado como spam**. `--dry-run` informa cuánto purgaría sin borrar. El correo de digest sigue informando la purga como antes.
+- **Decisión pendiente (no cambiada, anotada en `LEY-03` del maestro):** los mensajes `new` (sin leer) más viejos que la retención se conservan; `test_keeps_recent_and_unread` documenta el comportamiento.
+- **Limitación operativa:** el cron `contact-digest` declarado en `render.yaml` no existe en Render (`OPS-06`), así que en producción la purga no corre hasta que se cree.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] La purga corre para todo tenant con `auto_purge_enabled=True`, tenga o no el digest activo (rojo confirmado con un tenant sin digest).
-  - [ ] Los mensajes con `is_spam=True` más antiguos que la retención se purgan.
-  - [ ] Los mensajes `new` más antiguos que la retención: **no cambiar el comportamiento** (borrar un lead no leído es una decisión del usuario); dejar un test que documente el comportamiento actual y anotar la decisión pendiente aquí y en `LEY-03` del maestro.
-  - [ ] `--dry-run` no borra nada (test). Un tenant con `auto_purge_enabled=False` no pierde ningún mensaje (test).
-  - [ ] Fuera de alcance: retención de `Order`, `PaymentLog`, `EmailOutbox` (resto de `LEY-03`). Gatekeeper en verde.
+  - [x] Purga sin digest activo (rojo confirmado: 4 de 8 tests fallaban antes del cambio).
+  - [x] Spam antiguo purgado; reciente conservado.
+  - [x] `new` antiguo conservado y documentado como decisión pendiente.
+  - [x] `--dry-run` no borra nada; tenant con `auto_purge_enabled=False` no pierde mensajes; `--tenant` limita la purga; piso de 7 días.
+  - [x] Fuera de alcance: retención de `Order`, `PaymentLog`, `EmailOutbox`.
+  - [x] Gatekeeper en verde: 282 tests (5 skip), ruff limpio (2 archivos; orden de imports preexistente corregido), migraciones limpias.
 
 ### [BOLT-15] `SEC-05` — Django Admin y vistas internas limitadas por tenant
 - **Estado:** TODO
@@ -540,5 +543,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-11-12 | BOLT-11 | DONE (+ hallazgo DEUDA-08, SEC-17) | 244 tests OK (5 skip) / ruff limpio (1 archivo) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 | 2026-11-12 | BOLT-12 | DONE (+ 3 hallazgos corregidos: métodos de invitación, `dashboard:home`, `last_login_at`) | 265 tests OK (5 skip) / ruff limpio (12 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 | 2026-11-12 | BOLT-13 | DONE | 274 tests OK (5 skip) / ruff limpio (4 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
+| 2026-11-12 | BOLT-14 | DONE | 282 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*

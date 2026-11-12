@@ -13,6 +13,11 @@
 #   python manage.py send_contact_digest --dry-run
 #       → Muestra qué enviaría sin enviar nada
 #
+# PURGA (LEY-03 / BOLT-14): en cada corrida, antes del digest, se purgan los
+# mensajes antiguos de TODO tenant con auto_purge_enabled=True, tenga o no el
+# digest activo. Antes la purga vivía dentro del envío del digest y no corría
+# si el tenant no tenía digest, mensajes en el período o email destino.
+#
 # CRON RECOMENDADO EN RENDER:
 #   Diario:   0 8 * * *   → python manage.py send_contact_digest
 #   Semanal:  0 8 * * 1   → python manage.py send_contact_digest
@@ -22,11 +27,12 @@
 import logging
 from datetime import timedelta
 
-from django.core.management.base import BaseCommand
+from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection
+from django.core.management.base import BaseCommand
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
-from django.conf import settings
 
 from apps.tenants.models import Client, ClientSettings
 from apps.website.models import ContactSubmission
@@ -68,6 +74,9 @@ class Command(BaseCommand):
             )
         )
 
+        # ── Purga: independiente del digest ────
+        purge_results = self._purge_all(tenant_slug, dry_run=dry_run)
+
         # ── Obtener tenants a procesar ─────────────────────────────────────
         if tenant_slug:
             clients = Client.objects.filter(slug=tenant_slug, is_active=True)
@@ -91,7 +100,10 @@ class Command(BaseCommand):
 
         for client in clients:
             try:
-                result = self._process_tenant(client, dry_run=dry_run, force=force)
+                result = self._process_tenant(
+                    client, dry_run=dry_run, force=force,
+                    purge_info=purge_results.get(client.pk),
+                )
                 if result == 'sent':
                     sent += 1
                 elif result == 'skipped':
@@ -109,7 +121,7 @@ class Command(BaseCommand):
 
     # ── Procesar un tenant ────────────────────────────────────────────────
 
-    def _process_tenant(self, client, dry_run=False, force=False) -> str:
+    def _process_tenant(self, client, dry_run=False, force=False, purge_info=None) -> str:
         """
         Procesa el digest para un tenant.
 
@@ -167,10 +179,7 @@ class Command(BaseCommand):
             )
             return 'skipped'
 
-        # Purga (si está configurada)
-        purge_info = None
-        if client_settings.auto_purge_enabled and not dry_run:
-            purge_info = self._purge_old_contacts(client, client_settings)
+        # La purga ya corrió en _purge_all(); aquí solo se informa en el correo.
 
         # URL del dashboard
         primary_domain = client.primary_domain
@@ -260,26 +269,51 @@ class Command(BaseCommand):
 
     # ── Purga ─────────────────────────────────────────────────────────────
 
-    def _purge_old_contacts(self, client, client_settings) -> str:
+    def _purge_all(self, tenant_slug=None, dry_run=False) -> dict:
         """
-        Elimina mensajes leídos/respondidos más viejos que retention_days.
+        Purga mensajes antiguos de cada tenant activo con auto_purge_enabled.
 
         Returns:
-            Descripción del resultado para incluir en el email.
+            {client.pk: texto para el correo de digest} de los tenants donde
+            se eliminó algo.
+        """
+        clients = Client.objects.filter(
+            is_active=True, settings__auto_purge_enabled=True,
+        ).select_related('settings')
+        if tenant_slug:
+            clients = clients.filter(slug=tenant_slug)
+
+        results = {}
+        for client in clients:
+            info = self._purge_old_contacts(client, client.settings, dry_run=dry_run)
+            if info:
+                results[client.pk] = info
+        return results
+
+    def _purge_old_contacts(self, client, client_settings, dry_run=False) -> str:
+        """
+        Elimina mensajes más viejos que retention_days (mínimo 7):
+        leídos/respondidos y todo lo marcado como spam. Los mensajes `new`
+        (sin leer) se conservan: borrarlos es una decisión pendiente (LEY-03).
+
+        Returns:
+            Descripción del resultado para incluir en el email, o None.
         """
         retention_days = max(client_settings.inbox_retention_days, 7)  # mínimo 7 días
         cutoff = timezone.now() - timedelta(days=retention_days)
 
-        to_purge = ContactSubmission.objects.filter(
-            client=client,
-            status__in=['read', 'replied'],
-            created_at__lt=cutoff,
-            is_spam=False,
+        old = ContactSubmission.objects.filter(client=client, created_at__lt=cutoff)
+        to_purge = old.filter(
+            Q(status__in=['read', 'replied'], is_spam=False) | Q(is_spam=True)
         )
 
         count = to_purge.count()
 
         if count == 0:
+            return None
+
+        if dry_run:
+            self.stdout.write(f"  [DRY RUN] {client.slug}: purgaría {count} mensajes")
             return None
 
         to_purge.delete()
@@ -291,5 +325,5 @@ class Command(BaseCommand):
 
         return (
             f"Se eliminaron {count} mensaje{'s' if count != 1 else ''} "
-            f"con más de {retention_days} días (leídos/respondidos)."
+            f"con más de {retention_days} días (leídos/respondidos o spam)."
         )

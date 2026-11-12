@@ -80,7 +80,7 @@
 | D2 | `SEC-05` Admin y vistas internas limitadas por tenant | `SEC-06` Credenciales SMTP/API cifradas |
 | D3 | `SEC-08` Un solo login (+ open redirect de `next`) | `CONS-04` Borrar rutas legacy |
 | D4 | `LEY-01` Consentimiento en contacto y onboarding | `LEY-01` Página de política de privacidad (contenidos del art. 14 ter) |
-| D5 | `LEY-03` Purga de contactos (bug) | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
+| D5 | `SEC-14` (parte) JSON-LD escapa `</` | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
 
 ### Fase 2 — Consolidación (D6–D11, diciembre)
 | Día | Bloque A | Bloque B |
@@ -170,7 +170,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `LEY-01` | Consentimiento y política de privacidad (art. 12 y 14 ter) | P0 | L | Checkbox no pre-marcado con fecha, versión de política e IP guardados en `ContactSubmission` y en el onboarding (prueba del consentimiento). Página de política por tenant y de AndesScale con los contenidos del art. 14 ter, fecha y versión; el enlace del formulario deja de ser `href="#"` |
 | `LEY-02` | Derechos del titular (art. 4–11) | P1 | M | Canal de solicitudes (correo o formulario) + registro de cada solicitud con fecha y respuesta; comando que exporta en JSON y suprime los datos de una persona; bloqueo temporal. Plazos: 30 días corridos, bloqueo en 2 días hábiles |
-| `LEY-03` | Retención y purga (art. 14 d y principio de proporcionalidad) | P1 | M | Purga de contactos independiente de `digest_enabled` (bug actual) e incluyendo `new`/spam; plazos definidos para `Order`, `PaymentLog`, `EmailOutbox`; plazo publicado en la política |
+| `LEY-03` | Retención y purga (art. 14 d y principio de proporcionalidad) | P1 | M | Purga de contactos ya independiente del digest e incluye spam (`BOLT-14`). Falta: **decidir si se purgan los mensajes `new` antiguos** (hoy se conservan); plazos para `Order`, `PaymentLog`, `EmailOutbox`; plazo publicado en la política; cron en Render (`OPS-06`) para que corra en producción |
 | `LEY-04` | Proveedores y transferencia internacional (art. 15 bis, 27–28) | P2 | S | DPA o cláusulas contractuales de Neon, Render, Cloudinary y Zoho archivados; listados en la política |
 | `LEY-05` | Registro de tratamientos y bases de licitud (art. 13, 14, 14 quáter) | P1 | S | Documento por tratamiento: datos, finalidad, base de licitud, quién accede, conservación, proveedores. Incluye decidir si se sigue guardando IP y user-agent |
 | `LEY-06` | Procedimiento de brechas (art. 14 sexies) | P1 | S | Documento + plantilla de registro: detección, evaluación de riesgo, reporte a la Agencia, aviso al cliente responsable cuando AndesScale es encargado, aviso a titulares cuando corresponde |
