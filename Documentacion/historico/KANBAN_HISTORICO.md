@@ -52,6 +52,7 @@
 | `#DEUDA-03` | Vocabulario de temas unificado; arregló checkout del Plan Pro que dejaba sitios rotos | 2026-08-24 | — |
 | `#DEUDA-01` | Presets Cloudinary deduplicados + test anti-regresión | 2026-08-22 | — |
 | `BOLT-06/07/08` | Guardia de tokens CSS, CTA de navbar por tenant, `hero_ctas` compartido | 2026-08-23 | `bbbd99b`, `0725d09`, `c3e9f3c` |
+| `CONS-10` | Tests de render de la home por tema (25 tests, 3 temas); destapó `DEUDA-08` (portada sin titular por defecto) | 2026-11-12 | `BOLT-11` |
 
 ## Tooling, flujo comercial y operaciones
 

@@ -88,7 +88,7 @@
 | D6 | `DB-02` Backup de Neon con restore probado (+ `DB-03`) | `SEC-12` Integración continua con el gate |
 | D7 | `CONS-02` Documentación al día (Neon, `CLAUDE.md`, README) | `CONS-03` `ruff --fix` |
 | D8 | `CONS-06` `TenantOwnedMixin` | `DASH-04` Roles con efecto |
-| D9 | `CONS-10` Tests de render de la home por tema | `CONS-07` Separar `views.py` |
+| D9 | `DEUDA-08` Portada sin titular por defecto | `CONS-07` Separar `views.py` |
 | D10 | `CONS-08` Registro de módulos (opción A) | `CONS-08` (continúa) |
 | D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` Flags sin módulo |
 
@@ -129,7 +129,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `CONS-07` | Separar `apps/website/views.py` (1.099 líneas) | P2 | M | Un archivo por área (público, secciones, servicios, galería, contactos, branding); URLs sin cambios |
 | `CONS-08` | Registro de módulos (opción A) | P1 | L | Clase `Module` + registro: nombre, flag, límites, URLs, entrada de menú, componente público. Galería, contacto y servicios declarados como módulos |
 | `CONS-09` | Menú del dashboard generado desde el registro | P1 | M | Un módulo desactivado no aparece en el menú ni responde en su URL |
-| `CONS-10` | Tests de render de la home por tema | P1 | M | Un test por tema (`default`, `servelec`, `andesscale`) que renderiza la home con datos y verifica cada bloque. Red de seguridad para `CONS-07`, `COMP-01` y `MOD-01` |
 
 ### `COMP` — Componentes
 | ID | Card | P | Esf. | Definición de hecho |
@@ -166,6 +165,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
 | `SEC-14` | Salidas sin escapar | P2 | M | Revisados los 21 avisos de `mark_safe`; JSON-LD escapa `</`; `bandit` en 0 Medium o justificados |
 | `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |
+| `SEC-17` | Comentarios `<!-- DEBUG -->` en el HTML público | P3 | S | `templates/components/media_collection.html` (3) y `templates/themes/servelec/components/hero.html` (3) exponen nombre del cliente y datos internos; quitarlos o envolverlos en `{% if debug %}`. Hallado por `BOLT-11` |
 
 ### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`)
 | ID | Card | P | Esf. | Definición de hecho |
@@ -191,6 +191,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `OPS-04` | Alerta de créditos Cloudinary | P3 | S | Existe el comando `cloudinary_usage`; conectar umbrales y aviso |
 | `OPS-05` | Cache compartida, `/health/` real, Sentry | P3 | M | Antes de más de un proceso |
 | `DEUDA-06` | Código muerto | P3 | S | `cloudinary_settings.py`, `OrderProcessor` |
+| `DEUDA-08` | Portada sin titular con la configuración por defecto | P1 | S | En `themes/default` y `themes/servelec` el titular del hero solo se ve con `enable_gallery=True` **y** `Section.slot_key='hero'`; ningún alta los fija. Decidir: mostrar el diseño base aunque la galería esté apagada y/o crear la Section hero con `slot_key='hero'`. Invertir `HeroDefaultsFindingTest` (`apps/website/tests/test_home_render.py`). Hallado por `BOLT-11` |
 
 ### `RC` — Rancho Cachimba ⏸️ (rama `feature/RanchocachimbaEtapa1`; no tocar sin pedido explícito)
 | ID | Card | Depende de |

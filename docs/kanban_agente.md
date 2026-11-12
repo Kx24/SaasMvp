@@ -411,18 +411,20 @@ CLOSE (actualizar card aquí + commit único con ID)
     de la cita puntual de `THEME_CHOICES` — diff revisado línea por línea antes de aprobar (4
     líneas en `CLAUDE.md`, 10 en `SKILL.md`, ambas acotadas a los dos párrafos citados).
 
-### [BOLT-11] `CONS-10` — Tests de render de la home por tema
-- **Estado:** TODO
+### ✅ [BOLT-11] `CONS-10` — Tests de render de la home por tema — **DONE (2026-11-12)**
+- **Estado:** ✅ DONE (2026-11-12)
 - **Componente:** Backend / Tests
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `apps/website/tests/test_home_render.py` (nuevo). No se toca código de la app.
-- **Contexto:** `apps/website/views.py::home` entrega un contexto fijo (`hero`, `about`, `contact_section`, `services`, `form`) y cada tema arma su `landing/home.html` a mano. No existe ningún test que renderice la home completa por tema; es la red de seguridad que necesitan `CONS-07`, `COMP-01` y `MOD-01`. Resolución de templates: `apps/tenants/template_loader.py` (`client.template` para `themes/default` y `themes/servelec`; el tenant con `slug == 'andesscale'` resuelve a `templates/andesscale/`). Patrón de test por HTTP con `HTTP_HOST` por tenant: `apps/tenants/tests_isolation.py` y `apps/website/tests/test_font_family_rendering.py`.
+- **Archivos Afectados:** `apps/website/tests/test_home_render.py` (nuevo, 25 tests). Sin cambios en código de la app.
+- **Resultado:** por tema (`themes/default`, `themes/servelec`, `andesscale`) se renderiza la home real por HTTP con el host del tenant y se verifica 200, título del hero, título de about, cada servicio activo, ausencia del inactivo y el `action` del formulario de contacto; más un caso de contenido mínimo por tema (200, no 500).
+- **⚠️ Hallazgo incidental, documentado y NO corregido (card `DEUDA-08` del maestro):** en `themes/default` y `themes/servelec` el titular de la portada solo se dibuja si `ClientSettings.enable_gallery=True` **y** la `Section` hero tiene `slot_key='hero'` (`components/media_collection.html` salta el slideshow si `get_hero_images` devuelve `[]`, y con `slot_key='empty'` no incluye overlay). Ninguno de los dos es el valor por defecto y ningún camino de alta los fija (`process_onboarding`, `provision_tenant`, `create_tenant`, `setup_production`): un tenant recién creado ve una portada sin titular. Corregirlo cambia comportamiento visible → fuera del alcance "cambio mínimo de template" de esta card. Fijado en `HeroDefaultsFindingTest` (4 tests que deben invertirse al corregir).
+- **Hallazgo menor (card `SEC-17` del maestro):** `components/media_collection.html` y `themes/servelec/components/hero.html` emiten comentarios `<!-- DEBUG ... -->` en el HTML de producción, incluido el nombre del cliente.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Un test por tema (`themes/default`, `themes/servelec`, `andesscale`): crea `Client` + `Domain` + `ClientSettings` + secciones `hero`/`about`/`contact` + 2 `Service`, hace `GET /` con el host del tenant y verifica 200 y que aparecen el título del hero, el nombre de cada servicio y el formulario de contacto.
-  - [ ] Un test por tema con contenido mínimo (sin `about`, sin servicios): la home responde 200 (no 500).
-  - [ ] Rojo confirmado de forma honesta: como la card solo agrega tests, demostrar que cada test detecta una regresión rompiendo temporalmente un include del tema (y revertirlo) — registrar el resultado aquí.
-  - [ ] Si algún tema falla al renderizar con datos válidos, es un **hallazgo incidental**: documentarlo aquí; arreglarlo solo si es un cambio mínimo de template, si no marcar `BLOCKED`.
-  - [ ] Gatekeeper en verde; sin cambios fuera de `apps/website/tests/`.
+  - [x] Un test por tema con contenido completo (6 aserciones c/u).
+  - [x] Un test por tema con contenido mínimo: 200.
+  - [x] Rojo confirmado rompiendo temporalmente un include y revirtiendo: sin `themes/servelec/components/services.html` → falla `test_home_shows_every_active_service` (servelec); sin `andesscale/components/services.html` → falla el de andesscale; sin `themes/servelec/components/about.html` → falla `test_home_shows_about_title`; sin el include del hero de `themes/default` → falla `test_home_shows_hero_title`. Templates restaurados (`git status` limpio en `templates/`).
+  - [x] Hallazgo incidental documentado aquí y en el maestro.
+  - [x] Gatekeeper en verde: 244 tests (5 skip), ruff limpio (1 archivo), migraciones limpias. Sin cambios fuera de `apps/website/tests/` salvo tableros.
 
 ### [BOLT-12] `SEC-07` — Sin datos personales en logs + login sin enumeración
 - **Estado:** TODO
@@ -527,5 +529,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-08-23 | BOLT-09 | DONE | 162 tests OK (5 skip) / ruff limpio (2 archivos, autofix) / migraciones limpias | `2593784` (`agent/ai-dlc-pilot`) |
 | 2026-09-01 | SYNC (no es card) | rama actualizada a `develop` vía `git merge --ff-only` (traía 14 commits, incl. el merge del propio piloto `45eca7b` del 2026-08-24) | 198 tests OK (5 skip) / ruff limpio / migraciones limpias | `0e2e7c5` (tip post-sync, `agent/ai-dlc-pilot`) |
 | 2026-09-01 | BOLT-10 | DONE | 200 tests OK (5 skip, +2) / ruff limpio (1 archivo) / migraciones limpias | `2066f60` (`agent/ai-dlc-pilot`) |
+| 2026-11-12 | BOLT-11 | DONE (+ hallazgo DEUDA-08, SEC-17) | 244 tests OK (5 skip) / ruff limpio (1 archivo) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*
