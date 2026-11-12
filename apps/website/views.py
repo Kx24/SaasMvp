@@ -35,6 +35,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.decorators import tenant_member_required
+from apps.core.cloudinary_utils import validate_image_file
 from apps.core.logging_utils import email_ref
 from apps.core.rate_limit import RateLimiter, get_client_ip
 from apps.core.template_resolver import get_tenant_template, render_tenant_template
@@ -46,6 +47,18 @@ from .forms import ContactForm, GalleryItemForm, SectionForm, ServiceForm
 from .models import ContactSubmission, GalleryItem, Section, Service
 
 logger = logging.getLogger(__name__)
+
+
+def _image_upload_ok(request, uploaded_file) -> bool:
+    """
+    Valida una imagen subida desde el dashboard antes de enviarla a
+    Cloudinary (SEC-11). Si no sirve, deja el motivo en messages y
+    devuelve False; la vista decide qué hacer con el resto del formulario.
+    """
+    ok, error = validate_image_file(uploaded_file)
+    if not ok:
+        messages.error(request, f'No se subió la imagen: {error}')
+    return ok
 
 # ============================================================
 # HELPERS
@@ -363,7 +376,7 @@ def edit_section_dashboard(request, section_id):
                 section.image = None
 
             # --- Subir nueva imagen ---
-            elif 'image' in request.FILES:
+            elif 'image' in request.FILES and _image_upload_ok(request, request.FILES['image']):
                 try:
                     import cloudinary.uploader
                     uploaded_file = request.FILES['image']
@@ -423,7 +436,7 @@ def create_service_dashboard(request):
             service.client = request.client
 
             # --- Subir imagen manualmente ---
-            if 'image' in request.FILES:
+            if 'image' in request.FILES and _image_upload_ok(request, request.FILES['image']):
                 try:
                     import cloudinary.uploader
                     uploaded_file = request.FILES['image']
@@ -472,7 +485,7 @@ def edit_service_dashboard(request, service_id):
                 service.image = None
 
             # --- Subir nueva imagen ---
-            elif 'image' in request.FILES:
+            elif 'image' in request.FILES and _image_upload_ok(request, request.FILES['image']):
                 try:
                     import cloudinary.uploader
                     uploaded_file = request.FILES['image']
@@ -893,6 +906,9 @@ def gallery_item_add(request):
         messages.error(request, 'Selecciona una imagen para subir.')
         return redirect(redirect_url)
 
+    if not _image_upload_ok(request, request.FILES['image']):
+        return redirect(redirect_url)
+
     # Subir a Cloudinary directamente
     try:
         import cloudinary.uploader
@@ -947,8 +963,8 @@ def gallery_item_edit(request, item_id):
         except ValueError:
             pass
 
-        # Reemplazo de imagen — solo si viene archivo nuevo
-        if 'image' in request.FILES:
+        # Reemplazo de imagen — solo si viene archivo nuevo y es válido
+        if 'image' in request.FILES and _image_upload_ok(request, request.FILES['image']):
             try:
                 import cloudinary.uploader
                 # Eliminar imagen anterior
@@ -1061,6 +1077,9 @@ def dashboard_portada(request):
             settings.save(update_fields=['show_default_hero'])
 
             # Imagen de fondo — manejo manual Cloudinary
+            if 'background_image' in request.FILES and not _image_upload_ok(
+                    request, request.FILES['background_image']):
+                return redirect('dashboard_portada')
             if 'background_image' in request.FILES:
                 try:
                     import cloudinary.uploader

@@ -80,7 +80,7 @@
 | D2 | `SEC-05` Admin y vistas internas limitadas por tenant | `SEC-06` Credenciales SMTP/API cifradas |
 | D3 | `SEC-08` Un solo login (+ open redirect de `next`) | `CONS-04` Borrar rutas legacy |
 | D4 | `LEY-01` Consentimiento en contacto y onboarding | `LEY-01` Página de política de privacidad (contenidos del art. 14 ter) |
-| D5 | `LEY-03` Purga de contactos (bug) + `SEC-11` validación de subidas | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
+| D5 | `LEY-03` Purga de contactos (bug) | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
 
 ### Fase 2 — Consolidación (D6–D11, diciembre)
 | Día | Bloque A | Bloque B |
@@ -139,7 +139,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `MOD` — Módulos
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `MOD-01` | Módulo **Media** | P1 | XL (~5 d) | `MediaAsset` (imagen / video Cloudinary / embed YouTube-Vimeo), subida directa navegador→Cloudinary firmada, multi-archivo, límites por plan (`BIZ-01`). Migra `Section.image`/`background_image`/`Service.image` al pool (~16 templates). DoD: subir 10 fotos y un video desde el celular; los 3 tenants renderizan igual |
+| `MOD-01` | Módulo **Media** | P1 | XL (~5 d) | `MediaAsset` (imagen / video Cloudinary / embed YouTube-Vimeo), subida directa navegador→Cloudinary firmada, multi-archivo, límites por plan (`BIZ-01`). Unifica las 6 subidas del dashboard, que hoy llaman `cloudinary.uploader.upload` a mano con carpeta `{slug}/…` en vez de `upload_to_cloudinary` y `tenants/{slug}/…` (hallado por `BOLT-13`). Migra `Section.image`/`background_image`/`Service.image` al pool (~16 templates). DoD: subir 10 fotos y un video desde el celular; los 3 tenants renderizan igual |
 | `MOD-02` | Orden y visibilidad de bloques (opción B) | P2 | L | El cliente reordena y oculta los bloques que su tema trae; cada `home.html` itera una lista en vez de includes fijos |
 | `MOD-03` | Módulo Testimonios | P3 | M | Solo si `CONS-05` decide conservarlo: modelo + pantalla + componente |
 
@@ -159,7 +159,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `SEC-06` | Credenciales cifradas en reposo | P0 | M | `smtp_password`/`api_key` cifrados (Fernet) con clave en variable de entorno + migración de datos; test: el valor en base no es el texto ingresado |
 | `SEC-08` | Un solo login | P1 | M | Resuelta la colisión `/auth/`; validar `next` con `url_has_allowed_host_and_scheme` (hoy `login_view` redirige a cualquier URL); `apps/accounts` ≥ 70 % de cobertura. Los métodos de invitación ya existen (`BOLT-12`) |
 | `SEC-10` | Dependencias | P0 | M | `pip-audit` en `requirements-dev.txt` y sin vulnerabilidades conocidas; Django en el último 5.2.x; `gunicorn` actualizado; fuera `djangorestframework` y herramientas de desarrollo de `requirements.txt`; misma versión de Python en Render y local |
-| `SEC-11` | Validación de subidas | P1 | S | Toda subida pasa por `validate_image_file` (tipo real, tamaño, sin SVG); test con archivo inválido |
 | `SEC-12` | Integración continua | P1 | M | GitHub Actions en cada push/PR: suite, aislamiento, `makemigrations --check`, `bandit -ll`, `pip-audit` |
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
 | `SEC-14` | Salidas sin escapar | P2 | M | Revisados los 21 avisos de `mark_safe`; JSON-LD escapa `</`; `bandit` en 0 Medium o justificados |

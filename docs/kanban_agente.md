@@ -445,17 +445,19 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Mismos eventos y niveles, solo cambia el contenido. Rojo de `apps/accounts/tests.py` confirmado con `git stash` del modelo (7 errores).
   - [x] Gatekeeper en verde: 265 tests (5 skip), ruff limpio en 12 archivos (autofix de imports preexistentes en 3), migraciones limpias.
 
-### [BOLT-13] `SEC-11` — Validación de subidas en el servidor
-- **Estado:** TODO
+### ✅ [BOLT-13] `SEC-11` — Validación de subidas en el servidor — **DONE (2026-11-12)**
+- **Estado:** ✅ DONE (2026-11-12)
 - **Componente:** Backend / Seguridad
-- **Variables requeridas:** ninguna (Cloudinary siempre mockeado en tests)
-- **Archivos Afectados:** `apps/website/views.py` (puntos con `request.FILES`: branding, secciones, servicios, galería, portada), `apps/website/forms.py` si corresponde, `apps/core/cloudinary_utils.py::validate_image_file`, tests nuevos en `apps/website/tests/`.
-- **Contexto:** `validate_image_file` y `validate_video_file` existen en `apps/core/cloudinary_utils.py` pero ninguna vista los llama (verificado por grep el 2026-11-12). Hoy cualquier archivo que el navegador envíe llega a `upload_to_cloudinary`. `validate_image_file` valida por extensión y admite `svg` por defecto.
+- **Variables requeridas:** ninguna (Cloudinary mockeado)
+- **Archivos Afectados:** `apps/core/cloudinary_utils.py` (`validate_image_file`), `apps/website/views.py` (helper `_image_upload_ok` + 6 puntos de subida), `apps/tenants/forms.py` (`BrandingForm.clean_logo`/`clean_logo_footer`), `apps/website/tests/test_upload_validation.py` (9 tests, ~40 subcasos).
+- **Resultado:** `validate_image_file` ahora comprueba tamaño (10 MB), extensión y **contenido real** con Pillow (`Image.verify()` + formato JPEG/PNG/GIF/WEBP); SVG queda fuera; deja el archivo rebobinado. Un único camino en las vistas (`_image_upload_ok`, mensaje "No se subió la imagen: …"): editar sección, crear y editar servicio, agregar y reemplazar imagen de galería, fondo de portada. Los logos de branding (`CloudinaryField` con `autosave=False`) se validan en `clean_<campo>`, antes de que el modelo suba el archivo. Se mantiene la semántica previa: en edición, si la imagen no sirve, el resto de los cambios se guarda igual.
+- **Hallazgo, no corregido (va a `MOD-01`):** las 6 subidas del dashboard llaman `cloudinary.uploader.upload` a mano con carpeta `{slug}/sections|services|gallery`, sin pasar por `upload_to_cloudinary` ni por la estructura `tenants/{slug}/…` que documenta `CLAUDE.md`.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Toda vista que recibe un archivo lo valida antes de subirlo, por un único camino (no repetir la lógica en cada vista).
-  - [ ] La validación comprueba el contenido real (Pillow puede abrirlo como imagen), no solo la extensión; rechaza SVG y archivos sobre el tamaño máximo.
-  - [ ] Tests (rojo confirmado): un `.txt` renombrado a `.jpg`, un SVG y un archivo sobre el límite son rechazados con mensaje al usuario y **sin** llamar a `upload_to_cloudinary` (mock); una imagen válida sigue subiendo.
-  - [ ] Los límites `hero_images_limit`/`gallery_images_limit` siguen funcionando igual. Gatekeeper en verde.
+  - [x] Toda vista que recibe un archivo lo valida antes de subirlo, por un único camino.
+  - [x] Contenido real (Pillow), sin SVG, con tope de tamaño.
+  - [x] Rojo confirmado (8 fallos + 25 errores antes del cambio): `.txt` renombrado a `.jpg`, SVG con `<script>` y archivo de 11 MB rechazados con mensaje y **sin** llamar a Cloudinary en las 6 vistas y en ambos logos; imagen válida sigue subiendo; la galería no crea ítem con archivo rechazado.
+  - [x] Límites `hero_images_limit`/`gallery_images_limit` sin cambios (suite existente en verde).
+  - [x] Gatekeeper en verde: 274 tests (5 skip), ruff limpio (4 archivos; autofix de 2 errores preexistentes en `cloudinary_utils.py`), migraciones limpias.
 
 ### [BOLT-14] `LEY-03` (parcial) — Purga de contactos independiente del digest
 - **Estado:** TODO
@@ -537,5 +539,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-09-01 | BOLT-10 | DONE | 200 tests OK (5 skip, +2) / ruff limpio (1 archivo) / migraciones limpias | `2066f60` (`agent/ai-dlc-pilot`) |
 | 2026-11-12 | BOLT-11 | DONE (+ hallazgo DEUDA-08, SEC-17) | 244 tests OK (5 skip) / ruff limpio (1 archivo) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 | 2026-11-12 | BOLT-12 | DONE (+ 3 hallazgos corregidos: métodos de invitación, `dashboard:home`, `last_login_at`) | 265 tests OK (5 skip) / ruff limpio (12 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
+| 2026-11-12 | BOLT-13 | DONE | 274 tests OK (5 skip) / ruff limpio (4 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*
