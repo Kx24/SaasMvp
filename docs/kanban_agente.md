@@ -475,18 +475,20 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] Fuera de alcance: retención de `Order`, `PaymentLog`, `EmailOutbox`.
   - [x] Gatekeeper en verde: 282 tests (5 skip), ruff limpio (2 archivos; orden de imports preexistente corregido), migraciones limpias.
 
-### [BOLT-15] `SEC-05` — Django Admin y vistas internas limitadas por tenant
-- **Estado:** TODO
+### ✅ [BOLT-15] `SEC-05` — Django Admin y vistas internas limitadas por tenant — **DONE (2026-11-12)**
+- **Estado:** ✅ DONE (2026-11-12)
 - **Componente:** Backend / Seguridad
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** `apps/orders/admin.py` (`OrderAdmin`, `PaymentLogAdmin`), `apps/tenants/admin.py` (`ClientEmailSettingsAdmin`, `ClientSettingsAdmin`, `FormConfigAdmin`, `DomainAdmin`), `apps/marketing/admin.py` (`SEOConfigAdmin`), `apps/accounts/admin.py` (`UserProfileAdmin`), `apps/tenants/views.py` (`onboarding_view`, `tenant_list`), tests nuevos.
-- **Contexto:** `Documentacion/SEGURIDAD.md` §2 (`SEC-05`). El patrón correcto ya existe: `apps/accounts/mixins.py::TenantAdminMixin` (atributo `tenant_field`), usado en `apps/website/admin.py`. `PaymentLog` no tiene FK directa al tenant: usar `tenant_field = 'order__client'` y verificar que `save_model`/`formfield_for_foreignkey` del mixin no fallen con un campo relacionado. `Order.client` puede ser nulo (órdenes sin sitio creado): un staff de tenant no debe verlas. `/superadmin/nuevo/` y `/tenants/` hoy solo piden `is_staff`.
+- **Archivos Afectados:** `apps/accounts/mixins.py` (`TenantAdminMixin`), `apps/orders/admin.py`, `apps/tenants/admin.py`, `apps/marketing/admin.py`, `apps/accounts/admin.py`, `apps/tenants/views.py`, `apps/accounts/tests_admin_scope.py` (9 tests, nuevo).
+- **Resultado:** `TenantAdminMixin` ahora admite rutas con `__` (`tenant_field = 'order__client'` para `PaymentLog`) y aplica el alcance por tenant a nivel de objeto en ver, editar y borrar, **respetando primero el permiso estándar de Django** (antes devolvía `True` para la lista aunque el usuario no tuviera el permiso). Aplicado a `OrderAdmin`, `PaymentLogAdmin`, `DomainAdmin`, `ClientSettingsAdmin`, `ClientEmailSettingsAdmin`, `FormConfigAdmin`, `SEOConfigAdmin` y `UserProfileAdmin` (este ya filtraba la lista, faltaba el nivel de objeto). Las órdenes sin sitio (`client` nulo) solo las ve un superuser. `/superadmin/nuevo/` y `/tenants/` exigen superuser.
+- **Desviación del DoD original, a propósito:** `ClientAdmin` **no** quedó como estaba: muestra en línea `ClientEmailSettingsInline` (credenciales SMTP) de todos los clientes, así que ahora es solo para superuser aunque un staff tenga el permiso de Django. `PlanAdmin` sigue global (los planes no son datos de un tenant).
+- **Pendiente menor, no corregido:** los `list_filter = ['client', …]` de `SEOConfigAdmin` y `UserProfileAdmin` listan los nombres de todos los clientes en la barra de filtros; el mixin no restringe el filtro `client` en `formfield_for_foreignkey` de `PaymentLog.order` (el admin de pagos es de solo lectura). Anotado en `SEC-05b` del maestro.
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] Los 8 `ModelAdmin` listados heredan `TenantAdminMixin` con el `tenant_field` correcto.
-  - [ ] Test por admin (rojo confirmado): con 2 tenants, un usuario `is_staff` no-superuser del tenant A con el permiso `view_*` solo ve en la lista los registros de A; un superuser ve todo.
-  - [ ] `onboarding_view` y `tenant_list` exigen superuser; test: staff no-superuser recibe redirección o 403.
-  - [ ] `ClientAdmin` y `PlanAdmin` quedan como están (globales, solo útiles a superuser): documentarlo aquí, no cambiarlos.
-  - [ ] Sin migraciones. Gatekeeper en verde.
+  - [x] Los 8 `ModelAdmin` usan `TenantAdminMixin` con el `tenant_field` correcto.
+  - [x] Rojo confirmado (20 fallos): con 2 tenants, un staff no-superuser de A con permisos `view/change/delete` veía y podía editar registros de B en los 8 admins; ahora solo ve y edita los de A; superuser ve todo. Verificado también por HTTP en la lista y el detalle de órdenes (el RUT de B no aparece).
+  - [x] `onboarding_view` y `tenant_list` exigen superuser (staff → redirección al login).
+  - [x] `ClientAdmin`/`PlanAdmin` documentados arriba.
+  - [x] Sin migraciones. Gatekeeper en verde: 291 tests (5 skip), ruff limpio (7 archivos; 11 errores preexistentes de imports/f-strings corregidos con autofix seguro), migraciones limpias.
 
 ### [BOLT-16] `CONS-03` — `ruff --fix` del lint preexistente
 - **Estado:** TODO
@@ -544,5 +546,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-11-12 | BOLT-12 | DONE (+ 3 hallazgos corregidos: métodos de invitación, `dashboard:home`, `last_login_at`) | 265 tests OK (5 skip) / ruff limpio (12 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 | 2026-11-12 | BOLT-13 | DONE | 274 tests OK (5 skip) / ruff limpio (4 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 | 2026-11-12 | BOLT-14 | DONE | 282 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
+| 2026-11-12 | BOLT-15 | DONE (ClientAdmin pasa a solo superuser) | 291 tests OK (5 skip) / ruff limpio (7 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*

@@ -1,12 +1,13 @@
-import json
 from django.contrib import admin
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
+
+from apps.accounts.mixins import TenantAdminMixin
+
 from .models import SEOConfig
 
 
 @admin.register(SEOConfig)
-class SEOConfigAdmin(admin.ModelAdmin):
+class SEOConfigAdmin(TenantAdminMixin, admin.ModelAdmin):
     list_display = (
         "client",
         "page_key",

@@ -1,19 +1,23 @@
 # apps/tenants/views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib import messages
-from django.db import transaction
-from .forms import TenantOnboardingForm
-from .models import Client, Domain
-from apps.website.models import Section
 import logging
 
+from django.contrib import messages
+from django.contrib.auth.decorators import user_passes_test
+from django.db import transaction
+from django.shortcuts import redirect, render
+
+from apps.website.models import Section
+
+from .forms import TenantOnboardingForm
+from .models import Client, Domain
 
 logger = logging.getLogger(__name__)
 
 
 # --- VISTA 1: ONBOARDING (Corregida) ---
-@user_passes_test(lambda u: u.is_staff)
+# SEC-05: crear tenants y listar todos los clientes es solo para superuser
+# (antes bastaba is_staff, que un usuario de un tenant puede tener).
+@user_passes_test(lambda u: u.is_superuser)
 def onboarding_view(request):
     if request.method == 'POST':
         form = TenantOnboardingForm(request.POST, request.FILES)
@@ -53,7 +57,7 @@ def onboarding_view(request):
                         if data.get('logo'):
                             settings.logo = data['logo']
                         settings.save()
-                        logger.info(f"✅ Settings actualizados")
+                        logger.info("✅ Settings actualizados")
                     
                     # 4. Contenido Dummy
                     Section.objects.create(
@@ -65,7 +69,7 @@ def onboarding_view(request):
                         order=0,
                         is_active=True
                     )
-                    logger.info(f"✅ Sección hero creada")
+                    logger.info("✅ Sección hero creada")
 
                 messages.success(request, f"¡Tenant '{client.name}' creado exitosamente con tema '{client.template}'!")
                 return redirect('/tenants/')
@@ -88,7 +92,7 @@ def onboarding_view(request):
 
 
 # --- VISTA 2: LISTA DE CLIENTES ---
-@user_passes_test(lambda u: u.is_staff)
+@user_passes_test(lambda u: u.is_superuser)
 def tenant_list(request):
     clients = Client.objects.all().order_by('-created_at')
     return render(request, 'tenants/admin/tenant_list.html', {'clients': clients})

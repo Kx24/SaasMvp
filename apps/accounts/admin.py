@@ -7,8 +7,10 @@ IMPORTANTE: El UserProfile se crea automaticamente via signal.
 El inline solo permite EDITAR el perfil existente, no crear uno nuevo.
 """
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+
+from .mixins import TenantAdminMixin
 from .models import UserProfile
 
 User = get_user_model()
@@ -148,7 +150,7 @@ admin.site.register(User, CustomUserAdmin)
 
 # Admin directo de UserProfile (para superadmin)
 @admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(TenantAdminMixin, admin.ModelAdmin):
     list_display = ['user', 'client', 'role', 'created_at']
     list_filter = ['client', 'role']
     search_fields = ['user__username', 'user__email', 'client__name']
