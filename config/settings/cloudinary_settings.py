@@ -5,11 +5,12 @@
 # Importar en base.py: from .cloudinary_settings import *
 # =============================================================================
 
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-from decouple import config
 import logging
+
+import cloudinary
+import cloudinary.api
+import cloudinary.uploader
+from decouple import config
 
 logger = logging.getLogger(__name__)
 

@@ -490,17 +490,20 @@ CLOSE (actualizar card aquí + commit único con ID)
   - [x] `ClientAdmin`/`PlanAdmin` documentados arriba.
   - [x] Sin migraciones. Gatekeeper en verde: 291 tests (5 skip), ruff limpio (7 archivos; 11 errores preexistentes de imports/f-strings corregidos con autofix seguro), migraciones limpias.
 
-### [BOLT-16] `CONS-03` — `ruff --fix` del lint preexistente
-- **Estado:** TODO
+### ✅ [BOLT-16] `CONS-03` — `ruff --fix` del lint preexistente — **DONE (2026-11-12)**
+- **Estado:** ✅ DONE (2026-11-12)
 - **Componente:** DevOps / Calidad
 - **Variables requeridas:** ninguna
-- **Archivos Afectados:** los que reporte `python -m ruff check apps/ config/` (79 errores al 2026-11-09, 72 con autofix).
-- **Contexto:** **Excepción explícita a §0.4, autorizada por el usuario el 2026-11-12** (ver SYNC de esa fecha). Va al final de la ronda porque toca muchos archivos. El gate de ruff del gatekeeper solo mira archivos tocados: tras el autofix los revisará todos, así que los errores sin autofix quedarán a la vista.
+- **Archivos Afectados:** 35 archivos de `apps/` y `config/` (solo imports, f-strings sin variables y un `except`), `ruff.toml`.
+- **Resultado:** `ruff check apps/ config/` pasa de **60 errores a 0** (las rondas BOLT-12..15 ya habían corregido 19 de los 79 del 2026-11-09 al tocar sus archivos). 53 con autofix seguro (36 `I001` orden de imports, 9 `F401` imports sin uso, 8 `F541` f-strings sin variables); sin `--unsafe-fixes`. A mano: `E722` en `create_tenant.py::_darken_color` → `except (AttributeError, TypeError, ValueError)` (mismo resultado para todo error posible del parseo de color). `F403`/`F405` en `config/settings/__init__.py` y `development.py`: el `import *` de settings es el patrón deliberado ya justificado para `production.py`; se extendió esa entrada de `per-file-ignores` en `ruff.toml` (no `noqa` en el código).
+- **Revisión de efectos secundarios:** los 9 imports eliminados se verificaron uno por uno (ningún otro módulo los reimporta desde ahí; ninguno registra signals ni admin). `email_dispatcher.py`: quitar el `settings` de módulo eliminó también el `F811` (una variable local lo sombreaba).
+- **Hallazgo, no corregido (anotado en `DEUDA-06`):** `apps/marketing/0001_initial.py` es una copia suelta de una migración fuera de `migrations/` (la real está en `apps/marketing/migrations/0001_initial.py`).
 - **Definición de Terminado (DoD Verificable):**
-  - [ ] `python -m ruff check apps/ config/ --fix` aplicado (solo fixes seguros; **no** usar `--unsafe-fixes`).
-  - [ ] Cada error restante: corregido a mano si es trivial y sin cambio de comportamiento, o listado aquí con archivo, regla y motivo. No silenciar con `noqa` en bloque.
-  - [ ] El diff no contiene cambios de lógica: solo imports, orden, espacios y variables sin uso. Si un fix elimina un import usado por efecto secundario (signals, registro de admin), revertir ese fix y anotarlo.
-  - [ ] Suite completa y `makemigrations --check --dry-run` en verde. Conteo de errores de ruff antes y después registrado en §4.
+  - [x] `ruff check apps/ config/ --fix` aplicado, solo fixes seguros.
+  - [x] Cada error restante corregido o justificado arriba; sin `noqa` en bloque.
+  - [x] Diff sin cambios de lógica (revisado línea a línea fuera de imports: solo f-strings → strings y el `except`).
+  - [x] Suite completa 291 tests OK (1 skip), `makemigrations --check` limpio, `manage.py check` limpio, `npx playwright test` 7/7 (smoke + accesibilidad de los 3 tenants). Gatekeeper en verde con ruff en 35 archivos.
+  - [x] Conteo: 60 → 0 (79 al 2026-11-09).
 
 ---
 
@@ -547,5 +550,6 @@ CLOSE (actualizar card aquí + commit único con ID)
 | 2026-11-12 | BOLT-13 | DONE | 274 tests OK (5 skip) / ruff limpio (4 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 | 2026-11-12 | BOLT-14 | DONE | 282 tests OK (5 skip) / ruff limpio (2 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
 | 2026-11-12 | BOLT-15 | DONE (ClientAdmin pasa a solo superuser) | 291 tests OK (5 skip) / ruff limpio (7 archivos) / migraciones limpias | ver `git log` (`agent/fase1-seguridad`) |
+| 2026-11-12 | BOLT-16 | DONE (ruff 60 → 0) | 291 tests OK (5 skip) / ruff limpio (35 archivos, repo completo en 0) / migraciones limpias / Playwright 7/7 | ver `git log` (`agent/fase1-seguridad`) |
 
 *(El validador (PILOT-02) agrega una fila por card cerrada o bloqueada. Este es el historial que el planificador lee al inicio de cada corrida.)*

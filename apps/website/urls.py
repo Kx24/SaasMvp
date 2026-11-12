@@ -2,10 +2,11 @@
 URLs para la aplicación website
 Incluye: home, dashboard, auth (se importa desde auth_urls), y edición inline
 """
-from django.urls import path, include
-from apps.website.views import dashboard_branding
-from . import views
+from django.urls import path
 
+from apps.website.views import dashboard_branding
+
+from . import views
 
 urlpatterns = [
     # ============================================================

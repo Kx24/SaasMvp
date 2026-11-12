@@ -1,6 +1,6 @@
-from django.db import models
-from django.core.validators import MaxLengthValidator
 from cloudinary.models import CloudinaryField
+from django.core.validators import MaxLengthValidator
+from django.db import models
 
 
 class RobotsChoices(models.TextChoices):

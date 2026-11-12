@@ -34,14 +34,13 @@
 # =============================================================================
 
 import csv
-import os
 import logging
+import os
 from datetime import datetime
 
 import cloudinary
 import cloudinary.api
 import cloudinary.uploader
-
 from django.apps import apps
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -125,7 +124,7 @@ class Command(BaseCommand):
 
         self.stdout.write(f"\n  Referenciados:  {len(referenced_ids)}")
         self.stdout.write(
-            f"  Huérfanos:      "
+            "  Huérfanos:      "
             + (self.style.ERROR(str(len(orphan_ids))) if orphan_ids
                else self.style.SUCCESS(str(len(orphan_ids))))
         )

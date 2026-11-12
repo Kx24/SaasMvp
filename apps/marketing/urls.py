@@ -1,7 +1,6 @@
 from django.urls import path, re_path
-from . import views_sitemap
-from . import views_robots
-from . import views_verification
+
+from . import views_robots, views_sitemap, views_verification
 
 app_name = "marketing"
 

@@ -1,7 +1,8 @@
 import json
+
 from django import template
-from django.utils.safestring import mark_safe
 from django.core.cache import cache
+from django.utils.safestring import mark_safe
 
 from apps.marketing.models import SEOConfig
 
@@ -115,7 +116,7 @@ def seo_tags(context, page_key="home"):
         tags.append(f'<link rel="canonical" href="{_esc(canonical)}">')
 
     # Open Graph
-    tags.append(f'<meta property="og:type" content="website">')
+    tags.append('<meta property="og:type" content="website">')
     tags.append(f'<meta property="og:title" content="{_esc(og_title)}">')
     if og_description:
         tags.append(f'<meta property="og:description" content="{_esc(og_description)}">')
@@ -123,8 +124,8 @@ def seo_tags(context, page_key="home"):
         tags.append(f'<meta property="og:url" content="{_esc(og_url)}">')
     if og_image:
         tags.append(f'<meta property="og:image" content="{_esc(og_image)}">')
-        tags.append(f'<meta property="og:image:width" content="1200">')
-        tags.append(f'<meta property="og:image:height" content="630">')
+        tags.append('<meta property="og:image:width" content="1200">')
+        tags.append('<meta property="og:image:height" content="630">')
 
     # Twitter Card
     tags.append('<meta name="twitter:card" content="summary_large_image">')

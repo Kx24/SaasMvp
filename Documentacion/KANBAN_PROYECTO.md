@@ -14,11 +14,13 @@
 - **Composición de página (`MOD-00`): opción A ahora, B después.** Registro de módulos de funcionalidad + menú del dashboard generado; la home sigue escrita por tema. Orden/visibilidad de bloques por cliente (B) es `MOD-02`. Page-builder completo, descartado.
 - **Seguridad y ley primero.** La Ley 21.719 rige el 1-dic-2026; la consolidación arranca en diciembre.
 
-**Estado:** `develop` con commits de documentación pendientes de push (PyCharm). Producción en `main` con PR #2 (`f140bf0`). Último gate: 219 tests OK (1 skip), `makemigrations --check` limpio, 79 errores de `ruff` conocidos.
+**Estado:** `develop` con commits de documentación pendientes de push (PyCharm). Producción en `main` con PR #2 (`f140bf0`).
+**Ronda 3 del piloto agéntico terminada (2026-11-12) en la rama `agent/fase1-seguridad`, sin push y sin mergear:** `CONS-10`, `SEC-07`, `SEC-11`, `LEY-03` (parte), `SEC-05` y `CONS-03` cerrados — detalle en `historico/KANBAN_HISTORICO.md` y `docs/kanban_agente.md`. Gate en esa rama: 291 tests OK (1 skip), `makemigrations --check` limpio, **ruff en 0**, Playwright 7/7. Hallazgos corregidos de paso: `/auth/set-password/` y `/auth/forgot-password/` daban 500 (métodos de `UserProfile` inexistentes) y `redirect('dashboard:home')` inexistente. Hallazgos abiertos nuevos: `DEUDA-08` (portada sin titular por defecto), `SEC-17`, `SEC-05b`.
+**Pendiente tuyo:** revisar la rama y abrir el PR `agent/fase1-seguridad` → `develop` desde PyCharm (antes, push de `develop`).
 
 **Ritmo:** 2 días/semana × 4–5 h. Cada día = Bloque A (~2 h) + Bloque B (~2 h) + cierre (suite, `ruff` en lo tocado, `makemigrations --check`, commit, actualizar esta sección, push). Ningún día cierra en rojo ni sin commit. Card que no entra en 2 h se parte.
 
-**▶️ Próxima sesión: D1** (`CONS-01` + `SEC-10`).
+**▶️ Próxima sesión: D1** (`CONS-01` + `SEC-10`), después de revisar y mergear la rama del agente.
 
 ---
 
@@ -80,20 +82,20 @@
 | D2 | `SEC-06` Credenciales SMTP/API cifradas | `SEC-06` (continúa: migración de datos y clave en Render) |
 | D3 | `SEC-08` Un solo login (+ open redirect de `next`) | `CONS-04` Borrar rutas legacy |
 | D4 | `LEY-01` Consentimiento en contacto y onboarding | `LEY-01` Página de política de privacidad (contenidos del art. 14 ter) |
-| D5 | `SEC-14` (parte) JSON-LD escapa `</` | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
+| D5 | `SEC-14` + `SEC-17` Salidas sin escapar y comentarios DEBUG | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
 
 ### Fase 2 — Consolidación (D6–D11, diciembre)
 | Día | Bloque A | Bloque B |
 |---|---|---|
 | D6 | `DB-02` Backup de Neon con restore probado (+ `DB-03`) | `SEC-12` Integración continua con el gate |
-| D7 | `CONS-02` Documentación al día (Neon, `CLAUDE.md`, README) | `CONS-03` `ruff --fix` |
+| D7 | `CONS-02` Documentación al día (Neon, `CLAUDE.md`, README) | `DEUDA-08` Portada sin titular por defecto |
 | D8 | `CONS-06` `TenantOwnedMixin` | `DASH-04` Roles con efecto |
-| D9 | `DEUDA-08` Portada sin titular por defecto | `CONS-07` Separar `views.py` |
+| D9 | `SEC-05b` + `DEUDA-06` Restos del admin y código muerto | `CONS-07` Separar `views.py` |
 | D10 | `CONS-08` Registro de módulos (opción A) | `CONS-08` (continúa) |
 | D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` Flags sin módulo |
 
 ### Fase 3 — Módulos y dashboard (~20 días, enero–febrero 2027)
-Orden: `COMP-02` (1 d) → `COMP-01` (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` (1 d) → `LEY-02` + resto de `LEY-03` (2 d) → `LEY-04` + `LEY-07` (1 d) → `SEC-13` + `SEC-14` + `SEC-15` (2 d).
+Orden: `COMP-02` (1 d) → `COMP-01` (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` (1 d) → `LEY-02` + resto de `LEY-03` (2 d) → `LEY-04` + `LEY-07` (1 d) → `SEC-13` + `SEC-15` (2 d).
 Después: `MOD-02` (opción B) y Rancho Cachimba — **no antes de marzo de 2027** (la meta anterior de mediados de febrero no cabe).
 
 Las estimaciones no están medidas; recalibrar al cerrar cada fase.
@@ -122,7 +124,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
 | `CONS-02` | Documentación al día | P2 | M | "Supabase" → Neon en `CLAUDE.md`, `Documentacion/README.md` y skill; quitar de `CLAUDE.md` la sección del MCP de GitHub y la frase "corre en cada push"; reescribir `README.md` raíz corto; revisar `docs/CLOUDINARY.md` |
-| `CONS-03` | `ruff --fix` | P3 | S | 72 autofixables aplicados, 7 restantes revisados |
 | `CONS-04` | Borrar rutas y vistas legacy | P1 | M | Fuera la edición inline pública (`edit_section`, `edit_service`, `add_service`, `delete_service`, `login_modal`, `templates/partials/section_*`/`service_*`); queda solo la versión de dashboard. **Bug a confirmar:** `service_confirm_delete.html` usa `{% url 'dashboard_services' %}` y esa ruta no existe |
 | `CONS-05` | Flags sin módulo | P2 | S | `enable_blog` eliminado; `enable_testimonials` pasa a módulo real o se elimina (hoy solo oculta un link) |
 | `CONS-06` | `TenantOwnedMixin` | P1 | M | Las vistas del dashboard obtienen sus objetos por un único camino que filtra por `request.client`; suite de aislamiento sigue verde |
@@ -188,7 +189,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `PAY-02` | Registro de fricciones del cobro manual | P3 | S | — |
 | `OPS-04` | Alerta de créditos Cloudinary | P3 | S | Existe el comando `cloudinary_usage`; conectar umbrales y aviso |
 | `OPS-05` | Cache compartida, `/health/` real, Sentry | P3 | M | Antes de más de un proceso |
-| `DEUDA-06` | Código muerto | P3 | S | `cloudinary_settings.py`, `OrderProcessor` |
+| `DEUDA-06` | Código muerto | P3 | S | `cloudinary_settings.py`, `OrderProcessor`, `apps/marketing/0001_initial.py` (copia suelta de una migración, hallada por `BOLT-16`) |
 | `DEUDA-08` | Portada sin titular con la configuración por defecto | P1 | S | En `themes/default` y `themes/servelec` el titular del hero solo se ve con `enable_gallery=True` **y** `Section.slot_key='hero'`; ningún alta los fija. Decidir: mostrar el diseño base aunque la galería esté apagada y/o crear la Section hero con `slot_key='hero'`. Invertir `HeroDefaultsFindingTest` (`apps/website/tests/test_home_render.py`). Hallado por `BOLT-11` |
 
 ### `RC` — Rancho Cachimba ⏸️ (rama `feature/RanchocachimbaEtapa1`; no tocar sin pedido explícito)
@@ -233,5 +234,5 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 
 ## 🔗 Satélites
 - **Piloto agéntico:** `docs/kanban_agente.md`, `docs/infoagente.md`, `docs/tratamiento_git.md` (los referencian `orchestrate.py` y `scripts/gatekeeper.py`). Las cards nuevas se crean acá.
-  **Ronda 3 (preparada 2026-11-12, sin ejecutar):** `BOLT-11` `CONS-10` · `BOLT-12` `SEC-07` · `BOLT-13` `SEC-11` · `BOLT-14` `LEY-03` parcial · `BOLT-15` `SEC-05` · `BOLT-16` `CONS-03`, en la rama `agent/fase1-seguridad`. `orchestrate.py` no tiene agente conectado: se ejecuta con una sesión de Claude Code siguiendo `.claude/workflows/`.
+  **Ronda 3 (ejecutada 2026-11-12, 6/6 DONE, pendiente de PR):** `BOLT-11` `CONS-10` · `BOLT-12` `SEC-07` · `BOLT-13` `SEC-11` · `BOLT-14` `LEY-03` parcial · `BOLT-15` `SEC-05` · `BOLT-16` `CONS-03`, en la rama `agent/fase1-seguridad`. `orchestrate.py` no tiene agente conectado: se ejecuta con una sesión de Claude Code siguiendo `.claude/workflows/`.
 - **Estrategia y negocio:** `MASTER_PLAN_Y_ARQUITECTURA.md`.

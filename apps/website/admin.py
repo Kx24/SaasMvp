@@ -32,8 +32,7 @@ except ImportError:
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 # Importar modelos
-from .models import Section, Service, ContactSubmission
-
+from .models import ContactSubmission, Section, Service
 
 # =============================================================================
 # SECTION ADMIN

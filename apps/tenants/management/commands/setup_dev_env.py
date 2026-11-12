@@ -1,5 +1,6 @@
-from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
+
 from apps.tenants.models import Client, ClientSettings, Domain
 from apps.website.models import Section, Service
 

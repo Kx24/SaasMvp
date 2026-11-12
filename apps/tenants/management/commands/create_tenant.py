@@ -16,10 +16,10 @@ Uso:
 import shutil
 from pathlib import Path
 
-from django.core.management.base import BaseCommand, CommandError
-from django.contrib.auth import get_user_model
-from django.utils.text import slugify
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand, CommandError
+from django.utils.text import slugify
 
 from apps.tenants.models import Client, Domain
 from apps.website.models import Section, Service
@@ -137,7 +137,7 @@ class Command(BaseCommand):
         client.settings.meta_title = f'{name} - Sitio Oficial'
         client.settings.meta_description = f'Bienvenido a {name}. Soluciones profesionales para tu negocio.'
         client.settings.save()
-        self.stdout.write(self.style.SUCCESS(f'   ✓ Settings configurados'))
+        self.stdout.write(self.style.SUCCESS('   ✓ Settings configurados'))
         
         # ============================================================
         # 3. CREAR DOMINIOS
@@ -202,7 +202,7 @@ class Command(BaseCommand):
             user.profile.save()
             self.stdout.write(self.style.SUCCESS(f'   ✓ Usuario: {username} (vinculado a {client.name})'))
         else:
-            self.stdout.write(self.style.WARNING(f'   ⚠ Usuario creado pero sin UserProfile'))
+            self.stdout.write(self.style.WARNING('   ⚠ Usuario creado pero sin UserProfile'))
         
         # ============================================================
         # 5. CREAR CARPETA DE MEDIA
@@ -224,12 +224,12 @@ class Command(BaseCommand):
             
             if templates_src.exists():
                 if templates_dst.exists():
-                    self.stdout.write(self.style.WARNING(f'   ⚠ Ya existe carpeta de templates, omitiendo'))
+                    self.stdout.write(self.style.WARNING('   ⚠ Ya existe carpeta de templates, omitiendo'))
                 else:
                     shutil.copytree(templates_src, templates_dst)
                     self.stdout.write(self.style.SUCCESS(f'   ✓ Templates copiados a: templates/tenants/{slug}/'))
             else:
-                self.stdout.write(self.style.WARNING(f'   ⚠ No existe _default, omitiendo'))
+                self.stdout.write(self.style.WARNING('   ⚠ No existe _default, omitiendo'))
         
         # ============================================================
         # 7. CREAR CONTENIDO INICIAL
@@ -314,5 +314,5 @@ class Command(BaseCommand):
             g = max(0, int(g * 0.7))
             b = max(0, int(b * 0.7))
             return f'#{r:02x}{g:02x}{b:02x}'
-        except:
+        except (AttributeError, TypeError, ValueError):
             return '#1e40af'

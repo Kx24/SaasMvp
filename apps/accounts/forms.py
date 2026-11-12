@@ -4,7 +4,6 @@ Formularios de autenticación y gestión de cuenta.
 """
 
 from django import forms
-from django.core.validators import MinLengthValidator
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 

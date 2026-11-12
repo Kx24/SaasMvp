@@ -5,10 +5,11 @@
 # Uso: python manage.py setup_cloudinary_folders
 # =============================================================================
 
-from django.core.management.base import BaseCommand
-from apps.tenants.models import Client
 import cloudinary
 import cloudinary.uploader
+from django.core.management.base import BaseCommand
+
+from apps.tenants.models import Client
 
 
 class Command(BaseCommand):

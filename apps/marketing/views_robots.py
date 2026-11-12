@@ -1,6 +1,5 @@
 from django.http import HttpResponse
 
-
 # Rutas que nunca deben indexar los bots
 DISALLOW_PATHS = [
     "/dashboard/",

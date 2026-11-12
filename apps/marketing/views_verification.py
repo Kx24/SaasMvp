@@ -1,4 +1,4 @@
-from django.http import HttpResponse, Http404
+from django.http import Http404, HttpResponse
 
 
 def google_verification_file(request, code):

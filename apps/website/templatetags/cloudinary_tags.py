@@ -22,18 +22,18 @@
 # =============================================================================
 
 from django import template
-from django.utils.safestring import mark_safe
 from django.utils.html import escape
+from django.utils.safestring import mark_safe
 
 from apps.core.cloudinary_utils import (
-    get_cloudinary_url,
-    get_srcset_urls,
-    get_video_url,
-    get_video_thumbnail_url,
-    get_video_sources,
+    BREAKPOINTS,
     CLOUDINARY_PRESETS,
     VIDEO_PRESETS,
-    BREAKPOINTS,
+    get_cloudinary_url,
+    get_srcset_urls,
+    get_video_sources,
+    get_video_thumbnail_url,
+    get_video_url,
 )
 
 register = template.Library()

@@ -5,10 +5,10 @@
 # Uso: python manage.py check_cloudinary
 # =============================================================================
 
-from django.core.management.base import BaseCommand
-from django.conf import settings
 import cloudinary
 import cloudinary.api
+from django.conf import settings
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
