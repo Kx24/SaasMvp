@@ -6,10 +6,20 @@
       "id": "BOLT-17",
       "maestra": "SEC-17",
       "titulo": "Comentarios DEBUG fuera del HTML público",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-17.md",
-      "red_tests": ["apps.website.tests.test_no_debug_html"],
-      "permite_migracion": false
+      "red_tests": [
+        "apps.website.tests.test_no_debug_html"
+      ],
+      "permite_migracion": false,
+      "costo_usd": 0.36,
+      "tests": 297,
+      "hallazgos": [],
+      "revisar_humano": [
+        "El rojo del gate (red_check) se confirmó por un error de entorno: en el checkout temporal de HEAD faltaba SECRET_KEY y los tests no llegaron a correr. El rojo real solo lo reporta el dev, que lo vio localmente al fallar el render antes de editar los templates.",
+        "El test de render usa `assertNotContains(response, 'DEBUG')`, que es amplio: un texto legítimo con 'DEBUG' en la home lo haría fallar. Hoy pasa.",
+        "La fila SEC-17 del histórico usa el formato de sus vecinas, no el de la línea que indica `_CIERRE.md`."
+      ]
     },
     {
       "id": "BOLT-18",
@@ -17,7 +27,9 @@
       "titulo": "Eliminar flags sin módulo (blog, testimonios)",
       "estado": "TODO",
       "spec": "BOLT-18.md",
-      "red_tests": ["apps.tenants.tests_flags"],
+      "red_tests": [
+        "apps.tenants.tests_flags"
+      ],
       "permite_migracion": true
     },
     {
@@ -26,7 +38,9 @@
       "titulo": "Portada de sitio nuevo con titular",
       "estado": "TODO",
       "spec": "BOLT-19.md",
-      "red_tests": ["apps.website.tests.test_home_render"],
+      "red_tests": [
+        "apps.website.tests.test_home_render"
+      ],
       "permite_migracion": false
     },
     {
@@ -35,7 +49,9 @@
       "titulo": "Un solo login y next validado",
       "estado": "TODO",
       "spec": "BOLT-20.md",
-      "red_tests": ["apps.website.tests.test_login_next"],
+      "red_tests": [
+        "apps.website.tests.test_login_next"
+      ],
       "permite_migracion": false
     }
   ]
