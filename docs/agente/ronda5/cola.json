@@ -1,0 +1,14 @@
+{
+  "ronda": 5,
+  "rama": "agent/ronda5",
+  "cards": [
+    {"id": "BOLT-24", "maestra": "SEC-05b", "titulo": "Restos de alcance por tenant en el admin", "estado": "TODO", "spec": "BOLT-24.md", "red_tests": ["apps.accounts.tests_admin_scope"], "permite_migracion": false},
+    {"id": "BOLT-25", "maestra": "DEUDA-06", "titulo": "Código muerto", "estado": "TODO", "spec": "BOLT-25.md", "red_tests": ["apps.core.tests.test_dead_code_removed"], "permite_migracion": false},
+    {"id": "BOLT-26", "maestra": "LEY-03", "titulo": "Tope legal de 365 días para mensajes de contacto", "estado": "TODO", "spec": "BOLT-26.md", "red_tests": ["apps.tenants.tests_contact_purge"], "permite_migracion": false},
+    {"id": "BOLT-27", "maestra": "SEC-10", "titulo": "Dependencias al día y pip-audit", "estado": "TODO", "spec": "BOLT-27.md", "red_tests": ["apps.core.tests.test_requirements"], "permite_migracion": false, "deps_permitidas": ["pip-audit", "django-extensions", "ipython"], "rutas_permitidas_extra": ["render.yaml"]},
+    {"id": "BOLT-28", "maestra": "CONS-06", "titulo": "Camino único para objetos del tenant", "estado": "TODO", "spec": "BOLT-28.md", "red_tests": ["apps.core.tests.test_tenant_objects"], "permite_migracion": false},
+    {"id": "BOLT-29", "maestra": "CONS-07", "titulo": "Separar views.py por área", "estado": "TODO", "spec": "BOLT-29.md", "red_tests": ["apps.website.tests.test_views_package"], "permite_migracion": false},
+    {"id": "BOLT-30", "maestra": "SEC-12", "titulo": "Integración continua con el gate", "estado": "TODO", "spec": "BOLT-30.md", "red_tests": ["apps.core.tests.test_ci_workflow"], "permite_migracion": false, "rutas_permitidas_extra": [".github/"]},
+    {"id": "BOLT-31", "maestra": "CONS-02", "titulo": "Documentación al día", "estado": "TODO", "spec": "BOLT-31.md", "red_tests": ["apps.core.tests.test_docs_drift"], "permite_migracion": false, "rutas_permitidas_extra": ["CLAUDE.md"]}
+  ]
+}
