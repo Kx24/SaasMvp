@@ -1,0 +1,42 @@
+{
+  "ronda": 4,
+  "rama": "agent/ronda4",
+  "cards": [
+    {
+      "id": "BOLT-17",
+      "maestra": "SEC-17",
+      "titulo": "Comentarios DEBUG fuera del HTML público",
+      "estado": "TODO",
+      "spec": "BOLT-17.md",
+      "red_tests": ["apps.website.tests.test_no_debug_html"],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-18",
+      "maestra": "CONS-05",
+      "titulo": "Eliminar flags sin módulo (blog, testimonios)",
+      "estado": "TODO",
+      "spec": "BOLT-18.md",
+      "red_tests": ["apps.tenants.tests_flags"],
+      "permite_migracion": true
+    },
+    {
+      "id": "BOLT-19",
+      "maestra": "DEUDA-08",
+      "titulo": "Portada de sitio nuevo con titular",
+      "estado": "TODO",
+      "spec": "BOLT-19.md",
+      "red_tests": ["apps.website.tests.test_home_render"],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-20",
+      "maestra": "SEC-08",
+      "titulo": "Un solo login y next validado",
+      "estado": "TODO",
+      "spec": "BOLT-20.md",
+      "red_tests": ["apps.website.tests.test_login_next"],
+      "permite_migracion": false
+    }
+  ]
+}

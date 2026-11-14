@@ -11,6 +11,17 @@
 
 ---
 
+## 🔄 SYNC 2026-11-14 — este archivo queda como histórico de las rondas 1–3
+
+Desde la **ronda 4** la ejecución es desatendida con `orchestrate.py` conectado a `claude -p`
+(Sonnet 5.5). Specs, cola y estado viven en `docs/agente/ronda<N>/`; la operación está en
+`docs/agente/README.md`. Este archivo ya no se actualiza: no agregar bolts ni filas a §4 acá.
+Lo que sigue vigente de §0 (variables de entorno, restricciones heredadas) está resumido en
+`.claude/workflows/02_dev_tester.md`. La restricción de §0.4 sobre `login_view`/`logout_view`
+quedó levantada por `SEC-08` (`BOLT-20`).
+
+---
+
 ## 🔄 SYNC 2026-11-12 — ronda 3 arranca aquí
 
 **Cambios de entorno desde la ronda 2 (prevalecen sobre §0.-1, que queda como registro histórico):**

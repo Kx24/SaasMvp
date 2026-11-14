@@ -233,6 +233,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | Tenant listo | `python manage.py check_tenant_setup <slug> [--check-dns]` |
 
 ## 🔗 Satélites
-- **Piloto agéntico:** `docs/kanban_agente.md`, `docs/infoagente.md`, `docs/tratamiento_git.md` (los referencian `orchestrate.py` y `scripts/gatekeeper.py`). Las cards nuevas se crean acá.
+- **Ejecución agéntica (ronda 4 en adelante, 2026-11-14):** `docs/agente/README.md` (operación), `docs/agente/ronda<N>/` (specs, `cola.json`, `ESTADO.md`). `orchestrate.py --ronda …` corre cada card con Sonnet 5.5 y verifica con `scripts/gatekeeper.py --strict`. Las cards nuevas se crean acá; los specs los escribe la sesión de planificación.
+- **Piloto agéntico, rondas 1–3 (histórico):** `docs/kanban_agente.md`, `docs/infoagente.md`, `docs/tratamiento_git.md`.
   **Ronda 3 (ejecutada 2026-11-12, 6/6 DONE, pendiente de PR):** `BOLT-11` `CONS-10` · `BOLT-12` `SEC-07` · `BOLT-13` `SEC-11` · `BOLT-14` `LEY-03` parcial · `BOLT-15` `SEC-05` · `BOLT-16` `CONS-03`, en la rama `agent/fase1-seguridad`. `orchestrate.py` no tiene agente conectado: se ejecuta con una sesión de Claude Code siguiendo `.claude/workflows/`.
 - **Estrategia y negocio:** `MASTER_PLAN_Y_ARQUITECTURA.md`.

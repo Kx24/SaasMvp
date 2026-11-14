@@ -1,60 +1,33 @@
-# Rol: Planificador
+# Rol: Planificador (ronda 4 en adelante)
 
-> **Entorno vigente (2026-11-12):** la rama, el directorio de trabajo y la regla de push los define el bloque **SYNC más reciente** de `docs/kanban_agente.md`, que prevalece sobre cualquier ruta o rama citada más abajo en este archivo. Ronda 3: checkout único del repo, rama `agent/fase1-seguridad`, **sin push** (el usuario revisa y abre el PR).
+Desde la ronda 4 el planificador **no es un turno del bucle desatendido**. Lo hace una sesión
+interactiva con el modelo grande, junto al dueño del producto, antes de lanzar la ronda:
 
-Turno 1 del ciclo AI-DLC (`docs/kanban_agente.md`). Selecciona **una** card y produce el spec
-del test que la va a verificar. No escribe código de producción — eso es trabajo del rol
-`02_dev_tester`.
+1. Elegir las cards del kanban maestro (`Documentacion/KANBAN_PROYECTO.md`) que se pueden cerrar
+   sin secretos, sin producción y sin decisiones abiertas. Lo que necesita una decisión se
+   resuelve con el dueño **antes** y la decisión se escribe en el spec.
+2. Leer el código y escribir un spec por card en `docs/agente/ronda<N>/BOLT-XX.md` con: contexto
+   verificado (archivos y líneas), decisiones ya tomadas, qué hacer, qué no tocar, tests de rojo
+   (labels exactos), DoD verificable y cierre documental.
+3. Registrar la card en `docs/agente/ronda<N>/cola.json`:
 
-## Entrada esperada
-
-- `docs/kanban_agente.md` (el tablero completo — leer §0 entero antes de tocar cualquier card).
-- `docs/kanban_agente.md` §4 (Registro de Ejecución) — historial de qué ya corrió y con qué resultado.
-- Estado real del repo (`git status`, `git log --oneline -10`) en la rama `agent/ai-dlc-pilot`.
-
-## Procedimiento
-
-1. **Confirmar rama y entorno.** Verificar que el `cwd` es el worktree del piloto
-   (`C:\Users\sanch\Documents\Proyectos\SaaSMVP-agentic-pilot`, rama `agent/ai-dlc-pilot` — ver
-   `docs/kanban_agente.md` §0.-1). Si el `.env` local del worktree no existe, recrearlo con los 4
-   valores dummy documentados ahí (`SECRET_KEY`, `MP_PUBLIC_KEY`, `MP_ACCESS_TOKEN`,
-   `MP_WEBHOOK_SECRET`) antes de seguir — sin eso el gatekeeper falla por razones ajenas a la card.
-2. **Respetar WIP=1.** Si ya hay una card en estado `DOING` en §1/§2 del kanban, esa es la card
-   activa — no seleccionar una nueva. Handoff directo a `02_dev_tester` con esa card.
-3. **Si no hay ninguna `DOING`:** elegir la primera card `TODO` siguiendo el orden de prioridad
-   del archivo: §1 (PILOT-0x, infraestructura) antes que §2 (BOLT-0x, producto); dentro de cada
-   sección, el orden en que aparecen ya está pensado (`BOLT-01` primero por ser "terreno firme").
-4. **Filtrar por §0.4 y §3.** Nunca seleccionar una card que toque `#RC-*`, que dependa de un
-   secreto no disponible (ver tabla de §0.1 — si la card en §2 no dice "Variables requeridas:
-   ninguna", no es una card válida para este flujo, es un error en el kanban a reportar, no a
-   ejecutar), o que esté listada en §3 (Bloqueadas).
-5. **Marcar `DOING`.** Editar `docs/kanban_agente.md`: cambiar `**Estado:** TODO` a
-   `**Estado:** DOING` en la card elegida. Este es el único cambio de producción que hace este rol.
-6. **Producir el spec del test.** Sin escribir el test todavía (eso es `02_dev_tester`), redactar
-   en el handoff: qué comportamiento debe expresar el test, en qué archivo va (siguiendo la
-   convención de §0.0: paquete `tests/` en `core`/`orders`/`website`, archivo plano `tests_*.py`
-   en `tenants`), y qué confirma el rojo (por qué falla hoy, citando la línea/función real si la
-   card ya la da — la mayoría de las cards en §2 ya traen esto en "Spec ejecutable").
-
-## Salida obligatoria (handoff a `02_dev_tester`)
-
-```
-CARD: <ID>
-ESTADO: DOING
-ARCHIVOS_ESPERADOS: <lista>
-SPEC_DEL_TEST: <qué debe probar, en qué archivo, qué confirma el rojo>
-RESTRICCIONES_HEREDADAS: <cualquier ítem de §0.4 que aplique a esta card en particular>
+```json
+{
+  "id": "BOLT-17", "maestra": "SEC-17", "titulo": "…", "estado": "TODO", "spec": "BOLT-17.md",
+  "red_tests": ["apps.website.tests.test_x"],
+  "permite_migracion": false,
+  "deps_permitidas": [],
+  "rutas_permitidas_extra": []
+}
 ```
 
-## Condición de traspaso
+   - `red_tests`: labels que `gatekeeper.py --red-check` corre contra HEAD; deben fallar sin el
+     cambio. Vacío solo en cards sin comportamiento nuevo (borrado puro, documentos).
+   - `permite_migracion`, `deps_permitidas`, `rutas_permitidas_extra`: lo único que abre el
+     control de alcance de `orchestrate.py` para esa card.
+4. Orden de la cola = orden de ejecución (WIP 1). Cards que tocan el mismo archivo van seguidas y
+   la más invasiva al final.
 
-El handoff de arriba, completo, es lo único que se pasa a `02_dev_tester`. No se pasa código.
-
-## Condición de aborto
-
-- **No hay ninguna card `TODO` elegible** (todas `DONE`, `DOING` de otra corrida, o solo quedan
-  cards de §3/`#RC-*`): no seleccionar nada, reportar "cola vacía" y terminar el ciclo — esto no
-  es un error, es la condición de éxito final del piloto.
-- **Secreto faltante a mitad de selección** (política de §0.1): si la única card disponible
-  requiere algo que no está en el entorno, no seleccionarla, moverla mentalmente a la lógica de
-  §3 y reportarlo — nunca preguntar al humano en medio del turno.
+Ejecución: `python orchestrate.py --ronda docs/agente/ronda<N>/cola.json --max-cards 4`.
+El orquestador toma la primera card `TODO`; el estado legible queda en
+`docs/agente/ronda<N>/ESTADO.md`. Detalle operativo en `docs/agente/README.md`.
