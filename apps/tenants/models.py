@@ -332,8 +332,6 @@ class ClientSettings(models.Model):
     whatsapp_number = models.CharField(max_length=20, blank=True)
     
     # ==================== FEATURES ====================
-    enable_blog = models.BooleanField(default=False)
-    enable_testimonials = models.BooleanField(default=True)
     enable_contact_form = models.BooleanField(default=True)
     enable_gallery = models.BooleanField(
         default=False,

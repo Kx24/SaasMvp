@@ -83,7 +83,7 @@ EmailOutbox  (cola global, sin FK a Client)
 |---|---|---|---|
 | `tenants.Client` | El cliente/tenant | `slug`, `template` (tema: `themes/default` \| `themes/servelec`), `plan` (**texto, no FK a `Plan`**), `is_active`, `mode_under_construction`, `max_images/pages/services` (sin efecto, `BIZ-01`), `monthly_fee`/`next_payment_due` (modelo de cobro viejo, `BIZ-02`) | Email y teléfono de contacto |
 | `tenants.Domain` | Dominios que resuelven a un tenant | `domain`, `is_primary`, `is_active`, `is_preview` (noindex + salta "en construcción"), `domain_type` | — |
-| `tenants.ClientSettings` | Marca y configuración del sitio | `logo`, `primary/secondary/accent_color`, `font_family`, `navbar_cta_*`, redes, `enable_blog/testimonials/contact_form/gallery`, `hero_images_limit`, `gallery_images_limit`, `digest_*`, `inbox_retention_days` | — |
+| `tenants.ClientSettings` | Marca y configuración del sitio | `logo`, `primary/secondary/accent_color`, `font_family`, `navbar_cta_*`, redes, `enable_contact_form/gallery`, `hero_images_limit`, `gallery_images_limit`, `digest_*`, `inbox_retention_days` | — |
 | `tenants.ClientEmailSettings` | Envío de correo propio del cliente | `provider`, `smtp_*`, `api_key`, `notify_mode`, `notify_emails` | **Credenciales en texto plano** (`SEC-06`) |
 | `tenants.FormConfig` | Qué campos muestra el formulario de contacto | `show_*`/`*_required`/`*_label`, `privacy_text`, `success_message` | — |
 | `website.Section` | Bloque de contenido del sitio | `section_type` (`hero`/`about`/`service`/`contact`/`gallery`), `title`, `description`, `image`, `background_image`, `order`, `slot_key`. **Único por `(client, section_type)`** | — |

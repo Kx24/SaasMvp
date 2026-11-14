@@ -53,12 +53,6 @@
                        class="text-gray-700 hover:text-primary font-medium transition">
                         Servicios
                     </a>
-                    {% if client.settings.enable_testimonials %}
-                    <a href="#testimonios" 
-                       class="text-gray-700 hover:text-primary font-medium transition">
-                        Testimonios
-                    </a>
-                    {% endif %}
                     <a href="#contacto" 
                        class="text-gray-700 hover:text-primary font-medium transition">
                         Contacto
@@ -159,10 +153,6 @@
                    class="text-gray-700 hover:text-primary font-medium py-2">Nosotros</a>
                 <a href="#servicios" @click="mobileMenuOpen = false"
                    class="text-gray-700 hover:text-primary font-medium py-2">Servicios</a>
-                {% if client.settings.enable_testimonials %}
-                <a href="#testimonios" @click="mobileMenuOpen = false"
-                   class="text-gray-700 hover:text-primary font-medium py-2">Testimonios</a>
-                {% endif %}
                 <a href="#contacto" @click="mobileMenuOpen = false"
                    class="text-gray-700 hover:text-primary font-medium py-2">Contacto</a>
                 

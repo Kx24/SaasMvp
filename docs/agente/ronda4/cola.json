@@ -25,12 +25,20 @@
       "id": "BOLT-18",
       "maestra": "CONS-05",
       "titulo": "Eliminar flags sin módulo (blog, testimonios)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-18.md",
       "red_tests": [
         "apps.tenants.tests_flags"
       ],
-      "permite_migracion": true
+      "permite_migracion": true,
+      "costo_usd": 0.41,
+      "tests": 300,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Migración 0027: RemoveField irreversible en cuanto a datos (se pierden los valores de los flags en producción); es lo que pide el spec.",
+        "El dev no corrió Playwright, pero el gate determinista reportó e2e en verde.",
+        "La fila D11 del kanban quedó con '✅' en la dependencia CONS-05; confirmar que el formato es el esperado."
+      ]
     },
     {
       "id": "BOLT-19",

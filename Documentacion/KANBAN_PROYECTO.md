@@ -92,7 +92,7 @@
 | D8 | `CONS-06` `TenantOwnedMixin` | `DASH-04` Roles con efecto |
 | D9 | `SEC-05b` + `DEUDA-06` Restos del admin y código muerto | `CONS-07` Separar `views.py` |
 | D10 | `CONS-08` Registro de módulos (opción A) | `CONS-08` (continúa) |
-| D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` Flags sin módulo |
+| D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
 
 ### Fase 3 — Módulos y dashboard (~20 días, enero–febrero 2027)
 Orden: `COMP-02` (1 d) → `COMP-01` (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` (1 d) → `LEY-02` + resto de `LEY-03` (2 d) → `LEY-04` + `LEY-07` (1 d) → `SEC-13` + `SEC-15` (2 d).
@@ -125,7 +125,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
 | `CONS-02` | Documentación al día | P2 | M | "Supabase" → Neon en `CLAUDE.md`, `Documentacion/README.md` y skill; quitar de `CLAUDE.md` la sección del MCP de GitHub y la frase "corre en cada push"; reescribir `README.md` raíz corto; revisar `docs/CLOUDINARY.md` |
 | `CONS-04` | Borrar rutas y vistas legacy | P1 | M | Fuera la edición inline pública (`edit_section`, `edit_service`, `add_service`, `delete_service`, `login_modal`, `templates/partials/section_*`/`service_*`); queda solo la versión de dashboard. **Bug a confirmar:** `service_confirm_delete.html` usa `{% url 'dashboard_services' %}` y esa ruta no existe |
-| `CONS-05` | Flags sin módulo | P2 | S | `enable_blog` eliminado; `enable_testimonials` pasa a módulo real o se elimina (hoy solo oculta un link) |
 | `CONS-06` | `TenantOwnedMixin` | P1 | M | Las vistas del dashboard obtienen sus objetos por un único camino que filtra por `request.client`; suite de aislamiento sigue verde |
 | `CONS-07` | Separar `apps/website/views.py` (1.099 líneas) | P2 | M | Un archivo por área (público, secciones, servicios, galería, contactos, branding); URLs sin cambios |
 | `CONS-08` | Registro de módulos (opción A) | P1 | L | Clase `Module` + registro: nombre, flag, límites, URLs, entrada de menú, componente público. Galería, contacto y servicios declarados como módulos |
@@ -142,7 +141,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `MOD-01` | Módulo **Media** | P1 | XL (~5 d) | `MediaAsset` (imagen / video Cloudinary / embed YouTube-Vimeo), subida directa navegador→Cloudinary firmada, multi-archivo, límites por plan (`BIZ-01`). Unifica las 6 subidas del dashboard, que hoy llaman `cloudinary.uploader.upload` a mano con carpeta `{slug}/…` en vez de `upload_to_cloudinary` y `tenants/{slug}/…` (hallado por `BOLT-13`). Migra `Section.image`/`background_image`/`Service.image` al pool (~16 templates). DoD: subir 10 fotos y un video desde el celular; los 3 tenants renderizan igual |
 | `MOD-02` | Orden y visibilidad de bloques (opción B) | P2 | L | El cliente reordena y oculta los bloques que su tema trae; cada `home.html` itera una lista en vez de includes fijos |
-| `MOD-03` | Módulo Testimonios | P3 | M | Solo si `CONS-05` decide conservarlo: modelo + pantalla + componente |
 
 ### `DASH` — Dashboard
 | ID | Card | P | Esf. | Definición de hecho |

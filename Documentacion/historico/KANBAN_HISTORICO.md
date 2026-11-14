@@ -74,6 +74,7 @@
 | `#OPS-02` | `render.yaml` alineado a Neon (no a Postgres de Render) | 2026-11-08 | — |
 | `#OPS-03` | `EMAIL_ASYNC=False` por defecto + `BASE_URL`; variables cargadas en Render; **PR #2 `develop`→`main` mergeado** | 2026-11-09 | `f140bf0` |
 | `CONS-03` | Lint preexistente en 0 (`ruff` 60 → 0: autofix seguro + 1 `except` + `per-file-ignores` de settings) | 2026-11-12 | `BOLT-16` |
+| `CONS-05` | Flags `enable_blog` y `enable_testimonials` eliminados (modelo, migración `0027`, admin, `list_tenants`, navbar default); `MOD-03` Testimonios descartada | 2026-11-14 | `BOLT-18` |
 
 ## Rancho Cachimba (en pausa — rama `feature/RanchocachimbaEtapa1`)
 

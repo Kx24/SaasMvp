@@ -69,10 +69,6 @@ class Command(BaseCommand):
 
             # Features habilitadas
             features = []
-            if client.settings.enable_blog:
-                features.append('Blog')
-            if client.settings.enable_testimonials:
-                features.append('Testimonios')
             if client.settings.enable_gallery:
                 features.append('Galería')
 

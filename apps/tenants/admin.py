@@ -73,7 +73,7 @@ class ClientSettingsInline(admin.StackedInline):
         ('Features', {
             'classes': ('collapse',),
             'fields': (
-                ('enable_blog', 'enable_testimonials', 'enable_contact_form'),
+                ('enable_contact_form',),
             )
         }),
     )
