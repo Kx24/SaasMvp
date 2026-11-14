@@ -270,13 +270,13 @@ class ClaudeCliRunner:
             '',
             f"Rama `{queue['rama']}` · generado por `orchestrate.py` (no editar a mano).",
             '',
-            '| Card | Maestra | Título | Estado | Commit | Costo USD |',
+            '| Card | Maestra | Título | Estado | Tests | Costo USD |',
             '|---|---|---|---|---|---|',
         ]
         for c in queue['cards']:
             lines.append(
                 f"| `{c['id']}` | `{c['maestra']}` | {c['titulo']} | "
-                f"{icon.get(c['estado'], '')} {c['estado']} | {c.get('commit', '')} | {c.get('costo_usd', '')} |")
+                f"{icon.get(c['estado'], '')} {c['estado']} | {c.get('tests', '')} | {c.get('costo_usd', '')} |")
         review = [(c['id'], item) for c in queue['cards'] for item in c.get('revisar_humano', [])]
         if review:
             lines += ['', '## Revisar a mano en el PR', '']

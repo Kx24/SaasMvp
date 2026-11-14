@@ -286,6 +286,11 @@ def red_check(labels):
         shutil.rmtree(tmp, ignore_errors=True)
         return {'red_confirmed': False, 'detail': f'no se pudo crear el worktree: {added.stderr.strip()}'}
     try:
+        # .env no esta versionado y sin el settings no importa (SECRET_KEY):
+        # sin esta copia todo test "falla" y el rojo seria un falso positivo
+        # (paso en BOLT-17, lo detecto el validador).
+        if (BASE_DIR / '.env').is_file():
+            shutil.copy2(BASE_DIR / '.env', worktree / '.env')
         for rel in test_files:
             src = BASE_DIR / rel
             if src.is_file():
@@ -297,12 +302,23 @@ def red_check(labels):
             timeout=300, cwd=worktree, env={**os.environ, RECURSION_GUARD_ENV: '1'},
         )
         output = result.stdout + result.stderr
-        red = result.returncode != 0
+        ran = re.search(r'^Ran (\d+) tests? in', output, re.M)
+        tests_ran = int(ran.group(1)) if ran else 0
+        # Rojo = los tests llegaron a ejecutarse y fallaron. Un error de
+        # entorno antes de correr (settings, import de manage.py) no cuenta.
+        red = result.returncode != 0 and tests_ran > 0
+        if red:
+            detail = output[-1500:]
+        elif tests_ran == 0:
+            detail = 'Los tests no llegaron a ejecutarse en HEAD (error de entorno): ' + output[-1200:]
+        else:
+            detail = 'Los tests PASAN sin el cambio: no prueban la card.'
         return {
             'red_confirmed': red,
+            'tests_ran': tests_ran,
             'labels': list(labels),
             'test_files_copied': test_files,
-            'detail': output[-1500:] if red else 'Los tests PASAN sin el cambio: no prueban la card.',
+            'detail': detail,
         }
     finally:
         _run(['git', 'worktree', 'remove', '--force', str(worktree)])

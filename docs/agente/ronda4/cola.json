@@ -53,6 +53,47 @@
         "apps.website.tests.test_login_next"
       ],
       "permite_migracion": false
+    },
+    {
+      "id": "BOLT-21",
+      "maestra": "CONS-04",
+      "titulo": "Borrar la edición inline pública (rutas legacy)",
+      "estado": "TODO",
+      "spec": "BOLT-21.md",
+      "red_tests": [
+        "apps.website.tests.test_legacy_routes_removed"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-22",
+      "maestra": "SEC-06",
+      "titulo": "Credenciales SMTP/API cifradas en reposo",
+      "estado": "TODO",
+      "spec": "BOLT-22.md",
+      "red_tests": [
+        "apps.tenants.tests_encryption"
+      ],
+      "permite_migracion": true,
+      "deps_permitidas": [
+        "cryptography",
+        "cffi",
+        "pycparser"
+      ],
+      "rutas_permitidas_extra": [
+        "render.yaml"
+      ]
+    },
+    {
+      "id": "BOLT-23",
+      "maestra": "SEC-14",
+      "titulo": "Salidas sin escapar (mark_safe) y JSON-LD",
+      "estado": "TODO",
+      "spec": "BOLT-23.md",
+      "red_tests": [
+        "apps.website.tests.test_output_escaping"
+      ],
+      "permite_migracion": false
     }
   ]
 }
