@@ -66,6 +66,7 @@ def onboarding_view(request):
                         title=f'Bienvenido a {client.name}',
                         subtitle='Sitio generado automáticamente',
                         description='Configura este texto desde tu admin.',
+                        slot_key='hero',
                         order=0,
                         is_active=True
                     )

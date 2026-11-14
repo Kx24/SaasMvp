@@ -58,6 +58,7 @@
 | `#DEUDA-01` | Presets Cloudinary deduplicados + test anti-regresión | 2026-08-22 | — |
 | `BOLT-06/07/08` | Guardia de tokens CSS, CTA de navbar por tenant, `hero_ctas` compartido | 2026-08-23 | `bbbd99b`, `0725d09`, `c3e9f3c` |
 | `CONS-10` | Tests de render de la home por tema (25 tests, 3 temas); destapó `DEUDA-08` (portada sin titular por defecto) | 2026-11-12 | `BOLT-11` |
+| `DEUDA-08` | La portada de un sitio nuevo muestra su titular: `get_hero_images` devuelve el slide default con la galería apagada y todas las altas crean la hero con `slot_key='hero'` | 2026-11-14 | `BOLT-19` |
 
 ## Tooling, flujo comercial y operaciones
 

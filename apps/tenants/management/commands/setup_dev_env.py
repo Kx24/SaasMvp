@@ -129,6 +129,7 @@ class Command(BaseCommand):
                 section_type=sec['type'],
                 title=sec['title'],
                 description=sec['desc'],
+                slot_key='hero' if sec['type'] == 'hero' else 'empty',
                 order=idx,
                 is_active=True
             )

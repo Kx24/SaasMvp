@@ -879,7 +879,8 @@ def gallery_item_add(request):
         section, _ = Section.objects.get_or_create(
             client=client,
             section_type=gallery_type,
-            defaults={'title': '', 'subtitle': '', 'description': '', 'order': 0}
+            defaults={'title': '', 'subtitle': '', 'description': '', 'order': 0,
+                      'slot_key': 'hero' if gallery_type == 'hero' else 'empty'}
         )
         owner_kwargs = {'section': section}
 
@@ -1054,7 +1055,8 @@ def dashboard_portada(request):
     hero_section, _ = Section.objects.get_or_create(
         client=client,
         section_type='hero',
-        defaults={'title': '', 'subtitle': '', 'description': '', 'order': 0}
+        defaults={'title': '', 'subtitle': '', 'description': '', 'order': 0,
+                  'slot_key': 'hero'}
     )
 
     hero_items = list(

@@ -334,6 +334,7 @@ def process_onboarding(order: Order, data: dict) -> tuple:
         title=f'Bienvenido a {client.name}',
         subtitle=data.get('tagline', 'Tu empresa de confianza'),
         description=data.get('about_text', 'Configura este texto desde tu panel de administración.'),
+        slot_key='hero',
         order=0,
         is_active=True,
     )

@@ -44,12 +44,25 @@
       "id": "BOLT-19",
       "maestra": "DEUDA-08",
       "titulo": "Portada de sitio nuevo con titular",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-19.md",
       "red_tests": [
         "apps.website.tests.test_home_render"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.66,
+      "tests": 302,
+      "hallazgos": [
+        "provision_tenant no crea Domain.",
+        "provision_tenant imprime \"Template origen _default no existe\".",
+        "El informe del dev no registró estos hallazgos como filas nuevas en el kanban."
+      ],
+      "revisar_humano": [
+        "Cambio visible al cliente: los sitios existentes con slot_key='hero' y galería apagada ahora muestran portada con titular. Antes no mostraban nada.",
+        "seed_e2e_tenants crea la hero sin slot_key (queda en 'empty'). Confirmar que Playwright 7/7 sigue pasando. El gate e2e no corrió (ran: false).",
+        "El test del default del get_or_create del dashboard se comprueba por inspección de código, no levantando la vista. Es débil, pero el spec lo permitía.",
+        "El dev no vio el rojo antes de editar. El red_check del orquestador sí lo confirmó: 4 fallos contra HEAD."
+      ]
     },
     {
       "id": "BOLT-20",

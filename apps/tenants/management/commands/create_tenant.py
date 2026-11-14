@@ -250,6 +250,7 @@ class Command(BaseCommand):
                     section_type=section_type,
                     title=title,
                     subtitle=subtitle,
+                    slot_key='hero' if section_type == 'hero' else 'empty',
                     order=order,
                     is_active=True
                 )

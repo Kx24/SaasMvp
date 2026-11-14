@@ -92,18 +92,11 @@ class _FullContentTests(_HomeRenderMixin):
         self.assertContains(self._get_home(self.host), reverse('contact_submit'))
 
 
-class HeroDefaultsFindingTest(_HomeRenderMixin, TestCase):
+class HeroDefaultsTest(_HomeRenderMixin, TestCase):
     """
-    Hallazgo incidental de BOLT-11 (2026-11-12), documentado, NO corregido
-    (card DEUDA-08 del kanban maestro): en `themes/default` y `themes/servelec`
-    el título de la portada solo aparece si `ClientSettings.enable_gallery`
-    es True **y** la Section hero tiene `slot_key='hero'`. Ninguno de los dos
-    es el valor por defecto, y ningún camino de alta (`process_onboarding`,
-    `provision_tenant`, `create_tenant`, `setup_production`) los fija. Un
-    tenant recién creado muestra una portada sin titular.
-
-    Estos tests fijan el comportamiento actual para que el cambio sea
-    deliberado: al corregir DEUDA-08 deben invertirse.
+    DEUDA-08 / BOLT-19: con slot_key='hero' la portada muestra su titular
+    aunque la galería esté apagada; slot_key='empty' (elegido a mano) sigue
+    significando "sin overlay". Los altas crean la hero con slot_key='hero'.
     """
 
     def _home_html(self, slug, template, host, *, gallery, slot_key):
@@ -116,25 +109,49 @@ class HeroDefaultsFindingTest(_HomeRenderMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         return response
 
-    def test_defaults_hide_hero_title_default_theme(self):
+    def test_hero_slot_without_gallery_shows_title_default_theme(self):
         response = self._home_html('hd-default', 'themes/default', 'hddefault.test',
-                                   gallery=False, slot_key='empty')
-        self.assertNotContains(response, HERO_TITLE)
-
-    def test_defaults_hide_hero_title_servelec_theme(self):
-        response = self._home_html('hd-servelec', 'themes/servelec', 'hdservelec.test',
-                                   gallery=False, slot_key='empty')
-        self.assertNotContains(response, HERO_TITLE)
-
-    def test_gallery_on_but_default_slot_still_hides_title(self):
-        response = self._home_html('hd-slot', 'themes/default', 'hdslot.test',
-                                   gallery=True, slot_key='empty')
-        self.assertNotContains(response, HERO_TITLE)
-
-    def test_hero_slot_without_gallery_still_hides_title(self):
-        response = self._home_html('hd-gal', 'themes/default', 'hdgal.test',
                                    gallery=False, slot_key='hero')
-        self.assertNotContains(response, HERO_TITLE)
+        self.assertContains(response, HERO_TITLE)
+
+    def test_hero_slot_without_gallery_shows_title_servelec_theme(self):
+        response = self._home_html('hd-servelec', 'themes/servelec', 'hdservelec.test',
+                                   gallery=False, slot_key='hero')
+        self.assertContains(response, HERO_TITLE)
+
+    def test_hero_slot_with_gallery_shows_title(self):
+        for slug, template, host in (('hd-gd', 'themes/default', 'hdgd.test'),
+                                     ('hd-gs', 'themes/servelec', 'hdgs.test')):
+            response = self._home_html(slug, template, host, gallery=True, slot_key='hero')
+            self.assertContains(response, HERO_TITLE)
+
+    def test_empty_slot_hides_title_with_and_without_gallery(self):
+        n = 0
+        for template in ('themes/default', 'themes/servelec'):
+            for gallery in (False, True):
+                n += 1
+                response = self._home_html(f'hd-e{n}', template, f'hde{n}.test',
+                                           gallery=gallery, slot_key='empty')
+                self.assertNotContains(response, HERO_TITLE)
+
+    def test_provision_tenant_creates_hero_with_slot_key_and_shows_title(self):
+        from django.core.management import call_command
+        for theme in ('themes/default', 'themes/servelec'):
+            slug = 'prov-' + theme.split('/')[1]
+            call_command('provision_tenant', slug, '--theme=' + theme, verbosity=0)
+            client = Client.objects.get(slug=slug)
+            hero = Section.objects.get(client=client, section_type='hero')
+            self.assertEqual(hero.slot_key, 'hero')
+            host = f'{slug}.test'
+            Domain.objects.create(client=client, domain=host, domain_type='custom',
+                                  is_primary=True, is_active=True, is_verified=True)
+            self.assertContains(self._get_home(host), hero.title)
+
+    def test_dashboard_hero_get_or_create_defaults_slot_key_hero(self):
+        import inspect
+
+        from apps.website.views import dashboard_portada
+        self.assertIn("'slot_key': 'hero'", inspect.getsource(dashboard_portada))
 
 
 class _MinimalContentTests(_HomeRenderMixin):
