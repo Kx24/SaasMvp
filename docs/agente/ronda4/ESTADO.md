@@ -8,7 +8,7 @@ Rama `agent/ronda4` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-18` | `CONS-05` | Eliminar flags sin módulo (blog, testimonios) | ✅ DONE | 300 | 0.41 |
 | `BOLT-19` | `DEUDA-08` | Portada de sitio nuevo con titular | ✅ DONE | 302 | 0.66 |
 | `BOLT-20` | `SEC-08` | Un solo login y next validado | ✅ DONE | 309 | 0.48 |
-| `BOLT-21` | `CONS-04` | Borrar la edición inline pública (rutas legacy) | ⏳ TODO |  |  |
+| `BOLT-21` | `CONS-04` | Borrar la edición inline pública (rutas legacy) | ❌ REJECTED |  | 0.47 |
 | `BOLT-22` | `SEC-06` | Credenciales SMTP/API cifradas en reposo | ⏳ TODO |  |  |
 | `BOLT-23` | `SEC-14` | Salidas sin escapar (mark_safe) y JSON-LD | ⏳ TODO |  |  |
 
@@ -36,3 +36,7 @@ Rama `agent/ronda4` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-19`: El informe del dev no registró estos hallazgos como filas nuevas en el kanban.
 - `BOLT-20`: `apps/accounts/forms.py::LoginForm` quedó sin uso (código muerto); borrarlo en una card aparte.
 - `BOLT-20`: El test de forgot_password probablemente no falla contra HEAD: su rojo inicial fue un 404 por falta de host en el test, no por el código. El red-check dio 4 fallos de 9, así que cumple igual.
+
+## Pendiente de tu decisión
+
+- `BOLT-21` (REJECTED): el validador no devolvió un veredicto: You've hit your 5-hour limit · resets 2:10pm (America/Santiago)

@@ -91,12 +91,14 @@
       "id": "BOLT-21",
       "maestra": "CONS-04",
       "titulo": "Borrar la edición inline pública (rutas legacy)",
-      "estado": "TODO",
+      "estado": "REJECTED",
       "spec": "BOLT-21.md",
       "red_tests": [
         "apps.website.tests.test_legacy_routes_removed"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "motivo": "el validador no devolvió un veredicto: You've hit your 5-hour limit · resets 2:10pm (America/Santiago)",
+      "costo_usd": 0.47
     },
     {
       "id": "BOLT-22",
