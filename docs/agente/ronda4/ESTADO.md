@@ -9,7 +9,7 @@ Rama `agent/ronda4` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-19` | `DEUDA-08` | Portada de sitio nuevo con titular | ✅ DONE | 302 | 0.66 |
 | `BOLT-20` | `SEC-08` | Un solo login y next validado | ✅ DONE | 309 | 0.48 |
 | `BOLT-21` | `CONS-04` | Borrar la edición inline pública (rutas legacy) | ❌ REJECTED |  | 0.47 |
-| `BOLT-22` | `SEC-06` | Credenciales SMTP/API cifradas en reposo | ⏳ TODO |  |  |
+| `BOLT-22` | `SEC-06` | Credenciales SMTP/API cifradas en reposo | ⛔ BLOCKED |  | 0 |
 | `BOLT-23` | `SEC-14` | Salidas sin escapar (mark_safe) y JSON-LD | ⏳ TODO |  |  |
 
 ## Revisar a mano en el PR
@@ -40,3 +40,4 @@ Rama `agent/ronda4` · generado por `orchestrate.py` (no editar a mano).
 ## Pendiente de tu decisión
 
 - `BOLT-21` (REJECTED): el validador no devolvió un veredicto: You've hit your 5-hour limit · resets 2:10pm (America/Santiago)
+- `BOLT-22` (BLOCKED): la sesión del agente falló: You've hit your 5-hour limit · resets 2:10pm (America/Santiago)

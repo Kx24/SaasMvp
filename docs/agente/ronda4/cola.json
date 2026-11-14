@@ -104,7 +104,7 @@
       "id": "BOLT-22",
       "maestra": "SEC-06",
       "titulo": "Credenciales SMTP/API cifradas en reposo",
-      "estado": "TODO",
+      "estado": "BLOCKED",
       "spec": "BOLT-22.md",
       "red_tests": [
         "apps.tenants.tests_encryption"
@@ -117,7 +117,9 @@
       ],
       "rutas_permitidas_extra": [
         "render.yaml"
-      ]
+      ],
+      "motivo": "la sesión del agente falló: You've hit your 5-hour limit · resets 2:10pm (America/Santiago)",
+      "costo_usd": 0
     },
     {
       "id": "BOLT-23",
