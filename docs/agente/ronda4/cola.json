@@ -68,12 +68,24 @@
       "id": "BOLT-20",
       "maestra": "SEC-08",
       "titulo": "Un solo login y next validado",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-20.md",
       "red_tests": [
         "apps.website.tests.test_login_next"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.48,
+      "tests": 309,
+      "hallazgos": [
+        "`apps/accounts/forms.py::LoginForm` quedó sin uso (código muerto); borrarlo en una card aparte.",
+        "El test de forgot_password probablemente no falla contra HEAD: su rojo inicial fue un 404 por falta de host en el test, no por el código. El red-check dio 4 fallos de 9, así que cumple igual."
+      ],
+      "revisar_humano": [
+        "Cambio de autenticación: `client_login` ahora redirige a `next`. Confirmar que un staff que llega con `next=/superadmin/` aterriza bien. Antes iba a `/superadmin/`; ahora va ahí solo si `next` es interno, y el login del admin sigue siendo `/superadmin/`.",
+        "Se borraron 3 tests de `apps/core/tests/test_logging_pii.py` (login sin dirección en el log, mensajes indistinguibles, helper). Confirmar que la cobertura equivalente de `client_login` es suficiente.",
+        "Se eliminó `templates/accounts/login.html` y los enlaces de recuperar contraseña apuntan ahora a `/auth/login/`. Probar a mano el flujo de recuperar contraseña.",
+        "El dev no corrió Playwright (lo hizo el gate: e2e pasó). La cifra de cobertura de `apps/accounts` (78 %) es del informe del dev."
+      ]
     },
     {
       "id": "BOLT-21",

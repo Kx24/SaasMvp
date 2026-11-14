@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
 
@@ -47,6 +48,18 @@ def _user_belongs_to_tenant(user, request):
     profile = getattr(user, 'profile', None)
 
     return client is not None and profile is not None and profile.client_id == client.id
+
+
+def _safe_next_url(request):
+    """`next` (querystring o POST) solo si es interno al host actual."""
+    next_url = request.GET.get('next') or request.POST.get('next') or ''
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return ''
 
 
 @never_cache
@@ -92,14 +105,11 @@ def client_login(request):
         if user is not None and _user_belongs_to_tenant(user, request):
             login(request, user)  # rota CSRF token + cicla sesión
 
-            if user.is_superuser or user.is_staff:
-                next_url = request.GET.get('next')
-                if next_url and 'superadmin' in next_url:
-                    return redirect('/superadmin/')
-                return redirect('home')
+            next_url = _safe_next_url(request)
 
-            messages.success(request, f'¡Bienvenido {user.username}!')
-            return redirect('home')
+            if not (user.is_superuser or user.is_staff):
+                messages.success(request, f'¡Bienvenido {user.username}!')
+            return redirect(next_url or 'home')
 
         # Genérico a propósito — no filtra existencia de usuario
         limiter.increment()  # solo los intentos FALLIDOS consumen cupo
@@ -107,6 +117,7 @@ def client_login(request):
 
     context = {
         'client': request.client if hasattr(request, 'client') else None,
+        'next': _safe_next_url(request),
     }
     return render(request, 'auth/login.html', context)
 

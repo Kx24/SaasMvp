@@ -80,7 +80,7 @@
 | Día | Bloque A | Bloque B |
 |---|---|---|
 | D2 | `SEC-06` Credenciales SMTP/API cifradas | `SEC-06` (continúa: migración de datos y clave en Render) |
-| D3 | `SEC-08` Un solo login (+ open redirect de `next`) | `CONS-04` Borrar rutas legacy |
+| D3 | `SEC-08` ✅ Un solo login (+ open redirect de `next`) | `CONS-04` Borrar rutas legacy |
 | D4 | `LEY-01` Consentimiento en contacto y onboarding | `LEY-01` Página de política de privacidad (contenidos del art. 14 ter) |
 | D5 | `SEC-14` + `SEC-17` ✅ Salidas sin escapar y comentarios DEBUG | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
 
@@ -156,7 +156,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `SEC-05b` | Restos de alcance en el admin | P3 | S | `list_filter` por `client` en `SEOConfigAdmin`/`UserProfileAdmin` lista los nombres de todos los clientes a un staff; el desplegable de `PaymentLog.order` no se restringe. Hallado por `BOLT-15` |
 | `SEC-06` | Credenciales cifradas en reposo | P0 | M | `smtp_password`/`api_key` cifrados (Fernet) con clave en variable de entorno + migración de datos; test: el valor en base no es el texto ingresado |
-| `SEC-08` | Un solo login | P1 | M | Resuelta la colisión `/auth/`; validar `next` con `url_has_allowed_host_and_scheme` (hoy `login_view` redirige a cualquier URL); `apps/accounts` ≥ 70 % de cobertura. Los métodos de invitación ya existen (`BOLT-12`) |
 | `SEC-10` | Dependencias | P0 | M | `pip-audit` en `requirements-dev.txt` y sin vulnerabilidades conocidas; Django en el último 5.2.x; `gunicorn` actualizado; fuera `djangorestframework` y herramientas de desarrollo de `requirements.txt`; misma versión de Python en Render y local |
 | `SEC-12` | Integración continua | P1 | M | GitHub Actions en cada push/PR: suite, aislamiento, `makemigrations --check`, `bandit -ll`, `pip-audit` |
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |

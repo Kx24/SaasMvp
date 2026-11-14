@@ -18,10 +18,8 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.messages.storage.fallback import FallbackStorage
-from django.contrib.sessions.middleware import SessionMiddleware
 from django.core import mail
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.core.logging_utils import email_ref
@@ -83,7 +81,7 @@ class EmailServiceLogsTests(TestCase):
 
 
 class AccountsViewsLogsTests(TestCase):
-    """`apps/accounts/views.py`: reset de contraseña (alcanzable) y login (§0.4: no se elimina)."""
+    """`apps/accounts/views.py`: reset de contraseña ."""
 
     HOST = 'logpii.test'
 
@@ -94,16 +92,6 @@ class AccountsViewsLogsTests(TestCase):
         Domain.objects.create(client=tenant, domain=cls.HOST, domain_type='custom',
                               is_primary=True, is_active=True, is_verified=True)
         cls.user = User.objects.create_user(username='titular7q', email=EMAIL, password='Clave-Correcta-123')
-
-    def _login_request(self, email, password):
-        from apps.accounts.views import login_view
-        request = RequestFactory().post('/auth/login/', {'email': email, 'password': password})
-        SessionMiddleware(lambda r: None).process_request(request)
-        request.session.save()
-        request.user = type('Anon', (), {'is_authenticated': False})()
-        setattr(request, '_messages', FallbackStorage(request))
-        response = login_view(request)
-        return response, [m.message for m in request._messages]
 
     def test_reset_for_existing_email_logs_no_address(self):
         with self.assertLogs('apps.accounts.views', level='INFO') as cm:
@@ -117,21 +105,6 @@ class AccountsViewsLogsTests(TestCase):
             response = self.client.post(reverse('accounts:forgot_password'), {'email': unknown}, HTTP_HOST=self.HOST)
         self.assertEqual(response.status_code, 302)
         self.assertNotIn(unknown, _joined(cm))
-
-    def test_failed_login_logs_no_address(self):
-        with self.assertLogs('apps.accounts.views', level='INFO') as cm:
-            self._login_request(EMAIL, 'incorrecta')
-        self.assertNotIn(EMAIL, _joined(cm))
-
-    def test_wrong_password_and_unknown_email_are_indistinguishable(self):
-        with self.assertLogs('apps.accounts.views', level='INFO') as cm_wrong:
-            _, msgs_wrong = self._login_request(EMAIL, 'incorrecta')
-        with self.assertLogs('apps.accounts.views', level='INFO') as cm_unknown:
-            _, msgs_unknown = self._login_request('no.existe.7q@example.com', 'incorrecta')
-        self.assertEqual(msgs_wrong, msgs_unknown)
-        # Mismo nivel y mismo texto salvo la referencia opaca del email.
-        strip = lambda out: [re.sub(r'email:[0-9a-f]+', 'email:X', line) for line in out]  # noqa: E731
-        self.assertEqual(strip(cm_wrong.output), strip(cm_unknown.output))
 
 
 # Nombres que, interpolados en un log, son un email.

@@ -5,13 +5,12 @@ Vistas de autenticación y gestión de cuenta.
 Incluye:
 - Configurar contraseña (post-onboarding)
 - Recuperar contraseña
-- Login/Logout
 """
 
 import logging
 
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -19,7 +18,7 @@ from django.shortcuts import redirect, render
 
 from apps.core.logging_utils import email_ref
 
-from .forms import LoginForm, RequestPasswordResetForm, SetPasswordForm
+from .forms import RequestPasswordResetForm, SetPasswordForm
 from .models import UserProfile
 
 logger = logging.getLogger(__name__)
@@ -138,77 +137,11 @@ def request_password_reset_view(request):
                 request, 
                 'Si el email existe en nuestro sistema, recibirás instrucciones para recuperar tu contraseña.'
             )
-            return redirect('accounts:login')
+            return redirect('client_login')
     else:
         form = RequestPasswordResetForm()
     
     return render(request, 'accounts/request_password_reset.html', {'form': form})
-
-
-def login_view(request):
-    """
-    Vista de login.
-    
-    URL: GET/POST /auth/login/
-    """
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    
-    next_url = request.GET.get('next', '')
-    
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        
-        if form.is_valid():
-            email = form.cleaned_data['email'].lower().strip()
-            password = form.cleaned_data['password']
-            
-            # Buscar usuario por email
-            try:
-                user = User.objects.get(email=email)
-                user = authenticate(request, username=user.username, password=password)
-                
-                if user is not None:
-                    login(request, user)
-                    
-                    # User.last_login ya lo actualiza login(); UserProfile no
-                    # tiene campo last_login_at (BOLT-12, hallazgo incidental).
-                    logger.info(f"[Auth] Login exitoso user_id={user.pk}")
-                    
-                    # Redirigir
-                    if next_url:
-                        return redirect(next_url)
-                    return redirect('dashboard')
-                else:
-                    messages.error(request, 'Email o contraseña incorrectos.')
-                    logger.warning(f"[Auth] Login fallido: {email_ref(email)}")
-
-            except User.DoesNotExist:
-                # Mismo mensaje y mismo log que contraseña incorrecta: no revelar
-                # si el email tiene cuenta (SEC-07).
-                messages.error(request, 'Email o contraseña incorrectos.')
-                logger.warning(f"[Auth] Login fallido: {email_ref(email)}")
-    else:
-        form = LoginForm()
-    
-    return render(request, 'accounts/login.html', {
-        'form': form,
-        'next': next_url
-    })
-
-
-def logout_view(request):
-    """
-    Cerrar sesión.
-    
-    URL: GET/POST /auth/logout/
-    """
-    if request.user.is_authenticated:
-        logger.info(f"[Auth] Logout user_id={request.user.pk}")
-        logout(request)
-        messages.success(request, 'Has cerrado sesión correctamente.')
-    
-    return redirect('accounts:login')
 
 
 @login_required
