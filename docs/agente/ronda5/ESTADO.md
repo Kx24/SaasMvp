@@ -11,7 +11,7 @@ Rama `agent/ronda5` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-28` | `CONS-06` | Camino único para objetos del tenant | ✅ DONE | 325 | 0.48 |
 | `BOLT-29` | `CONS-07` | Separar views.py por área | ✅ DONE | 329 | 0.66 |
 | `BOLT-30` | `SEC-12` | Integración continua con el gate | ✅ DONE | 333 | 0.34 |
-| `BOLT-31` | `CONS-02` | Documentación al día | ⏳ TODO |  |  |
+| `BOLT-31` | `CONS-02` | Documentación al día | ✅ DONE | 337 | 0.6 |
 
 ## Revisar a mano en el PR
 
@@ -36,6 +36,11 @@ Rama `agent/ronda5` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-30`: En CI el paso e2e del gatekeeper se omite solo, porque no hay archivos cambiados respecto de HEAD.
 - `BOLT-30`: El trigger push sin filtro de ramas más pull_request hacia develop/main ejecuta CI dos veces en ramas con PR abierto. Decide si te sirve.
 - `BOLT-30`: Python 3.11 resuelve al último parche, mientras que render.yaml fija 3.11.0.
+- `BOLT-31`: Revisar el texto de CLAUDE.md, que es el archivo de instrucciones del dueño: la sección "Git y PRs", la línea nueva 5 del arnés de TDD, la línea de `agent/*` y que se haya quitado la línea del manual MCP.
+- `BOLT-31`: README.md raíz reescrito: confirmar que los comandos de arranque (`npm install`, `cp .env.example .env`, `npm run build:css`) y la lista del stack (htmx, Playwright, Mercado Pago) son correctos.
+- `BOLT-31`: docs/CLOUDINARY.md: el dev reemplazó la mención de una página de uso web y del comando de migración por notas. Conviene confirmar que no se esperaba que esas funciones existieran.
+- `BOLT-31`: Actualizar a mano el skill `andesscale-saas` (Supabase → Neon) y las líneas obsoletas de Documentacion/INDEX.md.
+- `BOLT-31`: El dev no ejecutó el gatekeeper ni Playwright, pero el orquestador sí corrió el gate y pasó.
 
 ## Hallazgos incidentales
 
@@ -47,6 +52,9 @@ Rama `agent/ronda5` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-26`: El tope se aplica por created_at, no por la última actividad del mensaje, y no hay aviso previo al cliente antes de borrar mensajes new sin leer.
 - `BOLT-28`: apps/website/templatetags/website_tags.py:44 usa .objects.get( fuera del alcance de la guardia (solo cubre views.py); conviene revisar que filtre por tenant.
 - `BOLT-28`: El dev no buscó el mismo patrón (get_object_or_404 sin helper) en orders ni accounts, como pedía el spec; queda sin verificar.
+- `BOLT-31`: El skill `andesscale-saas` sigue diciendo Supabase (no editable por el agente, está en .claude/).
+- `BOLT-31`: Documentacion/INDEX.md (líneas 29 y 54) sigue diciendo que Documentacion/README.md "aún dice Supabase" y que CONS-02 está pendiente. Es un dato desfasado, y el spec no autorizaba editar ese archivo.
+- `BOLT-31`: El kanban no tiene sección HALLAZGOS donde registrar lo del skill; queda solo en este informe.
 
 ## Pendiente de tu decisión
 

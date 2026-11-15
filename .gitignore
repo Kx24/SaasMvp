@@ -18,6 +18,9 @@ db_production_test.sqlite3
 __pycache__/
 *.py[cod]
 *.pyc
+.coverage
+.coverage.*
+htmlcov/
 
 # ─── Node / Playwright (#TOOL-01) ───────────────────
 node_modules/

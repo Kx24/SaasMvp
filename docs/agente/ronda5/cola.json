@@ -155,7 +155,7 @@
       "id": "BOLT-31",
       "maestra": "CONS-02",
       "titulo": "Documentación al día",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-31.md",
       "red_tests": [
         "apps.core.tests.test_docs_drift"
@@ -163,6 +163,20 @@
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         "CLAUDE.md"
+      ],
+      "costo_usd": 0.6,
+      "tests": 337,
+      "hallazgos": [
+        "El skill `andesscale-saas` sigue diciendo Supabase (no editable por el agente, está en .claude/).",
+        "Documentacion/INDEX.md (líneas 29 y 54) sigue diciendo que Documentacion/README.md \"aún dice Supabase\" y que CONS-02 está pendiente. Es un dato desfasado, y el spec no autorizaba editar ese archivo.",
+        "El kanban no tiene sección HALLAZGOS donde registrar lo del skill; queda solo en este informe."
+      ],
+      "revisar_humano": [
+        "Revisar el texto de CLAUDE.md, que es el archivo de instrucciones del dueño: la sección \"Git y PRs\", la línea nueva 5 del arnés de TDD, la línea de `agent/*` y que se haya quitado la línea del manual MCP.",
+        "README.md raíz reescrito: confirmar que los comandos de arranque (`npm install`, `cp .env.example .env`, `npm run build:css`) y la lista del stack (htmx, Playwright, Mercado Pago) son correctos.",
+        "docs/CLOUDINARY.md: el dev reemplazó la mención de una página de uso web y del comando de migración por notas. Conviene confirmar que no se esperaba que esas funciones existieran.",
+        "Actualizar a mano el skill `andesscale-saas` (Supabase → Neon) y las líneas obsoletas de Documentacion/INDEX.md.",
+        "El dev no ejecutó el gatekeeper ni Playwright, pero el orquestador sí corrió el gate y pasó."
       ]
     }
   ]
