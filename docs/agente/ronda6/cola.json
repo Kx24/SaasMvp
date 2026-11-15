@@ -34,7 +34,20 @@
         "apps.website.tests.test_output_escaping"
       ],
       "permite_migracion": false,
-      "estado": "TODO"
+      "estado": "DONE",
+      "costo_usd": 0.71,
+      "tests": 349,
+      "hallazgos": [
+        "Documentacion/SEGURIDAD.md (líneas 20 y 35) sigue diciendo 21 avisos Medium para SEC-14; falta actualizarlo.",
+        "{{ section.content|safe }} en templates/partials/section_display.html sigue sin escapar el contenido que escribe el cliente; queda fuera del alcance de esta card.",
+        "_esc() en seo_tags.py no escapa & (no es explotable como XSS, pero el HTML resultante no es estricto)."
+      ],
+      "revisar_humano": [
+        "Confirmar que Playwright/e2e pase en CI o a mano: se toca el render de todas las páginas y el gate reportó e2e con ran=false.",
+        "El único mark_safe que queda (seo_tags.py:162, nosec B308 B703) depende de que _esc() se mantenga; revisar que la justificación escrita convenza.",
+        "Decidir si se abre card para el |safe de section_display.html y para actualizar SEGURIDAD.md.",
+        "Confirmar que el HTML de los tags de Cloudinary para entradas normales no cambió (por ejemplo el orden de atributos o los espacios del <video>)."
+      ]
     },
     {
       "id": "BOLT-24",

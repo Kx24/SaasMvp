@@ -109,7 +109,7 @@ def seo_tags(context, page_key="home"):
         tags.append(f'<meta name="keywords" content="{_esc(keywords)}">')
 
     # Robots
-    tags.append(f'<meta name="robots" content="{robots}">')
+    tags.append(f'<meta name="robots" content="{_esc(robots)}">')
 
     # Canonical
     if canonical:
@@ -148,11 +148,18 @@ def seo_tags(context, page_key="home"):
     # Schema.org JSON-LD
     if schema_data:
         schema_str = json.dumps(schema_data, ensure_ascii=False, indent=2)
+        # json.dumps no escapa "<", ">" ni "&": un valor con "</script>" cerraria el
+        # bloque. Los escapes \\uXXXX siguen siendo JSON valido.
+        schema_str = (
+            schema_str.replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
+        )
         tags.append(
             f'<script type="application/ld+json">\n{schema_str}\n</script>'
         )
 
-    return mark_safe("\n    ".join(tags))
+    # Seguro: cada valor variable pasa por _esc() y el JSON-LD por escapes
+    # unicode (arriba); no queda dato sin escapar dentro del HTML.
+    return mark_safe("\n    ".join(tags))  # nosec B308 B703
 
 
 def _esc(value):
