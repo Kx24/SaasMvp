@@ -4,7 +4,8 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from apps.accounts.decorators import tenant_member_required
+from apps.accounts.decorators import tenant_permission_required
+from apps.accounts.permissions import has_dashboard_permission
 from apps.core.template_resolver import render_tenant_template
 from apps.tenants.fonts import FONT_CHOICES
 from apps.tenants.forms import BrandingForm
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 # DASHBOARD PRINCIPAL
 # ============================================================
 
-@tenant_member_required
+@tenant_permission_required('view_dashboard')
 def dashboard(request):
     """
     Vista principal del dashboard.
@@ -40,9 +41,13 @@ def dashboard(request):
     total_sections = Section.objects.filter(client=client, is_active=True).count()
     
     # Contactos recientes (últimos 5)
-    recent_contacts = ContactSubmission.objects.filter(
-        client=client
-    ).order_by('-created_at')[:5]
+    # (datos personales de terceros: solo para roles con `view_contacts`)
+    if has_dashboard_permission(request.user, client, 'view_contacts'):
+        recent_contacts = ContactSubmission.objects.filter(
+            client=client
+        ).order_by('-created_at')[:5]
+    else:
+        recent_contacts = []
     
     context = {
         'client': client,
@@ -56,7 +61,7 @@ def dashboard(request):
     # Dashboard usa template del tenant si existe
     return render_tenant_template(request, 'dashboard/index.html', context)
 
-@tenant_member_required
+@tenant_permission_required('manage_branding')
 def dashboard_branding(request):
     """
     Vista de personalización: colores, logo, info empresa, redes sociales, SEO.
@@ -86,7 +91,7 @@ def dashboard_branding(request):
     return render(request, 'dashboard/branding.html', context)
 
 
-@tenant_member_required
+@tenant_permission_required('edit_content')
 def dashboard_portada(request):
     """
     Vista de Portada: imagen de fondo del hero default + toggle show_default_hero

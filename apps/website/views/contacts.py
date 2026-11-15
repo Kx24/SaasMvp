@@ -3,7 +3,7 @@ import logging
 from django.contrib import messages
 from django.shortcuts import redirect
 
-from apps.accounts.decorators import tenant_member_required
+from apps.accounts.decorators import tenant_permission_required
 from apps.core.template_resolver import render_tenant_template
 from apps.core.tenant_objects import tenant_object_or_404
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # DASHBOARD - CONTACTOS
 # ============================================================
 
-@tenant_member_required
+@tenant_permission_required('view_contacts')
 def dashboard_contacts(request):
     """Lista de mensajes de contacto"""
     contacts = ContactSubmission.objects.filter(
@@ -37,7 +37,7 @@ def dashboard_contacts(request):
     return render_tenant_template(request, 'dashboard/contacts.html', context)
 
 
-@tenant_member_required
+@tenant_permission_required('manage_contacts')
 def mark_contact_read(request, contact_id):
     """Marcar contacto como leído"""
     if request.method == 'POST':
@@ -48,7 +48,7 @@ def mark_contact_read(request, contact_id):
     return redirect('dashboard_contacts')
 
 
-@tenant_member_required
+@tenant_permission_required('manage_contacts')
 def mark_contact_replied(request, contact_id):
     """Marcar contacto como respondido"""
     if request.method == 'POST':

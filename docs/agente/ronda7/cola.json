@@ -53,12 +53,27 @@
       "id": "BOLT-35",
       "maestra": "DASH-04",
       "titulo": "Roles con efecto en el dashboard",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-35.md",
       "red_tests": [
         "apps.accounts.tests_dashboard_roles"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 1.09,
+      "tests": 404,
+      "hallazgos": [
+        "`templates/dashboard/gallery.html`: el `{% include ... with ... %}` multilínea del estado vacío no se renderiza y muestra la etiqueta cruda (preexistente, no tocado).",
+        "`dashboard_services` y `dashboard/services.html` parecen código muerto sin ruta. La vista sigue con `@tenant_member_required`.",
+        "El spec habla de 21 vistas, pero son 19 rutas más 2 alias de nombre (`create_service_dashboard`, `toggle_service`) que comparten función con otras vistas."
+      ],
+      "revisar_humano": [
+        "Matriz tal como quedó. `view_dashboard` (inicio, secciones, galería): owner, admin, editor y viewer. `view_contacts`, `edit_content` y `manage_contacts`: owner, admin y editor. `delete_content` (borrar servicios e imágenes) y `manage_branding`: owner y admin. Los 403 usan 'No tienes permiso para esta acción.'",
+        "Tests existentes que cambiaron de rol: ninguno. Los tests anteriores pasaron sin modificarse.",
+        "Decisión del dev fuera del spec: el panel 'Últimos contactos' del inicio se oculta, y no se consulta, para roles sin `view_contacts`. Los contadores agregados siguen visibles.",
+        "Cambio de permisos y de settings: nuevo context processor `apps.accounts.context_processors.dashboard_permissions` en `config/settings/base.py`.",
+        "El rojo confirmado es solo por ImportError (falta `apps.accounts.permissions`). No hay un rojo conductual aparte.",
+        "Revisar en el navegador que los botones de editar, borrar, marca y mensajes se oculten bien con un `viewer` y con un `editor`."
+      ]
     }
   ]
 }

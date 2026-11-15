@@ -134,6 +134,7 @@
 
             <p class="px-3 pt-4 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Contenido</p>
 
+{% if dash_perms.manage_branding %}
             <a href="{% url 'dashboard_branding' %}"
             class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
                     {% if request.resolver_match.url_name == 'dashboard_branding' %}active{% endif %}">
@@ -143,7 +144,9 @@
                 </svg>
                 Personalizar
             </a>
+{% endif %}
 
+{% if dash_perms.edit_content %}
             <a href="{% url 'dashboard_portada' %}"
             class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
                     {% if request.resolver_match.url_name == 'dashboard_portada' %}active{% endif %}
@@ -157,6 +160,7 @@
                 <span class="ml-auto text-xs text-slate-300">Off</span>
                 {% endif %}
             </a>
+{% endif %}
 
             <a href="{% url 'dashboard_gallery' %}"
             class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
@@ -182,6 +186,7 @@
                 Secciones
             </a>
 
+{% if dash_perms.view_contacts %}
             <a href="{% url 'dashboard_contacts' %}"
             class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
                     {% if 'contacts' in request.path %}active{% endif %}">
@@ -196,6 +201,7 @@
                 </span>
                 {% endif %}
             </a>
+{% endif %}
         </nav>
 
         <!-- User Footer -->

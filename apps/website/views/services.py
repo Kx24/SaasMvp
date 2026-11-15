@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect
 
-from apps.accounts.decorators import tenant_member_required
+from apps.accounts.decorators import tenant_member_required, tenant_permission_required
 from apps.core.template_resolver import render_tenant_template
 from apps.core.tenant_objects import tenant_object_or_404
 
@@ -33,7 +33,7 @@ def dashboard_services(request):
     return render_tenant_template(request, 'dashboard/services.html', context)
 
 
-@tenant_member_required
+@tenant_permission_required('edit_content')
 def create_service_dashboard(request):
     """Crear servicio desde dashboard"""
     if request.method == 'POST':
@@ -71,7 +71,7 @@ def create_service_dashboard(request):
     return render_tenant_template(request, 'dashboard/edit_service.html', context)
 
 
-@tenant_member_required
+@tenant_permission_required('edit_content')
 def edit_service_dashboard(request, service_id):
     """Editar servicio desde dashboard"""
     service = tenant_object_or_404(request, Service, id=service_id)
@@ -137,7 +137,7 @@ def edit_service_dashboard(request, service_id):
     return render_tenant_template(request, 'dashboard/edit_service.html', context)
 
 
-@tenant_member_required
+@tenant_permission_required('delete_content')
 def delete_service_dashboard(request, service_id):
     """Eliminar servicio desde dashboard"""
     service = tenant_object_or_404(request, Service, id=service_id)
@@ -155,7 +155,7 @@ def delete_service_dashboard(request, service_id):
     return render_tenant_template(request, 'dashboard/service_confirm_delete.html', context)
 
 
-@tenant_member_required
+@tenant_permission_required('edit_content')
 def toggle_service(request, service_id):
     """Activar / desactivar un servicio"""
     service = tenant_object_or_404(request, Service, id=service_id)
@@ -169,7 +169,7 @@ def toggle_service(request, service_id):
     })
 
 
-@tenant_member_required
+@tenant_permission_required('edit_content')
 def toggle_service_featured(request, service_id):
     """Destacar / quitar destacado de un servicio"""
     service = tenant_object_or_404(request, Service, id=service_id)
@@ -183,7 +183,7 @@ def toggle_service_featured(request, service_id):
     })
 
 
-@tenant_member_required
+@tenant_permission_required('edit_content')
 def reorder_services(request):
     """Reordenar servicios (drag & drop)"""
     if request.method == 'POST':

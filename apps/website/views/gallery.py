@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from apps.accounts.decorators import tenant_member_required
+from apps.accounts.decorators import tenant_permission_required
 from apps.core.tenant_objects import tenant_object_or_404
 
 from ..forms import GalleryItemForm
@@ -28,7 +28,7 @@ def _gallery_item_redirect_url(item):
     return reverse('dashboard_gallery')
 
 
-@tenant_member_required
+@tenant_permission_required('view_dashboard')
 def dashboard_gallery(request):
     """
     Vista de galería de imágenes del sitio.
@@ -67,7 +67,7 @@ def dashboard_gallery(request):
     return render(request, 'dashboard/gallery.html', context)
  
  
-@tenant_member_required
+@tenant_permission_required('edit_content')
 def gallery_item_add(request):
     """
     Subir nueva imagen. Maneja image manualmente via Cloudinary —
@@ -169,7 +169,7 @@ def gallery_item_add(request):
     return redirect(redirect_url)
  
  
-@tenant_member_required
+@tenant_permission_required('edit_content')
 def gallery_item_edit(request, item_id):
     client = request.client
     item = tenant_object_or_404(request, GalleryItem, id=item_id)
@@ -222,7 +222,7 @@ def gallery_item_edit(request, item_id):
     return render(request, 'dashboard/gallery_item_edit.html', context)
  
  
-@tenant_member_required
+@tenant_permission_required('delete_content')
 def gallery_item_delete(request, item_id):
     """
     Eliminar ítem. Protege imágenes default contra eliminación.
@@ -242,7 +242,7 @@ def gallery_item_delete(request, item_id):
     return redirect('dashboard_gallery')
  
  
-@tenant_member_required
+@tenant_permission_required('edit_content')
 def gallery_item_toggle(request, item_id):
     """
     Activar/desactivar ítem.

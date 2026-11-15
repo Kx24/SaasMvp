@@ -118,6 +118,7 @@
                 <div class="flex items-center gap-1 flex-shrink-0">
 
                     {# Toggle activo #}
+{% if dash_perms.edit_content %}
                     <form method="post" action="{% url 'gallery_item_toggle' item.id %}">
                         {% csrf_token %}
                         <button type="submit"
@@ -139,8 +140,10 @@
                             {% endif %}
                         </button>
                     </form>
+{% endif %}
 
                     {# Editar #}
+{% if dash_perms.edit_content %}
                     <a href="{% url 'gallery_item_edit' item.id %}"
                        title="Editar"
                        class="p-1.5 rounded-lg hover:bg-slate-200 transition-colors
@@ -150,8 +153,10 @@
                                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
                     </a>
+{% endif %}
 
                     {# Eliminar #}
+{% if dash_perms.delete_content %}
                     <form method="post"
                           action="{% url 'gallery_item_delete' item.id %}"
                           onsubmit="return confirm('¿Eliminar esta imagen?')">
@@ -166,6 +171,7 @@
                             </svg>
                         </button>
                     </form>
+{% endif %}
 
                 </div>
             </div>
@@ -179,6 +185,7 @@
 
         {# Formulario de subida #}
         {% if not hero_at_limit %}
+{% if dash_perms.edit_content %}
         <form method="post"
               action="{% url 'gallery_item_add' %}"
               enctype="multipart/form-data"
@@ -233,6 +240,7 @@
                 </button>
             </div>
         </form>
+{% endif %}
         {% else %}
         <div class="border-t border-slate-100 pt-5">
             <p class="text-xs text-amber-600 text-center">

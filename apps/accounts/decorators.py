@@ -15,6 +15,8 @@ import functools
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 
+from apps.accounts.permissions import has_dashboard_permission
+
 
 def tenant_member_required(view_func):
     """
@@ -44,3 +46,23 @@ def tenant_member_required(view_func):
         return view_func(request, *args, **kwargs)
 
     return login_required(login_url='/auth/login/')(_check_tenant_membership)
+
+
+def tenant_permission_required(action):
+    """
+    Como ``tenant_member_required`` (login, tenant, 403) y además exige que
+    el rol del usuario permita ``action`` según ``DASHBOARD_PERMISSIONS``.
+    """
+
+    def decorator(view_func):
+        @functools.wraps(view_func)
+        def _check_permission(request, *args, **kwargs):
+            if not has_dashboard_permission(request.user, request.client, action):
+                return HttpResponseForbidden('No tienes permiso para esta acción.')
+            return view_func(request, *args, **kwargs)
+
+        wrapped = tenant_member_required(_check_permission)
+        wrapped.required_permission = action
+        return wrapped
+
+    return decorator

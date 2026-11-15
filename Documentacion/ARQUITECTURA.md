@@ -55,7 +55,7 @@ Sin uso real hoy (candidatos a retirar, `SEC-10`): `djangorestframework`, `djang
 |---|---|---|
 | `apps/tenants` | Quién es el cliente: resolución por dominio, marca, configuración, alta de tenants | `middleware.py`, `template_loader.py`, `managers.py`, `fonts.py`, `templatetags/seo_tags.py`, comandos de provisioning |
 | `apps/website` | Contenido del sitio y dashboard del cliente | `models.py`, `views.py` (1.099 líneas, a separar en `CONS-07`), `forms.py`, `auth_views.py` |
-| `apps/accounts` | Perfil de usuario ↔ tenant, roles, invitación/contraseña | `models.py::UserProfile`, `decorators.py::tenant_member_required`, `mixins.py::TenantAdminMixin` |
+| `apps/accounts` | Perfil de usuario ↔ tenant, roles, invitación/contraseña | `models.py::UserProfile`, `decorators.py::tenant_member_required`/`tenant_permission_required`, `permissions.py`, `mixins.py::TenantAdminMixin` |
 | `apps/orders` | Planes, checkout, webhook, onboarding post-pago, correo | `models.py`, `views.py`, `views_onboarding.py`, `services/` |
 | `apps/marketing` | SEO por página, `sitemap.xml`, `robots.txt`, verificación de Google | `models.py::SEOConfig`, `views_robots.py` |
 | `apps/core` | Utilidades transversales | `cloudinary_utils.py`, `rate_limit.py`, `template_resolver.py`, `models.py::EmailOutbox` |
@@ -90,14 +90,27 @@ EmailOutbox  (cola global, sin FK a Client)
 | `website.Service` | Servicio ofrecido | `name`, `slug` (único por cliente), `description`, `icon`, `image`, `price_text`, `order`, `is_featured` | — |
 | `website.GalleryItem` | Imagen de una galería | `section` **o** `service` (exactamente uno), `image`, `title`, `caption`, `cta_*`, `order` | — |
 | `website.ContactSubmission` | Mensaje recibido por el formulario | `status`, `is_spam`, `source` | **Nombre, email, teléfono, empresa, mensaje, IP, user-agent** |
-| `accounts.UserProfile` | Une un `User` con su tenant | `client`, `role` (`owner`/`admin`/`editor`, hoy sin efecto, `DASH-04`), `invitation_token` | Vía `User`: email, nombre |
+| `accounts.UserProfile` | Une un `User` con su tenant | `client`, `role` (`owner`/`admin`/`editor`/`viewer`, con efecto en el dashboard), `invitation_token` | Vía `User`: email, nombre |
 | `orders.Plan` | Plan comercial | `price`, `renewal_price`, `features`, `available_themes`, `max_*`, `has_*` | — |
 | `orders.Order` | Compra de un plan | `order_number`, `status`, `mp_*`, `onboarding_token`, `client` (se llena al crear el sitio) | **Email, nombre, teléfono, RUT, razón social, dirección, IP** |
 | `orders.PaymentLog` | Bitácora de eventos de pago | `action`, `status`, `raw_data` | **IP y payload crudo del pago** |
 | `marketing.SEOConfig` | SEO por página | `page_key`, `title`, `meta_description`, `og_image`, `schema_json`, verificación | — |
 | `core.EmailOutbox` | Correos pendientes/enviados | `status`, `attempts`, `html_content` | **Destinatario y cuerpo completo**, sin purga (`LEY-03`) |
 
-**Aislamiento:** no hay filtro automático por tenant. `TenantAwareManager` solo ofrece `for_client(client)`; cada vista debe filtrar. Dashboard: `tenant_member_required`. Admin: `TenantAdminMixin` (aplicado solo en `apps/website/admin.py`, ver `SEC-05`).
+**Aislamiento:** no hay filtro automático por tenant. `TenantAwareManager` solo ofrece `for_client(client)`; cada vista debe filtrar. Dashboard: `tenant_permission_required(acción)` (envuelve a `tenant_member_required`). Admin: `TenantAdminMixin` (aplicado solo en `apps/website/admin.py`, ver `SEC-05`).
+
+**Autorización por rol en el dashboard (`DASH-04`).** Fuente única: `apps/accounts/permissions.py::DASHBOARD_PERMISSIONS`; las vistas la aplican con `tenant_permission_required(acción)` y las plantillas consultan `dash_perms` (context processor). Superuser siempre pasa; sin perfil, de otro tenant o con rol desconocido: 403. Ocultar un botón es comodidad; el 403 es la defensa.
+
+| Acción | Vistas | owner | admin | editor | viewer |
+|---|---|---|---|---|---|
+| `view_dashboard` | `dashboard`, `dashboard_sections`, `dashboard_gallery` | ✔ | ✔ | ✔ | ✔ |
+| `view_contacts` | `dashboard_contacts` | ✔ | ✔ | ✔ | ✘ |
+| `edit_content` | `edit_section_dashboard`, `create_service`, `edit_service_dashboard`, `toggle_service_active`, `toggle_service_featured`, `reorder_services`, `gallery_item_add`, `gallery_item_edit`, `gallery_item_toggle`, `dashboard_portada` | ✔ | ✔ | ✔ | ✘ |
+| `manage_contacts` | `mark_contact_read`, `mark_contact_replied` | ✔ | ✔ | ✔ | ✘ |
+| `delete_content` | `delete_service_dashboard`, `gallery_item_delete` | ✔ | ✔ | ✘ | ✘ |
+| `manage_branding` | `dashboard_branding` | ✔ | ✔ | ✘ | ✘ |
+
+La gestión de usuarios (invitar, cambiar roles) aún no existe en el dashboard; cuando se construya queda reservada a `owner`.
 
 ## 5. Temas, componentes y página pública
 
@@ -128,4 +141,4 @@ EmailOutbox  (cola global, sin FK a Client)
 
 ## 8. Limitaciones conocidas (enlazadas al kanban)
 
-Composición de página fija por tema (`CONS-08`, `MOD-02`) · sin modelo de medios ni video (`MOD-01`) · subida de archivos de a uno y por el servidor (`MOD-01`) · roles sin efecto (`DASH-04`) · cache y rate limiter en memoria del proceso (`OPS-05`) · sin crons en Render (`OPS-06`) · sin backups con restore probado (`DB-02`) · hallazgos de seguridad en [`SEGURIDAD.md`](SEGURIDAD.md).
+Composición de página fija por tema (`CONS-08`, `MOD-02`) · sin modelo de medios ni video (`MOD-01`) · subida de archivos de a uno y por el servidor (`MOD-01`) · cache y rate limiter en memoria del proceso (`OPS-05`) · sin crons en Render (`OPS-06`) · sin backups con restore probado (`DB-02`) · hallazgos de seguridad en [`SEGURIDAD.md`](SEGURIDAD.md).

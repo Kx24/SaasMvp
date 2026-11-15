@@ -33,7 +33,6 @@
 | `SEC-13` | P1 | `/superadmin/` sin segundo factor y fuera del rate limiter propio | `config/urls.py:16`; `RateLimiter` solo en `client_login` | Fuerza bruta contra la cuenta con más privilegios |
 | `SEC-09` | P2 (bloqueada) | `/checkout/` excluido de la CSP | `security_headers.py` | Requiere sandbox real de MercadoPago |
 | `SEC-14` | P2 | 21 avisos Medium de bandit por `mark_safe`; el JSON-LD de `seo_tags.py` no escapa `</`; `{{ section.content\|safe }}` en parciales legados | `apps/website/templatetags/cloudinary_tags.py`, `apps/tenants/templatetags/seo_tags.py:154`, `templates/partials/section_display.html` | XSS almacenado si un cliente escribe HTML en un campo que termina sin escapar |
-| `DASH-04` | P2 | Roles `owner`/`admin`/`editor` sin efecto | `can_edit: True` fijo en `apps/website/views.py` | Sin mínimo privilegio dentro de un tenant |
 | `OPS-05` | P3 | Rate limiter sobre cache en memoria del proceso | `apps/core/rate_limit.py` | Se reinicia en cada deploy y no se comparte entre procesos |
 | `SEC-15` | P2 | No hay runbook de incidentes ni política de rotación de secretos | — | Respuesta improvisada ante una brecha |
 | `DB-02` | P1 | Sin backup con restore probado | — | Pérdida de datos irrecuperable |
@@ -90,7 +89,7 @@ Greps útiles: `csrf_exempt` (solo los 2 webhooks), `mark_safe` y `|safe`, `logg
 
 - [ ] Suite completa y suite de aislamiento en verde; `makemigrations --check` limpio.
 - [ ] `bandit -ll` sin High nuevos; `pip-audit` sin vulnerabilidades conocidas.
-- [ ] Toda vista nueva del dashboard usa `tenant_member_required` y filtra por `request.client`; todo `ModelAdmin` nuevo con datos de clientes usa `TenantAdminMixin`.
+- [ ] Toda vista nueva del dashboard usa `tenant_permission_required(acción)` (matriz en `ARQUITECTURA.md`, `DASH-04`) y filtra por `request.client`; todo `ModelAdmin` nuevo con datos de clientes usa `TenantAdminMixin`.
 - [ ] Ninguna variable nueva con secretos fuera de `Inventario_Secretos.md`; nada de datos personales en logs.
 - [ ] Formularios nuevos que capturan datos personales: consentimiento y enlace a la política.
 - [ ] Smoke test post-deploy: login por tenant, login cruzado rechazado, formulario de contacto.

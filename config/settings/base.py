@@ -136,6 +136,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.tenants.context_processors.client_context',
+                'apps.accounts.context_processors.dashboard_permissions',
             ],
             'loaders': [
                 # 1. Templates por tenant

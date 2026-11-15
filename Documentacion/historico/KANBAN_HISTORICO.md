@@ -30,6 +30,7 @@
 | `SEC-05b` (cierre) | Desplegables FK del admin restringidos al tenant del staff no superuser (`TenantAdminMixin.formfield_for_foreignkey`; cubre `PaymentLog.order`) | 2026-11-14 | `BOLT-32` |
 | `SEC-06` | `smtp_password` y `api_key` de `ClientEmailSettings` cifradas en reposo con `MultiFernet` (`EncryptedTextField`, clave `FIELD_ENCRYPTION_KEY`, producción falla al importar sin ella), migración de datos reversible y admin que no devuelve el secreto | 2026-11-14 | `BOLT-22` |
 | `SEC-10` | Dependencias al día: Django 5.2.6→5.2.19, gunicorn 21.2.0→27.0.1, pillow 11→13, certifi/idna/requests/sqlparse/urllib3 actualizados; fuera DRF e `ipython`/`django-extensions` (ahora en `requirements-dev.txt` con `pip-audit`); `pip-audit` limpio | 2026-11-15 | `BOLT-27` |
+| `DASH-04` | Roles con efecto en el dashboard: matriz única `DASHBOARD_PERMISSIONS` (`apps/accounts/permissions.py`) aplicada con `tenant_permission_required` en las vistas del dashboard; `viewer` solo lectura y sin mensajes, `editor` no borra ni cambia la marca; la interfaz oculta lo no permitido (`dash_perms`) | 2026-11-15 | `BOLT-35` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
 

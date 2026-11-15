@@ -89,7 +89,7 @@
 |---|---|---|
 | D6 | `DB-02` Backup de Neon con restore probado (+ `DB-03`) | `SEC-12` ✅ Integración continua con el gate |
 | D7 | `CONS-02` ✅ Documentación al día (Neon, `CLAUDE.md`, README) | `DEUDA-08` ✅ Portada sin titular por defecto |
-| D8 | `CONS-06` ✅ `TenantOwnedMixin` | `DASH-04` Roles con efecto |
+| D8 | `CONS-06` ✅ `TenantOwnedMixin` | `DASH-04` ✅ Roles con efecto |
 | D9 | `SEC-05b` ✅ + `DEUDA-06` ✅ Restos del admin y código muerto | `CONS-07` ✅ Separar `views.py` |
 | D10 | `CONS-08` Registro de módulos (opción A) | `CONS-08` (continúa) |
 | D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
@@ -144,7 +144,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `DASH-01` | Navegación por tareas | P1 | M | Inicio (estado del sitio + qué sigue) · Publicar · Mensajes · Mi sitio · Ajustes, generado desde el registro |
 | `DASH-02` | Flujo "Publicar" mobile-first | P1 | XL (~4 d) | Grilla de medios tipo Instagram sobre `MOD-01`. Una persona no técnica publica sin ayuda; probado con Servelec |
 | `DASH-03` | Interacción con htmx | P2 | L | Guardar, ocultar y reordenar sin recargar; estados vacíos y de error. Servicios como patrón |
-| `DASH-04` | Roles con efecto | P2 | M | Matriz `owner`/`admin`/`editor` × acción, testeada (hoy `can_edit: True` fijo) |
 | `DASH-05` | Tests del dashboard | P2 | M | Guardar sección, subir, reordenar; a11y de Playwright extendida al dashboard; `apps/accounts` deja de tener 0 tests |
 
 ### `SEC` — Ciberseguridad (detalle y evidencia en `SEGURIDAD.md`)
