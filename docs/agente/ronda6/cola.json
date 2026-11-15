@@ -11,7 +11,19 @@
         "apps.website.tests.test_legacy_routes_removed"
       ],
       "permite_migracion": false,
-      "estado": "TODO"
+      "estado": "DONE",
+      "costo_usd": 0.59,
+      "tests": 341,
+      "hallazgos": [
+        "La vista dashboard_services en views/services.py sigue exportada, pero no tiene ruta en urls.py. Es código muerto previo a esta card.",
+        "El grep 'dashboard_services' del DoD sigue encontrando la función Python en apps/. Ya no hay ningún `{% url %}` que la use.",
+        "Los cambios de formato en views/__init__.py y test_views_package.py dejaron líneas largas que ruff acepta. Conviene ordenarlas."
+      ],
+      "revisar_humano": [
+        "El dev cambió el Cancelar de service_confirm_delete.html a 'dashboard_sections' porque no hay ruta de listado de servicios. Confirmar que ese destino es el correcto.",
+        "Confirmar que la vista delete_service_dashboard renderiza service_confirm_delete.html y que el cambio de template es intencional. Se vio en el diff de services.py.",
+        "Mirar a mano en el navegador el flujo de borrado de un servicio desde el dashboard."
+      ]
     },
     {
       "id": "BOLT-23",

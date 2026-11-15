@@ -83,6 +83,7 @@
 | `CONS-06` | Helper `tenant_object_or_404` (`apps/core/tenant_objects.py`): único camino para objetos del tenant en `apps/website/views.py`, con guardia estática en tests | 2026-11-14 | `BOLT-28` |
 | `CONS-07` | `apps/website/views.py` separado en el paquete `apps/website/views/` (public, sections, services, gallery, contacts, branding, `_shared`; ninguno >400 líneas), con re-exports en `__init__` y nombres de URL congelados en test | 2026-11-14 | `BOLT-29` |
 | `CONS-02` | Documentación al día: `CLAUDE.md` con Neon, sin MCP de GitHub y con la ejecución agéntica enlazada; `README.md` raíz reescrito corto; `docs/CLOUDINARY.md` corregido; `.coverage`/`htmlcov/` ignorados; guardia `test_docs_drift` | 2026-11-14 | `BOLT-31` |
+| `CONS-04` | Edición inline pública eliminada (7 rutas, vistas, 6 templates legacy); `delete_service_dashboard` renderizaba un template inexistente (`dashboard/delete_service.html`) y ahora usa `service_confirm_delete.html` con el `{% url %}` corregido | 2026-11-14 | `BOLT-21` |
 
 ## Rancho Cachimba (en pausa — rama `feature/RanchocachimbaEtapa1`)
 

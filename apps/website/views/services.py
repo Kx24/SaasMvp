@@ -2,11 +2,11 @@ import json
 import logging
 
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.http import JsonResponse
+from django.shortcuts import redirect
 
 from apps.accounts.decorators import tenant_member_required
-from apps.core.template_resolver import get_tenant_template, render_tenant_template
+from apps.core.template_resolver import render_tenant_template
 from apps.core.tenant_objects import tenant_object_or_404
 
 from ..forms import ServiceForm
@@ -152,7 +152,7 @@ def delete_service_dashboard(request, service_id):
         'client': request.client,
         'service': service,
     }
-    return render_tenant_template(request, 'dashboard/delete_service.html', context)
+    return render_tenant_template(request, 'dashboard/service_confirm_delete.html', context)
 
 
 @tenant_member_required
@@ -203,94 +203,6 @@ def reorder_services(request):
     return JsonResponse({
         'success': False,
         'message': 'Método no permitido'
-    })
-
-
-@tenant_member_required
-def edit_service(request, service_id):
-    """Editar servicio con HTMX"""
-    service = tenant_object_or_404(request, Service, id=service_id)
-    
-    if request.method == 'POST':
-        form = ServiceForm(request.POST, instance=service)
-        if form.is_valid():
-            form.save()
-            
-            if request.headers.get('HX-Request'):
-                template = get_tenant_template(request, 'partials/service_card.html')
-                return render(request, template, {
-                    'service': service,
-                    'can_edit': True
-                })
-            
-            messages.success(request, 'Servicio actualizado correctamente')
-            return redirect('home')
-    else:
-        form = ServiceForm(instance=service)
-    
-    template = get_tenant_template(request, 'partials/service_edit.html')
-    return render(request, template, {
-        'form': form,
-        'service': service
-    })
-
-
-@tenant_member_required
-def add_service(request):
-    """Agregar servicio con HTMX"""
-    if request.method == 'POST':
-        form = ServiceForm(request.POST)
-        if form.is_valid():
-            service = form.save(commit=False)
-            service.client = request.client
-            service.save()
-            
-            if request.headers.get('HX-Request'):
-                template = get_tenant_template(request, 'partials/service_card.html')
-                return render(request, template, {
-                    'service': service,
-                    'can_edit': True
-                })
-            
-            messages.success(request, 'Servicio creado correctamente')
-            return redirect('home')
-    else:
-        form = ServiceForm()
-    
-    template = get_tenant_template(request, 'partials/service_add.html')
-    return render(request, template, {
-        'form': form
-    })
-
-
-@tenant_member_required
-def delete_service(request, service_id):
-    """Eliminar servicio con HTMX"""
-    service = tenant_object_or_404(request, Service, id=service_id)
-    
-    if request.method == 'POST':
-        service.delete()
-        
-        if request.headers.get('HX-Request'):
-            return HttpResponse('')
-        
-        messages.success(request, 'Servicio eliminado correctamente')
-        return redirect('home')
-    
-    template = get_tenant_template(request, 'partials/service_delete_confirm.html')
-    return render(request, template, {
-        'service': service
-    })
-
-
-@tenant_member_required
-def cancel_edit_service(request, service_id):
-    """Cancelar edición de servicio"""
-    service = tenant_object_or_404(request, Service, id=service_id)
-    template = get_tenant_template(request, 'partials/service_card.html')
-    return render(request, template, {
-        'service': service,
-        'can_edit': True
     })
 
 

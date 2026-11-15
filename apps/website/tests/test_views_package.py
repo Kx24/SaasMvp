@@ -7,12 +7,10 @@ from django.test import SimpleTestCase
 from apps.website import auth_urls, urls
 
 URL_NAMES = [
-    'add_service', 'cancel_edit_section', 'cancel_edit_service', 'contact_submit',
+    'contact_submit',
     'create_service', 'dashboard', 'dashboard_branding', 'dashboard_contacts',
-    'dashboard_gallery', 'dashboard_portada', 'dashboard_sections', 'delete_service',
-    'delete_service_dashboard', 'edit_section', 'edit_section_dashboard', 'edit_service',
-    'edit_service_dashboard', 'gallery_item_add', 'gallery_item_delete', 'gallery_item_edit',
-    'gallery_item_toggle', 'home', 'login_modal', 'mark_contact_read', 'mark_contact_replied',
+    'dashboard_gallery', 'dashboard_portada', 'dashboard_sections', 'delete_service_dashboard', 'edit_section_dashboard', 'edit_service_dashboard', 'gallery_item_add', 'gallery_item_delete', 'gallery_item_edit',
+    'gallery_item_toggle', 'home', 'mark_contact_read', 'mark_contact_replied',
     'reorder_services', 'toggle_service_active', 'toggle_service_featured',
 ]
 AUTH_URL_NAMES = ['client_login', 'client_logout']
