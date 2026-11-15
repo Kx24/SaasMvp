@@ -28,6 +28,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY environment variable is required in production")
 
+# Cifrado de credenciales en reposo (#SEC-06): sin clave derivada en producción.
+if not FIELD_ENCRYPTION_KEYS:
+    raise ValueError("FIELD_ENCRYPTION_KEY environment variable is required in production")
+
 # ==============================================================================
 # DOMINIOS — FUENTE ÚNICA DE VERDAD (CSRF-04)
 # ==============================================================================

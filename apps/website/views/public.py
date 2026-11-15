@@ -200,12 +200,3 @@ def contact_submit(request):
     # Fallback — redirect clásico
     messages.success(request, success_message)
     return redirect('home')
-
-
-# ============================================================
-# LOGIN MODAL (HTMX)
-# ============================================================
-
-def login_modal(request):
-    """Devuelve el modal de login para HTMX."""
-    return render(request, 'auth/login_modal.html')

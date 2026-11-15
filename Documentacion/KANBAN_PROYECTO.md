@@ -74,15 +74,15 @@
 ### Fase 0 — Cerrar lo pendiente (D1)
 | Día | Bloque A | Bloque B |
 |---|---|---|
-| D1 | `CONS-01` Push de `develop` + smoke test de producción | `SEC-10` Dependencias al día + `pip-audit` |
+| D1 | `CONS-01` Push de `develop` + smoke test de producción | `SEC-10` ✅ Dependencias al día + `pip-audit` |
 
 ### Fase 1 — Seguridad y ley mínima (D2–D5, antes del 1-dic-2026)
 | Día | Bloque A | Bloque B |
 |---|---|---|
-| D2 | `SEC-06` Credenciales SMTP/API cifradas | `SEC-06` (continúa: migración de datos y clave en Render) |
-| D3 | `SEC-08` ✅ Un solo login (+ open redirect de `next`) | `CONS-04` Borrar rutas legacy |
+| D2 | `SEC-06` ✅ Credenciales SMTP/API cifradas | `SEC-06` ✅ (continúa: migración de datos y clave en Render) |
+| D3 | `SEC-08` ✅ Un solo login (+ open redirect de `next`) | `CONS-04` ✅ Borrar rutas legacy |
 | D4 | `LEY-01` Consentimiento en contacto y onboarding | `LEY-01` Página de política de privacidad (contenidos del art. 14 ter) |
-| D5 | `SEC-14` + `SEC-17` ✅ Salidas sin escapar y comentarios DEBUG | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
+| D5 | `SEC-14` ✅ + `SEC-17` ✅ Salidas sin escapar y comentarios DEBUG | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
 
 ### Fase 2 — Consolidación (D6–D11, diciembre)
 | Día | Bloque A | Bloque B |
@@ -90,7 +90,7 @@
 | D6 | `DB-02` Backup de Neon con restore probado (+ `DB-03`) | `SEC-12` ✅ Integración continua con el gate |
 | D7 | `CONS-02` ✅ Documentación al día (Neon, `CLAUDE.md`, README) | `DEUDA-08` ✅ Portada sin titular por defecto |
 | D8 | `CONS-06` ✅ `TenantOwnedMixin` | `DASH-04` Roles con efecto |
-| D9 | `SEC-05b` + `DEUDA-06` ✅ Restos del admin y código muerto | `CONS-07` ✅ Separar `views.py` |
+| D9 | `SEC-05b` ✅ + `DEUDA-06` ✅ Restos del admin y código muerto | `CONS-07` ✅ Separar `views.py` |
 | D10 | `CONS-08` Registro de módulos (opción A) | `CONS-08` (continúa) |
 | D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
 
@@ -123,7 +123,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
-| `CONS-04` | Borrar rutas y vistas legacy | P1 | M | Fuera la edición inline pública (`edit_section`, `edit_service`, `add_service`, `delete_service`, `login_modal`, `templates/partials/section_*`/`service_*`); queda solo la versión de dashboard. **Bug a confirmar:** `service_confirm_delete.html` usa `{% url 'dashboard_services' %}` y esa ruta no existe |
 | `CONS-08` | Registro de módulos (opción A) | P1 | L | Clase `Module` + registro: nombre, flag, límites, URLs, entrada de menú, componente público. Galería, contacto y servicios declarados como módulos |
 | `CONS-09` | Menú del dashboard generado desde el registro | P1 | M | Un módulo desactivado no aparece en el menú ni responde en su URL |
 
@@ -151,11 +150,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `SEC` — Ciberseguridad (detalle y evidencia en `SEGURIDAD.md`)
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `SEC-05b` | Restos de alcance en el admin | P3 | S | `list_filter` por `client` en `SEOConfigAdmin`/`UserProfileAdmin` lista los nombres de todos los clientes a un staff; el desplegable de `PaymentLog.order` no se restringe. Hallado por `BOLT-15` |
-| `SEC-06` | Credenciales cifradas en reposo | P0 | M | `smtp_password`/`api_key` cifrados (Fernet) con clave en variable de entorno + migración de datos; test: el valor en base no es el texto ingresado |
-| `SEC-10` | Dependencias | P0 | M | `pip-audit` en `requirements-dev.txt` y sin vulnerabilidades conocidas; Django en el último 5.2.x; `gunicorn` actualizado; fuera `djangorestframework` y herramientas de desarrollo de `requirements.txt`; misma versión de Python en Render y local |
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
-| `SEC-14` | Salidas sin escapar | P2 | M | Revisados los 21 avisos de `mark_safe`; JSON-LD escapa `</`; `bandit` en 0 Medium o justificados |
 | `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |
 
 ### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`)

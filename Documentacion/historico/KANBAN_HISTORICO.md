@@ -25,6 +25,11 @@
 | `SEC-17` | Comentarios `<!-- DEBUG -->` eliminados del HTML público (`media_collection.html` y `servelec/components/hero.html`); guardia estática + render por tema | 2026-11-14 | `BOLT-17` |
 | `SEC-08` | Un solo login: `client_login` respeta `next` solo si es interno (`url_has_allowed_host_and_scheme`); eliminados `login_view`/`logout_view` de `apps/accounts` y sus rutas | 2026-11-14 | `BOLT-20` |
 | `SEC-12` | Integración continua: GitHub Actions con el gate estricto, aislamiento, ruff completo y `pip-audit`; permisos mínimos y sin secretos | 2026-11-14 | `BOLT-30` |
+| `SEC-14` | Salidas sin escapar: 11 `mark_safe` de `cloudinary_tags.py` reemplazados por `format_html`/`format_html_join` y el JSON-LD de `seo_tags.py` escapa `<`, `>`, `&`; queda 1 `mark_safe` justificado con `# nosec` (HTML ya escapado con `_esc()`); `bandit -ll` en 0 | 2026-11-14 | `BOLT-23` |
+| `SEC-05b` (parcial) | Filtro lateral `client` de `UserProfileAdmin`/`SEOConfigAdmin` oculto a staff no superuser (`TenantAdminMixin.get_list_filter`); queda el desplegable de `PaymentLog.order` | 2026-11-14 | `BOLT-24` |
+| `SEC-05b` (cierre) | Desplegables FK del admin restringidos al tenant del staff no superuser (`TenantAdminMixin.formfield_for_foreignkey`; cubre `PaymentLog.order`) | 2026-11-14 | `BOLT-32` |
+| `SEC-06` | `smtp_password` y `api_key` de `ClientEmailSettings` cifradas en reposo con `MultiFernet` (`EncryptedTextField`, clave `FIELD_ENCRYPTION_KEY`, producción falla al importar sin ella), migración de datos reversible y admin que no devuelve el secreto | 2026-11-14 | `BOLT-22` |
+| `SEC-10` | Dependencias al día: Django 5.2.6→5.2.19, gunicorn 21.2.0→27.0.1, pillow 11→13, certifi/idna/requests/sqlparse/urllib3 actualizados; fuera DRF e `ipython`/`django-extensions` (ahora en `requirements-dev.txt` con `pip-audit`); `pip-audit` limpio | 2026-11-15 | `BOLT-27` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
 
@@ -83,6 +88,7 @@
 | `CONS-06` | Helper `tenant_object_or_404` (`apps/core/tenant_objects.py`): único camino para objetos del tenant en `apps/website/views.py`, con guardia estática en tests | 2026-11-14 | `BOLT-28` |
 | `CONS-07` | `apps/website/views.py` separado en el paquete `apps/website/views/` (public, sections, services, gallery, contacts, branding, `_shared`; ninguno >400 líneas), con re-exports en `__init__` y nombres de URL congelados en test | 2026-11-14 | `BOLT-29` |
 | `CONS-02` | Documentación al día: `CLAUDE.md` con Neon, sin MCP de GitHub y con la ejecución agéntica enlazada; `README.md` raíz reescrito corto; `docs/CLOUDINARY.md` corregido; `.coverage`/`htmlcov/` ignorados; guardia `test_docs_drift` | 2026-11-14 | `BOLT-31` |
+| `CONS-04` | Edición inline pública eliminada (7 rutas, vistas, 6 templates legacy); `delete_service_dashboard` renderizaba un template inexistente (`dashboard/delete_service.html`) y ahora usa `service_confirm_delete.html` con el `{% url %}` corregido | 2026-11-14 | `BOLT-21` |
 
 ## Rancho Cachimba (en pausa — rama `feature/RanchocachimbaEtapa1`)
 

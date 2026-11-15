@@ -22,8 +22,7 @@
 # =============================================================================
 
 from django import template
-from django.utils.html import escape
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html, format_html_join
 
 from apps.core.cloudinary_utils import (
     BREAKPOINTS,
@@ -43,13 +42,13 @@ register = template.Library()
 # HELPERS INTERNOS
 # =============================================================================
 
-def _build_attrs(attrs: dict) -> str:
-    """Convierte un dict de atributos HTML en string seguro."""
-    parts = []
-    for key, value in attrs.items():
-        if value is not None and value != '':
-            parts.append(f'{escape(key)}="{escape(str(value))}"')
-    return ' '.join(parts)
+def _build_attrs(attrs: dict):
+    """Convierte un dict de atributos HTML en SafeString (nombre y valor escapados)."""
+    return format_html_join(
+        ' ', '{}="{}"',
+        ((key, str(value)) for key, value in attrs.items()
+         if value is not None and value != ''),
+    )
 
 
 # =============================================================================
@@ -91,14 +90,17 @@ def cloudinary_img(image, preset='thumbnail', alt='', css_class='',
         {% cloudinary_img section.image 'hero' alt='Banner' css_class='w-full' loading='eager' %}
         {% cloudinary_img service.image 'service_card' alt=service.name css_class='rounded-lg' %}
     """
-    placeholder = f'<img src="/static/img/placeholder.jpg" alt="{escape(alt)}" class="{escape(css_class)}" loading="{loading}">'
+    placeholder = format_html(
+        '<img src="/static/img/placeholder.jpg" alt="{}" class="{}" loading="{}">',
+        alt, css_class, loading,
+    )
 
     if not image:
-        return mark_safe(placeholder)
+        return placeholder
 
     url = get_cloudinary_url(image, preset)
     if not url:
-        return mark_safe(placeholder)
+        return placeholder
 
     # Obtener dimensiones del preset para evitar CLS
     preset_config = CLOUDINARY_PRESETS.get(preset, {})
@@ -115,7 +117,7 @@ def cloudinary_img(image, preset='thumbnail', alt='', css_class='',
         **extra_attrs,
     }
 
-    return mark_safe(f'<img {_build_attrs(attrs)}>')
+    return format_html('<img {}>', _build_attrs(attrs))
 
 
 @register.simple_tag
@@ -150,20 +152,19 @@ def cloudinary_picture(image, preset='hero', alt='', css_class='', loading='lazy
           <img src="...desktop_url..." alt="..." class="..." loading="lazy" width="..." height="...">
         </picture>
     """
-    placeholder = (
-        f'<picture>'
-        f'<img src="/static/img/placeholder.jpg" alt="{escape(alt)}" '
-        f'class="{escape(css_class)}" loading="{loading}">'
-        f'</picture>'
+    placeholder = format_html(
+        '<picture><img src="/static/img/placeholder.jpg" alt="{}" '
+        'class="{}" loading="{}"></picture>',
+        alt, css_class, loading,
     )
 
     if not image:
-        return mark_safe(placeholder)
+        return placeholder
 
     urls = get_srcset_urls(image, preset)
 
     if not any([urls['mobile'], urls['tablet'], urls['desktop']]):
-        return mark_safe(placeholder)
+        return placeholder
 
     # Fallback: desktop o el que exista
     fallback_url = urls['desktop'] or urls['tablet'] or urls['mobile']
@@ -176,13 +177,15 @@ def cloudinary_picture(image, preset='hero', alt='', css_class='', loading='lazy
     sources = []
 
     if urls['mobile']:
-        sources.append(
-            f'<source media="(max-width: {BREAKPOINTS["mobile"]}px)" srcset="{urls["mobile"]}">'
-        )
+        sources.append(format_html(
+            '<source media="(max-width: {}px)" srcset="{}">',
+            BREAKPOINTS['mobile'], urls['mobile'],
+        ))
     if urls['tablet']:
-        sources.append(
-            f'<source media="(max-width: {BREAKPOINTS["tablet"]}px)" srcset="{urls["tablet"]}">'
-        )
+        sources.append(format_html(
+            '<source media="(max-width: {}px)" srcset="{}">',
+            BREAKPOINTS['tablet'], urls['tablet'],
+        ))
 
     img_attrs = _build_attrs({
         'src':     fallback_url,
@@ -193,14 +196,11 @@ def cloudinary_picture(image, preset='hero', alt='', css_class='', loading='lazy
         'height':  img_height,
     })
 
-    html = (
-        '<picture>'
-        + ''.join(sources)
-        + f'<img {img_attrs}>'
-        + '</picture>'
+    return format_html(
+        '<picture>{}<img {}></picture>',
+        format_html_join('', '{}', ((src,) for src in sources)),
+        img_attrs,
     )
-
-    return mark_safe(html)
 
 
 @register.simple_tag
@@ -257,11 +257,11 @@ def cloudinary_video(video, preset='web_hd', poster_image=None,
         {% cloudinary_video section.video poster_image=section.image %}
     """
     if not video:
-        return mark_safe('')
+        return ''
 
     sources = get_video_sources(video)
     if not sources:
-        return mark_safe('')
+        return ''
 
     # Poster: imagen provista o thumbnail del video
     if poster_image:
@@ -287,19 +287,15 @@ def cloudinary_video(video, preset='web_hd', poster_image=None,
         'poster': poster_url or '',
     })
 
-    sources_html = '\n    '.join(
-        f'<source src="{escape(s["url"])}" type="{escape(s["type"])}">'
-        for s in sources
+    sources_html = format_html_join(
+        '\n    ', '<source src="{}" type="{}">',
+        ((s['url'], s['type']) for s in sources),
     )
 
-    html = (
-        f'<video {video_attrs} {" ".join(bool_attrs)}>\n'
-        f'    {sources_html}\n'
-        f'    Tu navegador no soporta el elemento video.\n'
-        f'</video>'
+    return format_html(
+        '<video {} {}>\n    {}\n    Tu navegador no soporta el elemento video.\n</video>',
+        video_attrs, ' '.join(bool_attrs), sources_html,
     )
-
-    return mark_safe(html)
 
 
 @register.simple_tag
@@ -333,24 +329,23 @@ def cloudinary_embed(url, title='Video', css_class='', aspect_ratio='16/9'):
         </div>
     """
     if not url:
-        return mark_safe('')
+        return ''
 
     wrapper_class = f'relative w-full overflow-hidden {css_class}'.strip()
 
-    html = (
-        f'<div class="{escape(wrapper_class)}" style="aspect-ratio: {escape(aspect_ratio)}">'
-        f'<iframe '
-        f'src="{escape(url)}" '
-        f'title="{escape(title)}" '
-        f'class="absolute inset-0 w-full h-full border-0" '
-        f'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" '
-        f'allowfullscreen '
-        f'loading="lazy">'
-        f'</iframe>'
-        f'</div>'
+    return format_html(
+        '<div class="{}" style="aspect-ratio: {}">'
+        '<iframe '
+        'src="{}" '
+        'title="{}" '
+        'class="absolute inset-0 w-full h-full border-0" '
+        'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" '
+        'allowfullscreen '
+        'loading="lazy">'
+        '</iframe>'
+        '</div>',
+        wrapper_class, aspect_ratio, url, title,
     )
-
-    return mark_safe(html)
 
 
 # =============================================================================

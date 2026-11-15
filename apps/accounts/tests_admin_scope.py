@@ -118,6 +118,46 @@ class AdminTenantScopeTests(TestCase):
         self.assertNotContains(response, '11.111.111-1', status_code=response.status_code)
 
 
+class AdminClientFilterScopeTests(TestCase):
+    """BOLT-24 (SEC-05b): el filtro lateral `client` no lista otros tenants."""
+
+    CHANGELISTS = ('admin:accounts_userprofile_changelist', 'admin:marketing_seoconfig_changelist')
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.a = _tenant('filtro-a')
+        cls.b = _tenant('filtro-b')
+        cls.staff_a = User.objects.create_user(username='staff_filtro', password='x', is_staff=True)
+        UserProfile.objects.filter(user=cls.staff_a).update(client=cls.a, role='admin')
+        cls.staff_a.user_permissions.set(Permission.objects.filter(
+            codename__regex=r'^(view|change)_',
+            content_type__app_label__in=['marketing', 'accounts']))
+        cls.root = User.objects.create_superuser(username='root_filtro', password='x', email='rf@x.test')
+
+    def test_staff_changelist_does_not_list_other_client_name(self):
+        self.client.force_login(self.staff_a)
+        for name in self.CHANGELISTS:
+            with self.subTest(changelist=name):
+                response = self.client.get(reverse(name), HTTP_HOST='localhost')
+                self.assertEqual(response.status_code, 200)
+                self.assertNotContains(response, self.b.name)
+
+    def test_staff_has_no_client_filter(self):
+        request = RequestFactory().get('/superadmin/')
+        request.user = User.objects.get(pk=self.staff_a.pk)
+        for model in (UserProfile, SEOConfig):
+            with self.subTest(model=model.__name__):
+                self.assertNotIn('client', admin.site._registry[model].get_list_filter(request))
+
+    def test_superuser_still_sees_client_filter(self):
+        self.client.force_login(self.root)
+        for name in self.CHANGELISTS:
+            with self.subTest(changelist=name):
+                response = self.client.get(reverse(name), HTTP_HOST='localhost')
+                self.assertContains(response, self.a.name)
+                self.assertContains(response, self.b.name)
+
+
 class InternalTenantViewsTests(TestCase):
     """/superadmin/nuevo/ (alta de tenant) y /tenants/ (lista de todos los clientes)."""
 
@@ -139,3 +179,37 @@ class InternalTenantViewsTests(TestCase):
         for name in ('superadmin_onboarding', 'tenant_list'):
             with self.subTest(view=name):
                 self.assertEqual(self.client.get(reverse(name), HTTP_HOST='localhost').status_code, 200)
+
+
+class AdminForeignKeyScopeTests(TestCase):
+    """BOLT-32 (SEC-05b): los desplegables FK no ofrecen filas de otros tenants."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.a = _tenant('fk-a')
+        cls.b = _tenant('fk-b')
+        plan = Plan.objects.create(name='Plan FK', slug='plan-fk', price=Decimal('100000'))
+        cls.order_a = Order.objects.create(plan=plan, client=cls.a, email='fk@a.test',
+                                           amount=Decimal('100000'))
+        cls.order_b = Order.objects.create(plan=plan, client=cls.b, email='fk@b.test',
+                                           amount=Decimal('100000'))
+        cls.staff_a = User.objects.create_user(username='staff_fk', password='x', is_staff=True)
+        UserProfile.objects.filter(user=cls.staff_a).update(client=cls.a, role='admin')
+        cls.root = User.objects.create_superuser(username='root_fk', password='x', email='fk@x.test')
+
+    def _order_field_queryset(self, user):
+        request = RequestFactory().get('/superadmin/')
+        request.user = User.objects.get(pk=user.pk)
+        model_admin = admin.site._registry[PaymentLog]
+        db_field = PaymentLog._meta.get_field('order')
+        return model_admin.formfield_for_foreignkey(db_field, request).queryset
+
+    def test_staff_order_dropdown_excludes_other_tenant(self):
+        qs = self._order_field_queryset(self.staff_a)
+        self.assertIn(self.order_a, qs)
+        self.assertNotIn(self.order_b, qs)
+
+    def test_superuser_order_dropdown_lists_all(self):
+        qs = self._order_field_queryset(self.root)
+        self.assertIn(self.order_a, qs)
+        self.assertIn(self.order_b, qs)

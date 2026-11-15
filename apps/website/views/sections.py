@@ -1,10 +1,10 @@
 import logging
 
 from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 
 from apps.accounts.decorators import tenant_member_required
-from apps.core.template_resolver import get_tenant_template, render_tenant_template
+from apps.core.template_resolver import render_tenant_template
 from apps.core.tenant_objects import tenant_object_or_404
 
 from ..forms import SectionForm
@@ -90,47 +90,3 @@ def edit_section_dashboard(request, section_id):
         'form': form,
     }
     return render_tenant_template(request, 'dashboard/edit_section.html', context)
-
-
-# ============================================================
-# EDICIÓN INLINE (HTMX)
-# ============================================================
-
-@tenant_member_required
-def edit_section(request, section_id):
-    """Editar sección con HTMX"""
-    section = tenant_object_or_404(request, Section, id=section_id)
-    
-    if request.method == 'POST':
-        form = SectionForm(request.POST, instance=section)
-        if form.is_valid():
-            form.save()
-            
-            if request.headers.get('HX-Request'):
-                template = get_tenant_template(request, 'partials/section_display.html')
-                return render(request, template, {
-                    'section': section,
-                    'can_edit': True
-                })
-            
-            messages.success(request, 'Sección actualizada correctamente')
-            return redirect('home')
-    else:
-        form = SectionForm(instance=section)
-    
-    template = get_tenant_template(request, 'partials/section_edit.html')
-    return render(request, template, {
-        'form': form,
-        'section': section
-    })
-
-
-@tenant_member_required
-def cancel_edit_section(request, section_id):
-    """Cancelar edición de sección"""
-    section = tenant_object_or_404(request, Section, id=section_id)
-    template = get_tenant_template(request, 'partials/section_display.html')
-    return render(request, template, {
-        'section': section,
-        'can_edit': True
-    })
