@@ -6,11 +6,47 @@ Incluye:
 - DomainAdmin
 - Admins individuales para cada configuración
 """
+from django import forms
 from django.contrib import admin
 
 from apps.accounts.mixins import TenantAdminMixin
 
 from .models import Client, ClientEmailSettings, ClientSettings, Domain, FormConfig
+
+
+class ClientEmailSettingsForm(forms.ModelForm):
+    """
+    #SEC-06: las credenciales nunca vuelven al navegador (render_value=False)
+    y un envío vacío conserva el valor guardado en vez de borrarlo.
+    """
+    smtp_password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        label='Contraseña SMTP',
+        help_text='Se guarda cifrada. Déjala vacía para conservar la actual.',
+    )
+    api_key = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        label='API key',
+        help_text='Se guarda cifrada. Déjala vacía para conservar la actual.',
+    )
+
+    class Meta:
+        model = ClientEmailSettings
+        fields = '__all__'
+
+    def _keep_stored(self, name):
+        value = self.cleaned_data.get(name, '')
+        if not value and self.instance.pk:
+            return getattr(self.instance, name)
+        return value
+
+    def clean_smtp_password(self):
+        return self._keep_stored('smtp_password')
+
+    def clean_api_key(self):
+        return self._keep_stored('api_key')
 
 # ==============================================================================
 # INLINES
@@ -82,6 +118,7 @@ class ClientSettingsInline(admin.StackedInline):
 class ClientEmailSettingsInline(admin.StackedInline):
     """Inline para configuración de email."""
     model = ClientEmailSettings
+    form = ClientEmailSettingsForm
     extra = 0
     max_num = 1
     can_delete = False
@@ -339,6 +376,7 @@ class ClientSettingsAdmin(TenantAdminMixin, admin.ModelAdmin):
 @admin.register(ClientEmailSettings)
 class ClientEmailSettingsAdmin(TenantAdminMixin, admin.ModelAdmin):
     """Admin standalone para ClientEmailSettings."""
+    form = ClientEmailSettingsForm
     list_display = ['client', 'provider', 'notify_mode', 'is_active']
     list_filter = ['provider', 'notify_mode', 'is_active']
     search_fields = ['client__name']

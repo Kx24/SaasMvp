@@ -28,6 +28,7 @@
 | `SEC-14` | Salidas sin escapar: 11 `mark_safe` de `cloudinary_tags.py` reemplazados por `format_html`/`format_html_join` y el JSON-LD de `seo_tags.py` escapa `<`, `>`, `&`; queda 1 `mark_safe` justificado con `# nosec` (HTML ya escapado con `_esc()`); `bandit -ll` en 0 | 2026-11-14 | `BOLT-23` |
 | `SEC-05b` (parcial) | Filtro lateral `client` de `UserProfileAdmin`/`SEOConfigAdmin` oculto a staff no superuser (`TenantAdminMixin.get_list_filter`); queda el desplegable de `PaymentLog.order` | 2026-11-14 | `BOLT-24` |
 | `SEC-05b` (cierre) | Desplegables FK del admin restringidos al tenant del staff no superuser (`TenantAdminMixin.formfield_for_foreignkey`; cubre `PaymentLog.order`) | 2026-11-14 | `BOLT-32` |
+| `SEC-06` | `smtp_password` y `api_key` de `ClientEmailSettings` cifradas en reposo con `MultiFernet` (`EncryptedTextField`, clave `FIELD_ENCRYPTION_KEY`, producción falla al importar sin ella), migración de datos reversible y admin que no devuelve el secreto | 2026-11-14 | `BOLT-22` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
 

@@ -79,7 +79,7 @@
 ### Fase 1 — Seguridad y ley mínima (D2–D5, antes del 1-dic-2026)
 | Día | Bloque A | Bloque B |
 |---|---|---|
-| D2 | `SEC-06` Credenciales SMTP/API cifradas | `SEC-06` (continúa: migración de datos y clave en Render) |
+| D2 | `SEC-06` ✅ Credenciales SMTP/API cifradas | `SEC-06` ✅ (continúa: migración de datos y clave en Render) |
 | D3 | `SEC-08` ✅ Un solo login (+ open redirect de `next`) | `CONS-04` ✅ Borrar rutas legacy |
 | D4 | `LEY-01` Consentimiento en contacto y onboarding | `LEY-01` Página de política de privacidad (contenidos del art. 14 ter) |
 | D5 | `SEC-14` ✅ + `SEC-17` ✅ Salidas sin escapar y comentarios DEBUG | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
@@ -150,7 +150,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `SEC` — Ciberseguridad (detalle y evidencia en `SEGURIDAD.md`)
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `SEC-06` | Credenciales cifradas en reposo | P0 | M | `smtp_password`/`api_key` cifrados (Fernet) con clave en variable de entorno + migración de datos; test: el valor en base no es el texto ingresado |
 | `SEC-10` | Dependencias | P0 | M | `pip-audit` en `requirements-dev.txt` y sin vulnerabilidades conocidas; Django en el último 5.2.x; `gunicorn` actualizado; fuera `djangorestframework` y herramientas de desarrollo de `requirements.txt`; misma versión de Python en Render y local |
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
 | `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |

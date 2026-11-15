@@ -105,7 +105,16 @@
       "rutas_permitidas_extra": [
         "render.yaml"
       ],
-      "estado": "TODO"
+      "estado": "DONE",
+      "costo_usd": 1.43,
+      "tests": 367,
+      "hallazgos": [],
+      "revisar_humano": [
+        "ANTES DE DESPLEGAR: CREAR FIELD_ENCRYPTION_KEY EN RENDER (producción no arranca sin ella) y guardar una copia fuera de Render: perderla deja las credenciales ilegibles.",
+        "Migraciones 0028 y 0029 (datos): revisar contra Neon antes del deploy. El reverso deja las credenciales en texto plano.",
+        "Admin: ClientEmailSettingsForm con PasswordInput y conservación del valor vacío. Probarlo a mano en /superadmin/, incluido el inline dentro de Client.",
+        "Dependencia nueva cryptography==50.0.2 en requirements.txt: confirmar que la versión se instala en Render."
+      ]
     },
     {
       "id": "BOLT-27",

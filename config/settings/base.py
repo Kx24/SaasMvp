@@ -25,6 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+# Cifrado de campos en reposo (#SEC-06): una o más claves Fernet separadas por
+# coma; la primera cifra, todas descifran (rotación sin downtime).
+FIELD_ENCRYPTION_KEYS = [
+    k.strip() for k in os.environ.get('FIELD_ENCRYPTION_KEY', '').split(',') if k.strip()
+]
+
 # =============================================================================
 # MULTI-TENANT CONFIGURATION
 # =============================================================================

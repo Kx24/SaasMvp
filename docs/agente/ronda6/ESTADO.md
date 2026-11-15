@@ -8,7 +8,7 @@ Rama `agent/ronda6` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-23` | `SEC-14` | Salidas sin escapar (mark_safe) y JSON-LD | ✅ DONE | 349 | 0.71 |
 | `BOLT-24` | `SEC-05b` | Filtros por cliente en el admin | ✅ DONE | 352 | 0.38 |
 | `BOLT-32` | `SEC-05b` | Desplegable de PaymentLog.order por tenant | ✅ DONE | 354 | 0.4 |
-| `BOLT-22` | `SEC-06` | Credenciales SMTP/API cifradas en reposo | ⏳ TODO |  |  |
+| `BOLT-22` | `SEC-06` | Credenciales SMTP/API cifradas en reposo | ✅ DONE | 367 | 1.43 |
 | `BOLT-27` | `SEC-10` | Dependencias al día y pip-audit | ⏳ TODO |  |  |
 
 ## Revisar a mano en el PR
@@ -24,6 +24,10 @@ Rama `agent/ronda6` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-24`: El `TenantAdminMixin` local de `apps/website/admin.py` no se tocó, como pedía el spec. No se comparó su comportamiento con el de `accounts`, así que su `get_list_filter` sigue sin cubrir.
 - `BOLT-32`: Un staff sin tenant asignado ahora recibe `none()` en todos los FKs hacia modelos con `client`. Antes veía todas las filas. Confirmar que eso es lo que se quiere.
 - `BOLT-32`: La regla aplica a todos los admins que usan TenantAdminMixin. Probar a mano en /superadmin/ con un staff de tenant que los formularios con FKs a modelos con `client` sigan funcionando.
+- `BOLT-22`: ANTES DE DESPLEGAR: CREAR FIELD_ENCRYPTION_KEY EN RENDER (producción no arranca sin ella) y guardar una copia fuera de Render: perderla deja las credenciales ilegibles.
+- `BOLT-22`: Migraciones 0028 y 0029 (datos): revisar contra Neon antes del deploy. El reverso deja las credenciales en texto plano.
+- `BOLT-22`: Admin: ClientEmailSettingsForm con PasswordInput y conservación del valor vacío. Probarlo a mano en /superadmin/, incluido el inline dentro de Client.
+- `BOLT-22`: Dependencia nueva cryptography==50.0.2 en requirements.txt: confirmar que la versión se instala en Render.
 
 ## Hallazgos incidentales
 
