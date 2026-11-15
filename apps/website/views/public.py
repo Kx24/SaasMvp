@@ -1,7 +1,8 @@
 import logging
 
+from django.conf import settings
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 
 from apps.core.logging_utils import email_ref
@@ -51,6 +52,25 @@ def home(request):
     
     # ✅ Usar template del tenant
     return render_tenant_template(request, 'landing/home.html', context)
+
+
+def privacy_policy(request):
+    """Política de privacidad vigente (LEY-01). Pública, sin login."""
+    client = request.client
+    if client is None:
+        raise Http404('Sin tenant')
+    site_settings = client.settings
+    context = {
+        'company': client.company_name or client.name,
+        'contact_email': site_settings.contact_email,
+        'contact_phone': site_settings.contact_phone,
+        'address': site_settings.address,
+        'retention_days': settings.CONTACT_MAX_RETENTION_DAYS,
+        'version': settings.PRIVACY_POLICY_VERSION,
+        'version_date': settings.PRIVACY_POLICY_DATE,
+        'is_platform': client.slug == settings.PLATFORM_TENANT_SLUG,
+    }
+    return render_tenant_template(request, 'legal/privacy.html', context)
 
 
 # ============================================================

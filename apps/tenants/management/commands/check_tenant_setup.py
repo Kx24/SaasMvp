@@ -144,7 +144,18 @@ class Command(BaseCommand):
         self._check_email(client, failures)
         self._check_seo(client, failures)
         self._check_sections(client, failures)
+        self._check_privacy_contact(client)
         return failures
+
+    def _check_privacy_contact(self, client):
+        site_settings = getattr(client, 'settings', None)
+        if site_settings is not None and site_settings.contact_email:
+            self.stdout.write('[OK]   Correo de contacto para derechos de privacidad')
+        else:
+            self.stdout.write(self.style.WARNING(
+                '[WARN] ClientSettings.contact_email vacío: la política de privacidad '
+                'exige un canal para ejercer derechos.'
+            ))
 
     def _check_theme(self, client, failures):
         # Misma lógica de resolución que TenantTemplateLoader

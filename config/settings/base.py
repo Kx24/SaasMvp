@@ -408,3 +408,9 @@ SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='soporte@andesscale.cl')
 # Tope legal de conservacion de mensajes de contacto (Ley 21.719 art. 14 d, LEY-03).
 # Maximo duro para todo tenant activo, con o sin auto_purge_enabled.
 CONTACT_MAX_RETENTION_DAYS = 365
+
+# Politica de privacidad vigente (LEY-01). Subir la version al cambiar el texto legal.
+PRIVACY_POLICY_VERSION = '2026-12-01'
+PRIVACY_POLICY_DATE = '1 de diciembre de 2026'
+# Slug del tenant de la plataforma (AndesScale es responsable, no encargado).
+PLATFORM_TENANT_SLUG = config('PLATFORM_TENANT_SLUG', default='andesscale')

@@ -232,6 +232,7 @@ Ubicación: templates/partials/contact_form_dynamic.html
     {% if form_config.privacy_text %}
     <p class="text-xs text-slate-500 text-center">
         {{ form_config.privacy_text }}
+        <a href="{% url 'privacy_policy' %}" class="underline">Política de privacidad</a>
     </p>
     {% endif %}
 </form>

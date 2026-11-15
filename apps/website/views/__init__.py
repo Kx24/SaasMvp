@@ -14,7 +14,7 @@ from .gallery import (
     gallery_item_edit,
     gallery_item_toggle,
 )
-from .public import contact_submit, home
+from .public import contact_submit, home, privacy_policy
 from .sections import dashboard_sections, edit_section_dashboard
 from .services import (
     create_service,
@@ -34,6 +34,6 @@ __all__ = [
     'dashboard_contacts', 'dashboard_gallery', 'dashboard_portada', 'dashboard_sections',
     'dashboard_services', 'delete_service_dashboard', 'edit_section_dashboard', 'edit_service_dashboard', 'gallery_item_add',
     'gallery_item_delete', 'gallery_item_edit', 'gallery_item_toggle', 'get_client_ip',
-    'home', 'mark_contact_read', 'mark_contact_replied', 'reorder_services',
+    'home', 'mark_contact_read', 'mark_contact_replied', 'privacy_policy', 'reorder_services',
     'toggle_service', 'toggle_service_active', 'toggle_service_featured',
 ]

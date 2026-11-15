@@ -13,6 +13,7 @@ urlpatterns = [
     # PÁGINA PRINCIPAL
     # ============================================================
     path('', views.home, name='home'),
+    path('privacidad/', views.privacy_policy, name='privacy_policy'),
 
     
     # ============================================================

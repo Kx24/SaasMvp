@@ -11,7 +11,7 @@ URL_NAMES = [
     'create_service', 'dashboard', 'dashboard_branding', 'dashboard_contacts',
     'dashboard_gallery', 'dashboard_portada', 'dashboard_sections', 'delete_service_dashboard', 'edit_section_dashboard', 'edit_service_dashboard', 'gallery_item_add', 'gallery_item_delete', 'gallery_item_edit',
     'gallery_item_toggle', 'home', 'mark_contact_read', 'mark_contact_replied',
-    'reorder_services', 'toggle_service_active', 'toggle_service_featured',
+    'privacy_policy', 'reorder_services', 'toggle_service_active', 'toggle_service_featured',
 ]
 AUTH_URL_NAMES = ['client_login', 'client_logout']
 AREA_MODULES = ['public', 'sections', 'services', 'gallery', 'contacts', 'branding']
