@@ -81,9 +81,6 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'django.contrib.sitemaps',
     
-    # Third party
-    'django_extensions',
-    
     # Local apps
     'apps.core',
     'apps.tenants',

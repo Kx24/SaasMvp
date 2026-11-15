@@ -74,7 +74,7 @@
 ### Fase 0 — Cerrar lo pendiente (D1)
 | Día | Bloque A | Bloque B |
 |---|---|---|
-| D1 | `CONS-01` Push de `develop` + smoke test de producción | `SEC-10` Dependencias al día + `pip-audit` |
+| D1 | `CONS-01` Push de `develop` + smoke test de producción | `SEC-10` ✅ Dependencias al día + `pip-audit` |
 
 ### Fase 1 — Seguridad y ley mínima (D2–D5, antes del 1-dic-2026)
 | Día | Bloque A | Bloque B |
@@ -150,7 +150,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `SEC` — Ciberseguridad (detalle y evidencia en `SEGURIDAD.md`)
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `SEC-10` | Dependencias | P0 | M | `pip-audit` en `requirements-dev.txt` y sin vulnerabilidades conocidas; Django en el último 5.2.x; `gunicorn` actualizado; fuera `djangorestframework` y herramientas de desarrollo de `requirements.txt`; misma versión de Python en Render y local |
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
 | `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |
 

@@ -9,7 +9,7 @@ Rama `agent/ronda6` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-24` | `SEC-05b` | Filtros por cliente en el admin | ✅ DONE | 352 | 0.38 |
 | `BOLT-32` | `SEC-05b` | Desplegable de PaymentLog.order por tenant | ✅ DONE | 354 | 0.4 |
 | `BOLT-22` | `SEC-06` | Credenciales SMTP/API cifradas en reposo | ✅ DONE | 367 | 1.43 |
-| `BOLT-27` | `SEC-10` | Dependencias al día y pip-audit | ⏳ TODO |  |  |
+| `BOLT-27` | `SEC-10` | Dependencias al día y pip-audit | ✅ DONE | 372 | 0.47 |
 
 ## Revisar a mano en el PR
 
@@ -28,6 +28,11 @@ Rama `agent/ronda6` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-22`: Migraciones 0028 y 0029 (datos): revisar contra Neon antes del deploy. El reverso deja las credenciales en texto plano.
 - `BOLT-22`: Admin: ClientEmailSettingsForm con PasswordInput y conservación del valor vacío. Probarlo a mano en /superadmin/, incluido el inline dentro de Client.
 - `BOLT-22`: Dependencia nueva cryptography==50.0.2 en requirements.txt: confirmar que la versión se instala en Render.
+- `BOLT-27`: gunicorn pasó de 21.2.0 a 27.0.1, un salto de mayor que no se probó contra Render. Conviene revisar que el comando de inicio del servicio (Procfile y render.yaml) siga siendo compatible tras el deploy.
+- `BOLT-27`: pillow subió de 11 a 13 (excepción autorizada). Los tests pasan, pero conviene mirar que las subidas e imágenes reales funcionen en staging.
+- `BOLT-27`: pip-audit quedó sin pin en requirements-dev.txt.
+- `BOLT-27`: development.py reasigna INSTALLED_APPS para agregar django_extensions. Hay que confirmar que ningún comando de producción o de CI dependa de django_extensions (por ejemplo shell_plus).
+- `BOLT-27`: pip-audit y Playwright se corrieron solo en local, no en la CI real.
 
 ## Hallazgos incidentales
 

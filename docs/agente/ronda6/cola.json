@@ -133,7 +133,17 @@
         "render.yaml"
       ],
       "permite_migracion": false,
-      "estado": "TODO"
+      "estado": "DONE",
+      "costo_usd": 0.47,
+      "tests": 372,
+      "hallazgos": [],
+      "revisar_humano": [
+        "gunicorn pasó de 21.2.0 a 27.0.1, un salto de mayor que no se probó contra Render. Conviene revisar que el comando de inicio del servicio (Procfile y render.yaml) siga siendo compatible tras el deploy.",
+        "pillow subió de 11 a 13 (excepción autorizada). Los tests pasan, pero conviene mirar que las subidas e imágenes reales funcionen en staging.",
+        "pip-audit quedó sin pin en requirements-dev.txt.",
+        "development.py reasigna INSTALLED_APPS para agregar django_extensions. Hay que confirmar que ningún comando de producción o de CI dependa de django_extensions (por ejemplo shell_plus).",
+        "pip-audit y Playwright se corrieron solo en local, no en la CI real."
+      ]
     }
   ]
 }

@@ -29,3 +29,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Cloudinary - No requerido en desarrollo
 # Las imágenes se guardarán en /media/
+# Herramientas de desarrollo (#SEC-10): solo en requirements-dev.txt, no en producción.
+INSTALLED_APPS = [*INSTALLED_APPS, 'django_extensions']
