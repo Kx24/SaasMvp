@@ -168,6 +168,8 @@ class OrderAdmin(TenantAdminMixin, admin.ModelAdmin):
         'onboarding_url_display',
         'token_status',
         'mp_response_data',
+        'consent_at',
+        'consent_policy_version',
     ]
     
     raw_id_fields = ['client']
@@ -225,7 +227,8 @@ class OrderAdmin(TenantAdminMixin, admin.ModelAdmin):
         ('Auditoría', {
             'fields': (
                 'ip_address',
-                'user_agent',
+                'consent_at',
+                'consent_policy_version',
                 'notes',
             ),
             'classes': ('collapse',)

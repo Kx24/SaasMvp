@@ -41,6 +41,7 @@ class PaymentToProvisioningE2ETestCase(TestCase):
             'email': 'comprador@test.com',
             'plan_slug': self.plan.slug,
             'payer_name': 'Comprador Test',
+            'accept_privacy': True,
         })
         return self.client.post(
             reverse('orders:checkout_process'),

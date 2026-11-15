@@ -48,6 +48,7 @@
 | `LEY-03` (parte) | Purga de contactos independiente del digest e incluye spam antiguo; `--dry-run` sin borrar | 2026-11-12 | `BOLT-14` |
 | `LEY-03` (parte) | Tope legal de 365 días (`CONTACT_MAX_RETENTION_DAYS`) para todo `ContactSubmission` de tenants activos, cualquier estado y con o sin `auto_purge_enabled` | 2026-11-14 | `BOLT-26` |
 | `LEY-01` (parte) | Páginas de política de privacidad en `/privacidad/` (cliente y plataforma) con versión vigente; enlaces `href="#"` reemplazados; `check_tenant_setup` avisa si falta `contact_email` | 2026-11-15 | `BOLT-33` |
+| `LEY-01` | Captura y prueba del consentimiento: checkbox no pre-marcado en contacto (todas las variantes) y checkout, con `consent_at`, versión de política e IP; user-agent eliminado de `ContactSubmission` y `Order`; aviso con enlace en el onboarding | 2026-11-15 | `BOLT-34` |
 
 ## Base de datos y rendimiento
 

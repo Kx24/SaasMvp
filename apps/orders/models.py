@@ -449,10 +449,9 @@ class Order(models.Model):
         help_text="IP del comprador"
     )
     
-    user_agent = models.TextField(
-        blank=True,
-        help_text="User Agent del navegador"
-    )
+    # Prueba del consentimiento (Ley 21.719, art. 12) — LEY-01
+    consent_at = models.DateTimeField(null=True, blank=True)
+    consent_policy_version = models.CharField(max_length=20, blank=True)
     
     class Meta:
         ordering = ['-created_at']

@@ -251,6 +251,14 @@ class ContactForm(forms.Form):
         }
     )
 
+    # Consentimiento (LEY-01): checkbox no pre-marcado, obligatorio.
+    accept_privacy = forms.BooleanField(
+        required=True,
+        error_messages={
+            'required': 'Debes aceptar la política de privacidad para enviar el mensaje.',
+        }
+    )
+
     # -------------------------------------------------------------------------
     # VALIDACIÓN
     # -------------------------------------------------------------------------

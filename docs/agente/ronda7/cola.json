@@ -31,13 +31,23 @@
       "id": "BOLT-34",
       "maestra": "LEY-01",
       "titulo": "Consentimiento probado; sin user-agent (2 de 2)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-34.md",
       "red_tests": [
         "apps.website.tests.test_contact_consent",
         "apps.orders.tests.test_checkout_consent"
       ],
-      "permite_migracion": true
+      "permite_migracion": true,
+      "costo_usd": 0.94,
+      "tests": 390,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Las dos migraciones (website 0023 y orders 0003) borran de forma irreversible los user-agent ya guardados. Es lo que pidió el dueño.",
+        "Flujo de checkout: `accept_privacy` debe ser exactamente `true`, si no devuelve 400 `MISSING_CONSENT`. Conviene probarlo a mano con el sandbox de MercadoPago.",
+        "El onboarding no lleva checkbox por decisión del dueño. Solo tiene un aviso con enlace a la política. Revisar el texto del aviso, que es visible al cliente.",
+        "Los textos de consentimiento en los formularios de contacto y en el checkout son visibles al cliente. En `contact_form_dynamic.html` el `privacy_text` configurable de `FormConfig` convive con el checkbox nuevo.",
+        "Un POST clásico de contacto sin consentimiento devuelve JSON 400, igual que ya hacía con cualquier otro error de validación. Confirmar que ese comportamiento es aceptable para el formulario sin JS."
+      ]
     },
     {
       "id": "BOLT-35",

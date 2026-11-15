@@ -244,6 +244,15 @@
 
     </div>
 
+    <!-- Consentimiento (LEY-01) -->
+    <div class="flex items-start gap-3 mb-6">
+      <input type="checkbox" name="accept_privacy" id="ms-accept-privacy-{{ source|default:'page' }}" value="on" x-model="fields.accept" required
+             class="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2">
+      <label for="ms-accept-privacy-{{ source|default:'page' }}" class="text-sm text-slate-600">
+        He leído y acepto la <a href="{% url 'privacy_policy' %}" target="_blank" rel="noopener" class="text-slate-900 underline">política de privacidad</a>
+      </label>
+    </div>
+
     <!-- Navegación paso 3 -->
     <div class="flex items-center gap-3">
       <button type="button" @click="prevStep()"
@@ -322,7 +331,7 @@
 function contactMultistep(formSource) {
   return {
     step: 1, totalSteps: 3, intent: '', submitting: false, serverError: '', honeypot: '',
-    fields:  { name: '', email: '', phone: '', company: '', message: '' },
+    fields:  { name: '', email: '', phone: '', company: '', message: '', accept: false },
     touched: { name: false, email: false, message: false },
     formSource: formSource || 'page',
     submitUrl:  '{% url "contact_submit" %}',
@@ -345,7 +354,7 @@ function contactMultistep(formSource) {
     isValidEmail(e) { return e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); },
     touch(f)        { this.touched[f] = true; },
     canProceedStep2() { return this.fields.name.trim().length >= 2 && this.isValidEmail(this.fields.email); },
-    canProceedStep3() { return this.fields.message.trim().length >= 10; },
+    canProceedStep3() { return this.fields.message.trim().length >= 10 && this.fields.accept; },
 
     step3Heading()    { return { quote: '¿Qué necesitas cotizar?', support: '¿Qué problema tienes?', general: '¿En qué podemos ayudarte?' }[this.intent] || 'Cuéntanos más'; },
     step3Subheading() { return { quote: 'Mientras más detalles, mejor podemos ayudarte', support: 'Describe el problema con el mayor detalle posible', general: 'Cualquier consulta es bienvenida' }[this.intent] || ''; },
@@ -366,6 +375,7 @@ function contactMultistep(formSource) {
       payload.append('phone',       this.fields.phone.trim());
       payload.append('company',     this.fields.company.trim());
       payload.append('message',     this.fields.message.trim());
+      payload.append('accept_privacy', this.fields.accept ? 'on' : '');
       payload.append('intent',      this.intent);
       payload.append('form_source', this.formSource);
       payload.append('website',     this.honeypot);
@@ -384,7 +394,7 @@ function contactMultistep(formSource) {
     },
 
     restart() {
-      this.step = 1; this.intent = ''; this.serverError = ''; this.honeypot = '';
+      this.step = 1; this.intent = ''; this.fields.accept = false; this.serverError = ''; this.honeypot = '';
       this.fields  = { name: '', email: '', phone: '', company: '', message: '' };
       this.touched = { name: false, email: false, message: false };
     },

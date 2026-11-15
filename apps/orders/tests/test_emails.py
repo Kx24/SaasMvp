@@ -54,6 +54,7 @@ class CheckoutEmailOnCommitTestCase(TestCase):
             'email': 'comprador@test.com',
             'plan_slug': self.plan.slug,
             'payer_name': 'Comprador',
+            'accept_privacy': True,
         })
 
         with self.captureOnCommitCallbacks() as callbacks:

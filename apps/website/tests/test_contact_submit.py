@@ -62,6 +62,7 @@ class ContactFormSimplePartialSubmissionTestCase(TestCase):
             'message': 'Hola, quisiera más información.',
             'intent': 'general',
             'form_source': 'page',
+            'accept_privacy': 'on',
         })
 
         self.assertEqual(

@@ -81,7 +81,7 @@
 |---|---|---|
 | D2 | `SEC-06` ✅ Credenciales SMTP/API cifradas | `SEC-06` ✅ (continúa: migración de datos y clave en Render) |
 | D3 | `SEC-08` ✅ Un solo login (+ open redirect de `next`) | `CONS-04` ✅ Borrar rutas legacy |
-| D4 | `LEY-01` Consentimiento en contacto y onboarding | `LEY-01` Página de política de privacidad (contenidos del art. 14 ter) |
+| D4 | `LEY-01` ✅ Consentimiento en contacto y onboarding | `LEY-01` ✅ Página de política de privacidad (contenidos del art. 14 ter) |
 | D5 | `SEC-14` ✅ + `SEC-17` ✅ Salidas sin escapar y comentarios DEBUG | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
 
 ### Fase 2 — Consolidación (D6–D11, diciembre)
@@ -156,7 +156,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`)
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `LEY-01` | Captura del consentimiento (art. 12) | P0 | M | Checkbox no pre-marcado con fecha, versión de política e IP guardados en `ContactSubmission` y en el onboarding (prueba del consentimiento). La página de política (`/privacidad/`) ya está hecha (`BOLT-33`); queda la captura (`BOLT-34`) |
 | `LEY-02` | Derechos del titular (art. 4–11) | P1 | M | Canal de solicitudes (correo o formulario) + registro de cada solicitud con fecha y respuesta; comando que exporta en JSON y suprime los datos de una persona; bloqueo temporal. Plazos: 30 días corridos, bloqueo en 2 días hábiles |
 | `LEY-03` | Retención y purga (art. 14 d y principio de proporcionalidad) | P1 | M | Purga de contactos independiente del digest (`BOLT-14`) y tope legal de 365 días para mensajes de contacto (`BOLT-26`). Falta: plazos para `Order`, `PaymentLog`, `EmailOutbox`; plazo publicado en la política; cron en Render (`OPS-06`) para que corra en producción |
 | `LEY-04` | Proveedores y transferencia internacional (art. 15 bis, 27–28) | P2 | S | DPA o cláusulas contractuales de Neon, Render, Cloudinary y Zoho archivados; listados en la política |

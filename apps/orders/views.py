@@ -17,6 +17,7 @@ from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -106,6 +107,14 @@ def process_payment_view(request):
         plan_slug = data.get('plan_slug', '')
         payer_name = data.get('payer_name', '')
         
+        # Consentimiento (LEY-01): antes de tocar el plan o MercadoPago
+        if data.get('accept_privacy') is not True:
+            return JsonResponse({
+                'success': False,
+                'error': 'Debes aceptar la política de privacidad',
+                'code': 'MISSING_CONSENT'
+            }, status=400)
+
         # Validaciones básicas
         if not token:
             return JsonResponse({
@@ -148,7 +157,8 @@ def process_payment_view(request):
                 currency='CLP',
                 status='processing',
                 ip_address=get_client_ip(request),
-                user_agent=request.META.get('HTTP_USER_AGENT', '')[:500]
+                consent_at=timezone.now(),
+                consent_policy_version=settings.PRIVACY_POLICY_VERSION,
             )
             
             # Log del intento

@@ -361,7 +361,9 @@ class ContactSubmission(models.Model):
  
     # --- METADATA TÉCNICA ---
     ip_address = models.GenericIPAddressField(blank=True, null=True)
-    user_agent = models.TextField(blank=True)
+    # Prueba del consentimiento (Ley 21.719, art. 12) — LEY-01
+    consent_at = models.DateTimeField(null=True, blank=True)
+    consent_policy_version = models.CharField(max_length=20, blank=True)
  
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

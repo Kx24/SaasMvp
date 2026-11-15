@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 
 from apps.core.logging_utils import email_ref
 from apps.core.rate_limit import RateLimiter, get_client_ip
@@ -168,7 +169,8 @@ def contact_submit(request):
         source='website',
         status='spam' if is_spam else 'new',
         ip_address=get_client_ip(request),
-        user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+        consent_at=timezone.now(),
+        consent_policy_version=settings.PRIVACY_POLICY_VERSION,
     )
  
     logger.info(
