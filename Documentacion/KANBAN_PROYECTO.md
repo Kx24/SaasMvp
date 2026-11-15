@@ -90,7 +90,7 @@
 | D6 | `DB-02` Backup de Neon con restore probado (+ `DB-03`) | `SEC-12` Integración continua con el gate |
 | D7 | `CONS-02` Documentación al día (Neon, `CLAUDE.md`, README) | `DEUDA-08` ✅ Portada sin titular por defecto |
 | D8 | `CONS-06` `TenantOwnedMixin` | `DASH-04` Roles con efecto |
-| D9 | `SEC-05b` + `DEUDA-06` Restos del admin y código muerto | `CONS-07` Separar `views.py` |
+| D9 | `SEC-05b` + `DEUDA-06` ✅ Restos del admin y código muerto | `CONS-07` Separar `views.py` |
 | D10 | `CONS-08` Registro de módulos (opción A) | `CONS-08` (continúa) |
 | D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
 
@@ -185,7 +185,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `PAY-02` | Registro de fricciones del cobro manual | P3 | S | — |
 | `OPS-04` | Alerta de créditos Cloudinary | P3 | S | Existe el comando `cloudinary_usage`; conectar umbrales y aviso |
 | `OPS-05` | Cache compartida, `/health/` real, Sentry | P3 | M | Antes de más de un proceso |
-| `DEUDA-06` | Código muerto | P3 | S | `cloudinary_settings.py`, `OrderProcessor`, `apps/marketing/0001_initial.py` (copia suelta de una migración, hallada por `BOLT-16`) |
 
 ### `RC` — Rancho Cachimba ⏸️ (rama `feature/RanchocachimbaEtapa1`; no tocar sin pedido explícito)
 | ID | Card | Depende de |

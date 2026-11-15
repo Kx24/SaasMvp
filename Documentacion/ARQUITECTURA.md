@@ -47,7 +47,7 @@ Dos superficies sobre el mismo código: **sitio público** (`/`, distinto por te
 | **ruff / bandit / coverage** | Lint, análisis estático de seguridad, cobertura | `ruff.toml`, `requirements-dev.txt` |
 | **PyCharm** | IDE principal; desde ahí se hace push y PR | `.idea/runConfigurations/` |
 
-Sin uso real hoy (candidatos a retirar, `DEUDA-06`/`SEC-10`): `djangorestframework`, `django-extensions` e `ipython` en `requirements.txt`, `config/settings/cloudinary_settings.py`.
+Sin uso real hoy (candidatos a retirar, `SEC-10`): `djangorestframework`, `django-extensions` e `ipython` en `requirements.txt`.
 
 ## 3. Apps Django
 

@@ -19,12 +19,25 @@
       "id": "BOLT-25",
       "maestra": "DEUDA-06",
       "titulo": "Código muerto",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-25.md",
       "red_tests": [
         "apps.core.tests.test_dead_code_removed"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.39,
+      "tests": 313,
+      "hallazgos": [
+        "Documentacion/README.md (líneas ~304, 312, 541, 665) todavía describe order_processor.py y cloudinary_settings.py como vigentes.",
+        "Documentacion/MASTER_PLAN_Y_ARQUITECTURA.md (líneas 86, 87, 149, 158) todavía menciona cloudinary_settings.py, CLOUDINARY_DEFAULT_LIMITS y OrderProcessor como existentes.",
+        "docs/kanban_agente.md (líneas 130, 444) menciona order_processor. Es histórico, pero puede inducir a error.",
+        "OPS-04 (alerta de créditos Cloudinary) sigue citando CLOUDINARY_ALERT_THRESHOLDS, que vivía en el archivo borrado; al implementarla habrá que definir los umbrales de nuevo."
+      ],
+      "revisar_humano": [
+        "Que borrar cloudinary_settings.py (CLOUDINARY_DEFAULT_LIMITS y CLOUDINARY_ALERT_THRESHOLDS) sea aceptable: OPS-04 los necesitará, aunque estaban sin uso.",
+        "Que la fila de DEUDA-06 se haya movido a la tabla del histórico en vez de dejarla como viñeta.",
+        "Documentación todavía desactualizada en README.md y MASTER_PLAN_Y_ARQUITECTURA.md (hallazgo sin card en el kanban)."
+      ]
     },
     {
       "id": "BOLT-26",
