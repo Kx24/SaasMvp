@@ -6,9 +6,47 @@ Incluye:
 - DomainAdmin
 - Admins individuales para cada configuración
 """
+from django import forms
 from django.contrib import admin
-from .models import Client, Domain, ClientSettings, ClientEmailSettings, FormConfig
 
+from apps.accounts.mixins import TenantAdminMixin
+
+from .models import Client, ClientEmailSettings, ClientSettings, Domain, FormConfig
+
+
+class ClientEmailSettingsForm(forms.ModelForm):
+    """
+    #SEC-06: las credenciales nunca vuelven al navegador (render_value=False)
+    y un envío vacío conserva el valor guardado en vez de borrarlo.
+    """
+    smtp_password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        label='Contraseña SMTP',
+        help_text='Se guarda cifrada. Déjala vacía para conservar la actual.',
+    )
+    api_key = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        label='API key',
+        help_text='Se guarda cifrada. Déjala vacía para conservar la actual.',
+    )
+
+    class Meta:
+        model = ClientEmailSettings
+        fields = '__all__'
+
+    def _keep_stored(self, name):
+        value = self.cleaned_data.get(name, '')
+        if not value and self.instance.pk:
+            return getattr(self.instance, name)
+        return value
+
+    def clean_smtp_password(self):
+        return self._keep_stored('smtp_password')
+
+    def clean_api_key(self):
+        return self._keep_stored('api_key')
 
 # ==============================================================================
 # INLINES
@@ -71,7 +109,7 @@ class ClientSettingsInline(admin.StackedInline):
         ('Features', {
             'classes': ('collapse',),
             'fields': (
-                ('enable_blog', 'enable_testimonials', 'enable_contact_form'),
+                ('enable_contact_form',),
             )
         }),
     )
@@ -80,6 +118,7 @@ class ClientSettingsInline(admin.StackedInline):
 class ClientEmailSettingsInline(admin.StackedInline):
     """Inline para configuración de email."""
     model = ClientEmailSettings
+    form = ClientEmailSettingsForm
     extra = 0
     max_num = 1
     can_delete = False
@@ -214,6 +253,24 @@ class FormConfigInline(admin.StackedInline):
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
+    # SEC-05: muestra todos los clientes con sus credenciales SMTP en línea
+    # (ClientEmailSettingsInline). Solo superuser, aunque un staff tenga el
+    # permiso estándar de Django.
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
     """Admin principal para gestionar clientes/tenants."""
     
     list_display = ['name', 'slug', 'template', 'is_active', 'mode_under_construction', 'setup_completed', 'created_at']
@@ -295,7 +352,7 @@ class ClientAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(Domain)
-class DomainAdmin(admin.ModelAdmin):
+class DomainAdmin(TenantAdminMixin, admin.ModelAdmin):
     """Admin para gestionar dominios."""
     
     list_display = ['domain', 'client', 'domain_type', 'is_primary', 'is_active', 'is_verified']
@@ -309,7 +366,7 @@ class DomainAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(ClientSettings)
-class ClientSettingsAdmin(admin.ModelAdmin):
+class ClientSettingsAdmin(TenantAdminMixin, admin.ModelAdmin):
     """Admin standalone para ClientSettings."""
     list_display = ['client', 'company_name', 'primary_color']
     search_fields = ['client__name', 'company_name']
@@ -317,8 +374,9 @@ class ClientSettingsAdmin(admin.ModelAdmin):
 
 
 @admin.register(ClientEmailSettings)
-class ClientEmailSettingsAdmin(admin.ModelAdmin):
+class ClientEmailSettingsAdmin(TenantAdminMixin, admin.ModelAdmin):
     """Admin standalone para ClientEmailSettings."""
+    form = ClientEmailSettingsForm
     list_display = ['client', 'provider', 'notify_mode', 'is_active']
     list_filter = ['provider', 'notify_mode', 'is_active']
     search_fields = ['client__name']
@@ -326,7 +384,7 @@ class ClientEmailSettingsAdmin(admin.ModelAdmin):
 
 
 @admin.register(FormConfig)
-class FormConfigAdmin(admin.ModelAdmin):
+class FormConfigAdmin(TenantAdminMixin, admin.ModelAdmin):
     """Admin standalone para FormConfig."""
     list_display = ['client', 'show_phone', 'show_company', 'show_subject', 'updated_at']
     list_filter = ['show_phone', 'show_company', 'show_subject', 'show_budget']

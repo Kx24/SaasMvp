@@ -134,3 +134,51 @@ class MaxCardsTestCase(SimpleTestCase):
 
         self.assertEqual(len(outcomes), 2)
         self.assertEqual(runner.planificador_calls, 2)
+
+
+class UnattendedRoundRulesTestCase(SimpleTestCase):
+    """Reglas de la ronda desatendida (ronda 4): corte por fallos, aborto y hook."""
+
+    def test_abort_skips_remaining_repair_attempts(self):
+        runner = ScriptedRunner(
+            planificador_plan=[{'queue_empty': False, 'card': 'BOLT-01'}, {'queue_empty': True}],
+            dev_tester_results=[{'passed': False, 'abort': True, 'motivo': 'falta una decision'}],
+        )
+
+        outcomes = run_pipeline(runner)
+
+        self.assertEqual(runner.dev_tester_calls, 1)
+        self.assertEqual(outcomes[0].status, 'BLOCKED')
+        self.assertEqual(runner.validador_calls, 0)
+
+    def test_max_failures_stops_the_round(self):
+        runner = ScriptedRunner(
+            planificador_plan=[{'queue_empty': False, 'card': 'BOLT-01'}],
+            dev_tester_results=[{'passed': False, 'abort': True}],
+        )
+
+        outcomes = run_pipeline(runner, max_failures=2)
+
+        self.assertEqual(len(outcomes), 2)
+        self.assertEqual(runner.planificador_calls, 2)
+
+    def test_failure_hook_receives_blocked_and_rejected_cards(self):
+        calls = []
+
+        class HookRunner(ScriptedRunner):
+            def on_card_failed(self, card, status, detail):
+                calls.append((card, status))
+
+        runner = HookRunner(
+            planificador_plan=[
+                {'queue_empty': False, 'card': 'BOLT-01'},
+                {'queue_empty': False, 'card': 'BOLT-02'},
+                {'queue_empty': True},
+            ],
+            dev_tester_results=[{'passed': False, 'abort': True}, {'passed': True}],
+            validador_result={'verdict': 'REJECT'},
+        )
+
+        run_pipeline(runner)
+
+        self.assertEqual(calls, [('BOLT-01', 'BLOCKED'), ('BOLT-02', 'REJECTED')])

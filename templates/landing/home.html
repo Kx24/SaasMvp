@@ -231,6 +231,15 @@
                                   placeholder="Escribe tu mensaje aquí..."></textarea>
                     </div>
 
+                    <!-- Consentimiento (LEY-01) -->
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" name="accept_privacy" id="accept_privacy" value="on" required
+                               class="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                        <label for="accept_privacy" class="text-sm text-gray-700">
+                            He leído y acepto la <a href="{% url 'privacy_policy' %}" target="_blank" rel="noopener" class="text-primary-a11y underline">política de privacidad</a>
+                        </label>
+                    </div>
+
                     <!-- Botón -->
                     <div>
                         <button type="submit" 

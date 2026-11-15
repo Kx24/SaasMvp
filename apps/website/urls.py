@@ -2,16 +2,18 @@
 URLs para la aplicación website
 Incluye: home, dashboard, auth (se importa desde auth_urls), y edición inline
 """
-from django.urls import path, include
-from apps.website.views import dashboard_branding
-from . import views
+from django.urls import path
 
+from apps.website.views import dashboard_branding
+
+from . import views
 
 urlpatterns = [
     # ============================================================
     # PÁGINA PRINCIPAL
     # ============================================================
     path('', views.home, name='home'),
+    path('privacidad/', views.privacy_policy, name='privacy_policy'),
 
     
     # ============================================================
@@ -34,24 +36,6 @@ urlpatterns = [
     # ============================================================
     path('contact/submit/', views.contact_submit, name='contact_submit'),
     
-    # ============================================================
-    # EDICIÓN INLINE (requiere login)
-    # ============================================================
-    # Secciones
-    path('section/<int:section_id>/edit/', views.edit_section, name='edit_section'),
-    path('section/<int:section_id>/cancel/', views.cancel_edit_section, name='cancel_edit_section'),
-    
-    # Servicios
-    path('service/<int:service_id>/edit/', views.edit_service, name='edit_service'),
-    path('service/<int:service_id>/cancel/', views.cancel_edit_service, name='cancel_edit_service'),
-    path('service/<int:service_id>/delete/', views.delete_service, name='delete_service'),
-    path('service/add/', views.add_service, name='add_service'),
-    
-    # ============================================================
-    # LOGIN MODAL (para edición inline - HTMX)
-    # ============================================================
-    path('login-modal/', views.login_modal, name='login_modal'),
-
     # ============================================================
     # DASHBOARD - SECCIONES #card 15
     # ============================================================

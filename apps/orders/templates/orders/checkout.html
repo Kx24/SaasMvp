@@ -218,6 +218,15 @@
                     >
                 </div>
                 
+                <!-- Consentimiento (LEY-01) -->
+                <div class="mb-4 flex items-start gap-3">
+                    <input type="checkbox" name="accept_privacy" id="accept_privacy" required
+                           class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    <label for="accept_privacy" class="text-sm text-gray-700">
+                        He leído y acepto la <a href="{% url 'privacy_policy' %}" target="_blank" rel="noopener" class="text-blue-700 underline">política de privacidad</a>
+                    </label>
+                </div>
+
                 <!-- Mercado Pago Brick Container -->
                 <div id="cardPaymentBrick_container" class="mb-4">
                     <div class="mp-loading">
@@ -269,6 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Elementos DOM
     const emailInput = document.getElementById('email');
     const payerNameInput = document.getElementById('payer_name');
+    const acceptPrivacyInput = document.getElementById('accept_privacy');
     const btnPay = document.getElementById('btn-pay');
     const errorDiv = document.getElementById('checkout-error');
     const errorMessage = document.getElementById('error-message');
@@ -339,6 +349,13 @@ document.addEventListener('DOMContentLoaded', function() {
     btnPay.addEventListener('click', function() {
         if (isProcessing) return;
         
+        // Consentimiento (LEY-01): sin marcar no se envía nada
+        if (!acceptPrivacyInput.checked) {
+            showError('Debes aceptar la política de privacidad');
+            acceptPrivacyInput.focus();
+            return;
+        }
+
         // Validar email
         const email = emailInput.value.trim();
         if (!email || !isValidEmail(email)) {
@@ -376,7 +393,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 installments: formData.installments || 1,
                 email: email,
                 plan_slug: PLAN_SLUG,
-                payer_name: payerName
+                payer_name: payerName,
+                accept_privacy: acceptPrivacyInput.checked
             };
             
             console.log('[Checkout] Enviando pago...', payload);

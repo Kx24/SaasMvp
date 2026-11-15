@@ -116,6 +116,12 @@ services:
       - key: EMAIL_HOST_PASSWORD
         sync: false
 
+      # Clave(s) Fernet para cifrar credenciales SMTP/API en la base (#SEC-06).
+      # Separadas por coma; la primera cifra, todas descifran. Producción no
+      # arranca sin ella. Ver Documentacion/Inventario_Secretos.md.
+      - key: FIELD_ENCRYPTION_KEY
+        sync: false
+
       # Cuenta /superadmin/ inicial (#SEC-03): setup_production falla el
       # build si falta -- antes caía a una contraseña hardcodeada
       # ('admin123456') visible en el código fuente. Sin efecto en deploys

@@ -1,0 +1,79 @@
+{
+  "ronda": 7,
+  "rama": "agent/ronda7",
+  "cards": [
+    {
+      "id": "BOLT-33",
+      "maestra": "LEY-01",
+      "titulo": "Política de privacidad publicada y versionada (1 de 2)",
+      "estado": "DONE",
+      "spec": "BOLT-33.md",
+      "red_tests": [
+        "apps.website.tests.test_privacy_policy"
+      ],
+      "permite_migracion": false,
+      "costo_usd": 0.7,
+      "tests": 379,
+      "hallazgos": [
+        "Los enlaces \"Términos\" y \"Cookies\" del footer de andesscale siguen en href=\"#\" (templates/andesscale/components/footer.html:196-197). Quedan fuera de alcance y no tienen fila en el kanban.",
+        "Los dos cuerpos legales conservan la frase \"REVISAR CON ABOGADO\" dentro de un bloque {% comment %}. No se renderiza, pero está en el archivo.",
+        "El dev no corrió Playwright ni el rojo; los cubrió el gate del orquestador."
+      ],
+      "revisar_humano": [
+        "Texto legal pendiente de revisión por abogado (privacy_*.html).",
+        "Los dos cuerpos legales: confirmar que son copia fiel de docs/agente/ronda7/textos/. El único cambio declarado es {# #} multilínea por {% comment %}. No pude verificar esto con diff.",
+        "check_tenant_setup: la falta de contact_email es solo [WARN], no falla. El spec admitía ambas opciones.",
+        "Cierre en el kanban: la fila D4 del plan de ejecución quedó sin ✅ porque LEY-01 sigue abierta (BOLT-34). La fila del histórico dice LEY-01 (parte).",
+        "Nuevo setting PLATFORM_TENANT_SLUG, configurable por env var (default 'andesscale'). Confirmar que coincide con el slug real del tenant de la plataforma en producción."
+      ]
+    },
+    {
+      "id": "BOLT-34",
+      "maestra": "LEY-01",
+      "titulo": "Consentimiento probado; sin user-agent (2 de 2)",
+      "estado": "DONE",
+      "spec": "BOLT-34.md",
+      "red_tests": [
+        "apps.website.tests.test_contact_consent",
+        "apps.orders.tests.test_checkout_consent"
+      ],
+      "permite_migracion": true,
+      "costo_usd": 0.94,
+      "tests": 390,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Las dos migraciones (website 0023 y orders 0003) borran de forma irreversible los user-agent ya guardados. Es lo que pidió el dueño.",
+        "Flujo de checkout: `accept_privacy` debe ser exactamente `true`, si no devuelve 400 `MISSING_CONSENT`. Conviene probarlo a mano con el sandbox de MercadoPago.",
+        "El onboarding no lleva checkbox por decisión del dueño. Solo tiene un aviso con enlace a la política. Revisar el texto del aviso, que es visible al cliente.",
+        "Los textos de consentimiento en los formularios de contacto y en el checkout son visibles al cliente. En `contact_form_dynamic.html` el `privacy_text` configurable de `FormConfig` convive con el checkbox nuevo.",
+        "Un POST clásico de contacto sin consentimiento devuelve JSON 400, igual que ya hacía con cualquier otro error de validación. Confirmar que ese comportamiento es aceptable para el formulario sin JS."
+      ]
+    },
+    {
+      "id": "BOLT-35",
+      "maestra": "DASH-04",
+      "titulo": "Roles con efecto en el dashboard",
+      "estado": "DONE",
+      "spec": "BOLT-35.md",
+      "red_tests": [
+        "apps.accounts.tests_dashboard_roles"
+      ],
+      "permite_migracion": false,
+      "costo_usd": 1.09,
+      "tests": 404,
+      "hallazgos": [
+        "`templates/dashboard/gallery.html`: el `{% include ... with ... %}` multilínea del estado vacío no se renderiza y muestra la etiqueta cruda (preexistente, no tocado).",
+        "`dashboard_services` y `dashboard/services.html` parecen código muerto sin ruta. La vista sigue con `@tenant_member_required`.",
+        "El spec habla de 21 vistas, pero son 19 rutas más 2 alias de nombre (`create_service_dashboard`, `toggle_service`) que comparten función con otras vistas."
+      ],
+      "revisar_humano": [
+        "Matriz tal como quedó. `view_dashboard` (inicio, secciones, galería): owner, admin, editor y viewer. `view_contacts`, `edit_content` y `manage_contacts`: owner, admin y editor. `delete_content` (borrar servicios e imágenes) y `manage_branding`: owner y admin. Los 403 usan 'No tienes permiso para esta acción.'",
+        "Tests existentes que cambiaron de rol: ninguno. Los tests anteriores pasaron sin modificarse.",
+        "Decisión del dev fuera del spec: el panel 'Últimos contactos' del inicio se oculta, y no se consulta, para roles sin `view_contacts`. Los contadores agregados siguen visibles.",
+        "Cambio de permisos y de settings: nuevo context processor `apps.accounts.context_processors.dashboard_permissions` en `config/settings/base.py`.",
+        "El rojo confirmado es solo por ImportError (falta `apps.accounts.permissions`). No hay un rojo conductual aparte.",
+        "Revisar en el navegador que los botones de editar, borrar, marca y mensajes se oculten bien con un `viewer` y con un `editor`."
+      ]
+    }
+  ]
+}

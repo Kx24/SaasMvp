@@ -7,11 +7,12 @@ Tags disponibles:
 - {% tenant_include 'components/hero.html' %} → Include con fallback
 - {% get_tenant_media_url 'logo.png' as logo_url %}
 """
+from pathlib import Path
+
 from django import template
 from django.conf import settings
-from django.template.loader import render_to_string, get_template
 from django.template.exceptions import TemplateDoesNotExist
-from pathlib import Path
+from django.template.loader import get_template, render_to_string
 
 register = template.Library()
 

@@ -9,6 +9,7 @@
 
 from django.shortcuts import render
 
+
 def get_tenant_template(request, template_path):
     """
     Retorna el nombre del template limpio.

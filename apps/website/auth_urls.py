@@ -3,6 +3,7 @@ URLs de autenticación para clientes
 apps/website/auth_urls.py
 """
 from django.urls import path
+
 from . import auth_views
 
 urlpatterns = [

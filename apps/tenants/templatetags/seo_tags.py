@@ -1,7 +1,8 @@
 import json
+
 from django import template
-from django.utils.safestring import mark_safe
 from django.core.cache import cache
+from django.utils.safestring import mark_safe
 
 from apps.marketing.models import SEOConfig
 
@@ -108,14 +109,14 @@ def seo_tags(context, page_key="home"):
         tags.append(f'<meta name="keywords" content="{_esc(keywords)}">')
 
     # Robots
-    tags.append(f'<meta name="robots" content="{robots}">')
+    tags.append(f'<meta name="robots" content="{_esc(robots)}">')
 
     # Canonical
     if canonical:
         tags.append(f'<link rel="canonical" href="{_esc(canonical)}">')
 
     # Open Graph
-    tags.append(f'<meta property="og:type" content="website">')
+    tags.append('<meta property="og:type" content="website">')
     tags.append(f'<meta property="og:title" content="{_esc(og_title)}">')
     if og_description:
         tags.append(f'<meta property="og:description" content="{_esc(og_description)}">')
@@ -123,8 +124,8 @@ def seo_tags(context, page_key="home"):
         tags.append(f'<meta property="og:url" content="{_esc(og_url)}">')
     if og_image:
         tags.append(f'<meta property="og:image" content="{_esc(og_image)}">')
-        tags.append(f'<meta property="og:image:width" content="1200">')
-        tags.append(f'<meta property="og:image:height" content="630">')
+        tags.append('<meta property="og:image:width" content="1200">')
+        tags.append('<meta property="og:image:height" content="630">')
 
     # Twitter Card
     tags.append('<meta name="twitter:card" content="summary_large_image">')
@@ -147,11 +148,18 @@ def seo_tags(context, page_key="home"):
     # Schema.org JSON-LD
     if schema_data:
         schema_str = json.dumps(schema_data, ensure_ascii=False, indent=2)
+        # json.dumps no escapa "<", ">" ni "&": un valor con "</script>" cerraria el
+        # bloque. Los escapes \\uXXXX siguen siendo JSON valido.
+        schema_str = (
+            schema_str.replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
+        )
         tags.append(
             f'<script type="application/ld+json">\n{schema_str}\n</script>'
         )
 
-    return mark_safe("\n    ".join(tags))
+    # Seguro: cada valor variable pasa por _esc() y el JSON-LD por escapes
+    # unicode (arriba); no queda dato sin escapar dentro del HTML.
+    return mark_safe("\n    ".join(tags))  # nosec B308 B703
 
 
 def _esc(value):

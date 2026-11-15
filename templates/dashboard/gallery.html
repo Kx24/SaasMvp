@@ -26,6 +26,7 @@
                 Elimina una para poder subir otra.
             </div>
             {% else %}
+{% if dash_perms.edit_content %}
             <form method="post"
                   action="{% url 'gallery_item_add' %}"
                   enctype="multipart/form-data"
@@ -60,6 +61,7 @@
                     Subir imagen
                 </button>
             </form>
+{% endif %}
             {% endif %}
 
         </div>

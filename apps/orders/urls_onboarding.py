@@ -6,6 +6,7 @@ Estas URLs son públicas (acceso por token) y no requieren autenticación.
 """
 
 from django.urls import path
+
 from . import views_onboarding
 
 # Nota: Estas URLs se incluyen en config/urls.py directamente,

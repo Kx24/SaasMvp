@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Política de privacidad{% endblock %}
+
+{% block content %}
+<main class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <h1 class="mb-8 text-3xl font-bold tracking-tight">Política de privacidad</h1>
+    {% if is_platform %}
+        {% include 'legal/privacy_platform_body.html' %}
+    {% else %}
+        {% include 'legal/privacy_tenant_body.html' %}
+    {% endif %}
+    <p class="mt-10 text-sm"><a href="/" class="underline">Volver al inicio</a></p>
+</main>
+{% endblock %}

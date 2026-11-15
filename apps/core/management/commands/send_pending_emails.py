@@ -15,6 +15,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from apps.core.logging_utils import email_ref
 from apps.core.models import EmailOutbox
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,7 @@ class Command(BaseCommand):
 
                 outbox_email.save(update_fields=update_fields)
                 logger.error(
-                    f"[EmailOutbox] Error enviando a {outbox_email.to_email} "
+                    f"[EmailOutbox] Error enviando #{outbox_email.pk} a {email_ref(outbox_email.to_email)} "
                     f"(intento {outbox_email.attempts}/{outbox_email.max_attempts}): {e}"
                 )
 

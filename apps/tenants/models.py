@@ -12,6 +12,8 @@ from cloudinary.models import CloudinaryField
 from django.db import models
 from django.utils.text import slugify
 
+from apps.core.fields import EncryptedTextField
+
 from .fonts import FONT_CHOICES
 
 
@@ -332,8 +334,6 @@ class ClientSettings(models.Model):
     whatsapp_number = models.CharField(max_length=20, blank=True)
     
     # ==================== FEATURES ====================
-    enable_blog = models.BooleanField(default=False)
-    enable_testimonials = models.BooleanField(default=True)
     enable_contact_form = models.BooleanField(default=True)
     enable_gallery = models.BooleanField(
         default=False,
@@ -501,10 +501,9 @@ class ClientEmailSettings(models.Model):
         help_text="Usuario SMTP"
     )
     
-    smtp_password = models.CharField(
-        max_length=255,
+    smtp_password = EncryptedTextField(
         blank=True,
-        help_text="Contraseña SMTP (se almacena encriptada)"
+        help_text="Contraseña SMTP (se almacena cifrada con FIELD_ENCRYPTION_KEY)"
     )
     
     smtp_use_tls = models.BooleanField(
@@ -518,10 +517,9 @@ class ClientEmailSettings(models.Model):
     )
     
     # ==================== API PROVIDERS ====================
-    api_key = models.CharField(
-        max_length=255,
+    api_key = EncryptedTextField(
         blank=True,
-        help_text="API Key para SendGrid, Resend, etc."
+        help_text="API Key para SendGrid, Resend, etc. (se almacena cifrada)"
     )
     
     # ==================== EMAILS ====================

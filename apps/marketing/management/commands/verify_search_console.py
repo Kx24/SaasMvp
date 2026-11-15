@@ -9,7 +9,6 @@ Uso:
     python manage.py verify_search_console --all
 """
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import Q
 
 
 class Command(BaseCommand):
@@ -29,8 +28,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        from apps.tenants.models import Client
         from apps.marketing.models import SEOConfig
+        from apps.tenants.models import Client
 
         if options["all"]:
             clients = Client.objects.filter(is_active=True)

@@ -106,7 +106,7 @@ CLOUDINARY_API_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxx
 ### Uso en Templates
 
 ```django
-{% load website_tags %}
+{% load cloudinary_tags %}
 
 {# Usando preset definido #}
 <img src="{% cloudinary_url section.image 'hero' %}" alt="{{ section.title }}">
@@ -168,7 +168,7 @@ python manage.py audit_cloudinary_assets servelec-ingenieria
 
 ### Dashboard Interno
 
-- **URL:** `/admin/cloudinary/usage/` (solo superadmin)
+- **Comando:** `python manage.py cloudinary_usage` (no hay página web de uso)
 - **Datos:** Créditos usados, límite, % consumido
 - **Refresh:** Manual o diario automático
 
@@ -233,16 +233,15 @@ python manage.py audit_cloudinary_assets servelec-ingenieria
 
 ### Migrar Contenido Existente
 
-```bash
-# Script de migración (ejecutar una vez)
-python manage.py migrate_to_cloudinary --tenant=servelec-ingenieria
-```
+No existe un comando `migrate_to_cloudinary`: la migración histórica fue la
+migración de datos `apps/website/migrations/0005_migrate_to_cloudinary.py`. Para
+asegurar la estructura de carpetas de un tenant: `python manage.py setup_cloudinary_folders`.
 
 ### Backup de Assets
 
 ```bash
 # Exportar lista de assets (no descarga archivos)
-python manage.py audit_cloudinary_assets servelec-ingenieria --output=backup.csv
+python manage.py audit_cloudinary_assets --tenant=servelec-ingenieria --output=backup.csv
 ```
 
 ---

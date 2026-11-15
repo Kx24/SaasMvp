@@ -242,6 +242,7 @@ class Command(BaseCommand):
                 Section.objects.create(
                     client=client, section_type=section_type,
                     title=title, subtitle=subtitle,
+                    slot_key='hero' if section_type == 'hero' else 'empty',
                     order=order, is_active=True
                 )
             self.stdout.write(self.style.SUCCESS('   ✅ 3 secciones creadas'))

@@ -9,11 +9,12 @@ Incluye:
 """
 
 from django.contrib import admin
-from django.utils.html import format_html
-from django.utils import timezone
 from django.urls import reverse
-from .models import Plan, Order, PaymentLog
+from django.utils.html import format_html
 
+from apps.accounts.mixins import TenantAdminMixin
+
+from .models import Order, PaymentLog, Plan
 
 # ==============================================================================
 # PLAN ADMIN
@@ -127,7 +128,8 @@ class PaymentLogInline(admin.TabularInline):
 # ==============================================================================
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(TenantAdminMixin, admin.ModelAdmin):
+    tenant_field = 'client'  # SEC-05: órdenes sin sitio (client nulo) solo para superuser
     """Admin para gestión de órdenes."""
     
     list_display = [
@@ -166,6 +168,8 @@ class OrderAdmin(admin.ModelAdmin):
         'onboarding_url_display',
         'token_status',
         'mp_response_data',
+        'consent_at',
+        'consent_policy_version',
     ]
     
     raw_id_fields = ['client']
@@ -223,7 +227,8 @@ class OrderAdmin(admin.ModelAdmin):
         ('Auditoría', {
             'fields': (
                 'ip_address',
-                'user_agent',
+                'consent_at',
+                'consent_policy_version',
                 'notes',
             ),
             'classes': ('collapse',)
@@ -346,7 +351,8 @@ class OrderAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(PaymentLog)
-class PaymentLogAdmin(admin.ModelAdmin):
+class PaymentLogAdmin(TenantAdminMixin, admin.ModelAdmin):
+    tenant_field = 'order__client'  # SEC-05
     """Admin para auditoría de logs de pago."""
     
     list_display = [

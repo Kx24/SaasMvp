@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 # Definimos el namespace para evitar confusiones (opcional pero recomendado)

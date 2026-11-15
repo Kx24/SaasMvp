@@ -1,6 +1,6 @@
 # Master Plan y Arquitectura — AndesScale SaaS
 
-> Documento de consolidación. No repite desde cero el diagnóstico ya hecho en `ARQUITECTURA_SISTEMA.md` (manual técnico, 374 líneas) y `AUDITORIA_ARQUITECTURA_Y_NEGOCIO.md` (auditoría de riesgo, 149 líneas) — los cita con archivo/clase/función real y los traduce a un tablero Kanban ejecutable y a un flujo de trabajo con el GitHub MCP Server ya activo en este repo (`MANUAL_MCP_GITHUB.md`). Fuente única de verdad de trabajo pendiente día a día: `Documentacion/KANBAN_PROYECTO.md`; este documento es la capa de priorización estratégica y los prompts de ejecución inmediata sobre esa misma base de hallazgos.
+> Documento de consolidación. No repite desde cero el diagnóstico ya hecho en `ARQUITECTURA_SISTEMA.md` (manual técnico, 374 líneas; hoy en `Documentacion/historico/auditorias_y_manuales/ARQUITECTURA_SISTEMA_2026-09.md`, reemplazado por `Documentacion/ARQUITECTURA.md`) y `Documentacion/historico/auditorias_y_manuales/AUDITORIA_ARQUITECTURA_Y_NEGOCIO.md` (auditoría de riesgo, 149 líneas) — los cita con archivo/clase/función real y los traduce a un tablero Kanban ejecutable y a un flujo de trabajo con el GitHub MCP Server ya activo en este repo (`MANUAL_MCP_GITHUB.md`). Fuente única de verdad de trabajo pendiente día a día: `Documentacion/KANBAN_PROYECTO.md`; este documento es la capa de priorización estratégica y los prompts de ejecución inmediata sobre esa misma base de hallazgos.
 >
 > Estructura: §1 diagnóstico técnico/legal, §2 tablero Kanban de ejecución, §3 viabilidad comercial y competitiva (consultoría de posicionamiento), §4 modelo de pricing/costos de infraestructura, correcciones al código de planes/renovación y URL temporal de preview por tenant (§4.6), §5 flujo de trabajo MCP y prompts listos para ejecutar las cards críticas.
 
@@ -66,6 +66,8 @@ Este hallazgo es el ítem #1 del tablero Kanban (sección 2).
 ---
 
 ## 2. Tablero Kanban de Ejecución (Priorizado)
+
+> **Migrado el 2026-11-11 a [`Documentacion/KANBAN_PROYECTO.md`](Documentacion/KANBAN_PROYECTO.md)** (cards `SEC-05..08`, `LEY-01..04`, `BIZ-01..03`, `OPS-04/05`, `DEUDA-06`). La tabla de abajo queda como contexto original; **no actualizarla** — el estado vive en el kanban.
 
 | Prioridad | Épica | Tarea (User Story) | Archivos a Intervenir | Criterio de Aceptación |
 | :--- | :--- | :--- | :--- | :--- |
@@ -211,7 +213,7 @@ Card en el Kanban §2 (fila 🟡 MEDIO Producto/Onboarding).
 
 ### 5.1 Estrategia MCP
 
-El GitHub MCP Server oficial (`github/github-mcp-server`) ya está activo en este repo como binario local + PAT (`.mcp.json` en la raíz, detallado en `MANUAL_MCP_GITHUB.md`) — la variante remota con OAuth no es viable hoy (`Incompatible auth server: does not support dynamic client registration`, incompatibilidad conocida, no error de configuración). Tools relevantes para ejecutar el tablero de la sección 2 sin salir de la sesión de Claude Code:
+El GitHub MCP Server oficial (`github/github-mcp-server`) ya está activo en este repo como binario local + PAT (`.mcp.json` en la raíz, detallado en `Documentacion/historico/auditorias_y_manuales/MANUAL_MCP_GITHUB.md`; el MCP se retiró después, ver ese manual como histórico) — la variante remota con OAuth no es viable hoy (`Incompatible auth server: does not support dynamic client registration`, incompatibilidad conocida, no error de configuración). Tools relevantes para ejecutar el tablero de la sección 2 sin salir de la sesión de Claude Code:
 
 | Tool MCP | Uso en este flujo |
 |---|---|

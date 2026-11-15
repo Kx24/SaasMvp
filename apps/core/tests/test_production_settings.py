@@ -23,6 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 REQUIRED_BASE_ENV = {
     'SECRET_KEY': 'test-secret-key-for-settings-check',
     'DATABASE_URL': 'postgres://user:pass@localhost:5432/db',
+    'FIELD_ENCRYPTION_KEY': 'MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=',
 }
 
 
@@ -46,6 +47,17 @@ class ProductionEmailConfigTestCase(SimpleTestCase):
 
         self.assertNotEqual(result.returncode, 0, result.stderr)
         self.assertIn('EMAIL_HOST_USER', result.stderr)
+
+    def test_missing_field_encryption_key_fails_to_start(self):
+        # #SEC-06: sin FIELD_ENCRYPTION_KEY las credenciales no se pueden cifrar.
+        result = _check_production_settings({
+            'EMAIL_HOST_USER': 'no-reply@andesscale.cl',
+            'EMAIL_HOST_PASSWORD': 'super-secret',
+            'FIELD_ENCRYPTION_KEY': '',
+        })
+
+        self.assertNotEqual(result.returncode, 0, result.stderr)
+        self.assertIn('FIELD_ENCRYPTION_KEY', result.stderr)
 
     def test_with_email_credentials_starts_cleanly(self):
         result = _check_production_settings({

@@ -15,14 +15,13 @@ Uso:
 """
 
 import logging
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, Optional
 
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 from django.utils import timezone
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 

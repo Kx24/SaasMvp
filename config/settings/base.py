@@ -25,6 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+# Cifrado de campos en reposo (#SEC-06): una o más claves Fernet separadas por
+# coma; la primera cifra, todas descifran (rotación sin downtime).
+FIELD_ENCRYPTION_KEYS = [
+    k.strip() for k in os.environ.get('FIELD_ENCRYPTION_KEY', '').split(',') if k.strip()
+]
+
 # =============================================================================
 # MULTI-TENANT CONFIGURATION
 # =============================================================================
@@ -74,9 +80,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django.contrib.sitemaps',
-    
-    # Third party
-    'django_extensions',
     
     # Local apps
     'apps.core',
@@ -133,6 +136,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.tenants.context_processors.client_context',
+                'apps.accounts.context_processors.dashboard_permissions',
             ],
             'loaders': [
                 # 1. Templates por tenant
@@ -402,3 +406,12 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Andesscale <no-reply@
 
 # Email de soporte
 SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='soporte@andesscale.cl')
+# Tope legal de conservacion de mensajes de contacto (Ley 21.719 art. 14 d, LEY-03).
+# Maximo duro para todo tenant activo, con o sin auto_purge_enabled.
+CONTACT_MAX_RETENTION_DAYS = 365
+
+# Politica de privacidad vigente (LEY-01). Subir la version al cambiar el texto legal.
+PRIVACY_POLICY_VERSION = '2026-12-01'
+PRIVACY_POLICY_DATE = '1 de diciembre de 2026'
+# Slug del tenant de la plataforma (AndesScale es responsable, no encargado).
+PLATFORM_TENANT_SLUG = config('PLATFORM_TENANT_SLUG', default='andesscale')

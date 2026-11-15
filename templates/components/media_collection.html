@@ -20,14 +20,6 @@ Parámetros opcionales:
 
 {% slot_template slot_key as slot_path %}
 
-<!-- DEBUG mc: mode="{{ mode }}" items="{{ items|length }}" slot_key="{{ slot_key }}" -->
-{% if mode == "slideshow" and items %}
-<!-- DEBUG: entrando a slideshow -->
-{% else %}
-<!-- DEBUG: NO entró a slideshow -->
-{% endif %}
-
-
 {% if mode == "slideshow" and items %}
 {# ══════════════════════════════════════════#}
 {#   MODO SLIDESHOW#}

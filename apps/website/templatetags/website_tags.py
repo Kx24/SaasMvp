@@ -143,7 +143,8 @@ def get_hero_images(context):
     Retorna imágenes de portada según configuración del tenant.
 
     Lógica:
-      1. Si enable_gallery está desactivado → []
+      1. Si enable_gallery está desactivado → [None]: solo el slide del hero
+         default (la portada existe aunque no haya galería de imágenes)
       2. Obtiene imágenes activas (is_default=False, linkeadas a la Section hero)
       3. Si show_default_hero=True o no hay imágenes activas → antepone el hero default
       4. El hero default se representa como None — el template lo detecta
@@ -156,7 +157,7 @@ def get_hero_images(context):
     client = request.client
     settings = getattr(client, 'settings', None)
     if not settings or not settings.enable_gallery:
-        return []
+        return [None]
 
     # Imágenes activas del cliente (no default)
     active = list(

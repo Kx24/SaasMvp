@@ -1,7 +1,6 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
-
 # Páginas estáticas con su configuración
 TENANT_STATIC_PAGES = [
     {

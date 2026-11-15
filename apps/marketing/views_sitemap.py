@@ -1,9 +1,7 @@
-from django.contrib.sitemaps.views import sitemap, index as sitemap_index
-from django.http import HttpResponse
-from django.template.loader import render_to_string
-from django.utils import timezone
+from django.contrib.sitemaps.views import index as sitemap_index
+from django.contrib.sitemaps.views import sitemap
 
-from .sitemaps import TenantStaticSitemap, TenantSectionsSitemap
+from .sitemaps import TenantSectionsSitemap, TenantStaticSitemap
 
 
 def get_tenant_sitemaps(request):

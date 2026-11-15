@@ -23,9 +23,10 @@
 # =============================================================================
 
 from django import forms
-from .models import Section, Service, ContactSubmission
+
 from apps.website.models import GalleryItem
 
+from .models import Section, Service
 
 # =============================================================================
 # SECTION FORM — sin cambios
@@ -247,6 +248,14 @@ class ContactForm(forms.Form):
         }),
         error_messages={
             'required': 'Por favor escribe tu mensaje.',
+        }
+    )
+
+    # Consentimiento (LEY-01): checkbox no pre-marcado, obligatorio.
+    accept_privacy = forms.BooleanField(
+        required=True,
+        error_messages={
+            'required': 'Debes aceptar la política de privacidad para enviar el mensaje.',
         }
     )
 

@@ -27,3 +27,7 @@ ignore = [
 # (ver su propio docstring) -- cualquier settings file que extienda base.py así
 # siempre va a disparar F403/F405, no es código sin revisar.
 "config/settings/production.py" = ["F403", "F405"]
+# Mismo patrón: __init__.py elige base+production o base+development y
+# development.py extiende base.py (CONS-03 / BOLT-16).
+"config/settings/__init__.py" = ["F403", "F405"]
+"config/settings/development.py" = ["F403", "F405"]

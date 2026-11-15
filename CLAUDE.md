@@ -4,7 +4,7 @@ Guía operativa para trabajar en este repo con Claude Code. La fuente única de 
 
 ## Qué es esto
 
-SaaS multi-tenant en Django: un mismo despliegue sirve varios sitios de clientes (tenants), cada uno resuelto por dominio. Stack: Django 5.2, Supabase/Postgres en producción vía `dj_database_url`, Cloudinary para media, Tailwind (por CDN, ver `#AUD-11`), Render para hosting.
+SaaS multi-tenant en Django: un mismo despliegue sirve varios sitios de clientes (tenants), cada uno resuelto por dominio. Stack: Django 5.2, Neon (Postgres) en producción vía `dj_database_url`, Cloudinary para media, Tailwind (por CDN, ver `#AUD-11`), Render para hosting.
 
 ## Comandos frecuentes
 
@@ -13,13 +13,13 @@ SaaS multi-tenant en Django: un mismo despliegue sirve varios sitios de clientes
 # salvo que DJANGO_ENVIRONMENT=production esté seteado)
 python manage.py runserver 8000
 
-# Suite completa — 68 tests al cierre de esta sesión (ver kanban §1.3 para el número vigente)
+# Suite completa (el número vigente de tests: ver Documentacion/KANBAN_PROYECTO.md)
 python manage.py test apps -v 1
 
 # Un solo módulo/test
 python manage.py test apps.orders.tests.test_webhooks -v 2
 
-# Aislamiento multi-tenant real (#MED-02) — corre en cada push
+# Aislamiento multi-tenant real (#MED-02) — lo corren el gate y la CI
 python manage.py test apps.tenants.tests_isolation
 
 # Lint (set conservador: pyflakes + pycodestyle + isort, ver ruff.toml)
@@ -71,33 +71,35 @@ Antes de escribir un componente nuevo: revisar si ya existe en 2+ temas (`themes
 
 ## El arnés de TDD (contrato, no sugerencia)
 
-Detalle completo en `Documentacion/KANBAN_PROYECTO.md` §2. Resumen:
+Detalle completo en `Documentacion/KANBAN_PROYECTO.md`, sección "Arnés de TDD". Resumen:
 
 1. Toda card de Backend/Database entrega un test que **falla sin el cambio** (rojo confirmado, no asumido — si el bug es de configuración/infra, reproducir el rojo contra el estado original con `git stash` cuando aplique).
 2. Cobertura mínima: `apps/orders/` ≥ 80%, `apps/tenants/middleware.py`+`managers.py` ≥ 90%, resto ≥ 70%. Nunca baja.
 3. Antes de dar una card por cerrada: `ruff check` en los archivos tocados, suite completa en verde, `makemigrations --check --dry-run` limpio.
 4. Un commit por card (o sub-entregable coherente). Nada se commitea con la suite en rojo.
-5. Si al escribir el test aparece un bug real fuera del alcance original de la card (pasó varias veces: signal de `UserProfile`, namespace de `redirect`, `_current_client` muerto): arreglarlo ahí mismo si bloquea el DoD, documentarlo como "hallazgo incidental" en el commit y en el kanban — no ignorarlo ni abrir una card nueva para "después".
+5. `python scripts/gatekeeper.py --strict` corre todo lo anterior de forma determinista; el trinquete de cobertura y bandit vive en `scripts/gate_baseline.json`, y `--red-check` confirma que los tests nuevos fallan contra el código original.
+6. Si al escribir el test aparece un bug real fuera del alcance original de la card (pasó varias veces: signal de `UserProfile`, namespace de `redirect`, `_current_client` muerto): arreglarlo ahí mismo si bloquea el DoD, documentarlo como "hallazgo incidental" en el commit y en el kanban — no ignorarlo ni abrir una card nueva para "después".
 
 ## Branches
 
 - `main` — producción.
 - `develop` — integración. Recibe trabajo vía cherry-pick o PR desde branches de feature; ver historial reciente para el patrón (varias cards de robustez transaccional y aislamiento llegaron por cherry-pick individual, no por merge de branch completa).
 - `feature/RanchocachimbaEtapa1` — trabajo de Rancho Cachimba (tema, contenido, provisioning) **en pausa** por decisión del usuario (necesita tiempo de diseño/investigación) — no tocar sin que lo pida explícitamente.
+- `agent/*` — ramas del agente desatendido; son el único destino de push automático. Ver `docs/agente/README.md`.
 - Antes de asumir que una branch está actualizada en GitHub: correr `git status --short --branch` y `git log origin/<branch>..<branch> --oneline`. Ya pasó que trabajo de una sesión completa quedó sin pushear.
 
-## Automatización Git/GitHub (MCP)
+## Git y PRs
 
-Este repo usa el GitHub MCP Server oficial (`github/github-mcp-server`), configurado en `.mcp.json` (scope de proyecto) como binario local + PAT — la variante remota con OAuth (`api.githubcopilot.com/mcp/` + `claude mcp login github`) falla con `Incompatible auth server: does not support dynamic client registration`, es una incompatibilidad conocida de Claude Code con ese endpoint, no un error de configuración. Detalle completo, instalación y variante Docker en `MANUAL_MCP_GITHUB.md`. Reglas operativas mientras el MCP esté disponible en la sesión:
+Push y PRs los hace el dueño desde PyCharm/GitHub.
 
-1. **Sincronización antes de cerrar o cambiar de rama:** antes de dar una tarea por terminada o hacer `checkout`/`switch` a otra branch, correr `git status --short --branch` y `git log origin/<branch>..<branch> --oneline` (o el tool equivalente del MCP) en la branch actual. Si hay commits sin pushear, avisar explícitamente al usuario — no asumir que "ya se sincronizará después" (esto ya causó que trabajo de una sesión completa quedara sin pushear).
-2. **Cherry-pick asistido hacia `develop`:** antes de aplicar `git cherry-pick <sha>` sobre `develop`, mostrar el diff exacto del/los commit(s) a aplicar (`git show <sha>` o `git diff <sha>^..<sha>`) y pedir confirmación explícita del usuario antes de ejecutar el cherry-pick. Nunca encadenar varios cherry-picks sin repetir esta confirmación por commit (o por tanda, si el usuario ya aprobó el lote completo).
-3. **PR hacia `develop` al cerrar una tanda de commits etiquetados:** al terminar un conjunto de commits con el mismo prefijo de card (`AUD-XX`, `RC-XX`, `MED-XX`, etc.), preparar el PR (título, resumen de los commits incluidos, branch base `develop`) usando las herramientas del GitHub MCP y **confirmar con el usuario antes de crearlo** — mismo criterio que el cherry-pick asistido: nunca abrir un PR de forma silenciosa.
+- Antes de cerrar una tarea o cambiar de rama: `git status --short --branch` y `git log origin/<rama>..<rama> --oneline`. Si hay commits sin pushear, avisar explícitamente.
+- Cherry-pick hacia `develop`: solo mostrando antes el diff exacto (`git show <sha>`) y con confirmación explícita del usuario, por commit (o por tanda ya aprobada).
 
 ## Dónde mirar primero
 
 - `Documentacion/KANBAN_PROYECTO.md` — qué está hecho, qué falta, por qué, en qué orden. Sección **"🌙 Retomar aquí"** al inicio siempre tiene el estado más reciente.
 - `apps/*/tests/` — el comportamiento esperado documentado como test vale más que el docstring de al lado.
-- `MANUAL_MCP_GITHUB.md` — instalación, configuración y uso del GitHub MCP Server (PRs, estado de CI, branches) desde Claude Code.
+- `Documentacion/INDEX.md` — mapa de toda la documentación vigente y qué quedó en `Documentacion/historico/`.
+- `Documentacion/ARQUITECTURA.md` — cada tecnología y qué hace, apps, modelo de datos, flujos. `Documentacion/SEGURIDAD.md` — controles, hallazgos abiertos, Ley 21.719 y checklist por release.
 - Skill `andesscale-saas` (`.claude/skills/andesscale-saas/SKILL.md`) — profundiza en resolución de templates, filtrado por tenant y provisioning; cárgalo para trabajo específico de tenants/temas en vez de releer este archivo entero.
 - `.idea/runConfigurations/` — los comandos frecuentes de arriba como run configurations de PyCharm (IDE principal desde 2026-11). Intérprete: `env/Scripts/python.exe` de este checkout.

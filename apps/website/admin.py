@@ -32,8 +32,7 @@ except ImportError:
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 # Importar modelos
-from .models import Section, Service, ContactSubmission
-
+from .models import ContactSubmission, Section, Service
 
 # =============================================================================
 # SECTION ADMIN
@@ -266,7 +265,7 @@ class ContactSubmissionAdmin(TenantAdminMixin, admin.ModelAdmin):
     list_filter = ['status', 'created_at']
     search_fields = ['name', 'email', 'subject', 'message']
     readonly_fields = ['name', 'email', 'phone', 'company', 'subject', 'message', 
-                       'created_at', 'updated_at', 'ip_address', 'user_agent']
+                       'created_at', 'updated_at', 'ip_address', 'consent_at', 'consent_policy_version']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
     
@@ -281,7 +280,7 @@ class ContactSubmissionAdmin(TenantAdminMixin, admin.ModelAdmin):
             'fields': ('status', 'source')
         }),
         ('Metadata', {
-            'fields': ('ip_address', 'user_agent', 'created_at', 'updated_at'),
+            'fields': ('ip_address', 'consent_at', 'consent_policy_version', 'created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )

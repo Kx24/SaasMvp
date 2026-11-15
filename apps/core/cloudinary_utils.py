@@ -20,7 +20,7 @@
 # =============================================================================
 
 import logging
-from django.conf import settings
+
 import cloudinary
 import cloudinary.uploader
 
@@ -635,31 +635,62 @@ def delete_from_cloudinary(public_id: str, resource_type: str = 'image') -> dict
 # VALIDACIONES
 # =============================================================================
 
+# Formatos que Pillow debe reconocer en el contenido real del archivo. SVG
+# queda fuera a propósito: es XML y puede llevar JavaScript (SEC-11).
+_PIL_FORMATS_BY_EXT = {
+    'jpg': 'JPEG', 'jpeg': 'JPEG', 'png': 'PNG', 'gif': 'GIF', 'webp': 'WEBP',
+}
+
+
 def validate_image_file(file, max_size_mb: float = 10,
                         allowed_formats: list = None) -> tuple[bool, str | None]:
     """
-    Valida un archivo de imagen antes de subirlo.
+    Valida un archivo de imagen antes de subirlo (SEC-11).
+
+    Comprueba tamaño, extensión y **contenido real** (Pillow debe abrirlo y
+    su formato debe ser uno de los permitidos): un .txt renombrado a .jpg o
+    un SVG no pasan. Deja el archivo rebobinado para subirlo después.
 
     Args:
-        file: Archivo a validar (debe tener atributos .size y .name)
+        file: Archivo a validar (UploadedFile o similar con .size, .name, .read)
         max_size_mb: Tamaño máximo permitido en MB
-        allowed_formats: Extensiones permitidas (default: jpg, jpeg, png, gif, webp, svg)
+        allowed_formats: Extensiones permitidas (default: jpg, jpeg, png, gif, webp)
 
     Returns:
         Tuple (is_valid: bool, error_message: str | None)
     """
     if allowed_formats is None:
-        allowed_formats = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
+        allowed_formats = list(_PIL_FORMATS_BY_EXT)
+    allowed_formats = [f for f in allowed_formats if f in _PIL_FORMATS_BY_EXT]
 
-    if hasattr(file, 'size'):
-        size_mb = file.size / (1024 * 1024)
-        if size_mb > max_size_mb:
-            return False, f"Archivo muy grande: {size_mb:.1f}MB (máx: {max_size_mb}MB)"
+    size = getattr(file, 'size', None)
+    if size is not None and size / (1024 * 1024) > max_size_mb:
+        return False, f"La imagen es muy grande: {size / (1024 * 1024):.1f} MB (máximo {max_size_mb:g} MB)."
 
-    if hasattr(file, 'name'):
-        ext = file.name.rsplit('.', 1)[-1].lower()
-        if ext not in allowed_formats:
-            return False, f"Formato no permitido: .{ext} (permitidos: {', '.join(allowed_formats)})"
+    name = getattr(file, 'name', '') or ''
+    ext = name.rsplit('.', 1)[-1].lower() if '.' in name else ''
+    if ext not in allowed_formats:
+        return False, (
+            f"Formato de imagen no permitido: .{ext or '?'} "
+            f"(permitidos: {', '.join(allowed_formats)})."
+        )
+
+    from PIL import Image, UnidentifiedImageError
+    try:
+        file.seek(0)
+        with Image.open(file) as img:
+            real_format = img.format
+            img.verify()
+    except (UnidentifiedImageError, OSError, SyntaxError, ValueError):
+        return False, 'El archivo no es una imagen válida.'
+    finally:
+        try:
+            file.seek(0)
+        except Exception:
+            pass
+
+    if real_format not in {_PIL_FORMATS_BY_EXT[f] for f in allowed_formats}:
+        return False, 'El contenido del archivo no corresponde a una imagen permitida.'
 
     return True, None
 

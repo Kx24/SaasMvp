@@ -1,6 +1,9 @@
 # apps/tenants/forms.py
 from django import forms
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
+
+from apps.core.cloudinary_utils import validate_image_file
 
 from .models import Client, ClientSettings, Domain
 
@@ -10,6 +13,23 @@ class BrandingForm(forms.ModelForm):
     Formulario para editar branding del cliente desde el dashboard.
     Campos: logo, logo_footer, colores, info empresa, redes, SEO.
     """
+
+    # SEC-11: los logos son CloudinaryField (autosave=False): el archivo llega
+    # a clean_<campo> como UploadedFile y recién se sube al guardar el modelo,
+    # así que validar aquí impide que un archivo inválido llegue a Cloudinary.
+    def _clean_uploaded_image(self, field):
+        value = self.cleaned_data.get(field)
+        if isinstance(value, UploadedFile):
+            ok, error = validate_image_file(value)
+            if not ok:
+                raise forms.ValidationError(error)
+        return value
+
+    def clean_logo(self):
+        return self._clean_uploaded_image('logo')
+
+    def clean_logo_footer(self):
+        return self._clean_uploaded_image('logo_footer')
 
     class Meta:
         model = ClientSettings

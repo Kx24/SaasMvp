@@ -1,10 +1,10 @@
 """
 Settings package para diferentes ambientes.
 """
-from .base import *
-
 # Cargar settings según ambiente
 import os
+
+from .base import *
 
 env = os.environ.get('DJANGO_ENVIRONMENT', 'development')
 

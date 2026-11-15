@@ -67,6 +67,8 @@ for (const tenant of TENANTS) {
           'Mensaje de prueba enviado por la suite Playwright de #TOOL-01.'
         );
 
+        await section.locator('input[name="accept_privacy"]').check();
+
         await Promise.all([
           page.waitForURL('**/'),
           section.locator('button[type="submit"]').click(),
@@ -91,6 +93,8 @@ for (const tenant of TENANTS) {
         await section.locator('#ms-message').fill(
           'Mensaje de prueba enviado por la suite Playwright de #TOOL-01.'
         );
+
+        await section.locator('input[name="accept_privacy"]').check();
 
         const [response] = await Promise.all([
           page.waitForResponse((res) => res.url().includes('/contact/submit/')),

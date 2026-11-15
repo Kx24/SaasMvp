@@ -21,9 +21,10 @@
 # =============================================================================
 
 import logging
-from cloudinary import CloudinaryResource
-from apps.core.cloudinary_utils import delete_from_cloudinary
 
+from cloudinary import CloudinaryResource
+
+from apps.core.cloudinary_utils import delete_from_cloudinary
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +138,7 @@ def register_cloudinary_signals():
 
     # apps.website
     try:
-        from apps.website.models import Section, Service, GalleryItem
+        from apps.website.models import GalleryItem, Section, Service
         post_delete.connect(
             delete_cloudinary_assets_on_delete,
             sender=Section,

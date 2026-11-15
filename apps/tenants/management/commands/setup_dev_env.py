@@ -1,5 +1,6 @@
-from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
+
 from apps.tenants.models import Client, ClientSettings, Domain
 from apps.website.models import Section, Service
 
@@ -128,6 +129,7 @@ class Command(BaseCommand):
                 section_type=sec['type'],
                 title=sec['title'],
                 description=sec['desc'],
+                slot_key='hero' if sec['type'] == 'hero' else 'empty',
                 order=idx,
                 is_active=True
             )
