@@ -1,7 +1,7 @@
 # BOLT-35 — `DASH-04`: roles con efecto en el dashboard
 
-> **BORRADOR — no está en `cola.json`.** La matriz de abajo es una propuesta; se agrega a la cola
-> solo cuando el dueño la confirme.
+> **Matriz confirmada por el dueño el 2026-11-15**, sin cambios. `editor` sigue siendo el rol por
+> defecto (no hay migración).
 
 ## Contexto verificado (2026-11-15)
 
@@ -16,7 +16,7 @@
 - Quien se registra por onboarding queda `owner` (`process_onboarding`); un usuario creado sin
   rol explícito queda `editor`.
 
-## Matriz (propuesta)
+## Matriz (confirmada)
 
 Acciones agrupadas por el efecto, no por pantalla. ✔ permitido · ✘ 403.
 
