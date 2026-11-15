@@ -16,6 +16,7 @@
 | Pagos | Webhook MercadoPago con firma HMAC, falla cerrado; nunca confía en el payload (re-consulta el pago) | `apps/orders/services/mercadopago_service.py`, `apps/orders/tests/test_webhooks.py` |
 | Abuso | Rate limit en login (IP+usuario+tenant), checkout y contacto; honeypot en el formulario; IP tomada del proxy confiable | `apps/core/rate_limit.py` |
 | Secretos | `.env` fuera de git y de su historial; sin claves reales trackeadas; superusuario sin contraseña por defecto | `Inventario_Secretos.md`, `setup_production` |
+| Integración continua | GitHub Actions en cada push y en PR a `develop`/`main`: `gatekeeper.py --strict`, suite de aislamiento, `ruff check apps/ config/` y `pip-audit`; permisos `contents: read`, sin secretos, variables ficticias | `.github/workflows/ci.yml`, `apps/core/tests/test_ci_workflow.py` (`SEC-12`) |
 | Código | `bandit -ll`: **0 High**, 21 Medium (ver `SEC-14`) | Corrida del 2026-11-12 |
 | Atajos de desarrollo | `?tenant=<slug>` solo funciona con `DEBUG=True` | `apps/tenants/middleware.py::_detect_tenant` |
 
@@ -29,7 +30,6 @@
 | `SEC-10` | P0 | `Django==5.2.6`, `gunicorn==21.2.0`, `djangorestframework==3.15.1` (sin uso) y herramientas de desarrollo (`ipython`, `django-extensions`…) en el `requirements.txt` de producción; Render usa Python 3.11.0 y el entorno local 3.13 | `requirements.txt`, `render.yaml:40` | Vulnerabilidades conocidas sin parchear (confirmar con `pip-audit`), más superficie de la necesaria, diferencias entre local y producción |
 | `SEC-08` | P1 | Dos implementaciones de login bajo `/auth/`; la de `apps/accounts` es inalcanzable, sin tests y llama métodos de `UserProfile` que hay que verificar | `config/urls.py:19,40`, `apps/accounts/views.py` | Código de autenticación sin mantener |
 | `SEC-11` | P1 | Las subidas del dashboard no validan tipo ni tamaño en el servidor: `validate_image_file` / `validate_video_file` existen pero nadie los llama | `apps/core/cloudinary_utils.py:638,667`; grep sin usos | Archivos arbitrarios hacia Cloudinary, consumo de cuota |
-| `SEC-12` | P1 | No hay integración continua: el gate (suite, aislamiento, lint) solo corre a mano | No existe `.github/workflows/` | Una regresión de aislamiento puede llegar a `main` |
 | `SEC-13` | P1 | `/superadmin/` sin segundo factor y fuera del rate limiter propio | `config/urls.py:16`; `RateLimiter` solo en `client_login` | Fuerza bruta contra la cuenta con más privilegios |
 | `SEC-09` | P2 (bloqueada) | `/checkout/` excluido de la CSP | `security_headers.py` | Requiere sandbox real de MercadoPago |
 | `SEC-14` | P2 | 21 avisos Medium de bandit por `mark_safe`; el JSON-LD de `seo_tags.py` no escapa `</`; `{{ section.content\|safe }}` en parciales legados | `apps/website/templatetags/cloudinary_tags.py`, `apps/tenants/templatetags/seo_tags.py:154`, `templates/partials/section_display.html` | XSS almacenado si un cliente escribe HTML en un campo que termina sin escapar |

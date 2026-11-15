@@ -87,7 +87,7 @@
 ### Fase 2 — Consolidación (D6–D11, diciembre)
 | Día | Bloque A | Bloque B |
 |---|---|---|
-| D6 | `DB-02` Backup de Neon con restore probado (+ `DB-03`) | `SEC-12` Integración continua con el gate |
+| D6 | `DB-02` Backup de Neon con restore probado (+ `DB-03`) | `SEC-12` ✅ Integración continua con el gate |
 | D7 | `CONS-02` Documentación al día (Neon, `CLAUDE.md`, README) | `DEUDA-08` ✅ Portada sin titular por defecto |
 | D8 | `CONS-06` ✅ `TenantOwnedMixin` | `DASH-04` Roles con efecto |
 | D9 | `SEC-05b` + `DEUDA-06` ✅ Restos del admin y código muerto | `CONS-07` ✅ Separar `views.py` |
@@ -155,7 +155,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `SEC-05b` | Restos de alcance en el admin | P3 | S | `list_filter` por `client` en `SEOConfigAdmin`/`UserProfileAdmin` lista los nombres de todos los clientes a un staff; el desplegable de `PaymentLog.order` no se restringe. Hallado por `BOLT-15` |
 | `SEC-06` | Credenciales cifradas en reposo | P0 | M | `smtp_password`/`api_key` cifrados (Fernet) con clave en variable de entorno + migración de datos; test: el valor en base no es el texto ingresado |
 | `SEC-10` | Dependencias | P0 | M | `pip-audit` en `requirements-dev.txt` y sin vulnerabilidades conocidas; Django en el último 5.2.x; `gunicorn` actualizado; fuera `djangorestframework` y herramientas de desarrollo de `requirements.txt`; misma versión de Python en Render y local |
-| `SEC-12` | Integración continua | P1 | M | GitHub Actions en cada push/PR: suite, aislamiento, `makemigrations --check`, `bandit -ll`, `pip-audit` |
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
 | `SEC-14` | Salidas sin escapar | P2 | M | Revisados los 21 avisos de `mark_safe`; JSON-LD escapa `</`; `bandit` en 0 Medium o justificados |
 | `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |

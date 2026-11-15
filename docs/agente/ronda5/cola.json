@@ -131,7 +131,7 @@
       "id": "BOLT-30",
       "maestra": "SEC-12",
       "titulo": "Integración continua con el gate",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-30.md",
       "red_tests": [
         "apps.core.tests.test_ci_workflow"
@@ -139,6 +139,16 @@
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         ".github/"
+      ],
+      "costo_usd": 0.34,
+      "tests": 333,
+      "hallazgos": [],
+      "revisar_humano": [
+        "El primer resultado real del workflow se ve en GitHub Actions al hacer push de esta rama. Si falla por una variable de entorno faltante, se corrige en una card siguiente.",
+        "pip-audit puede dejar el workflow en rojo si hay vulnerabilidades en requirements.txt. Es el objetivo del control y enlaza con SEC-10.",
+        "En CI el paso e2e del gatekeeper se omite solo, porque no hay archivos cambiados respecto de HEAD.",
+        "El trigger push sin filtro de ramas más pull_request hacia develop/main ejecuta CI dos veces en ramas con PR abierto. Decide si te sirve.",
+        "Python 3.11 resuelve al último parche, mientras que render.yaml fija 3.11.0."
       ]
     },
     {

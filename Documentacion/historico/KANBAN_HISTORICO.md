@@ -24,6 +24,7 @@
 | `SEC-05` | Django Admin limitado por tenant en 8 admins (órdenes, pagos, dominios, settings, credenciales SMTP, formularios, SEO, perfiles); `ClientAdmin`, `/superadmin/nuevo/` y `/tenants/` solo superuser | 2026-11-12 | `BOLT-15` |
 | `SEC-17` | Comentarios `<!-- DEBUG -->` eliminados del HTML público (`media_collection.html` y `servelec/components/hero.html`); guardia estática + render por tema | 2026-11-14 | `BOLT-17` |
 | `SEC-08` | Un solo login: `client_login` respeta `next` solo si es interno (`url_has_allowed_host_and_scheme`); eliminados `login_view`/`logout_view` de `apps/accounts` y sus rutas | 2026-11-14 | `BOLT-20` |
+| `SEC-12` | Integración continua: GitHub Actions con el gate estricto, aislamiento, ruff completo y `pip-audit`; permisos mínimos y sin secretos | 2026-11-14 | `BOLT-30` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
 

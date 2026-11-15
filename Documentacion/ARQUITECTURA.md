@@ -124,7 +124,7 @@ EmailOutbox  (cola global, sin FK a Client)
 - **Build en Render** (`build.sh`): `pip install` → `npm ci && npm run build:css` → `collectstatic` → `migrate` → `setup_production`.
 - **Ramas:** `main` = producción (deploy automático en Render), `develop` = integración.
 - **Variables y secretos:** inventario en [`Inventario_Secretos.md`](Inventario_Secretos.md).
-- **Calidad:** 219 tests (`python manage.py test apps`), suite de aislamiento (`apps.tenants.tests_isolation`), Playwright (humo + a11y). El gate se corre **a mano**; no hay CI todavía (`SEC-12`). Reglas: sección "Arnés de TDD" del kanban.
+- **Calidad:** 219 tests (`python manage.py test apps`), suite de aislamiento (`apps.tenants.tests_isolation`), Playwright (humo + a11y). El gate corre en GitHub Actions (`.github/workflows/ci.yml`, `SEC-12`) y también a mano. Reglas: sección "Arnés de TDD" del kanban.
 
 ## 8. Limitaciones conocidas (enlazadas al kanban)
 

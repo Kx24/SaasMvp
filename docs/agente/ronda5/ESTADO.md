@@ -10,7 +10,7 @@ Rama `agent/ronda5` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-27` | `SEC-10` | Dependencias al día y pip-audit | ❌ REJECTED |  | 0.57 |
 | `BOLT-28` | `CONS-06` | Camino único para objetos del tenant | ✅ DONE | 325 | 0.48 |
 | `BOLT-29` | `CONS-07` | Separar views.py por área | ✅ DONE | 329 | 0.66 |
-| `BOLT-30` | `SEC-12` | Integración continua con el gate | ⏳ TODO |  |  |
+| `BOLT-30` | `SEC-12` | Integración continua con el gate | ✅ DONE | 333 | 0.34 |
 | `BOLT-31` | `CONS-02` | Documentación al día | ⏳ TODO |  |  |
 
 ## Revisar a mano en el PR
@@ -31,6 +31,11 @@ Rama `agent/ronda5` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-29`: El dev no corrió Playwright; el gate lo reportó con ran=false. No se tocaron templates ni estáticos.
 - `BOLT-29`: Se descartó el comentario de cabecera obsoleto de views.py (sobre contact_submit).
 - `BOLT-29`: ARQUITECTURA.md:57 sigue diciendo que views.py tiene 1.099 líneas y que se separa en CONS-07. Está desactualizado.
+- `BOLT-30`: El primer resultado real del workflow se ve en GitHub Actions al hacer push de esta rama. Si falla por una variable de entorno faltante, se corrige en una card siguiente.
+- `BOLT-30`: pip-audit puede dejar el workflow en rojo si hay vulnerabilidades en requirements.txt. Es el objetivo del control y enlaza con SEC-10.
+- `BOLT-30`: En CI el paso e2e del gatekeeper se omite solo, porque no hay archivos cambiados respecto de HEAD.
+- `BOLT-30`: El trigger push sin filtro de ramas más pull_request hacia develop/main ejecuta CI dos veces en ramas con PR abierto. Decide si te sirve.
+- `BOLT-30`: Python 3.11 resuelve al último parche, mientras que render.yaml fija 3.11.0.
 
 ## Hallazgos incidentales
 
