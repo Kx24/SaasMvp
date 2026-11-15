@@ -30,7 +30,7 @@ import logging
 
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
@@ -39,6 +39,7 @@ from apps.core.cloudinary_utils import validate_image_file
 from apps.core.logging_utils import email_ref
 from apps.core.rate_limit import RateLimiter, get_client_ip
 from apps.core.template_resolver import get_tenant_template, render_tenant_template
+from apps.core.tenant_objects import tenant_object_or_404
 from apps.tenants.fonts import FONT_CHOICES
 from apps.tenants.forms import BrandingForm
 from apps.tenants.models import ClientSettings
@@ -359,7 +360,7 @@ def edit_section_dashboard(request, section_id):
     """
     Editar una sección desde el dashboard
     """
-    section = get_object_or_404(Section, id=section_id, client=request.client)
+    section = tenant_object_or_404(request, Section, id=section_id)
 
     if request.method == 'POST':
         form = SectionForm(request.POST, instance=section)
@@ -467,7 +468,7 @@ def create_service_dashboard(request):
 @tenant_member_required
 def edit_service_dashboard(request, service_id):
     """Editar servicio desde dashboard"""
-    service = get_object_or_404(Service, id=service_id, client=request.client)
+    service = tenant_object_or_404(request, Service, id=service_id)
 
     if request.method == 'POST':
         # Excluimos 'image' del form para manejarlo manualmente (evita bug con TemporaryUploadedFile en Cloudinary)
@@ -533,7 +534,7 @@ def edit_service_dashboard(request, service_id):
 @tenant_member_required
 def delete_service_dashboard(request, service_id):
     """Eliminar servicio desde dashboard"""
-    service = get_object_or_404(Service, id=service_id, client=request.client)
+    service = tenant_object_or_404(request, Service, id=service_id)
     
     if request.method == 'POST':
         name = service.name
@@ -551,7 +552,7 @@ def delete_service_dashboard(request, service_id):
 @tenant_member_required
 def toggle_service(request, service_id):
     """Activar / desactivar un servicio"""
-    service = get_object_or_404(Service, id=service_id, client=request.client)
+    service = tenant_object_or_404(request, Service, id=service_id)
     service.is_active = not service.is_active
     service.save(update_fields=['is_active'])
 
@@ -565,7 +566,7 @@ def toggle_service(request, service_id):
 @tenant_member_required
 def toggle_service_featured(request, service_id):
     """Destacar / quitar destacado de un servicio"""
-    service = get_object_or_404(Service, id=service_id, client=request.client)
+    service = tenant_object_or_404(request, Service, id=service_id)
     service.is_featured = not service.is_featured
     service.save(update_fields=['is_featured'])
 
@@ -584,11 +585,7 @@ def reorder_services(request):
         order_data = data.get('order', [])
 
         for item in order_data:
-            service = get_object_or_404(
-                Service,
-                id=item['id'],
-                client=request.client
-            )
+            service = tenant_object_or_404(request, Service, id=item['id'])
             service.order = item['order']
             service.save(update_fields=['order'])
 
@@ -610,7 +607,7 @@ def reorder_services(request):
 @tenant_member_required
 def edit_section(request, section_id):
     """Editar sección con HTMX"""
-    section = get_object_or_404(Section, id=section_id, client=request.client)
+    section = tenant_object_or_404(request, Section, id=section_id)
     
     if request.method == 'POST':
         form = SectionForm(request.POST, instance=section)
@@ -639,7 +636,7 @@ def edit_section(request, section_id):
 @tenant_member_required
 def cancel_edit_section(request, section_id):
     """Cancelar edición de sección"""
-    section = get_object_or_404(Section, id=section_id, client=request.client)
+    section = tenant_object_or_404(request, Section, id=section_id)
     template = get_tenant_template(request, 'partials/section_display.html')
     return render(request, template, {
         'section': section,
@@ -650,7 +647,7 @@ def cancel_edit_section(request, section_id):
 @tenant_member_required
 def edit_service(request, service_id):
     """Editar servicio con HTMX"""
-    service = get_object_or_404(Service, id=service_id, client=request.client)
+    service = tenant_object_or_404(request, Service, id=service_id)
     
     if request.method == 'POST':
         form = ServiceForm(request.POST, instance=service)
@@ -707,7 +704,7 @@ def add_service(request):
 @tenant_member_required
 def delete_service(request, service_id):
     """Eliminar servicio con HTMX"""
-    service = get_object_or_404(Service, id=service_id, client=request.client)
+    service = tenant_object_or_404(request, Service, id=service_id)
     
     if request.method == 'POST':
         service.delete()
@@ -727,7 +724,7 @@ def delete_service(request, service_id):
 @tenant_member_required
 def cancel_edit_service(request, service_id):
     """Cancelar edición de servicio"""
-    service = get_object_or_404(Service, id=service_id, client=request.client)
+    service = tenant_object_or_404(request, Service, id=service_id)
     template = get_tenant_template(request, 'partials/service_card.html')
     return render(request, template, {
         'service': service,
@@ -762,11 +759,7 @@ def dashboard_contacts(request):
 def mark_contact_read(request, contact_id):
     """Marcar contacto como leído"""
     if request.method == 'POST':
-        contact = get_object_or_404(
-            ContactSubmission,
-            id=contact_id,
-            client=request.client
-        )
+        contact = tenant_object_or_404(request, ContactSubmission, id=contact_id)
         contact.mark_as_read()
         messages.success(request, 'Contacto marcado como leído')
     
@@ -777,11 +770,7 @@ def mark_contact_read(request, contact_id):
 def mark_contact_replied(request, contact_id):
     """Marcar contacto como respondido"""
     if request.method == 'POST':
-        contact = get_object_or_404(
-            ContactSubmission,
-            id=contact_id,
-            client=request.client
-        )
+        contact = tenant_object_or_404(request, ContactSubmission, id=contact_id)
         contact.mark_as_replied()
         messages.success(request, 'Contacto marcado como respondido')
     
@@ -866,7 +855,7 @@ def gallery_item_add(request):
     owner_kwargs = {}
 
     if service_id:
-        service = get_object_or_404(Service, id=service_id, client=client)
+        service = tenant_object_or_404(request, Service, id=service_id)
         owner_kwargs = {'service': service}
         count = GalleryItem.objects.filter(client=client, service=service).count()
         limit = settings.gallery_images_limit
@@ -951,7 +940,7 @@ def gallery_item_add(request):
 @tenant_member_required
 def gallery_item_edit(request, item_id):
     client = request.client
-    item = get_object_or_404(GalleryItem, id=item_id, client=client)
+    item = tenant_object_or_404(request, GalleryItem, id=item_id)
     redirect_url = _gallery_item_redirect_url(item)
 
     if request.method == 'POST':
@@ -1006,9 +995,8 @@ def gallery_item_delete(request, item_id):
     """
     Eliminar ítem. Protege imágenes default contra eliminación.
     """
-    client = request.client
-    item = get_object_or_404(GalleryItem, id=item_id, client=client)
- 
+    item = tenant_object_or_404(request, GalleryItem, id=item_id)
+
     if item.is_default:
         messages.error(request, 'La imagen por defecto no puede eliminarse.')
         return redirect('dashboard_gallery')
@@ -1027,9 +1015,8 @@ def gallery_item_toggle(request, item_id):
     """
     Activar/desactivar ítem.
     """
-    client = request.client
-    item = get_object_or_404(GalleryItem, id=item_id, client=client)
- 
+    item = tenant_object_or_404(request, GalleryItem, id=item_id)
+
     if request.method == 'POST':
         item.is_active = not item.is_active
         item.save(update_fields=['is_active', 'updated_at'])

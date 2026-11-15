@@ -87,12 +87,23 @@
       "id": "BOLT-28",
       "maestra": "CONS-06",
       "titulo": "Camino único para objetos del tenant",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-28.md",
       "red_tests": [
         "apps.core.tests.test_tenant_objects"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.48,
+      "tests": 325,
+      "hallazgos": [
+        "apps/website/templatetags/website_tags.py:44 usa .objects.get( fuera del alcance de la guardia (solo cubre views.py); conviene revisar que filtre por tenant.",
+        "El dev no buscó el mismo patrón (get_object_or_404 sin helper) en orders ni accounts, como pedía el spec; queda sin verificar."
+      ],
+      "revisar_humano": [
+        "Confirmar que la guardia estática solo mira views.py (o el paquete views/) y no los templatetags, que contienen un .objects.get(.",
+        "gallery_item_add, gallery_item_edit y gallery_item_delete consultan GalleryItem con client directo, no con section__client; el mismo valor que antes, pero vale mirarlo.",
+        "Ninguna URL, template ni decorador cambió; hay que confirmar que los decoradores @tenant_member_required siguen en todas las vistas editadas."
+      ]
     },
     {
       "id": "BOLT-29",

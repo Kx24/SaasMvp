@@ -8,7 +8,7 @@ Rama `agent/ronda5` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-25` | `DEUDA-06` | Código muerto | ✅ DONE | 313 | 0.39 |
 | `BOLT-26` | `LEY-03` | Tope legal de 365 días para mensajes de contacto | ✅ DONE | 320 | 0.57 |
 | `BOLT-27` | `SEC-10` | Dependencias al día y pip-audit | ❌ REJECTED |  | 0.57 |
-| `BOLT-28` | `CONS-06` | Camino único para objetos del tenant | ⏳ TODO |  |  |
+| `BOLT-28` | `CONS-06` | Camino único para objetos del tenant | ✅ DONE | 325 | 0.48 |
 | `BOLT-29` | `CONS-07` | Separar views.py por área | ⏳ TODO |  |  |
 | `BOLT-30` | `SEC-12` | Integración continua con el gate | ⏳ TODO |  |  |
 | `BOLT-31` | `CONS-02` | Documentación al día | ⏳ TODO |  |  |
@@ -22,6 +22,9 @@ Rama `agent/ronda5` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-26`: La purga solo corre cuando se ejecuta send_contact_digest. Sin el cron de OPS-06 en Render no se ejecuta en producción.
 - `BOLT-26`: El plazo de 365 días todavía no está publicado en la política de privacidad (sigue pendiente en LEY-03).
 - `BOLT-26`: El texto visible al cliente en el digest es nuevo: «Se eliminaron N mensajes con más de 365 días (plazo máximo de conservación)».
+- `BOLT-28`: Confirmar que la guardia estática solo mira views.py (o el paquete views/) y no los templatetags, que contienen un .objects.get(.
+- `BOLT-28`: gallery_item_add, gallery_item_edit y gallery_item_delete consultan GalleryItem con client directo, no con section__client; el mismo valor que antes, pero vale mirarlo.
+- `BOLT-28`: Ninguna URL, template ni decorador cambió; hay que confirmar que los decoradores @tenant_member_required siguen en todas las vistas editadas.
 
 ## Hallazgos incidentales
 
@@ -31,6 +34,8 @@ Rama `agent/ronda5` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-25`: OPS-04 (alerta de créditos Cloudinary) sigue citando CLOUDINARY_ALERT_THRESHOLDS, que vivía en el archivo borrado; al implementarla habrá que definir los umbrales de nuevo.
 - `BOLT-26`: _purge_beyond_legal_cap está anotado como -> str pero devuelve None en los casos sin purga y en dry-run (cosmético; el método existente _purge_old_contacts tiene el mismo patrón).
 - `BOLT-26`: El tope se aplica por created_at, no por la última actividad del mensaje, y no hay aviso previo al cliente antes de borrar mensajes new sin leer.
+- `BOLT-28`: apps/website/templatetags/website_tags.py:44 usa .objects.get( fuera del alcance de la guardia (solo cubre views.py); conviene revisar que filtre por tenant.
+- `BOLT-28`: El dev no buscó el mismo patrón (get_object_or_404 sin helper) en orders ni accounts, como pedía el spec; queda sin verificar.
 
 ## Pendiente de tu decisión
 
