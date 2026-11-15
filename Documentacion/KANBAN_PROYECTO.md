@@ -6,21 +6,21 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-11-12)
+## 🌙 Retomar aquí (actualizado 2026-11-15)
 
 **Foco del trimestre (nov 2026 – feb 2027), sin captar clientes:** ① consolidar la plataforma (módulos reutilizables + dashboard profesional estilo Instagram/Gmail), ② ciberseguridad, ③ Ley 21.719.
 
-**Decisiones tomadas el 2026-11-12:**
-- **Composición de página (`MOD-00`): opción A ahora, B después.** Registro de módulos de funcionalidad + menú del dashboard generado; la home sigue escrita por tema. Orden/visibilidad de bloques por cliente (B) es `MOD-02`. Page-builder completo, descartado.
-- **Seguridad y ley primero.** La Ley 21.719 rige el 1-dic-2026; la consolidación arranca en diciembre.
+**Decisiones vigentes:** composición de página `MOD-00` opción A ahora, B después (`MOD-02`). Seguridad y ley primero (la ley rige el 1-dic-2026). Matriz de roles de `DASH-04` confirmada, el editor sigue por defecto.
 
-**Estado:** `develop` con commits de documentación pendientes de push (PyCharm). Producción en `main` con PR #2 (`f140bf0`).
-**Ronda 3 del piloto agéntico terminada (2026-11-12) en la rama `agent/fase1-seguridad`, sin push y sin mergear:** `CONS-10`, `SEC-07`, `SEC-11`, `LEY-03` (parte), `SEC-05` y `CONS-03` cerrados — detalle en `historico/KANBAN_HISTORICO.md` y `docs/kanban_agente.md`. Gate en esa rama: 291 tests OK (1 skip), `makemigrations --check` limpio, **ruff en 0**, Playwright 7/7. Hallazgos corregidos de paso: `/auth/set-password/` y `/auth/forgot-password/` daban 500 (métodos de `UserProfile` inexistentes) y `redirect('dashboard:home')` inexistente. Hallazgos abiertos nuevos: `DEUDA-08` (portada sin titular por defecto), `SEC-17`, `SEC-05b`.
-**Pendiente tuyo:** revisar la rama y abrir el PR `agent/fase1-seguridad` → `develop` desde PyCharm (antes, push de `develop`).
+**Estado (2026-11-15):** rondas 3 a 7 del agente mergeadas en `main` (PR #3) y `develop` igualada a `main`. **Producción (Render `saasmvp`) sigue en el commit de agosto `1a5d3e2`**: el merge no se desplegó y Auto-Deploy debe quedar en Off hasta decidir. Cerradas: `LEY-01`, `DASH-04`, `SEC-06`, `SEC-10`, `SEC-14`, `CONS-04`/`05`/`06`/`07`, entre otras (detalle en `historico/KANBAN_HISTORICO.md` y `docs/agente/ronda*/`).
+**Ensayo `OPS-07` hecho (2026-11-15):** rama de Neon `staging-ensayo` + servicio temporal `saasmvp-staging` desplegado desde `main` (5a2c734) con `./build.sh`. Build de 1 min, migraciones sin error, login, subida de imagen (`pillow` 13), `/privacidad/`, borrado de servicio y admin OK. Hallazgo: el Build Command de Render **no usaba `build.sh`** y sin él no se compila `output.css` (sitio sin estilos). Pendiente del ensayo: contacto con consentimiento y correo, checkout sandbox, portada de Servelec (`DEUDA-08`).
+**Hecho en Render:** `FIELD_ENCRYPTION_KEY` creada y cargada, 2FA activo, Environment Group `saasmvp-shared`. **Aún sin crear:** crons `contact-digest` y `send-pending-emails` (`OPS-06`); sin el primero la purga de 365 días (`LEY-03`) no corre en producción.
 
-**Ritmo:** 2 días/semana × 4–5 h. Cada día = Bloque A (~2 h) + Bloque B (~2 h) + cierre (suite, `ruff` en lo tocado, `makemigrations --check`, commit, actualizar esta sección, push). Ningún día cierra en rojo ni sin commit. Card que no entra en 2 h se parte.
+**Pendiente tuyo, en orden:** ① cambiar el Build Command de `saasmvp` a `./build.sh` y hacer Manual Deploy de `main` (respaldo: rama de Neon `staging-ensayo`, o crear otra justo antes); ② probar en vivo login, `/privacidad/`, contacto y borrado de servicio; ③ crear los dos crons; ④ borrar `saasmvp-staging` y la rama de Neon; ⑤ activar protección de ramas en `main` y `develop`; ⑥ revisión legal de los textos de privacidad antes del 1-dic.
 
-**▶️ Próxima sesión: D1** (`CONS-01` + `SEC-10`), después de revisar y mergear la rama del agente.
+**Ritmo:** 2 días/semana × 4–5 h. Card que no entra en 2 h se parte. Rondas del agente: `orchestrate.py` + `claude -p` (Sonnet 5.5) sobre ramas `agent/*`; tú revisas el PR a `develop`.
+
+**▶️ Próximo:** ronda 8 con `CONS-11` (cobertura al contrato) y una card `LEY` con decisión clara (`LEY-02`/`05`/`06` aún sin spec).
 
 ---
 
@@ -133,6 +133,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `COMP-01` | Generalizar componentes duplicados | P1 | L | `cta`, `about`, `services`, `contact`, `footer`, `navbar`, `hero_ctas`/`hero_overlay_theme` en `templates/components/` con el patrón de `media_collection` (parámetro `mode` + slots). Un componente por commit; a11y y guardia de tokens verdes |
 | `COMP-02` | Ordenar el árbol de temas | P2 | M | `andesscale/` dentro de `themes/`; `themes/electricidad` entra a `THEME_CHOICES` o se archiva; fuera `templates_library/` (vacía) y carpetas sueltas sin uso |
+| `COMP-03` | El botón de enviar del formulario de contacto se queda en "Enviando..." si el navegador bloquea el envío | P3 | S | `@click="submitting = true"` marca el estado antes de la validación; con el consentimiento `required` se nota. Pasar a `@submit` (o resetear el estado) en `components/contact_multistep.html`, `partials/contact_form*.html` y `themes/electricidad/components/contact.html`; test de render. Hallado en el ensayo `OPS-07` |
 
 ### `MOD` — Módulos
 | ID | Card | P | Esf. | Definición de hecho |
@@ -178,7 +179,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `PAY-02` | Registro de fricciones del cobro manual | P3 | S | — |
 | `OPS-04` | Alerta de créditos Cloudinary | P3 | S | Existe el comando `cloudinary_usage`; conectar umbrales y aviso; los umbrales (`CLOUDINARY_ALERT_THRESHOLDS`) se borraron con `DEUDA-06`: definirlos de nuevo |
 | `OPS-05` | Cache compartida, `/health/` real, Sentry | P3 | M | Antes de más de un proceso |
-| `OPS-07` | Ensayo de despliegue antes de `develop` → `main` | P0 | M | Rama de Neon con las migraciones nuevas (`tenants` 0027–0029 y las de `LEY-01`); servicio temporal de Render desde `develop` con `FIELD_ENCRYPTION_KEY`, `gunicorn` 27, `pillow` 13, `Django` 5.2.19 y `cryptography` 50; probar login, subida de imagen real, contacto, borrado de servicio y checkout sandbox. Documentar tiempos |
+| `OPS-07` | Ensayo de despliegue antes de `develop` → `main` | P0 | M | **Ensayo hecho 2026-11-15** (ver Retomar aquí). Falta el deploy real de `main`: Build Command de `saasmvp` → `./build.sh`, Manual Deploy y pruebas en vivo; luego borrar `saasmvp-staging` y la rama `staging-ensayo`. Pendiente de probar: formulario de contacto con consentimiento y correo, checkout sandbox (en local con credenciales `TEST-`), portada de Servelec. Build medido: 1 min |
 | `FLOW-04` | `provision_tenant` no crea `Domain` y avisa "Template origen _default no existe" | P2 | S | Crea el `Domain` primario (o lo deja explícito) y el aviso desaparece o se explica; test. Hallado por `BOLT-19` |
 | `TOOL-04` | Pulido de la CI y de las dependencias de desarrollo | P3 | S | `pip-audit` con versión fijada en `requirements-dev.txt`; evitar la doble ejecución `push` + `pull_request`; Python de CI alineado con `render.yaml` (3.11 vs 3.11.0); confirmar que `Procfile` y `render.yaml` arrancan con `gunicorn` 27; ningún comando de producción depende de `django_extensions`. Hallado por `BOLT-27`/`BOLT-30` |
 | `DOC-01` | Documentación desfasada tras las rondas 4–6 | P3 | S | `README.md`/`MASTER_PLAN` y `Documentacion/README.md` aún citan `OrderProcessor` y `cloudinary_settings.py`; `INDEX.md` líneas 29 y 54; `ARQUITECTURA.md:57` (`views.py` ya es un paquete); `SEGURIDAD.md` (`SEC-14` ya no tiene 21 avisos). **A mano:** el skill `.claude/skills/andesscale-saas` sigue diciendo Supabase y el agente no puede editar `.claude/` |
