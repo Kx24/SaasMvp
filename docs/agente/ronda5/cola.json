@@ -109,12 +109,23 @@
       "id": "BOLT-29",
       "maestra": "CONS-07",
       "titulo": "Separar views.py por área",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-29.md",
       "red_tests": [
         "apps.website.tests.test_views_package"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.66,
+      "tests": 329,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Hacer un diff de movimiento (git diff --color-moved o similar) contra el views.py original para confirmar que los cuerpos de las vistas no cambiaron. Esta validación no pudo hacerlo.",
+        "Los decoradores @tenant_member_required están en todas las vistas de dashboard del paquete; home, contact_submit y login_modal no tienen decorador. Confirmar que ese era el estado original.",
+        "El dev no usó git mv, así que se pierde el historial de blame del archivo.",
+        "El dev no corrió Playwright; el gate lo reportó con ran=false. No se tocaron templates ni estáticos.",
+        "Se descartó el comentario de cabecera obsoleto de views.py (sobre contact_submit).",
+        "ARQUITECTURA.md:57 sigue diciendo que views.py tiene 1.099 líneas y que se separa en CONS-07. Está desactualizado."
+      ]
     },
     {
       "id": "BOLT-30",

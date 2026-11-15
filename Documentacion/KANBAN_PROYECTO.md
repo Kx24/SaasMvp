@@ -90,7 +90,7 @@
 | D6 | `DB-02` Backup de Neon con restore probado (+ `DB-03`) | `SEC-12` Integración continua con el gate |
 | D7 | `CONS-02` Documentación al día (Neon, `CLAUDE.md`, README) | `DEUDA-08` ✅ Portada sin titular por defecto |
 | D8 | `CONS-06` ✅ `TenantOwnedMixin` | `DASH-04` Roles con efecto |
-| D9 | `SEC-05b` + `DEUDA-06` ✅ Restos del admin y código muerto | `CONS-07` Separar `views.py` |
+| D9 | `SEC-05b` + `DEUDA-06` ✅ Restos del admin y código muerto | `CONS-07` ✅ Separar `views.py` |
 | D10 | `CONS-08` Registro de módulos (opción A) | `CONS-08` (continúa) |
 | D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
 
@@ -125,7 +125,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
 | `CONS-02` | Documentación al día | P2 | M | "Supabase" → Neon en `CLAUDE.md`, `Documentacion/README.md` y skill; quitar de `CLAUDE.md` la sección del MCP de GitHub y la frase "corre en cada push"; reescribir `README.md` raíz corto; revisar `docs/CLOUDINARY.md` |
 | `CONS-04` | Borrar rutas y vistas legacy | P1 | M | Fuera la edición inline pública (`edit_section`, `edit_service`, `add_service`, `delete_service`, `login_modal`, `templates/partials/section_*`/`service_*`); queda solo la versión de dashboard. **Bug a confirmar:** `service_confirm_delete.html` usa `{% url 'dashboard_services' %}` y esa ruta no existe |
-| `CONS-07` | Separar `apps/website/views.py` (1.099 líneas) | P2 | M | Un archivo por área (público, secciones, servicios, galería, contactos, branding); URLs sin cambios |
 | `CONS-08` | Registro de módulos (opción A) | P1 | L | Clase `Module` + registro: nombre, flag, límites, URLs, entrada de menú, componente público. Galería, contacto y servicios declarados como módulos |
 | `CONS-09` | Menú del dashboard generado desde el registro | P1 | M | Un módulo desactivado no aparece en el menú ni responde en su URL |
 

@@ -9,7 +9,7 @@ Rama `agent/ronda5` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-26` | `LEY-03` | Tope legal de 365 días para mensajes de contacto | ✅ DONE | 320 | 0.57 |
 | `BOLT-27` | `SEC-10` | Dependencias al día y pip-audit | ❌ REJECTED |  | 0.57 |
 | `BOLT-28` | `CONS-06` | Camino único para objetos del tenant | ✅ DONE | 325 | 0.48 |
-| `BOLT-29` | `CONS-07` | Separar views.py por área | ⏳ TODO |  |  |
+| `BOLT-29` | `CONS-07` | Separar views.py por área | ✅ DONE | 329 | 0.66 |
 | `BOLT-30` | `SEC-12` | Integración continua con el gate | ⏳ TODO |  |  |
 | `BOLT-31` | `CONS-02` | Documentación al día | ⏳ TODO |  |  |
 
@@ -25,6 +25,12 @@ Rama `agent/ronda5` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-28`: Confirmar que la guardia estática solo mira views.py (o el paquete views/) y no los templatetags, que contienen un .objects.get(.
 - `BOLT-28`: gallery_item_add, gallery_item_edit y gallery_item_delete consultan GalleryItem con client directo, no con section__client; el mismo valor que antes, pero vale mirarlo.
 - `BOLT-28`: Ninguna URL, template ni decorador cambió; hay que confirmar que los decoradores @tenant_member_required siguen en todas las vistas editadas.
+- `BOLT-29`: Hacer un diff de movimiento (git diff --color-moved o similar) contra el views.py original para confirmar que los cuerpos de las vistas no cambiaron. Esta validación no pudo hacerlo.
+- `BOLT-29`: Los decoradores @tenant_member_required están en todas las vistas de dashboard del paquete; home, contact_submit y login_modal no tienen decorador. Confirmar que ese era el estado original.
+- `BOLT-29`: El dev no usó git mv, así que se pierde el historial de blame del archivo.
+- `BOLT-29`: El dev no corrió Playwright; el gate lo reportó con ran=false. No se tocaron templates ni estáticos.
+- `BOLT-29`: Se descartó el comentario de cabecera obsoleto de views.py (sobre contact_submit).
+- `BOLT-29`: ARQUITECTURA.md:57 sigue diciendo que views.py tiene 1.099 líneas y que se separa en CONS-07. Está desactualizado.
 
 ## Hallazgos incidentales
 
