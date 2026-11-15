@@ -76,7 +76,17 @@
         "apps.accounts.tests_admin_scope"
       ],
       "permite_migracion": false,
-      "estado": "TODO"
+      "estado": "DONE",
+      "costo_usd": 0.4,
+      "tests": 354,
+      "hallazgos": [
+        "El mixin local de apps/website/admin.py sigue sin unificarse con el de apps/accounts/mixins.py. No se comparó su comportamiento en esta card, tal como pedía el spec.",
+        "La regla solo cubre FKs hacia modelos con campo `client` directo. Un FK hacia un modelo que llegue al tenant por otro camino (por ejemplo `order__client`) no queda acotado. No hay ningún caso hoy en los admins revisados, pero la regla no lo cubre."
+      ],
+      "revisar_humano": [
+        "Un staff sin tenant asignado ahora recibe `none()` en todos los FKs hacia modelos con `client`. Antes veía todas las filas. Confirmar que eso es lo que se quiere.",
+        "La regla aplica a todos los admins que usan TenantAdminMixin. Probar a mano en /superadmin/ con un staff de tenant que los formularios con FKs a modelos con `client` sigan funcionando."
+      ]
     },
     {
       "id": "BOLT-22",

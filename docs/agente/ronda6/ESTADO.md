@@ -7,7 +7,7 @@ Rama `agent/ronda6` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-21` | `CONS-04` | Borrar la edición inline pública (rutas legacy) | ✅ DONE | 341 | 0.59 |
 | `BOLT-23` | `SEC-14` | Salidas sin escapar (mark_safe) y JSON-LD | ✅ DONE | 349 | 0.71 |
 | `BOLT-24` | `SEC-05b` | Filtros por cliente en el admin | ✅ DONE | 352 | 0.38 |
-| `BOLT-32` | `SEC-05b` | Desplegable de PaymentLog.order por tenant | ⏳ TODO |  |  |
+| `BOLT-32` | `SEC-05b` | Desplegable de PaymentLog.order por tenant | ✅ DONE | 354 | 0.4 |
 | `BOLT-22` | `SEC-06` | Credenciales SMTP/API cifradas en reposo | ⏳ TODO |  |  |
 | `BOLT-27` | `SEC-10` | Dependencias al día y pip-audit | ⏳ TODO |  |  |
 
@@ -22,6 +22,8 @@ Rama `agent/ronda6` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-23`: Confirmar que el HTML de los tags de Cloudinary para entradas normales no cambió (por ejemplo el orden de atributos o los espacios del <video>).
 - `BOLT-24`: `TenantAdminMixin.get_list_filter` llama a `super().get_list_filter`. Confirmar que ningún admin de un modelo con filtro `client` pierda el filtro a propósito, por ejemplo si un staff necesitara filtrar por cliente.
 - `BOLT-24`: El `TenantAdminMixin` local de `apps/website/admin.py` no se tocó, como pedía el spec. No se comparó su comportamiento con el de `accounts`, así que su `get_list_filter` sigue sin cubrir.
+- `BOLT-32`: Un staff sin tenant asignado ahora recibe `none()` en todos los FKs hacia modelos con `client`. Antes veía todas las filas. Confirmar que eso es lo que se quiere.
+- `BOLT-32`: La regla aplica a todos los admins que usan TenantAdminMixin. Probar a mano en /superadmin/ con un staff de tenant que los formularios con FKs a modelos con `client` sigan funcionando.
 
 ## Hallazgos incidentales
 
@@ -31,3 +33,5 @@ Rama `agent/ronda6` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-23`: Documentacion/SEGURIDAD.md (líneas 20 y 35) sigue diciendo 21 avisos Medium para SEC-14; falta actualizarlo.
 - `BOLT-23`: {{ section.content|safe }} en templates/partials/section_display.html sigue sin escapar el contenido que escribe el cliente; queda fuera del alcance de esta card.
 - `BOLT-23`: _esc() en seo_tags.py no escapa & (no es explotable como XSS, pero el HTML resultante no es estricto).
+- `BOLT-32`: El mixin local de apps/website/admin.py sigue sin unificarse con el de apps/accounts/mixins.py. No se comparó su comportamiento en esta card, tal como pedía el spec.
+- `BOLT-32`: La regla solo cubre FKs hacia modelos con campo `client` directo. Un FK hacia un modelo que llegue al tenant por otro camino (por ejemplo `order__client`) no queda acotado. No hay ningún caso hoy en los admins revisados, pero la regla no lo cubre.

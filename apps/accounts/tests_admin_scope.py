@@ -179,3 +179,37 @@ class InternalTenantViewsTests(TestCase):
         for name in ('superadmin_onboarding', 'tenant_list'):
             with self.subTest(view=name):
                 self.assertEqual(self.client.get(reverse(name), HTTP_HOST='localhost').status_code, 200)
+
+
+class AdminForeignKeyScopeTests(TestCase):
+    """BOLT-32 (SEC-05b): los desplegables FK no ofrecen filas de otros tenants."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.a = _tenant('fk-a')
+        cls.b = _tenant('fk-b')
+        plan = Plan.objects.create(name='Plan FK', slug='plan-fk', price=Decimal('100000'))
+        cls.order_a = Order.objects.create(plan=plan, client=cls.a, email='fk@a.test',
+                                           amount=Decimal('100000'))
+        cls.order_b = Order.objects.create(plan=plan, client=cls.b, email='fk@b.test',
+                                           amount=Decimal('100000'))
+        cls.staff_a = User.objects.create_user(username='staff_fk', password='x', is_staff=True)
+        UserProfile.objects.filter(user=cls.staff_a).update(client=cls.a, role='admin')
+        cls.root = User.objects.create_superuser(username='root_fk', password='x', email='fk@x.test')
+
+    def _order_field_queryset(self, user):
+        request = RequestFactory().get('/superadmin/')
+        request.user = User.objects.get(pk=user.pk)
+        model_admin = admin.site._registry[PaymentLog]
+        db_field = PaymentLog._meta.get_field('order')
+        return model_admin.formfield_for_foreignkey(db_field, request).queryset
+
+    def test_staff_order_dropdown_excludes_other_tenant(self):
+        qs = self._order_field_queryset(self.staff_a)
+        self.assertIn(self.order_a, qs)
+        self.assertNotIn(self.order_b, qs)
+
+    def test_superuser_order_dropdown_lists_all(self):
+        qs = self._order_field_queryset(self.root)
+        self.assertIn(self.order_a, qs)
+        self.assertIn(self.order_b, qs)

@@ -79,7 +79,14 @@ class TenantAdminMixin:
                 if hasattr(request.user, 'profile') and request.user.profile.client:
                     from apps.tenants.models import Client
                     kwargs["queryset"] = Client.objects.filter(pk=request.user.profile.client.pk)
-        
+        elif not request.user.is_superuser and 'queryset' not in kwargs:
+            # BOLT-32: todo FK cuyo modelo tenga `client` se restringe al tenant del usuario
+            related = db_field.remote_field.model
+            if any(f.name == 'client' for f in related._meta.get_fields()):
+                tenant = self._user_tenant(request)
+                kwargs["queryset"] = (related._default_manager.filter(client=tenant)
+                                      if tenant else related._default_manager.none())
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
     
     def _same_tenant(self, request, obj):
