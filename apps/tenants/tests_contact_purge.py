@@ -16,7 +16,7 @@ from io import StringIO
 
 from django.core import mail
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from apps.tenants.models import Client
@@ -116,3 +116,67 @@ class DigestStillReportsPurgeTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('Se eliminaron 1 mensaje', mail.outbox[0].alternatives[0][0])
         self.assertFalse(ContactSubmission.objects.filter(client=tenant, name='viejo').exists())
+
+
+# ── BOLT-26 / LEY-03: tope legal de conservación ─────────────────────────────
+
+CAP = 365
+
+
+class ContactLegalCapTests(TestCase):
+    def test_new_message_beyond_cap_deleted_and_within_kept(self):
+        t = _tenant('tope-new', purge=True)
+        old = _contact(t, status='new', age_days=CAP + 1, name='old')
+        young = _contact(t, status='new', age_days=CAP - 1, name='young')
+        _run()
+        self.assertEqual(_alive(old, young), {'young'})
+
+    def test_cap_applies_without_auto_purge(self):
+        t = _tenant('tope-sin-purga', purge=False)
+        rows = [_contact(t, status=s, age_days=CAP + 1, name='old_' + s) for s in ('new', 'read', 'replied')]
+        rows.append(_contact(t, status='read', spam=True, age_days=CAP + 1, name='old_spam'))
+        keep = [_contact(t, status='read', age_days=CAP - 1, name='keep_read'),
+                _contact(t, status='new', age_days=CAP - 1, name='keep_new')]
+        _run()
+        self.assertEqual(_alive(*rows), set())
+        self.assertEqual(_alive(*keep), {'keep_read', 'keep_new'})
+
+    def test_inactive_tenant_untouched(self):
+        t = _tenant('tope-inactivo', purge=True)
+        Client.objects.filter(pk=t.pk).update(is_active=False)
+        c = _contact(t, status='new', age_days=CAP + 10, name='inactivo')
+        _run()
+        self.assertEqual(_alive(c), {'inactivo'})
+
+    def test_dry_run_deletes_nothing_and_reports_count(self):
+        t = _tenant('tope-dry', purge=False)
+        rows = [_contact(t, status='new', age_days=CAP + 1, name='o' + str(i)) for i in range(2)]
+        out = StringIO()
+        call_command('send_contact_digest', '--dry-run', stdout=out, stderr=StringIO())
+        self.assertEqual(len(_alive(*rows)), 2)
+        self.assertIn('purgaría 2 mensajes', out.getvalue())
+
+    @override_settings(CONTACT_MAX_RETENTION_DAYS=30)
+    def test_cap_is_configurable(self):
+        t = _tenant('tope-config', purge=False)
+        old = _contact(t, status='new', age_days=31, name='old')
+        young = _contact(t, status='new', age_days=29, name='young')
+        _run()
+        self.assertEqual(_alive(old, young), {'young'})
+
+    def test_other_tenant_not_touched(self):
+        a = _tenant('tope-a', purge=False)
+        b = _tenant('tope-b', purge=False)
+        _contact(a, status='new', age_days=CAP + 1, name='a_old')
+        b_young = _contact(b, status='new', age_days=10, name='b_young')
+        _run('--tenant', a.slug)
+        self.assertFalse(ContactSubmission.objects.filter(client=a).exists())
+        self.assertEqual(_alive(b_young), {'b_young'})
+
+    def test_digest_reports_cap_purge(self):
+        t = _tenant('tope-digest', purge=False, digest=True)
+        _contact(t, status='new', age_days=CAP + 1, name='viejo')
+        _contact(t, status='new', age_days=0, name='nuevo')
+        _run('--force')
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Se eliminaron 1 mensaje', mail.outbox[0].alternatives[0][0])

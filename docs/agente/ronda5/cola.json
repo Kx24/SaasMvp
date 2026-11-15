@@ -43,12 +43,24 @@
       "id": "BOLT-26",
       "maestra": "LEY-03",
       "titulo": "Tope legal de 365 días para mensajes de contacto",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-26.md",
       "red_tests": [
         "apps.tenants.tests_contact_purge"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.57,
+      "tests": 320,
+      "hallazgos": [
+        "_purge_beyond_legal_cap está anotado como -> str pero devuelve None en los casos sin purga y en dry-run (cosmético; el método existente _purge_old_contacts tiene el mismo patrón).",
+        "El tope se aplica por created_at, no por la última actividad del mensaje, y no hay aviso previo al cliente antes de borrar mensajes new sin leer."
+      ],
+      "revisar_humano": [
+        "Hay un cambio de comportamiento destructivo en producción: los mensajes new sin leer de más de 365 días se borrarán, incluso en tenants con la purga apagada. La decisión es del dueño, pero conviene que lo confirme al mergear.",
+        "La purga solo corre cuando se ejecuta send_contact_digest. Sin el cron de OPS-06 en Render no se ejecuta en producción.",
+        "El plazo de 365 días todavía no está publicado en la política de privacidad (sigue pendiente en LEY-03).",
+        "El texto visible al cliente en el digest es nuevo: «Se eliminaron N mensajes con más de 365 días (plazo máximo de conservación)»."
+      ]
     },
     {
       "id": "BOLT-27",

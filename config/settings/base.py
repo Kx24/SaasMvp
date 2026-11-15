@@ -402,3 +402,6 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Andesscale <no-reply@
 
 # Email de soporte
 SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='soporte@andesscale.cl')
+# Tope legal de conservacion de mensajes de contacto (Ley 21.719 art. 14 d, LEY-03).
+# Maximo duro para todo tenant activo, con o sin auto_purge_enabled.
+CONTACT_MAX_RETENTION_DAYS = 365

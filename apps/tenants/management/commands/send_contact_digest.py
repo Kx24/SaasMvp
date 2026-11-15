@@ -277,18 +277,57 @@ class Command(BaseCommand):
             {client.pk: texto para el correo de digest} de los tenants donde
             se eliminó algo.
         """
-        clients = Client.objects.filter(
-            is_active=True, settings__auto_purge_enabled=True,
-        ).select_related('settings')
+        all_clients = Client.objects.filter(is_active=True).select_related('settings')
         if tenant_slug:
-            clients = clients.filter(slug=tenant_slug)
+            all_clients = all_clients.filter(slug=tenant_slug)
 
         results = {}
-        for client in clients:
-            info = self._purge_old_contacts(client, client.settings, dry_run=dry_run)
+
+        # Paso 1: tope legal, para todo tenant activo (con o sin auto_purge).
+        for client in all_clients:
+            info = self._purge_beyond_legal_cap(client, dry_run=dry_run)
             if info:
                 results[client.pk] = info
+
+        # Paso 2: purga por preferencia del tenant.
+        for client in all_clients.filter(settings__auto_purge_enabled=True):
+            info = self._purge_old_contacts(client, client.settings, dry_run=dry_run)
+            if info:
+                results[client.pk] = (
+                    f"{results[client.pk]} {info}" if client.pk in results else info
+                )
         return results
+
+    def _purge_beyond_legal_cap(self, client, dry_run=False) -> str:
+        """
+        Elimina todo mensaje (cualquier estado) más viejo que
+        settings.CONTACT_MAX_RETENTION_DAYS. Máximo legal (Ley 21.719,
+        art. 14 d), no una preferencia: aplica aunque la purga esté apagada.
+        """
+        cap_days = settings.CONTACT_MAX_RETENTION_DAYS
+        cutoff = timezone.now() - timedelta(days=cap_days)
+        expired = ContactSubmission.objects.filter(client=client, created_at__lt=cutoff)
+
+        count = expired.count()
+        if count == 0:
+            return None
+
+        if dry_run:
+            self.stdout.write(
+                f"  [DRY RUN] {client.slug}: purgaría {count} mensajes "
+                f"(tope legal de {cap_days} días)"
+            )
+            return None
+
+        expired.delete()
+        logger.info(
+            f"[Digest] Purged {count} contacts beyond legal cap "
+            f"({cap_days} days) for {client.slug}"
+        )
+        return (
+            f"Se eliminaron {count} mensaje{'s' if count != 1 else ''} "
+            f"con más de {cap_days} días (plazo máximo de conservación)."
+        )
 
     def _purge_old_contacts(self, client, client_settings, dry_run=False) -> str:
         """
