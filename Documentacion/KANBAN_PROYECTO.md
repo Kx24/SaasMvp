@@ -125,6 +125,8 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
 | `CONS-08` | Registro de módulos (opción A) | P1 | L | Clase `Module` + registro: nombre, flag, límites, URLs, entrada de menú, componente público. Galería, contacto y servicios declarados como módulos |
 | `CONS-09` | Menú del dashboard generado desde el registro | P1 | M | Un módulo desactivado no aparece en el menú ni responde en su URL |
+| `CONS-11` | Subir la cobertura al contrato de TDD | P1 | L | `apps/orders/` ≥ 80 % (hoy 69,9), `apps/tenants/middleware.py` + `managers.py` ≥ 90 % (hoy 83,9), total ≥ 70 % (hoy 60,5). El gate (`gate_baseline.json`) solo impide que baje; esta card la sube y el baseline sube con ella. Hallado al medir el gate (2026-11-14) |
+| `CONS-12` | Camino único de objetos de tenant en `orders` y `accounts` | P2 | S | `tenant_object_or_404` (o equivalente) donde corresponda y guardia estática extendida a esas apps. `website_tags.get_section` ya filtra por tenant (verificado). Hallado por `BOLT-28` |
 
 ### `COMP` — Componentes
 | ID | Card | P | Esf. | Definición de hecho |
@@ -151,6 +153,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
 | `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |
+| `SEC-18` | Unificar los dos `TenantAdminMixin` | P2 | M | Uno solo (`apps/accounts/mixins.py`) usado también por `apps/website/admin.py`; `get_list_filter` y la regla de FK cubren también FKs que llegan al tenant por otro camino (`order__client`). Suite de aislamiento y `tests_admin_scope` verdes. Hallado por `BOLT-24`/`BOLT-32` |
 
 ### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`)
 | ID | Card | P | Esf. | Definición de hecho |
@@ -161,6 +164,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `LEY-05` | Registro de tratamientos y bases de licitud (art. 13, 14, 14 quáter) | P1 | S | Documento por tratamiento: datos, finalidad, base de licitud, quién accede, conservación, proveedores. Decidido: IP sí, user-agent no |
 | `LEY-06` | Procedimiento de brechas (art. 14 sexies) | P1 | S | Documento + plantilla de registro: detección, evaluación de riesgo, reporte a la Agencia, aviso al cliente responsable cuando AndesScale es encargado, aviso a titulares cuando corresponde |
 | `LEY-07` | Contrato de encargo con clientes (art. 15 bis) | P1 | M | Cláusula con objeto, duración, finalidad, tipo de datos, categorías de titulares y obligaciones; autorización escrita de sub-encargados (Neon, Render, Cloudinary, Zoho); devolución o supresión al terminar (une con `BIZ-03`). Sin código; revisar con abogado |
+| `LEY-08` | Aviso previo antes de purgar mensajes sin leer | P3 | S | El digest avisa al cliente N días antes de que un mensaje `new` alcance el tope de 365 días (la purga cuenta desde `created_at`). Hallado por `BOLT-26` |
 
 ### Negocio, datos y operación
 | ID | Card | P | Esf. | Nota |
@@ -172,8 +176,13 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `BIZ-03` | Cláusulas de mantención y fin de servicio | P2 | M | Sin código. `MASTER_PLAN` §4.5 |
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |
 | `PAY-02` | Registro de fricciones del cobro manual | P3 | S | — |
-| `OPS-04` | Alerta de créditos Cloudinary | P3 | S | Existe el comando `cloudinary_usage`; conectar umbrales y aviso |
+| `OPS-04` | Alerta de créditos Cloudinary | P3 | S | Existe el comando `cloudinary_usage`; conectar umbrales y aviso; los umbrales (`CLOUDINARY_ALERT_THRESHOLDS`) se borraron con `DEUDA-06`: definirlos de nuevo |
 | `OPS-05` | Cache compartida, `/health/` real, Sentry | P3 | M | Antes de más de un proceso |
+| `OPS-07` | Ensayo de despliegue antes de `develop` → `main` | P0 | M | Rama de Neon con las migraciones nuevas (`tenants` 0027–0029 y las de `LEY-01`); servicio temporal de Render desde `develop` con `FIELD_ENCRYPTION_KEY`, `gunicorn` 27, `pillow` 13, `Django` 5.2.19 y `cryptography` 50; probar login, subida de imagen real, contacto, borrado de servicio y checkout sandbox. Documentar tiempos |
+| `FLOW-04` | `provision_tenant` no crea `Domain` y avisa "Template origen _default no existe" | P2 | S | Crea el `Domain` primario (o lo deja explícito) y el aviso desaparece o se explica; test. Hallado por `BOLT-19` |
+| `TOOL-04` | Pulido de la CI y de las dependencias de desarrollo | P3 | S | `pip-audit` con versión fijada en `requirements-dev.txt`; evitar la doble ejecución `push` + `pull_request`; Python de CI alineado con `render.yaml` (3.11 vs 3.11.0); confirmar que `Procfile` y `render.yaml` arrancan con `gunicorn` 27; ningún comando de producción depende de `django_extensions`. Hallado por `BOLT-27`/`BOLT-30` |
+| `DOC-01` | Documentación desfasada tras las rondas 4–6 | P3 | S | `README.md`/`MASTER_PLAN` y `Documentacion/README.md` aún citan `OrderProcessor` y `cloudinary_settings.py`; `INDEX.md` líneas 29 y 54; `ARQUITECTURA.md:57` (`views.py` ya es un paquete); `SEGURIDAD.md` (`SEC-14` ya no tiene 21 avisos). **A mano:** el skill `.claude/skills/andesscale-saas` sigue diciendo Supabase y el agente no puede editar `.claude/` |
+| `DEUDA-09` | Vista `dashboard_services` sin ruta | P3 | S | `views/services.py` la exporta pero ninguna URL la usa; borrarla con su re-exportación. Hallado por `BOLT-21` |
 
 ### `RC` — Rancho Cachimba ⏸️ (rama `feature/RanchocachimbaEtapa1`; no tocar sin pedido explícito)
 | ID | Card | Depende de |
