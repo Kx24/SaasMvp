@@ -150,7 +150,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `SEC` — Ciberseguridad (detalle y evidencia en `SEGURIDAD.md`)
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `SEC-05b` | Restos de alcance en el admin | P3 | S | `list_filter` por `client` en `SEOConfigAdmin`/`UserProfileAdmin` lista los nombres de todos los clientes a un staff; el desplegable de `PaymentLog.order` no se restringe. Hallado por `BOLT-15` |
+| `SEC-05b` | Desplegable de `PaymentLog.order` en el admin | P3 | S | El desplegable del campo `order` en `PaymentLogAdmin` lista órdenes de todos los tenants (`BOLT-32`). Los filtros `client` ya se cerraron en `BOLT-24`. Hallado por `BOLT-15` |
 | `SEC-06` | Credenciales cifradas en reposo | P0 | M | `smtp_password`/`api_key` cifrados (Fernet) con clave en variable de entorno + migración de datos; test: el valor en base no es el texto ingresado |
 | `SEC-10` | Dependencias | P0 | M | `pip-audit` en `requirements-dev.txt` y sin vulnerabilidades conocidas; Django en el último 5.2.x; `gunicorn` actualizado; fuera `djangorestframework` y herramientas de desarrollo de `requirements.txt`; misma versión de Python en Render y local |
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |

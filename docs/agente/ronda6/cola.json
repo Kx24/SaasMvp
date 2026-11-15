@@ -58,7 +58,14 @@
         "apps.accounts.tests_admin_scope"
       ],
       "permite_migracion": false,
-      "estado": "TODO"
+      "estado": "DONE",
+      "costo_usd": 0.38,
+      "tests": 352,
+      "hallazgos": [],
+      "revisar_humano": [
+        "`TenantAdminMixin.get_list_filter` llama a `super().get_list_filter`. Confirmar que ningún admin de un modelo con filtro `client` pierda el filtro a propósito, por ejemplo si un staff necesitara filtrar por cliente.",
+        "El `TenantAdminMixin` local de `apps/website/admin.py` no se tocó, como pedía el spec. No se comparó su comportamiento con el de `accounts`, así que su `get_list_filter` sigue sin cubrir."
+      ]
     },
     {
       "id": "BOLT-32",

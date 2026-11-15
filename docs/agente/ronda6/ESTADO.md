@@ -6,7 +6,7 @@ Rama `agent/ronda6` · generado por `orchestrate.py` (no editar a mano).
 |---|---|---|---|---|---|
 | `BOLT-21` | `CONS-04` | Borrar la edición inline pública (rutas legacy) | ✅ DONE | 341 | 0.59 |
 | `BOLT-23` | `SEC-14` | Salidas sin escapar (mark_safe) y JSON-LD | ✅ DONE | 349 | 0.71 |
-| `BOLT-24` | `SEC-05b` | Filtros por cliente en el admin | ⏳ TODO |  |  |
+| `BOLT-24` | `SEC-05b` | Filtros por cliente en el admin | ✅ DONE | 352 | 0.38 |
 | `BOLT-32` | `SEC-05b` | Desplegable de PaymentLog.order por tenant | ⏳ TODO |  |  |
 | `BOLT-22` | `SEC-06` | Credenciales SMTP/API cifradas en reposo | ⏳ TODO |  |  |
 | `BOLT-27` | `SEC-10` | Dependencias al día y pip-audit | ⏳ TODO |  |  |
@@ -20,6 +20,8 @@ Rama `agent/ronda6` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-23`: El único mark_safe que queda (seo_tags.py:162, nosec B308 B703) depende de que _esc() se mantenga; revisar que la justificación escrita convenza.
 - `BOLT-23`: Decidir si se abre card para el |safe de section_display.html y para actualizar SEGURIDAD.md.
 - `BOLT-23`: Confirmar que el HTML de los tags de Cloudinary para entradas normales no cambió (por ejemplo el orden de atributos o los espacios del <video>).
+- `BOLT-24`: `TenantAdminMixin.get_list_filter` llama a `super().get_list_filter`. Confirmar que ningún admin de un modelo con filtro `client` pierda el filtro a propósito, por ejemplo si un staff necesitara filtrar por cliente.
+- `BOLT-24`: El `TenantAdminMixin` local de `apps/website/admin.py` no se tocó, como pedía el spec. No se comparó su comportamiento con el de `accounts`, así que su `get_list_filter` sigue sin cubrir.
 
 ## Hallazgos incidentales
 

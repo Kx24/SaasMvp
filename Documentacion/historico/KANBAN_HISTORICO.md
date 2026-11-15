@@ -26,6 +26,7 @@
 | `SEC-08` | Un solo login: `client_login` respeta `next` solo si es interno (`url_has_allowed_host_and_scheme`); eliminados `login_view`/`logout_view` de `apps/accounts` y sus rutas | 2026-11-14 | `BOLT-20` |
 | `SEC-12` | Integración continua: GitHub Actions con el gate estricto, aislamiento, ruff completo y `pip-audit`; permisos mínimos y sin secretos | 2026-11-14 | `BOLT-30` |
 | `SEC-14` | Salidas sin escapar: 11 `mark_safe` de `cloudinary_tags.py` reemplazados por `format_html`/`format_html_join` y el JSON-LD de `seo_tags.py` escapa `<`, `>`, `&`; queda 1 `mark_safe` justificado con `# nosec` (HTML ya escapado con `_esc()`); `bandit -ll` en 0 | 2026-11-14 | `BOLT-23` |
+| `SEC-05b` (parcial) | Filtro lateral `client` de `UserProfileAdmin`/`SEOConfigAdmin` oculto a staff no superuser (`TenantAdminMixin.get_list_filter`); queda el desplegable de `PaymentLog.order` | 2026-11-14 | `BOLT-24` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
 

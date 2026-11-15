@@ -53,6 +53,13 @@ class TenantAdminMixin:
         # Sin tenant asignado = no ve nada
         return qs.none()
     
+    def get_list_filter(self, request):
+        """Un no-superuser ya ve un solo tenant: el filtro `client` filtraría nombres ajenos."""
+        list_filter = super().get_list_filter(request)
+        if request.user.is_superuser:
+            return list_filter
+        return [f for f in list_filter if f != 'client']
+
     def save_model(self, request, obj, form, change):
         """Auto-asignar tenant al crear nuevos registros"""
         if not change:  # Solo al crear
