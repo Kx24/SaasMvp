@@ -1,0 +1,24 @@
+{
+  "ronda": 7,
+  "rama": "agent/ronda7",
+  "cards": [
+    {
+      "id": "BOLT-33",
+      "maestra": "LEY-01",
+      "titulo": "Política de privacidad publicada y versionada (1 de 2)",
+      "estado": "TODO",
+      "spec": "BOLT-33.md",
+      "red_tests": ["apps.website.tests.test_privacy_policy"],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-34",
+      "maestra": "LEY-01",
+      "titulo": "Consentimiento probado; sin user-agent (2 de 2)",
+      "estado": "TODO",
+      "spec": "BOLT-34.md",
+      "red_tests": ["apps.website.tests.test_contact_consent", "apps.orders.tests.test_checkout_consent"],
+      "permite_migracion": true
+    }
+  ]
+}

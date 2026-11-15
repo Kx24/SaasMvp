@@ -1,0 +1,97 @@
+{# Cuerpo de la política de privacidad de la PLATAFORMA (AndesScale es el responsable: compradores y usuarios).
+   Se incluye desde templates/legal/privacy.html cuando el tenant es el de la plataforma. Contexto: company,
+   contact_email, contact_phone, address, version, version_date. Texto redactado por el planificador
+   (2026-11-15): REVISAR CON ABOGADO antes del 1-dic-2026. #}
+<section class="space-y-8 text-base leading-relaxed">
+
+  <p class="text-sm opacity-80">Versión {{ version }} · vigente desde el {{ version_date }}</p>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">1. Quién es el responsable</h2>
+    <p>
+      El responsable del tratamiento de los datos que entregas al contratar o usar la plataforma es
+      <strong>{{ company }}</strong> («AndesScale»).
+      Contacto: <a class="underline" href="mailto:{{ contact_email }}">{{ contact_email }}</a>{% if contact_phone %}
+      · {{ contact_phone }}{% endif %}{% if address %} · {{ address }}{% endif %}.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">2. Qué datos recogemos</h2>
+    <ul class="list-disc pl-6 space-y-1">
+      <li><strong>Al comprar:</strong> nombre, correo electrónico, plan contratado, monto y estado del pago, dirección IP y
+        fecha de la compra, y la constancia de que aceptaste esta política. <strong>No almacenamos los datos de tu
+        tarjeta</strong>: los procesa MercadoPago.</li>
+      <li><strong>Al configurar tu sitio:</strong> los textos, imágenes, logotipo y datos de contacto que nos entregas
+        para publicarlos.</li>
+      <li><strong>Tu cuenta:</strong> usuario, correo y contraseña (almacenada de forma no reversible), y fechas de acceso.</li>
+      <li><strong>Formulario de contacto de AndesScale:</strong> nombre, correo, mensaje y, opcionalmente, teléfono y
+        empresa, con la IP y la hora del envío.</li>
+    </ul>
+    <p class="mt-2">No guardamos el agente de usuario de tu navegador.</p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">3. Para qué los usamos y con qué fundamento</h2>
+    <ul class="list-disc pl-6 space-y-1">
+      <li>Ejecutar el contrato: procesar tu pago, crear y mantener tu sitio y tu cuenta, y darte soporte
+        (fundamento: ejecución del contrato).</li>
+      <li>Responder tus consultas previas a contratar (fundamento: tu consentimiento y medidas previas a solicitud tuya).</li>
+      <li>Prevenir fraude y abuso, y cumplir obligaciones legales y tributarias (fundamento: interés legítimo y obligación legal).</li>
+      <li>Demostrar tu consentimiento (IP, fecha y versión de esta política).</li>
+    </ul>
+    <p class="mt-2">No tomamos decisiones automatizadas sobre ti ni usamos tus datos para publicidad de terceros.</p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">4. Con quién los compartimos</h2>
+    <p>
+      Con proveedores que nos prestan servicios y actúan por nuestra cuenta: <strong>MercadoPago</strong> (pagos),
+      <strong>Neon</strong> (base de datos), <strong>Render</strong> (alojamiento), <strong>Cloudinary</strong> (imágenes)
+      y <strong>Zoho</strong> (correo). Algunos tratan datos fuera de Chile; la transferencia se ampara en las
+      cláusulas contractuales de cada proveedor. Podemos comunicar datos a autoridades cuando la ley lo exija.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">5. Cuánto tiempo los conservamos</h2>
+    <p>
+      Mientras dure tu contrato y, después, solo el tiempo necesario para cumplir obligaciones legales y tributarias o
+      atender reclamos. Los mensajes del formulario de contacto se eliminan a más tardar a los 365 días.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">6. Cómo protegemos tus datos</h2>
+    <p>
+      Aislamos los datos de cada cliente, exigimos autenticación, ciframos las credenciales de los servicios y usamos
+      HTTPS. Mantenemos un procedimiento para detectar, registrar y reportar brechas de seguridad conforme a la ley.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">7. Tus derechos y cómo ejercerlos</h2>
+    <p>
+      Puedes <strong>acceder</strong>, <strong>rectificar</strong>, <strong>suprimir</strong> u <strong>oponerte</strong> al
+      tratamiento de tus datos, pedir su <strong>portabilidad</strong> y su <strong>bloqueo</strong> temporal, y retirar tu
+      consentimiento cuando quieras. Escribe a
+      <a class="underline" href="mailto:{{ contact_email }}">{{ contact_email }}</a> indicando el derecho que ejerces.
+      Acusaremos recibo y responderemos en un máximo de <strong>30 días corridos</strong> (prorrogable una vez por otros 30).
+      Si no estás conforme, puedes recurrir a la <strong>Agencia de Protección de Datos Personales</strong>.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">8. Los sitios de nuestros clientes</h2>
+    <p>
+      Cuando contactas a un cliente de AndesScale a través de su sitio, el responsable de esos datos es ese cliente y
+      AndesScale actúa como su encargado; cada sitio publica su propia política de privacidad.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">9. Cambios a esta política</h2>
+    <p>Publicaremos la nueva versión en esta página con su fecha. La versión que aceptaste queda registrada con tu compra.</p>
+  </div>
+
+</section>

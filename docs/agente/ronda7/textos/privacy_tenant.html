@@ -1,0 +1,100 @@
+{# Cuerpo de la política de privacidad de un SITIO DE CLIENTE (el cliente es el responsable; AndesScale es su encargado).
+   Se incluye desde templates/legal/privacy.html. Contexto: company, contact_email, contact_phone, address,
+   retention_days, version, version_date. Texto redactado por el planificador (2026-11-15): REVISAR CON ABOGADO
+   antes del 1-dic-2026. Los {# #} no se renderizan. #}
+<section class="space-y-8 text-base leading-relaxed">
+
+  <p class="text-sm opacity-80">Versión {{ version }} · vigente desde el {{ version_date }}</p>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">1. Quién es el responsable de tus datos</h2>
+    <p>
+      El responsable del tratamiento de los datos que entregas en este sitio es <strong>{{ company }}</strong>.
+      Puedes contactarlo en
+      <a class="underline" href="mailto:{{ contact_email }}">{{ contact_email }}</a>{% if contact_phone %}
+      o al teléfono {{ contact_phone }}{% endif %}{% if address %}. Dirección: {{ address }}{% endif %}.
+    </p>
+    <p class="mt-2">
+      El sitio funciona sobre la plataforma tecnológica de <strong>AndesScale</strong>, que trata los datos
+      <em>por cuenta de {{ company }}</em> y solo para los fines descritos aquí (encargado del tratamiento).
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">2. Qué datos recogemos y de quién</h2>
+    <p>
+      Recogemos los datos de las personas que nos escriben mediante el formulario de contacto: nombre,
+      correo electrónico y, si decides entregarlos, teléfono, empresa, asunto y el contenido de tu mensaje.
+      Además guardamos la <strong>dirección IP</strong> desde la que se envió el formulario, la fecha y hora, y la
+      constancia de que aceptaste esta política (con su versión). No guardamos el agente de usuario de tu navegador.
+    </p>
+    <p class="mt-2">Los datos los entregas tú directamente; no los obtenemos de otras fuentes.</p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">3. Para qué los usamos y con qué fundamento</h2>
+    <ul class="list-disc pl-6 space-y-1">
+      <li>Responder tu consulta o solicitud de cotización.</li>
+      <li>Proteger el formulario contra spam y abuso (la IP y la hora permiten detectar envíos repetidos).</li>
+      <li>Demostrar que otorgaste tu consentimiento (IP, fecha y versión de esta política).</li>
+    </ul>
+    <p class="mt-2">
+      El fundamento es <strong>tu consentimiento</strong>, que otorgas marcando la casilla antes de enviar el
+      formulario, y que el tratamiento es necesario para atender, a tu solicitud, medidas previas a una eventual
+      contratación. No usamos tus datos para otros fines ni tomamos decisiones automatizadas sobre ti.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">4. Quién más accede a tus datos</h2>
+    <p>
+      Solo {{ company }} y el personal autorizado por él. Para operar el sitio intervienen proveedores
+      tecnológicos que actúan como subencargados de AndesScale: <strong>Neon</strong> (base de datos),
+      <strong>Render</strong> (alojamiento de la aplicación) y <strong>Zoho</strong> (envío de correo). Algunos
+      de estos proveedores almacenan o procesan datos fuera de Chile; la transferencia se ampara en las
+      cláusulas contractuales de cada proveedor. No vendemos ni cedemos tus datos a terceros con fines
+      comerciales.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">5. Cuánto tiempo los conservamos</h2>
+    <p>
+      Eliminamos automáticamente los mensajes de contacto a más tardar a los <strong>{{ retention_days }} días</strong>
+      de recibidos, y antes si {{ company }} lo decide o tú lo solicitas. Cumplido el plazo, los datos se suprimen.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">6. Cómo protegemos tus datos</h2>
+    <p>
+      Los datos de cada sitio están aislados de los de otros clientes, el acceso exige usuario y contraseña, las
+      credenciales de los servicios se guardan cifradas y las conexiones usan HTTPS. Ningún sistema es infalible:
+      si ocurriera una brecha que te afecte, se informará conforme a la ley.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">7. Tus derechos y cómo ejercerlos</h2>
+    <p>
+      Tienes derecho a <strong>acceder</strong> a tus datos, <strong>rectificarlos</strong>, <strong>suprimirlos</strong>,
+      <strong>oponerte</strong> a su tratamiento, solicitar su <strong>portabilidad</strong> y <strong>bloquearlos</strong>
+      temporalmente, y a retirar tu consentimiento cuando quieras, por el mismo medio por el que lo diste.
+    </p>
+    <p class="mt-2">
+      Para ejercerlos escribe a <a class="underline" href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+      indicando qué derecho ejerces y el correo con el que nos contactaste. Acusaremos recibo y responderemos en un plazo
+      máximo de <strong>30 días corridos</strong>, prorrogable una vez por otros 30 si la complejidad lo justifica. Si no
+      estás conforme con la respuesta, puedes recurrir a la <strong>Agencia de Protección de Datos Personales</strong>.
+    </p>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">8. Cambios a esta política</h2>
+    <p>
+      Si la modificamos, publicaremos la nueva versión en esta misma página con su fecha. La versión que aceptaste
+      queda registrada junto a tu mensaje.
+    </p>
+  </div>
+
+</section>
