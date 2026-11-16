@@ -6,12 +6,21 @@
       "id": "BOLT-36",
       "maestra": "CONS-11",
       "titulo": "Cobertura de tenants núcleo ≥ 90 % (1 de 4)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-36.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         "scripts/gate_baseline.json"
+      ],
+      "costo_usd": 0.53,
+      "tests": 423,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Cobertura antes y después: tenants_core 83,87 % → 100 %; total 65,04 % → 65,32 %; orders 70,41 % → 70,41 % (sin cambio).",
+        "scripts/gate_baseline.json lo actualizó el gate (--update-baseline). Ningún número bajó.",
+        "No hay test en rojo contra HEAD porque la card solo agrega cobertura sobre código que ya funcionaba. Es lo esperado, pero conviene saberlo.",
+        "El dev agregó CONS-11 (parte) al histórico con formato de fila de tabla, no de viñeta como decía el spec. Mira si te sirve así."
       ]
     },
     {
