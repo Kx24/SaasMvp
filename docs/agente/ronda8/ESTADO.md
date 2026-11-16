@@ -15,7 +15,7 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-44` | `FLOW-04` | provision_tenant deja un Domain primario | ✅ DONE | 642 | 0.59 |
 | `BOLT-45` | `LEY-08` | Aviso previo antes de purgar mensajes sin leer | ⛔ BLOCKED |  | 0 |
 | `BOLT-46` | `TOOL-04` | Pulido de la CI y dependencias de desarrollo | ✅ DONE | 646 | 0.54 |
-| `BOLT-47` | `DOC-01` | Documentación al día tras las rondas 4 a 8 | ⏳ TODO |  |  |
+| `BOLT-47` | `DOC-01` | Documentación al día tras las rondas 4 a 8 | ✅ DONE | 648 | 0.9 |
 
 ## Revisar a mano en el PR
 
@@ -52,6 +52,12 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-46`: Diff de .github/workflows/ci.yml: confirmar en GitHub que el primer push a una rama agent/* corre la CI una sola vez, y que un PR la corre una vez por actualización.
 - `BOLT-46`: Con agent/** en push y pull_request hacia develop, los PR de ramas del agente seguirán corriendo la CI dos veces. Decidir si se acepta.
 - `BOLT-46`: Confirmar que pip-audit==2.10.1 es la versión que resuelve hoy (python -m pip show pip-audit).
+- `BOLT-47`: CLAUDE.md sigue diciendo 'Supabase' y 'Tailwind por CDN' en lugares donde pueda estar desfasado; el spec prohíbe tocarlo, así que lo corrige el dueño.
+- `BOLT-47`: El skill .claude/skills/andesscale-saas sigue diciendo Supabase; corrección a mano.
+- `BOLT-47`: docs/agente/README.md no se pudo editar ni verificar: revisar si está desfasado (reintento por cuota del orquestador, rondas 4 a 8).
+- `BOLT-47`: Documentacion/README.md se reescribió más allá de la lista del spec (auto-filtro de manager, views/, login en auth_views.py); conviene leerlo.
+- `BOLT-47`: MASTER_PLAN: se reescribió la nota de la discrepancia Neon/Render. Queda pendiente confirmar cuál DATABASE_URL está activa para el DPA.
+- `BOLT-47`: SEGURIDAD.md afirma cifrado de credenciales, roles y consentimiento como controles vigentes; contrastarlo con el producción real tras el deploy de main (OPS-07).
 
 ## Hallazgos incidentales
 
@@ -73,6 +79,9 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-44`: create_tenant sigue sin tocarse y puede tener el mismo problema de Domain.
 - `BOLT-46`: test_gatekeeper: 4 tests lanzan el gatekeeper completo como subproceso con timeout fijo de 120 s, que da TimeoutExpired con la máquina cargada. No bloquea el DoD, pero puede dar falsos rojos.
 - `BOLT-46`: Un PR desde una rama agent/* hacia develop sigue duplicando la CI, porque esas ramas disparan push y pull_request. Es consecuencia directa del spec.
+- `BOLT-47`: test_gatekeeper lanza gatekeeper.py en un subproceso con tope de 120 s. Según el dev, en su máquina agotó el tiempo (4 errores); en el gate del orquestador la suite pasó.
+- `BOLT-47`: MASTER_PLAN_Y_ARQUITECTURA.md conserva como diagnóstico histórico menciones a login y logs ya corregidos por SEC-07/SEC-08.
+- `BOLT-47`: El dev no verificó docs/agente/README.md (ruta protegida).
 
 ## Pendiente de tu decisión
 

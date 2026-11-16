@@ -242,12 +242,27 @@
       "id": "BOLT-47",
       "maestra": "DOC-01",
       "titulo": "Documentación al día tras las rondas 4 a 8",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-47.md",
       "red_tests": [
         "apps.core.tests.test_docs_vigentes"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.9,
+      "tests": 648,
+      "hallazgos": [
+        "test_gatekeeper lanza gatekeeper.py en un subproceso con tope de 120 s. Según el dev, en su máquina agotó el tiempo (4 errores); en el gate del orquestador la suite pasó.",
+        "MASTER_PLAN_Y_ARQUITECTURA.md conserva como diagnóstico histórico menciones a login y logs ya corregidos por SEC-07/SEC-08.",
+        "El dev no verificó docs/agente/README.md (ruta protegida)."
+      ],
+      "revisar_humano": [
+        "CLAUDE.md sigue diciendo 'Supabase' y 'Tailwind por CDN' en lugares donde pueda estar desfasado; el spec prohíbe tocarlo, así que lo corrige el dueño.",
+        "El skill .claude/skills/andesscale-saas sigue diciendo Supabase; corrección a mano.",
+        "docs/agente/README.md no se pudo editar ni verificar: revisar si está desfasado (reintento por cuota del orquestador, rondas 4 a 8).",
+        "Documentacion/README.md se reescribió más allá de la lista del spec (auto-filtro de manager, views/, login en auth_views.py); conviene leerlo.",
+        "MASTER_PLAN: se reescribió la nota de la discrepancia Neon/Render. Queda pendiente confirmar cuál DATABASE_URL está activa para el DPA.",
+        "SEGURIDAD.md afirma cifrado de credenciales, roles y consentimiento como controles vigentes; contrastarlo con el producción real tras el deploy de main (OPS-07)."
+      ]
     }
   ]
 }
