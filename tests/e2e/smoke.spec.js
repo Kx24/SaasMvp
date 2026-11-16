@@ -79,6 +79,26 @@ for (const tenant of TENANTS) {
       });
     }
 
+    if (tenant.contactFlow === 'simple') {
+      // COMP-03: la validacion HTML5 (consentimiento required) bloquea el
+      // envio; el boton no debe quedar deshabilitado en "Enviando...".
+      test('enviar sin consentimiento deja el boton habilitado (COMP-03)', async ({ page }) => {
+        await page.goto('/');
+
+        const section = page.locator('#contacto');
+        await section.locator('input[name="name"]').fill('Playwright E2E');
+        await section.locator('input[name="email"]').fill('e2e@playwright.test');
+        await section.locator('textarea[name="message"]').fill('Mensaje de prueba COMP-03.');
+
+        const button = section.locator('button[type="submit"]');
+        await button.click();
+
+        await expect(button).toBeEnabled();
+        await expect(button.getByText('Enviando...')).toBeHidden();
+        expect(new URL(page.url()).pathname).toBe('/');
+      });
+    }
+
     if (tenant.contactFlow === 'multistep') {
       test('formulario multi-step envía (fetch/AJAX, andesscale)', async ({ page }) => {
         await page.goto('/');

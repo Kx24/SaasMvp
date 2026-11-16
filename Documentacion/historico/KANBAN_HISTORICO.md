@@ -72,6 +72,7 @@
 | `CONS-10` | Tests de render de la home por tema (25 tests, 3 temas); destapó `DEUDA-08` (portada sin titular por defecto) | 2026-11-12 | `BOLT-11` |
 | `DEUDA-08` | La portada de un sitio nuevo muestra su titular: `get_hero_images` devuelve el slide default con la galería apagada y todas las altas crean la hero con `slot_key='hero'` | 2026-11-14 | `BOLT-19` |
 | `DEUDA-06` | Código muerto retirado: `cloudinary_settings.py`, `OrderProcessor` y la copia suelta de `marketing/0001_initial.py`; test guardia `test_dead_code_removed` | 2026-11-14 | `BOLT-25` |
+| `COMP-03` | El botón de enviar de los 4 formularios de contacto activa "Enviando..." solo en el `submit` real (no en el clic) y se recupera de error o de volver a la página | 2026-11-15 | `BOLT-42` |
 
 ## Tooling, flujo comercial y operaciones
 

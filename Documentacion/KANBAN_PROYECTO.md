@@ -131,7 +131,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `COMP-01` | Generalizar componentes duplicados | P1 | L | `cta`, `about`, `services`, `contact`, `footer`, `navbar`, `hero_ctas`/`hero_overlay_theme` en `templates/components/` con el patrón de `media_collection` (parámetro `mode` + slots). Un componente por commit; a11y y guardia de tokens verdes |
 | `COMP-02` | Ordenar el árbol de temas | P2 | M | `andesscale/` dentro de `themes/`; `themes/electricidad` entra a `THEME_CHOICES` o se archiva; fuera `templates_library/` (vacía) y carpetas sueltas sin uso |
-| `COMP-03` | El botón de enviar del formulario de contacto se queda en "Enviando..." si el navegador bloquea el envío | P3 | S | `@click="submitting = true"` marca el estado antes de la validación; con el consentimiento `required` se nota. Pasar a `@submit` (o resetear el estado) en `components/contact_multistep.html`, `partials/contact_form*.html` y `themes/electricidad/components/contact.html`; test de render. Hallado en el ensayo `OPS-07` |
 
 ### `MOD` — Módulos
 | ID | Card | P | Esf. | Definición de hecho |

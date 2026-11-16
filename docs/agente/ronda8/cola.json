@@ -146,12 +146,19 @@
       "id": "BOLT-42",
       "maestra": "COMP-03",
       "titulo": "Botón de enviar sin quedarse en Enviando",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-42.md",
       "red_tests": [
         "apps.website.tests.test_contact_button"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.38,
+      "tests": 635,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Los tests de plantilla verifican el texto del template con regex; la recuperación ante error de servidor en los formularios de POST nativo depende de pageshow (bfcache/volver atrás), no de un reset explícito. Conviene probar a mano un 400/500 en el navegador.",
+        "El e2e nuevo corre solo para tenants con contactFlow 'simple'. Los demás flujos no tienen caso e2e para este caso."
+      ]
     },
     {
       "id": "BOLT-43",

@@ -10,7 +10,7 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-39` | `CONS-11` | Cobertura total ≥ 70 % y cierre (4 de 4) | ✅ DONE | 622 | 0.27 |
 | `BOLT-40` | `CONS-12` | Guardia de objetos de tenant en orders y accounts | ✅ DONE | 625 | 0.4 |
 | `BOLT-41` | `SEC-18` | Un solo TenantAdminMixin | ✅ DONE | 631 | 0.59 |
-| `BOLT-42` | `COMP-03` | Botón de enviar sin quedarse en Enviando | ⏳ TODO |  |  |
+| `BOLT-42` | `COMP-03` | Botón de enviar sin quedarse en Enviando | ✅ DONE | 635 | 0.38 |
 | `BOLT-43` | `DEUDA-09` | Borrar la vista dashboard_services huérfana | ⏳ TODO |  |  |
 | `BOLT-44` | `FLOW-04` | provision_tenant deja un Domain primario | ⏳ TODO |  |  |
 | `BOLT-45` | `LEY-08` | Aviso previo antes de purgar mensajes sin leer | ⏳ TODO |  |  |
@@ -41,6 +41,8 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-41`: apps/accounts/mixins.py: la nueva regla de FK usa profile__client para los FK a User y el filtro lateral oculta tenant_field. Es un cambio de permisos del admin.
 - `BOLT-41`: La fila de SEC-18 en SEGURIDAD.md quedó entre SEC-05 y SEC-06, fuera de orden numérico. Es solo cosmético.
 - `BOLT-41`: Los permisos que el test da al staff (view/change/delete en 5 apps) y la lista cerrada de modelos cubiertos: un admin nuevo con el mixin hará fallar test_registry_is_covered_by_fixtures a propósito.
+- `BOLT-42`: Los tests de plantilla verifican el texto del template con regex; la recuperación ante error de servidor en los formularios de POST nativo depende de pageshow (bfcache/volver atrás), no de un reset explícito. Conviene probar a mano un 400/500 en el navegador.
+- `BOLT-42`: El e2e nuevo corre solo para tenants con contactFlow 'simple'. Los demás flujos no tienen caso e2e para este caso.
 
 ## Hallazgos incidentales
 
