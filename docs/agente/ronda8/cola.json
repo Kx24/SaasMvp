@@ -219,12 +219,23 @@
       "id": "BOLT-46",
       "maestra": "TOOL-04",
       "titulo": "Pulido de la CI y dependencias de desarrollo",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-46.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         ".github/workflows/ci.yml"
+      ],
+      "costo_usd": 0.54,
+      "tests": 646,
+      "hallazgos": [
+        "test_gatekeeper: 4 tests lanzan el gatekeeper completo como subproceso con timeout fijo de 120 s, que da TimeoutExpired con la máquina cargada. No bloquea el DoD, pero puede dar falsos rojos.",
+        "Un PR desde una rama agent/* hacia develop sigue duplicando la CI, porque esas ramas disparan push y pull_request. Es consecuencia directa del spec."
+      ],
+      "revisar_humano": [
+        "Diff de .github/workflows/ci.yml: confirmar en GitHub que el primer push a una rama agent/* corre la CI una sola vez, y que un PR la corre una vez por actualización.",
+        "Con agent/** en push y pull_request hacia develop, los PR de ramas del agente seguirán corriendo la CI dos veces. Decidir si se acepta.",
+        "Confirmar que pip-audit==2.10.1 es la versión que resuelve hoy (python -m pip show pip-audit)."
       ]
     },
     {

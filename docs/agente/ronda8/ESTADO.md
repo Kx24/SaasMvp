@@ -14,7 +14,7 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-43` | `DEUDA-09` | Borrar la vista dashboard_services huérfana | ✅ DONE | 637 | 0.94 |
 | `BOLT-44` | `FLOW-04` | provision_tenant deja un Domain primario | ✅ DONE | 642 | 0.59 |
 | `BOLT-45` | `LEY-08` | Aviso previo antes de purgar mensajes sin leer | ⛔ BLOCKED |  | 0 |
-| `BOLT-46` | `TOOL-04` | Pulido de la CI y dependencias de desarrollo | ⏳ TODO |  |  |
+| `BOLT-46` | `TOOL-04` | Pulido de la CI y dependencias de desarrollo | ✅ DONE | 646 | 0.54 |
 | `BOLT-47` | `DOC-01` | Documentación al día tras las rondas 4 a 8 | ⏳ TODO |  |  |
 
 ## Revisar a mano en el PR
@@ -49,6 +49,9 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-44`: Decisión del dev que el spec no cubría: el Domain derivado se crea con domain_type='subdomain', is_preview=False y sin www.; verificar que PREVIEW_DOMAIN en producción produzca el host deseado.
 - `BOLT-44`: Cambio de comportamiento: el comando ahora falla con CommandError si no hay --domain, no hay DEBUG y falta PREVIEW_DOMAIN, o si el host ya está asignado a otro tenant. Revisar si algún runbook o script de provisioning depende de crear tenants sin dominio.
 - `BOLT-44`: Procedimiento_Nuevo_Tenant.md puede mencionar los flags eliminados; revisarlo.
+- `BOLT-46`: Diff de .github/workflows/ci.yml: confirmar en GitHub que el primer push a una rama agent/* corre la CI una sola vez, y que un PR la corre una vez por actualización.
+- `BOLT-46`: Con agent/** en push y pull_request hacia develop, los PR de ramas del agente seguirán corriendo la CI dos veces. Decidir si se acepta.
+- `BOLT-46`: Confirmar que pip-audit==2.10.1 es la versión que resuelve hoy (python -m pip show pip-audit).
 
 ## Hallazgos incidentales
 
@@ -68,6 +71,8 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-44`: check_tenant_setup da [FAIL] por falta de SEOConfig('home') en tenants recién provisionados; no está arreglado ni tiene fila en el kanban.
 - `BOLT-44`: El informe del dev dice que 4 tests de apps.core.tests.test_gatekeeper se colgaron por timeout de 120 s. El gate del orquestador pasó con 642 tests y 0 fallos, así que es probablemente ambiental, pero no se confirmó contra HEAD.
 - `BOLT-44`: create_tenant sigue sin tocarse y puede tener el mismo problema de Domain.
+- `BOLT-46`: test_gatekeeper: 4 tests lanzan el gatekeeper completo como subproceso con timeout fijo de 120 s, que da TimeoutExpired con la máquina cargada. No bloquea el DoD, pero puede dar falsos rojos.
+- `BOLT-46`: Un PR desde una rama agent/* hacia develop sigue duplicando la CI, porque esas ramas disparan push y pull_request. Es consecuencia directa del spec.
 
 ## Pendiente de tu decisión
 

@@ -86,6 +86,7 @@
 | `#FLOW-01` | Runbook `Procedimiento_Nuevo_Tenant.md`; `provision_tenant` separaba mal industria/tema | 2026-08-24 | `2025343` |
 | `#FLOW-02` | `check_tenant_setup` ampliado como gate de QA | 2026-08-23 | `BOLT-05` |
 | `FLOW-04` | `provision_tenant` siempre deja un `Domain` primario (`--domain`, o `<slug>.localhost` en DEBUG, o `<slug>.PREVIEW_DOMAIN`; sin fuente falla antes de crear nada) y se eliminó el paso muerto `--copy-templates`/`--source-template` (`_default`) | 2026-11-15 | `BOLT-44` |
+| `TOOL-04` | CI sin doble ejecución (`push` acotado a `develop`/`main`/`agent/**`), `pip-audit==2.10.1` fijado, nota Python 3.11 vs Render 3.11.0 y test de que producción/`build.sh`/`Procfile` no dependen de `django_extensions` | 2026-11-16 | `BOLT-46` |
 | `#OPS-01` (código) | `check_tenant_setup --check-dns`; `servelec.andesscale.com` como URL temporal | 2026-09-27 | `feature/dns-check` |
 | `#PREV-01..04` | Épica URL temporal `<slug>.andesscale.com`: onboarding, SEO noindex, bypass de "en construcción", `add_preview_domain` | 2026-10-05 | `cf9b46c`, `00d2e73`, `3110f4d` |
 | `#OPS-02` | `render.yaml` alineado a Neon (no a Postgres de Render) | 2026-11-08 | — |
