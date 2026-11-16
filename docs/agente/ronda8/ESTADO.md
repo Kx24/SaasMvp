@@ -8,7 +8,7 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-37` | `CONS-11` | Cobertura de orders ≥ 80 % (2 de 4) | ✅ DONE | 500 | 0.92 |
 | `BOLT-38` | `CONS-11` | Cobertura de core y servicios de tenants (3 de 4) | ✅ DONE | 622 | 0.95 |
 | `BOLT-39` | `CONS-11` | Cobertura total ≥ 70 % y cierre (4 de 4) | ✅ DONE | 622 | 0.27 |
-| `BOLT-40` | `CONS-12` | Guardia de objetos de tenant en orders y accounts | ⏳ TODO |  |  |
+| `BOLT-40` | `CONS-12` | Guardia de objetos de tenant en orders y accounts | ✅ DONE | 625 | 0.4 |
 | `BOLT-41` | `SEC-18` | Un solo TenantAdminMixin | ⏳ TODO |  |  |
 | `BOLT-42` | `COMP-03` | Botón de enviar sin quedarse en Enviando | ⏳ TODO |  |  |
 | `BOLT-43` | `DEUDA-09` | Borrar la vista dashboard_services huérfana | ⏳ TODO |  |  |
@@ -35,6 +35,9 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-39`: El spec pedía priorizar tests de vistas de accounts, sitemaps y admins, pero el dev no escribió ninguno porque los umbrales ya se cumplían. Conviene decidir si se quiere una card aparte para esa cobertura.
 - `BOLT-39`: No existe una fila BOLT-39 en el plan de ejecución, así que no se marcó ningún ✅. Revisar si hace falta registrarla.
 - `BOLT-39`: Confirmar si se elimina `create_tenant` o se documenta como vigente.
+- `BOLT-40`: Lista TENANT_EXCEPTIONS en apps/core/tests/test_tenant_objects.py: Plan por slug (x2, modelo global), Order por uuid (secreto), Order por order_number y mp_payment_id (webhook sin tenant), Order por pk en signals.py, Section en website_tags (filtra por client) y User por email en accounts.
+- `BOLT-40`: Cambio de comportamiento en autenticación: apps/accounts/views.py, request_password_reset_view. Un usuario cuyo profile.client difiere de request.client no recibe reset; superusers y request.client None quedan exentos. Confirma que ese es el comportamiento deseado (por ejemplo, usuarios que piden el reset desde un dominio de preview).
+- `BOLT-40`: El dev no corrió el rojo con git stash; lo confirmó el red-check del gate (1 test falla contra HEAD).
 
 ## Hallazgos incidentales
 
@@ -46,3 +49,5 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-38`: El spec citaba un 65,04 % de partida, pero el baseline de entrada ya era 69,22 % por BOLT-37.
 - `BOLT-39`: `create_tenant` (110 sentencias, 0 % de cobertura) parece código muerto frente a `provision_tenant`. Nadie confirmó que no se invoque desde otro lado, y no se borró.
 - `BOLT-39`: Siguen en 0 % los comandos `audit_cloudinary_assets`, `check_cloudinary`, `cloudinary_usage`, `verify_search_console`, `setup_cloudinary_folders`, `setup_dev_env` y `seed_e2e_tenants`. Además, varios archivos de admin y vistas listados en el spec siguen con huecos. Esto no afecta el contrato, pero queda como deuda.
+- `BOLT-40`: Fuga corregida: reset de contraseña cross-tenant en accounts/views.py (User.objects.get(email=...) sin validar tenant).
+- `BOLT-40`: La guardia ahora escanea todo website, no solo website/views/; apareció website_tags.py (Section.objects.get), que ya filtra por client.

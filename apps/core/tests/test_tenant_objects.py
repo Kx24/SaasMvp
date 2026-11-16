@@ -58,17 +58,90 @@ class TenantObjectOr404Tests(TestCase):
                 client_field='section__client', id=item.id)
 
 
+APPS_DIR = Path(__file__).resolve().parents[2]
+
+# Excepciones declaradas fuera de `website` (que usa `tenant_object_or_404` o el
+# marcador `# tenant-ok:`). Clave: (archivo relativo a apps/, fragmento exacto de la línea).
+# Cada una con su justificación; un uso nuevo sin declarar rompe el test.
+TENANT_EXCEPTIONS = {
+    ('orders/views.py', 'get_object_or_404(Plan, slug=plan_slug, is_active=True)'):
+        'Plan es un modelo global (catálogo de la plataforma), sin tenant.',
+    ('orders/views.py', 'Plan.objects.get(slug=plan_slug, is_active=True)'):
+        'Plan es un modelo global (catálogo de la plataforma), sin tenant.',
+    ('orders/views.py', 'get_object_or_404(Order, uuid=order_uuid)'):
+        'Página pública de resultado de compra: el uuid (no adivinable) es el secreto; compra previa a que exista tenant.',
+    ('orders/views.py', 'Order.objects.get(order_number=external_reference)'):
+        'Webhook de MercadoPago: llega al dominio de la plataforma, sin request.client; la firma se valida antes.',
+    ('orders/views.py', 'Order.objects.get(mp_payment_id=data_id)'):
+        'Webhook de MercadoPago: llega al dominio de la plataforma, sin request.client; la firma se valida antes.',
+    ('orders/signals.py', 'Order.objects.get(pk=instance.pk)'):
+        'Signal sobre la propia instancia que se guarda (pk propio): no hay entrada externa.',
+    ('website/templatetags/website_tags.py', 'return Section.objects.get('):
+        'La consulta filtra por client=request.client en las líneas siguientes (verificado en CONS-12).',
+    ('accounts/views.py', 'User.objects.get(email=email)'):
+        'User es global (auth); la vista valida a continuación que profile.client coincida con request.client.',
+}
+
+
 class ViewsStaticGuardTests(TestCase):
     PATTERN = re.compile(r'get_object_or_404\(|\.objects\.get\(')
+    SCANNED = ('website', 'orders', 'accounts')
 
-    def test_website_views_use_the_helper(self):
-        root = Path(__file__).resolve().parents[2] / 'website'
-        package = root / 'views'
-        files = sorted(package.rglob('*.py')) if package.is_dir() else [root / 'views.py']
-        self.assertTrue(files)
-        offenders = []
-        for path in files:
-            for n, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
-                if self.PATTERN.search(line) and '# tenant-ok:' not in line:
-                    offenders.append(f'{path.name}:{n}: {line.strip()}')
-        self.assertEqual(offenders, [], 'Usa tenant_object_or_404 en vez de get/get_object_or_404')
+    def _source_files(self, app):
+        root = APPS_DIR / app
+        files = []
+        for path in sorted(root.rglob('*.py')):
+            rel = path.relative_to(root).parts
+            if 'tests' in rel or 'migrations' in rel:
+                continue
+            if path.name == 'tests.py' or path.name.startswith(('test_', 'tests_')):
+                continue
+            files.append(path)
+        return files
+
+    def test_views_use_the_helper_or_declared_exception(self):
+        offenders, used = [], set()
+        for app in self.SCANNED:
+            files = self._source_files(app)
+            self.assertTrue(files)
+            for path in files:
+                rel = path.relative_to(APPS_DIR).as_posix()
+                for n, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
+                    if not self.PATTERN.search(line) or '# tenant-ok:' in line:
+                        continue
+                    key = next((k for k in TENANT_EXCEPTIONS
+                                if k[0] == rel and k[1] in line), None)
+                    if key:
+                        used.add(key)
+                    else:
+                        offenders.append(f'{rel}:{n}: {line.strip()}')
+        self.assertEqual(
+            offenders, [],
+            'Usa tenant_object_or_404, filtra por client o declara la excepción en TENANT_EXCEPTIONS')
+        self.assertEqual(set(TENANT_EXCEPTIONS) - used, set(), 'Excepciones obsoletas en TENANT_EXCEPTIONS')
+
+    def test_every_exception_has_a_justification(self):
+        for key, why in TENANT_EXCEPTIONS.items():
+            self.assertGreater(len(why.strip()), 20, key)
+
+
+class PasswordResetTenantIsolationTests(TestCase):
+    def test_reset_from_tenant_a_does_not_touch_user_of_tenant_b(self):
+        from django.contrib.auth.models import User
+        from django.core import mail
+        from django.urls import reverse
+
+        from apps.accounts.models import UserProfile
+        from apps.tenants.models import Domain
+
+        a = _make_client('Reset A', 'ra@test.com')
+        b = _make_client('Reset B', 'rb@test.com')
+        Domain.objects.create(client=a, domain='reset-a.test', domain_type='custom',
+                              is_primary=True, is_active=True, is_verified=True)
+        victim = User.objects.create_user(username='vb', email='vb@test.com', password='x')
+        UserProfile.objects.update_or_create(user=victim, defaults={'client': b, 'role': 'owner'})
+        self.client.post(reverse('accounts:forgot_password'), {'email': 'vb@test.com'},
+                         HTTP_HOST='reset-a.test')
+        self.assertEqual(len(mail.outbox), 0)
+        victim.profile.refresh_from_db()
+        self.assertIsNone(victim.profile.invitation_token)

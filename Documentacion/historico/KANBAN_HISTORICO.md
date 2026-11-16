@@ -96,6 +96,7 @@
 | `CONS-11` (parte) | Cobertura de `core` y servicios de `tenants` (total 69,2 % → 74,8 %): tests sin red de `cloudinary_utils`, `EmailDispatcher` (locmem + mock SMTP) y los template tags de `tenant_tags`, `website_tags` y `cloudinary_tags`; destapó y corrigió 3 bugs (`cloudinary.api` sin importar → `get_tenant_usage` fallaba con `AttributeError`; tags `get_testimonials`/`get_featured_testimonials` huérfanos que lanzaban `ImportError`; el comentario de `tenant_include` salía escapado y visible) | 2026-11-15 | `BOLT-38` |
 | `CONS-11` | Cobertura al contrato cerrada: total 74,8 %, `orders` 92,5 %, `tenants` núcleo 100 % (baseline actualizado). Quedan sin tests los comandos de gestión con 0 % (`audit_cloudinary_assets`, `check_cloudinary`, `create_tenant`, `cloudinary_usage`, `verify_search_console`, `setup_cloudinary_folders`, `setup_dev_env`, `seed_e2e_tenants`), fuera del contrato | 2026-11-15 | `BOLT-39` |
 | `CONS-04` | Edición inline pública eliminada (7 rutas, vistas, 6 templates legacy); `delete_service_dashboard` renderizaba un template inexistente (`dashboard/delete_service.html`) y ahora usa `service_confirm_delete.html` con el `{% url %}` corregido | 2026-11-14 | `BOLT-21` |
+| `CONS-12` | Guardia estática de objetos de tenant extendida a `orders` y `accounts` con lista explícita de excepciones justificadas; corregida fuga: recuperar contraseña desde el dominio de A ya no dispara el reset de un usuario de B (respuesta idéntica, sin enumeración) | 2026-11-15 | `BOLT-40` |
 
 ## Rancho Cachimba (en pausa — rama `feature/RanchocachimbaEtapa1`)
 

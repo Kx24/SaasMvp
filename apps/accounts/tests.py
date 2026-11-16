@@ -104,3 +104,18 @@ class PasswordFlowsTests(TestCase):
         self.assertEqual(existing['Location'], unknown['Location'])
         self.assertEqual(len(mail.outbox), 1)  # solo al email que existe
         self.assertEqual(mail.outbox[0].to, ['dueno@cuentas.test'])
+
+    def test_forgot_password_does_not_reset_user_of_another_tenant(self):
+        """BOLT-40: desde el dominio de A no se dispara el reset de un usuario de B."""
+        other = Client.objects.create(name='Otro', slug='otro', contact_email='o@otro.test')
+        victim = User.objects.create_user(username='victima', email='victima@otro.test', password='x')
+        UserProfile.objects.update_or_create(user=victim, defaults={'client': other, 'role': 'owner'})
+        response = self.client.post(reverse('accounts:forgot_password'), {'email': 'victima@otro.test'},
+                                    HTTP_HOST=HOST)
+        unknown = self.client.post(reverse('accounts:forgot_password'), {'email': 'nadie@cuentas.test'},
+                                   HTTP_HOST=HOST)
+        self.assertEqual(response.status_code, unknown.status_code)
+        self.assertEqual(response['Location'], unknown['Location'])
+        self.assertEqual(len(mail.outbox), 0)
+        victim.profile.refresh_from_db()
+        self.assertIsNone(victim.profile.invitation_token)
