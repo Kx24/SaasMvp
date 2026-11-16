@@ -1,0 +1,50 @@
+{
+  "ronda": 9,
+  "rama": "agent/ronda9",
+  "cards": [
+    {
+      "id": "BOLT-48",
+      "maestra": "LEY-03",
+      "titulo": "Plazos de Order, PaymentLog y EmailOutbox",
+      "estado": "TODO",
+      "spec": "BOLT-48.md",
+      "red_tests": [
+        "apps.core.tests.test_purge_expired_data"
+      ],
+      "permite_migracion": true
+    },
+    {
+      "id": "BOLT-49",
+      "maestra": "LEY-02",
+      "titulo": "Canal y registro de solicitudes de derechos (1 de 2)",
+      "estado": "TODO",
+      "spec": "BOLT-49.md",
+      "red_tests": [
+        "apps.website.tests.test_data_subject_requests"
+      ],
+      "permite_migracion": true
+    },
+    {
+      "id": "BOLT-50",
+      "maestra": "LEY-02",
+      "titulo": "Exportar, suprimir y bloquear datos de una persona (2 de 2)",
+      "estado": "TODO",
+      "spec": "BOLT-50.md",
+      "red_tests": [
+        "apps.core.tests.test_data_subject_command"
+      ],
+      "permite_migracion": true
+    },
+    {
+      "id": "BOLT-51",
+      "maestra": "OPS-04",
+      "titulo": "Alerta de créditos de Cloudinary",
+      "estado": "TODO",
+      "spec": "BOLT-51.md",
+      "red_tests": [
+        "apps.core.tests.test_cloudinary_usage_alert"
+      ],
+      "permite_migracion": false
+    }
+  ]
+}
