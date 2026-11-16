@@ -1,0 +1,51 @@
+{
+  "ronda": 10,
+  "rama": "agent/ronda10",
+  "cards": [
+    {
+      "id": "BOLT-52",
+      "maestra": "CONS-08",
+      "titulo": "Registro de módulos (opción A)",
+      "estado": "TODO",
+      "spec": "BOLT-52.md",
+      "red_tests": [
+        "apps.tenants.tests_modules"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-53",
+      "maestra": "CONS-09",
+      "titulo": "Menú y acceso del dashboard desde el registro",
+      "estado": "TODO",
+      "spec": "BOLT-53.md",
+      "red_tests": [
+        "apps.tenants.tests_module_access"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-54",
+      "maestra": "BIZ-01",
+      "titulo": "Límites del plan con efecto real",
+      "estado": "TODO",
+      "spec": "BOLT-54.md",
+      "red_tests": [
+        "apps.tenants.tests_module_limits"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-55",
+      "maestra": "DASH-05",
+      "titulo": "Tests del dashboard",
+      "estado": "TODO",
+      "spec": "BOLT-55.md",
+      "red_tests": [],
+      "permite_migracion": false,
+      "rutas_permitidas_extra": [
+        "scripts/gate_baseline.json"
+      ]
+    }
+  ]
+}
