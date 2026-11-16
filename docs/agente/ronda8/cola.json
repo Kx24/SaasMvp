@@ -182,12 +182,25 @@
       "id": "BOLT-44",
       "maestra": "FLOW-04",
       "titulo": "provision_tenant deja un Domain primario",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-44.md",
       "red_tests": [
         "apps.tenants.tests_provision_domain"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.59,
+      "tests": 642,
+      "hallazgos": [
+        "check_tenant_setup da [FAIL] por falta de SEOConfig('home') en tenants recién provisionados; no está arreglado ni tiene fila en el kanban.",
+        "El informe del dev dice que 4 tests de apps.core.tests.test_gatekeeper se colgaron por timeout de 120 s. El gate del orquestador pasó con 642 tests y 0 fallos, así que es probablemente ambiental, pero no se confirmó contra HEAD.",
+        "create_tenant sigue sin tocarse y puede tener el mismo problema de Domain."
+      ],
+      "revisar_humano": [
+        "Actualizar la sección 'Comandos frecuentes' de CLAUDE.md. Se eliminaron los flags --copy-templates, --no-copy-templates y --source-template, y ahora siempre se crea un Domain (en dev <slug>.localhost, en prod <slug>.PREVIEW_DOMAIN).",
+        "Decisión del dev que el spec no cubría: el Domain derivado se crea con domain_type='subdomain', is_preview=False y sin www.; verificar que PREVIEW_DOMAIN en producción produzca el host deseado.",
+        "Cambio de comportamiento: el comando ahora falla con CommandError si no hay --domain, no hay DEBUG y falta PREVIEW_DOMAIN, o si el host ya está asignado a otro tenant. Revisar si algún runbook o script de provisioning depende de crear tenants sin dominio.",
+        "Procedimiento_Nuevo_Tenant.md puede mencionar los flags eliminados; revisarlo."
+      ]
     },
     {
       "id": "BOLT-45",

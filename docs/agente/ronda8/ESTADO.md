@@ -12,7 +12,7 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-41` | `SEC-18` | Un solo TenantAdminMixin | ✅ DONE | 631 | 0.59 |
 | `BOLT-42` | `COMP-03` | Botón de enviar sin quedarse en Enviando | ✅ DONE | 635 | 0.38 |
 | `BOLT-43` | `DEUDA-09` | Borrar la vista dashboard_services huérfana | ✅ DONE | 637 | 0.94 |
-| `BOLT-44` | `FLOW-04` | provision_tenant deja un Domain primario | ⏳ TODO |  |  |
+| `BOLT-44` | `FLOW-04` | provision_tenant deja un Domain primario | ✅ DONE | 642 | 0.59 |
 | `BOLT-45` | `LEY-08` | Aviso previo antes de purgar mensajes sin leer | ⏳ TODO |  |  |
 | `BOLT-46` | `TOOL-04` | Pulido de la CI y dependencias de desarrollo | ⏳ TODO |  |  |
 | `BOLT-47` | `DOC-01` | Documentación al día tras las rondas 4 a 8 | ⏳ TODO |  |  |
@@ -45,6 +45,10 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-42`: El e2e nuevo corre solo para tenants con contactFlow 'simple'. Los demás flujos no tienen caso e2e para este caso.
 - `BOLT-43`: El dev reportó que un primer intento falló en e2e, atribuido a saturación de carga. No se reprodujo, y la última corrida del gate pasó. Vale la pena fijarse en si la CI repite el fallo.
 - `BOLT-43`: Playwright no cubre el dashboard, así que el render de la galería vacía solo lo valida el test de Django.
+- `BOLT-44`: Actualizar la sección 'Comandos frecuentes' de CLAUDE.md. Se eliminaron los flags --copy-templates, --no-copy-templates y --source-template, y ahora siempre se crea un Domain (en dev <slug>.localhost, en prod <slug>.PREVIEW_DOMAIN).
+- `BOLT-44`: Decisión del dev que el spec no cubría: el Domain derivado se crea con domain_type='subdomain', is_preview=False y sin www.; verificar que PREVIEW_DOMAIN en producción produzca el host deseado.
+- `BOLT-44`: Cambio de comportamiento: el comando ahora falla con CommandError si no hay --domain, no hay DEBUG y falta PREVIEW_DOMAIN, o si el host ya está asignado a otro tenant. Revisar si algún runbook o script de provisioning depende de crear tenants sin dominio.
+- `BOLT-44`: Procedimiento_Nuevo_Tenant.md puede mencionar los flags eliminados; revisarlo.
 
 ## Hallazgos incidentales
 
@@ -61,3 +65,6 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-41`: UserProfile.user listaba usuarios de todos los tenants (corregido en esta card).
 - `BOLT-41`: Los get_list_filter de SectionAdmin, ServiceAdmin y ContactSubmissionAdmin repiten lo que ya hace el mixin (deuda menor, sin tocar).
 - `BOLT-41`: El dev no pudo ver el rojo con git stash; el gate --red-check sí lo confirmó, pero solo con un test fallando (el de la clase única). El test del desplegable user de UserProfileAdmin no se vio en rojo.
+- `BOLT-44`: check_tenant_setup da [FAIL] por falta de SEOConfig('home') en tenants recién provisionados; no está arreglado ni tiene fila en el kanban.
+- `BOLT-44`: El informe del dev dice que 4 tests de apps.core.tests.test_gatekeeper se colgaron por timeout de 120 s. El gate del orquestador pasó con 642 tests y 0 fallos, así que es probablemente ambiental, pero no se confirmó contra HEAD.
+- `BOLT-44`: create_tenant sigue sin tocarse y puede tener el mismo problema de Domain.
