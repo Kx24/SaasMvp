@@ -78,12 +78,23 @@
       "id": "BOLT-39",
       "maestra": "CONS-11",
       "titulo": "Cobertura total ≥ 70 % y cierre (4 de 4)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-39.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         "scripts/gate_baseline.json"
+      ],
+      "costo_usd": 0.27,
+      "tests": 622,
+      "hallazgos": [
+        "`create_tenant` (110 sentencias, 0 % de cobertura) parece código muerto frente a `provision_tenant`. Nadie confirmó que no se invoque desde otro lado, y no se borró.",
+        "Siguen en 0 % los comandos `audit_cloudinary_assets`, `check_cloudinary`, `cloudinary_usage`, `verify_search_console`, `setup_cloudinary_folders`, `setup_dev_env` y `seed_e2e_tenants`. Además, varios archivos de admin y vistas listados en el spec siguen con huecos. Esto no afecta el contrato, pero queda como deuda."
+      ],
+      "revisar_humano": [
+        "El spec pedía priorizar tests de vistas de accounts, sitemaps y admins, pero el dev no escribió ninguno porque los umbrales ya se cumplían. Conviene decidir si se quiere una card aparte para esa cobertura.",
+        "No existe una fila BOLT-39 en el plan de ejecución, así que no se marcó ningún ✅. Revisar si hace falta registrarla.",
+        "Confirmar si se elimina `create_tenant` o se documenta como vigente."
       ]
     },
     {
