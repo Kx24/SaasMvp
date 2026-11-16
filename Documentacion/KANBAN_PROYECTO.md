@@ -125,7 +125,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
 | `CONS-08` | Registro de módulos (opción A) | P1 | L | Clase `Module` + registro: nombre, flag, límites, URLs, entrada de menú, componente público. Galería, contacto y servicios declarados como módulos |
 | `CONS-09` | Menú del dashboard generado desde el registro | P1 | M | Un módulo desactivado no aparece en el menú ni responde en su URL |
-| `CONS-11` | Subir la cobertura al contrato de TDD | P1 | L | `apps/orders/` ≥ 80 % (hoy 70,4), total ≥ 70 % (hoy 65,3); `tenants` núcleo ya cumple (100 %, `BOLT-36`). El gate (`gate_baseline.json`) solo impide que baje; esta card la sube y el baseline sube con ella. Hallado al medir el gate (2026-11-14) |
+| `CONS-11` | Subir la cobertura al contrato de TDD | P1 | M | Falta solo el **total ≥ 70 %** (hoy 69,2); `apps/orders/` ya cumple (92,5 %, `BOLT-37`) y `tenants` núcleo también (100 %, `BOLT-36`). El gate (`gate_baseline.json`) solo impide que baje; esta card la sube y el baseline sube con ella. Hallado al medir el gate (2026-11-14) |
 | `CONS-12` | Camino único de objetos de tenant en `orders` y `accounts` | P2 | S | `tenant_object_or_404` (o equivalente) donde corresponda y guardia estática extendida a esas apps. `website_tags.get_section` ya filtra por tenant (verificado). Hallado por `BOLT-28` |
 
 ### `COMP` — Componentes

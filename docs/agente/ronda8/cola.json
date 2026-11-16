@@ -27,12 +27,26 @@
       "id": "BOLT-37",
       "maestra": "CONS-11",
       "titulo": "Cobertura de orders ≥ 80 % (2 de 4)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-37.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         "scripts/gate_baseline.json"
+      ],
+      "costo_usd": 0.92,
+      "tests": 500,
+      "hallazgos": [
+        "Bug corregido: except mercadopago.exceptions.MPException inexistente en process_payment.",
+        "Bug corregido: los templates checkout_success.html y checkout_error.html estaban fuera de orders/, lo que daba 500 tras cada pago aprobado.",
+        "Sin cubrir en orders: admin.py 64 %, forms.py 72 %, email_service.py 82 %, views_onboarding.py 93 %.",
+        "No se corrió --red-check. El rojo está documentado en el informe, con el AttributeError y el TemplateDoesNotExist."
+      ],
+      "revisar_humano": [
+        "Cobertura antes y después: orders 70,41 % → 92,46 %; total 65,32 % → 69,22 % (aún bajo 70 %, CONS-11 sigue parcial); tenants_core 100 % sin cambios.",
+        "Cambio de código de producción en mercadopago_service.py (flujo de pagos): ahora MercadoPagoError se propaga sin envolver. Confirmar que las vistas que la capturan se comportan como se espera.",
+        "Los templates de checkout se movieron a templates/orders/. Confirmar que no hay otros overrides de tenant que dependan de la ruta antigua.",
+        "Confirmar en producción o en un sandbox que la página de éxito del checkout se renderiza, porque antes daba 500."
       ]
     },
     {
