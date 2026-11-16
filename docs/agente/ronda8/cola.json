@@ -53,12 +53,25 @@
       "id": "BOLT-38",
       "maestra": "CONS-11",
       "titulo": "Cobertura de core y servicios de tenants (3 de 4)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-38.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         "scripts/gate_baseline.json"
+      ],
+      "costo_usd": 0.95,
+      "tests": 622,
+      "hallazgos": [
+        "Los comandos de gestión con 0 % (audit_cloudinary_assets, check_cloudinary, create_tenant…) siguen sin cobertura. Es la card siguiente.",
+        "El spec citaba un 65,04 % de partida, pero el baseline de entrada ya era 69,22 % por BOLT-37."
+      ],
+      "revisar_humano": [
+        "Cobertura total: 69,22 % antes y 74,76 % después. orders 92,46 % sin cambio y tenants_core 100 % sin cambio.",
+        "El rojo no se confirmó contra el código original: red_check es null y el dev no lo verificó. Los tests de los 3 bugs se escribieron contra el código ya corregido.",
+        "Se eliminaron los tags get_testimonials y get_featured_testimonials de website_tags. Confirma que ningún template de un tema fuera de esta rama, por ejemplo feature/RanchocachimbaEtapa1, los use.",
+        "Cambio visible en tenant_include: el comentario HTML de fallback ahora se renderiza como comentario real y ya no como texto escapado.",
+        "El dev no confirmó el rojo de los tests de los bugs: el import de cloudinary.api, el fallback de tenant_include y los tags eliminados. Conviene ejecutar --red-check."
       ]
     },
     {

@@ -6,7 +6,7 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 |---|---|---|---|---|---|
 | `BOLT-36` | `CONS-11` | Cobertura de tenants núcleo ≥ 90 % (1 de 4) | ✅ DONE | 423 | 0.53 |
 | `BOLT-37` | `CONS-11` | Cobertura de orders ≥ 80 % (2 de 4) | ✅ DONE | 500 | 0.92 |
-| `BOLT-38` | `CONS-11` | Cobertura de core y servicios de tenants (3 de 4) | ⏳ TODO |  |  |
+| `BOLT-38` | `CONS-11` | Cobertura de core y servicios de tenants (3 de 4) | ✅ DONE | 622 | 0.95 |
 | `BOLT-39` | `CONS-11` | Cobertura total ≥ 70 % y cierre (4 de 4) | ⏳ TODO |  |  |
 | `BOLT-40` | `CONS-12` | Guardia de objetos de tenant en orders y accounts | ⏳ TODO |  |  |
 | `BOLT-41` | `SEC-18` | Un solo TenantAdminMixin | ⏳ TODO |  |  |
@@ -27,6 +27,11 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-37`: Cambio de código de producción en mercadopago_service.py (flujo de pagos): ahora MercadoPagoError se propaga sin envolver. Confirmar que las vistas que la capturan se comportan como se espera.
 - `BOLT-37`: Los templates de checkout se movieron a templates/orders/. Confirmar que no hay otros overrides de tenant que dependan de la ruta antigua.
 - `BOLT-37`: Confirmar en producción o en un sandbox que la página de éxito del checkout se renderiza, porque antes daba 500.
+- `BOLT-38`: Cobertura total: 69,22 % antes y 74,76 % después. orders 92,46 % sin cambio y tenants_core 100 % sin cambio.
+- `BOLT-38`: El rojo no se confirmó contra el código original: red_check es null y el dev no lo verificó. Los tests de los 3 bugs se escribieron contra el código ya corregido.
+- `BOLT-38`: Se eliminaron los tags get_testimonials y get_featured_testimonials de website_tags. Confirma que ningún template de un tema fuera de esta rama, por ejemplo feature/RanchocachimbaEtapa1, los use.
+- `BOLT-38`: Cambio visible en tenant_include: el comentario HTML de fallback ahora se renderiza como comentario real y ya no como texto escapado.
+- `BOLT-38`: El dev no confirmó el rojo de los tests de los bugs: el import de cloudinary.api, el fallback de tenant_include y los tags eliminados. Conviene ejecutar --red-check.
 
 ## Hallazgos incidentales
 
@@ -34,3 +39,5 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-37`: Bug corregido: los templates checkout_success.html y checkout_error.html estaban fuera de orders/, lo que daba 500 tras cada pago aprobado.
 - `BOLT-37`: Sin cubrir en orders: admin.py 64 %, forms.py 72 %, email_service.py 82 %, views_onboarding.py 93 %.
 - `BOLT-37`: No se corrió --red-check. El rojo está documentado en el informe, con el AttributeError y el TemplateDoesNotExist.
+- `BOLT-38`: Los comandos de gestión con 0 % (audit_cloudinary_assets, check_cloudinary, create_tenant…) siguen sin cobertura. Es la card siguiente.
+- `BOLT-38`: El spec citaba un 65,04 % de partida, pero el baseline de entrada ya era 69,22 % por BOLT-37.
