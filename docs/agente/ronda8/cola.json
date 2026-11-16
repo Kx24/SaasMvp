@@ -1,0 +1,143 @@
+{
+  "ronda": 8,
+  "rama": "agent/ronda8",
+  "cards": [
+    {
+      "id": "BOLT-36",
+      "maestra": "CONS-11",
+      "titulo": "Cobertura de tenants núcleo ≥ 90 % (1 de 4)",
+      "estado": "TODO",
+      "spec": "BOLT-36.md",
+      "red_tests": [],
+      "permite_migracion": false,
+      "rutas_permitidas_extra": [
+        "scripts/gate_baseline.json"
+      ]
+    },
+    {
+      "id": "BOLT-37",
+      "maestra": "CONS-11",
+      "titulo": "Cobertura de orders ≥ 80 % (2 de 4)",
+      "estado": "TODO",
+      "spec": "BOLT-37.md",
+      "red_tests": [],
+      "permite_migracion": false,
+      "rutas_permitidas_extra": [
+        "scripts/gate_baseline.json"
+      ]
+    },
+    {
+      "id": "BOLT-38",
+      "maestra": "CONS-11",
+      "titulo": "Cobertura de core y servicios de tenants (3 de 4)",
+      "estado": "TODO",
+      "spec": "BOLT-38.md",
+      "red_tests": [],
+      "permite_migracion": false,
+      "rutas_permitidas_extra": [
+        "scripts/gate_baseline.json"
+      ]
+    },
+    {
+      "id": "BOLT-39",
+      "maestra": "CONS-11",
+      "titulo": "Cobertura total ≥ 70 % y cierre (4 de 4)",
+      "estado": "TODO",
+      "spec": "BOLT-39.md",
+      "red_tests": [],
+      "permite_migracion": false,
+      "rutas_permitidas_extra": [
+        "scripts/gate_baseline.json"
+      ]
+    },
+    {
+      "id": "BOLT-40",
+      "maestra": "CONS-12",
+      "titulo": "Guardia de objetos de tenant en orders y accounts",
+      "estado": "TODO",
+      "spec": "BOLT-40.md",
+      "red_tests": [
+        "apps.core.tests.test_tenant_objects"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-41",
+      "maestra": "SEC-18",
+      "titulo": "Un solo TenantAdminMixin",
+      "estado": "TODO",
+      "spec": "BOLT-41.md",
+      "red_tests": [
+        "apps.accounts.tests_admin_scope"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-42",
+      "maestra": "COMP-03",
+      "titulo": "Botón de enviar sin quedarse en Enviando",
+      "estado": "TODO",
+      "spec": "BOLT-42.md",
+      "red_tests": [
+        "apps.website.tests.test_contact_button"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-43",
+      "maestra": "DEUDA-09",
+      "titulo": "Borrar la vista dashboard_services huérfana",
+      "estado": "TODO",
+      "spec": "BOLT-43.md",
+      "red_tests": [
+        "apps.website.tests.test_dashboard_orphans"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-44",
+      "maestra": "FLOW-04",
+      "titulo": "provision_tenant deja un Domain primario",
+      "estado": "TODO",
+      "spec": "BOLT-44.md",
+      "red_tests": [
+        "apps.tenants.tests_provision_domain"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-45",
+      "maestra": "LEY-08",
+      "titulo": "Aviso previo antes de purgar mensajes sin leer",
+      "estado": "TODO",
+      "spec": "BOLT-45.md",
+      "red_tests": [
+        "apps.tenants.tests_digest_warning"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-46",
+      "maestra": "TOOL-04",
+      "titulo": "Pulido de la CI y dependencias de desarrollo",
+      "estado": "TODO",
+      "spec": "BOLT-46.md",
+      "red_tests": [],
+      "permite_migracion": false,
+      "rutas_permitidas_extra": [
+        ".github/workflows/ci.yml"
+      ]
+    },
+    {
+      "id": "BOLT-47",
+      "maestra": "DOC-01",
+      "titulo": "Documentación al día tras las rondas 4 a 8",
+      "estado": "TODO",
+      "spec": "BOLT-47.md",
+      "red_tests": [
+        "apps.core.tests.test_docs_vigentes"
+      ],
+      "permite_migracion": false
+    }
+  ]
+}
