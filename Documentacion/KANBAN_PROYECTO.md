@@ -152,7 +152,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
 | `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |
-| `SEC-18` | Unificar los dos `TenantAdminMixin` | P2 | M | Uno solo (`apps/accounts/mixins.py`) usado también por `apps/website/admin.py`; `get_list_filter` y la regla de FK cubren también FKs que llegan al tenant por otro camino (`order__client`). Suite de aislamiento y `tests_admin_scope` verdes. Hallado por `BOLT-24`/`BOLT-32` |
 
 ### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`)
 | ID | Card | P | Esf. | Definición de hecho |

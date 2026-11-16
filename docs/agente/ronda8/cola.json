@@ -123,12 +123,24 @@
       "id": "BOLT-41",
       "maestra": "SEC-18",
       "titulo": "Un solo TenantAdminMixin",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-41.md",
       "red_tests": [
         "apps.accounts.tests_admin_scope"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.59,
+      "tests": 631,
+      "hallazgos": [
+        "UserProfile.user listaba usuarios de todos los tenants (corregido en esta card).",
+        "Los get_list_filter de SectionAdmin, ServiceAdmin y ContactSubmissionAdmin repiten lo que ya hace el mixin (deuda menor, sin tocar).",
+        "El dev no pudo ver el rojo con git stash; el gate --red-check sí lo confirmó, pero solo con un test fallando (el de la clase única). El test del desplegable user de UserProfileAdmin no se vio en rojo."
+      ],
+      "revisar_humano": [
+        "apps/accounts/mixins.py: la nueva regla de FK usa profile__client para los FK a User y el filtro lateral oculta tenant_field. Es un cambio de permisos del admin.",
+        "La fila de SEC-18 en SEGURIDAD.md quedó entre SEC-05 y SEC-06, fuera de orden numérico. Es solo cosmético.",
+        "Los permisos que el test da al staff (view/change/delete en 5 apps) y la lista cerrada de modelos cubiertos: un admin nuevo con el mixin hará fallar test_registry_is_covered_by_fixtures a propósito."
+      ]
     },
     {
       "id": "BOLT-42",

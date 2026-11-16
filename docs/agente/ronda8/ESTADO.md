@@ -9,7 +9,7 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-38` | `CONS-11` | Cobertura de core y servicios de tenants (3 de 4) | ✅ DONE | 622 | 0.95 |
 | `BOLT-39` | `CONS-11` | Cobertura total ≥ 70 % y cierre (4 de 4) | ✅ DONE | 622 | 0.27 |
 | `BOLT-40` | `CONS-12` | Guardia de objetos de tenant en orders y accounts | ✅ DONE | 625 | 0.4 |
-| `BOLT-41` | `SEC-18` | Un solo TenantAdminMixin | ⏳ TODO |  |  |
+| `BOLT-41` | `SEC-18` | Un solo TenantAdminMixin | ✅ DONE | 631 | 0.59 |
 | `BOLT-42` | `COMP-03` | Botón de enviar sin quedarse en Enviando | ⏳ TODO |  |  |
 | `BOLT-43` | `DEUDA-09` | Borrar la vista dashboard_services huérfana | ⏳ TODO |  |  |
 | `BOLT-44` | `FLOW-04` | provision_tenant deja un Domain primario | ⏳ TODO |  |  |
@@ -38,6 +38,9 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-40`: Lista TENANT_EXCEPTIONS en apps/core/tests/test_tenant_objects.py: Plan por slug (x2, modelo global), Order por uuid (secreto), Order por order_number y mp_payment_id (webhook sin tenant), Order por pk en signals.py, Section en website_tags (filtra por client) y User por email en accounts.
 - `BOLT-40`: Cambio de comportamiento en autenticación: apps/accounts/views.py, request_password_reset_view. Un usuario cuyo profile.client difiere de request.client no recibe reset; superusers y request.client None quedan exentos. Confirma que ese es el comportamiento deseado (por ejemplo, usuarios que piden el reset desde un dominio de preview).
 - `BOLT-40`: El dev no corrió el rojo con git stash; lo confirmó el red-check del gate (1 test falla contra HEAD).
+- `BOLT-41`: apps/accounts/mixins.py: la nueva regla de FK usa profile__client para los FK a User y el filtro lateral oculta tenant_field. Es un cambio de permisos del admin.
+- `BOLT-41`: La fila de SEC-18 en SEGURIDAD.md quedó entre SEC-05 y SEC-06, fuera de orden numérico. Es solo cosmético.
+- `BOLT-41`: Los permisos que el test da al staff (view/change/delete en 5 apps) y la lista cerrada de modelos cubiertos: un admin nuevo con el mixin hará fallar test_registry_is_covered_by_fixtures a propósito.
 
 ## Hallazgos incidentales
 
@@ -51,3 +54,6 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-39`: Siguen en 0 % los comandos `audit_cloudinary_assets`, `check_cloudinary`, `cloudinary_usage`, `verify_search_console`, `setup_cloudinary_folders`, `setup_dev_env` y `seed_e2e_tenants`. Además, varios archivos de admin y vistas listados en el spec siguen con huecos. Esto no afecta el contrato, pero queda como deuda.
 - `BOLT-40`: Fuga corregida: reset de contraseña cross-tenant en accounts/views.py (User.objects.get(email=...) sin validar tenant).
 - `BOLT-40`: La guardia ahora escanea todo website, no solo website/views/; apareció website_tags.py (Section.objects.get), que ya filtra por client.
+- `BOLT-41`: UserProfile.user listaba usuarios de todos los tenants (corregido en esta card).
+- `BOLT-41`: Los get_list_filter de SectionAdmin, ServiceAdmin y ContactSubmissionAdmin repiten lo que ya hace el mixin (deuda menor, sin tocar).
+- `BOLT-41`: El dev no pudo ver el rojo con git stash; el gate --red-check sí lo confirmó, pero solo con un test fallando (el de la clase única). El test del desplegable user de UserProfileAdmin no se vio en rojo.
