@@ -85,10 +85,10 @@ AndesScale es una plataforma SaaS (Software as a Service) construida sobre Djang
  
 ### Patrón multi-tenant
  
-Cada request pasa por `TenantMiddleware`, que detecta el tenant activo según el dominio HTTP (o el parámetro `?tenant=slug` en desarrollo). El objeto `Client` queda disponible como `request.client` en todas las vistas y templates. Todos los modelos de negocio heredan de `TenantAwareManager`, que filtra automáticamente las queries por tenant.
+Cada request pasa por `TenantMiddleware`, que detecta el tenant activo según el dominio HTTP (o el parámetro `?tenant=slug` en desarrollo). El objeto `Client` queda disponible como `request.client` en todas las vistas y templates. Todos los modelos de negocio usan `TenantAwareManager` (`for_client`), pero **no filtra solo**: cada vista filtra explícito por `request.client`.
  
 ```
-petición → TenantMiddleware → request.client → View → TenantAwareManager → DB (filtrado)
+petición → TenantMiddleware → request.client → View (filtra explícito) → DB
 ```
  
 ### Sistema de temas (templates)
@@ -224,13 +224,13 @@ python manage.py test apps.tenants.tests_isolation  # Aislamiento entre tenants 
 | `Service` | Servicio ofrecido por el tenant. Campos: `name`, `description`, imagen |
 | `ContactSubmission` | Formulario de contacto recibido. Campos: `name`, `email`, `phone`, `message`, `created_at` |
  
-Todos usan `TenantAwareManager` para filtrar por tenant automáticamente.
+Todos usan `TenantAwareManager`, que **no filtra solo**: cada vista filtra con `.filter(client=request.client)` o `for_client(client)`.
  
 **Archivos clave:**
  
 | Archivo | Función |
 |---|---|
-| `views.py` | `HomeView` (landing pública), CRUD de secciones y servicios en dashboard |
+| `views/` | Paquete (`public`, `sections`, `services`, `gallery`, `contacts`, `branding`): home pública y CRUD del dashboard |
 | `website_tags.py` | `{% get_section 'hero' %}`, `{% get_services %}` |
 | `cloudinary_tags.py` | `{% cloudinary_image %}` con transformaciones |
 | `forms.py` | `ContactForm`, `SectionForm`, `ServiceForm` |
@@ -262,7 +262,7 @@ Todos usan `TenantAwareManager` para filtrar por tenant automáticamente.
 | Archivo | Función |
 |---|---|
 | `mixins.py` | `TenantRequiredMixin`, `RoleRequiredMixin` para proteger vistas |
-| `views.py` | Login, logout, reset de contraseña, invitaciones |
+| `views.py` | Fijar y cambiar contraseña, reset (el login vive en `apps/website/auth_views.py`) |
  
 **Relación con otros módulos:** Depende de `tenants` para asociar usuarios a clientes. Sus mixins son usados por `website` y `orders`.
  
@@ -277,7 +277,7 @@ Todos usan `TenantAwareManager` para filtrar por tenant automáticamente.
 | Archivo | Función |
 |---|---|
 | `models.py` | `BaseModel`: timestamps `created_at`, `updated_at` — heredado por todos los modelos |
-| `managers.py` | `TenantAwareManager`: filtra queries por `request.client` automáticamente |
+| `managers.py` | `TenantAwareManager`: `for_client(client)`; no filtra automáticamente (`#MED-02`) |
 | `cloudinary_utils.py` | `upload_image()`, `delete_asset()`, helpers de transformación |
 | `template_resolver.py` | `get_tenant_template()`, `render_tenant_template()` |
  
@@ -384,30 +384,17 @@ class TenantMiddleware:
  
 ---
  
-### `TenantAwareManager.get_queryset()`
- 
-**Propósito:** Filtrar automáticamente todos los querysets por el tenant activo en el request.
- 
-**Uso:** Heredado por todos los modelos del sistema.
- 
+### `TenantAwareManager.for_client()`
+
+**Propósito:** `apps/tenants/managers.py`. El auto-filtro por tenant se eliminó (`#MED-02`): **no** filtra solo.
+
 ```python
-# apps/core/managers.py
- 
-class TenantAwareManager(models.Manager):
-    def get_queryset(self):
-        from django.db import connection
-        # El tenant se almacena en el thread local durante el request
-        return super().get_queryset().filter(client=get_current_client())
- 
-# Uso en un modelo:
-class Section(BaseModel):
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    objects = TenantAwareManager()
- 
-# Uso en una vista:
-sections = Section.objects.all()  # Ya filtrado por tenant actual
+# En una vista: siempre filtro explícito
+sections = Section.objects.filter(client=request.client)
+sections = Section.objects.for_client(request.client)
 ```
- 
+
+
 ---
  
 ### `render_tenant_template(request, template_name, context)`

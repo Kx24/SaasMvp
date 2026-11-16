@@ -178,40 +178,6 @@ def get_hero_images(context):
     else:
         return active
     
-@register.simple_tag(takes_context=True)
-def get_testimonials(context):
-    """
-    Obtiene todos los testimonios activos
-    """
-    from apps.website.models import Testimonial
-
-    request = context.get('request')
-    if not request or not hasattr(request, 'client'):
-        return []
-
-    return Testimonial.objects.filter(
-        client=request.client,
-        is_active=True
-    ).order_by('order')
-
-
-@register.simple_tag(takes_context=True)
-def get_featured_testimonials(context):
-    """
-    Obtiene solo los testimonios destacados
-    """
-    from apps.website.models import Testimonial
-
-    request = context.get('request')
-    if not request or not hasattr(request, 'client'):
-        return []
-
-    return Testimonial.objects.filter(
-        client=request.client,
-        is_active=True,
-        is_featured=True
-    ).order_by('order')
-
 
 # ==============================
 # Form Config Template Tag

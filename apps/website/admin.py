@@ -7,31 +7,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-# Importar mixin
-try:
-    from apps.accounts.mixins import TenantAdminMixin
-except ImportError:
-    # Fallback si no existe el mixin
-    class TenantAdminMixin:
-        tenant_field = 'client'
-        
-        def get_queryset(self, request):
-            qs = super().get_queryset(request)
-            if request.user.is_superuser:
-                return qs
-            if hasattr(request.user, 'profile') and request.user.profile.client:
-                return qs.filter(**{self.tenant_field: request.user.profile.client})
-            return qs.none()
-        
-        def formfield_for_foreignkey(self, db_field, request, **kwargs):
-            if db_field.name == 'client' and not request.user.is_superuser:
-                if hasattr(request.user, 'profile') and request.user.profile.client:
-                    kwargs['queryset'] = db_field.related_model.objects.filter(
-                        pk=request.user.profile.client.pk
-                    )
-            return super().formfield_for_foreignkey(db_field, request, **kwargs)
+from apps.accounts.mixins import TenantAdminMixin
 
-# Importar modelos
 from .models import ContactSubmission, Section, Service
 
 # =============================================================================

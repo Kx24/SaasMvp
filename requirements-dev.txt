@@ -4,6 +4,6 @@ ruff==0.16.4
 bandit==1.7.*
 coverage==7.*
 pyyaml==6.0.*
-pip-audit
+pip-audit==2.10.1
 django-extensions==4.1
 ipython==9.8.0

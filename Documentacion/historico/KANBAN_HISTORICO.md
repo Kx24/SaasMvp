@@ -30,6 +30,7 @@
 | `SEC-05b` (cierre) | Desplegables FK del admin restringidos al tenant del staff no superuser (`TenantAdminMixin.formfield_for_foreignkey`; cubre `PaymentLog.order`) | 2026-11-14 | `BOLT-32` |
 | `SEC-06` | `smtp_password` y `api_key` de `ClientEmailSettings` cifradas en reposo con `MultiFernet` (`EncryptedTextField`, clave `FIELD_ENCRYPTION_KEY`, producción falla al importar sin ella), migración de datos reversible y admin que no devuelve el secreto | 2026-11-14 | `BOLT-22` |
 | `SEC-10` | Dependencias al día: Django 5.2.6→5.2.19, gunicorn 21.2.0→27.0.1, pillow 11→13, certifi/idna/requests/sqlparse/urllib3 actualizados; fuera DRF e `ipython`/`django-extensions` (ahora en `requirements-dev.txt` con `pip-audit`); `pip-audit` limpio | 2026-11-15 | `BOLT-27` |
+| `SEC-18` | Un solo `TenantAdminMixin` (`apps/accounts/mixins.py`; borrado el fallback de `apps/website/admin.py`): el staff no ve filtros por tenant ni desplegables FK a `User` ajenos (`profile__client`); un test recorre `admin.site._registry` | 2026-11-15 | `BOLT-41` |
 | `DASH-04` | Roles con efecto en el dashboard: matriz única `DASHBOARD_PERMISSIONS` (`apps/accounts/permissions.py`) aplicada con `tenant_permission_required` en las vistas del dashboard; `viewer` solo lectura y sin mensajes, `editor` no borra ni cambia la marca; la interfaz oculta lo no permitido (`dash_perms`) | 2026-11-15 | `BOLT-35` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
@@ -71,6 +72,8 @@
 | `CONS-10` | Tests de render de la home por tema (25 tests, 3 temas); destapó `DEUDA-08` (portada sin titular por defecto) | 2026-11-12 | `BOLT-11` |
 | `DEUDA-08` | La portada de un sitio nuevo muestra su titular: `get_hero_images` devuelve el slide default con la galería apagada y todas las altas crean la hero con `slot_key='hero'` | 2026-11-14 | `BOLT-19` |
 | `DEUDA-06` | Código muerto retirado: `cloudinary_settings.py`, `OrderProcessor` y la copia suelta de `marketing/0001_initial.py`; test guardia `test_dead_code_removed` | 2026-11-14 | `BOLT-25` |
+| `DEUDA-09` | Vista `dashboard_services` huérfana borrada con su re-exportación y `dashboard/services.html`; `{% include %}` multilínea del estado vacío de la galería corregido; test guardia de vistas `dashboard_*` sin ruta | 2026-11-15 | `BOLT-43` |
+| `COMP-03` | El botón de enviar de los 4 formularios de contacto activa "Enviando..." solo en el `submit` real (no en el clic) y se recupera de error o de volver a la página | 2026-11-15 | `BOLT-42` |
 
 ## Tooling, flujo comercial y operaciones
 
@@ -82,6 +85,8 @@
 | `#DEUDA-05` | README/skill reconciliados con el código; skill `andesscale-saas` creado | 2026-08-22 | `d3bb7ba` |
 | `#FLOW-01` | Runbook `Procedimiento_Nuevo_Tenant.md`; `provision_tenant` separaba mal industria/tema | 2026-08-24 | `2025343` |
 | `#FLOW-02` | `check_tenant_setup` ampliado como gate de QA | 2026-08-23 | `BOLT-05` |
+| `FLOW-04` | `provision_tenant` siempre deja un `Domain` primario (`--domain`, o `<slug>.localhost` en DEBUG, o `<slug>.PREVIEW_DOMAIN`; sin fuente falla antes de crear nada) y se eliminó el paso muerto `--copy-templates`/`--source-template` (`_default`) | 2026-11-15 | `BOLT-44` |
+| `TOOL-04` | CI sin doble ejecución (`push` acotado a `develop`/`main`/`agent/**`), `pip-audit==2.10.1` fijado, nota Python 3.11 vs Render 3.11.0 y test de que producción/`build.sh`/`Procfile` no dependen de `django_extensions` | 2026-11-16 | `BOLT-46` |
 | `#OPS-01` (código) | `check_tenant_setup --check-dns`; `servelec.andesscale.com` como URL temporal | 2026-09-27 | `feature/dns-check` |
 | `#PREV-01..04` | Épica URL temporal `<slug>.andesscale.com`: onboarding, SEO noindex, bypass de "en construcción", `add_preview_domain` | 2026-10-05 | `cf9b46c`, `00d2e73`, `3110f4d` |
 | `#OPS-02` | `render.yaml` alineado a Neon (no a Postgres de Render) | 2026-11-08 | — |
@@ -91,7 +96,13 @@
 | `CONS-06` | Helper `tenant_object_or_404` (`apps/core/tenant_objects.py`): único camino para objetos del tenant en `apps/website/views.py`, con guardia estática en tests | 2026-11-14 | `BOLT-28` |
 | `CONS-07` | `apps/website/views.py` separado en el paquete `apps/website/views/` (public, sections, services, gallery, contacts, branding, `_shared`; ninguno >400 líneas), con re-exports en `__init__` y nombres de URL congelados en test | 2026-11-14 | `BOLT-29` |
 | `CONS-02` | Documentación al día: `CLAUDE.md` con Neon, sin MCP de GitHub y con la ejecución agéntica enlazada; `README.md` raíz reescrito corto; `docs/CLOUDINARY.md` corregido; `.coverage`/`htmlcov/` ignorados; guardia `test_docs_drift` | 2026-11-14 | `BOLT-31` |
+| `CONS-11` (parte) | Cobertura de `tenants` núcleo (middleware + managers) de 83,9 % a 100 %: `apps/tenants/tests_managers.py` (16 tests: `for_client`/`active`/`featured`/`ordered` con y sin atributo; atajo `?tenant=` con DEBUG y ignorado sin DEBUG; headers SEO de preview; dominios de sistema) | 2026-11-15 | `BOLT-36` |
+| `CONS-11` (parte) | Cobertura de `apps/orders/` de 70,4 % a 92,5 %: tests sin red de `MercadoPagoService` (SDK mockeado), ramas de checkout/webhook, onboarding y modelos; destapó y corrigió 2 bugs reales (`except mercadopago.exceptions…` inexistente → `AttributeError` en vez de `MercadoPagoError`; templates `checkout_success.html`/`checkout_error.html` fuera de `orders/` → 500 tras cada pago aprobado) | 2026-11-15 | `BOLT-37` |
+| `CONS-11` (parte) | Cobertura de `core` y servicios de `tenants` (total 69,2 % → 74,8 %): tests sin red de `cloudinary_utils`, `EmailDispatcher` (locmem + mock SMTP) y los template tags de `tenant_tags`, `website_tags` y `cloudinary_tags`; destapó y corrigió 3 bugs (`cloudinary.api` sin importar → `get_tenant_usage` fallaba con `AttributeError`; tags `get_testimonials`/`get_featured_testimonials` huérfanos que lanzaban `ImportError`; el comentario de `tenant_include` salía escapado y visible) | 2026-11-15 | `BOLT-38` |
+| `CONS-11` | Cobertura al contrato cerrada: total 74,8 %, `orders` 92,5 %, `tenants` núcleo 100 % (baseline actualizado). Quedan sin tests los comandos de gestión con 0 % (`audit_cloudinary_assets`, `check_cloudinary`, `create_tenant`, `cloudinary_usage`, `verify_search_console`, `setup_cloudinary_folders`, `setup_dev_env`, `seed_e2e_tenants`), fuera del contrato | 2026-11-15 | `BOLT-39` |
 | `CONS-04` | Edición inline pública eliminada (7 rutas, vistas, 6 templates legacy); `delete_service_dashboard` renderizaba un template inexistente (`dashboard/delete_service.html`) y ahora usa `service_confirm_delete.html` con el `{% url %}` corregido | 2026-11-14 | `BOLT-21` |
+| `CONS-12` | Guardia estática de objetos de tenant extendida a `orders` y `accounts` con lista explícita de excepciones justificadas; corregida fuga: recuperar contraseña desde el dominio de A ya no dispara el reset de un usuario de B (respuesta idéntica, sin enumeración) | 2026-11-15 | `BOLT-40` |
+| `DOC-01` | Documentación al día tras las rondas 4 a 8: ARQUITECTURA (paquete `views/`, Build Command `./build.sh`, variables obligatorias, Render no sincroniza `render.yaml`), SEGURIDAD (hallazgos cerrados pasan a controles; bandit en 0), INDEX, MASTER_PLAN y `Documentacion/README.md` sin código borrado ni auto-filtro de manager; guardia `test_docs_vigentes` | 2026-11-16 | `BOLT-47` |
 
 ## Rancho Cachimba (en pausa — rama `feature/RanchocachimbaEtapa1`)
 

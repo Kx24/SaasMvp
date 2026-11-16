@@ -13,7 +13,9 @@ Ubicación: templates/partials/contact_form_dynamic.html
 <form method="post" 
       action="{% url 'contact_submit' %}" 
       class="space-y-5"
-      x-data="{ submitting: false }">
+      x-data="{ submitting: false }"
+      @submit="submitting = true"
+      @pageshow.window="submitting = false">
     
     {% csrf_token %}
     
@@ -223,7 +225,6 @@ Ubicación: templates/partials/contact_form_dynamic.html
     {# ==================== Botón Submit ==================== #}
     <button type="submit"
             :disabled="submitting"
-            @click="submitting = true"
             class="w-full px-8 py-4 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition-all disabled:opacity-70 inline-flex items-center justify-center gap-2">
         <span x-show="!submitting">
             {{ form_config.submit_button_text|default:"Enviar mensaje" }}

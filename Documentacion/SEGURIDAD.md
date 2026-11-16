@@ -1,6 +1,6 @@
 # Seguridad y protección de datos — AndesScale SaaS
 
-> **Chequeo del 2026-11-12** sobre `develop`. Solo lectura de código y escáneres locales (`bandit`, `check --deploy`, greps). **No** incluye pruebas de penetración, revisión del dashboard real de Render/Neon/Cloudinary/Cloudflare ni auditoría de dependencias con `pip-audit` (no está instalado; es parte de `SEC-10`).
+> **Chequeo del 2026-11-12** sobre `develop`. Solo lectura de código y escáneres locales (`bandit`, `check --deploy`, greps). **No** incluye pruebas de penetración, revisión del dashboard real de Render/Neon/Cloudinary/Cloudflare ni auditoría manual de dependencias (`pip-audit` corre en CI desde `SEC-10`/`SEC-12`).
 > Las cards citadas viven en [`KANBAN_PROYECTO.md`](KANBAN_PROYECTO.md). La parte legal **no es asesoría jurídica**: validar con un abogado antes de publicar políticas o firmar contratos.
 
 ## 1. Controles vigentes (verificados)
@@ -17,22 +17,24 @@
 | Abuso | Rate limit en login (IP+usuario+tenant), checkout y contacto; honeypot en el formulario; IP tomada del proxy confiable | `apps/core/rate_limit.py` |
 | Secretos | `.env` fuera de git y de su historial; sin claves reales trackeadas; superusuario sin contraseña por defecto | `Inventario_Secretos.md`, `setup_production` |
 | Integración continua | GitHub Actions en cada push y en PR a `develop`/`main`: `gatekeeper.py --strict`, suite de aislamiento, `ruff check apps/ config/` y `pip-audit`; permisos `contents: read`, sin secretos, variables ficticias | `.github/workflows/ci.yml`, `apps/core/tests/test_ci_workflow.py` (`SEC-12`) |
-| Código | `bandit -ll`: **0 High**, 21 Medium (ver `SEC-14`) | Corrida del 2026-11-12 |
+| Código | `bandit -ll`: **0 High y 0 Medium** (`bandit_medium_high` = 0 en `scripts/gate_baseline.json`; el gate impide que suba); `mark_safe` reemplazado por `format_html` y JSON-LD escapado (`SEC-14`) | `scripts/gate_baseline.json`, `apps/website/templatetags/cloudinary_tags.py` |
+| Credenciales de clientes | `smtp_password` y `api_key` de `ClientEmailSettings` cifradas en reposo (`MultiFernet`, `FIELD_ENCRYPTION_KEY`; producción falla al importar sin la clave); el admin no devuelve el secreto (`SEC-06`) | `apps/tenants/models.py`, `Inventario_Secretos.md` |
+| Admin | Todo `ModelAdmin` con datos de clientes hereda un único `TenantAdminMixin`: el staff ve solo su tenant (lista, filtros y desplegables FK); `ClientAdmin`, `/superadmin/nuevo/` y `/tenants/` solo superuser (`SEC-05`, `SEC-18`) | `apps/accounts/mixins.py`, `apps/accounts/tests_admin_scope.py` |
+| Roles del dashboard | Matriz única `DASHBOARD_PERMISSIONS` aplicada con `tenant_permission_required`: `viewer` solo lectura, `editor` no borra ni cambia la marca (`DASH-04`) | `apps/accounts/permissions.py` |
+| Subidas | Validación en servidor del contenido real (Pillow), sin SVG, tope de 10 MB en las 6 subidas del dashboard y los logos (`SEC-11`) | `apps/core/cloudinary_utils.py` |
+| Logs y login | Sin emails en logs (`email_ref`, guardia AST); un solo login (`client_login`) sin enumeración de usuarios y con `next` validado (`SEC-07`, `SEC-08`) | `apps/website/auth_views.py` |
+| Dependencias | Django 5.2.19, gunicorn 27, pillow 13; herramientas de desarrollo separadas en `requirements-dev.txt`; `pip-audit` limpio y en CI (`SEC-10`) | `requirements.txt`, `.github/workflows/ci.yml` |
+| Privacidad | Páginas `/privacidad/` (cliente y plataforma) con versión vigente; consentimiento no pre-marcado en contacto y checkout, con fecha, versión e IP (`LEY-01`) | ver §3.2 |
 | Atajos de desarrollo | `?tenant=<slug>` solo funciona con `DEBUG=True` | `apps/tenants/middleware.py::_detect_tenant` |
 
 ## 2. Hallazgos abiertos
 
+Cerrados en las rondas 4 a 8: `SEC-05`/`SEC-05b`, `SEC-06`, `SEC-07`, `SEC-08`, `SEC-10`, `SEC-11`, `SEC-14`, `SEC-17`, `SEC-18` (detalle y commit en `historico/KANBAN_HISTORICO.md`).
+
 | Card | Prioridad | Hallazgo | Evidencia | Riesgo |
 |---|---|---|---|---|
-| `SEC-05` | P0 | El Django Admin no limita por tenant en `OrderAdmin`, `PaymentLogAdmin`, `ClientEmailSettingsAdmin`, `ClientSettingsAdmin`, `FormConfigAdmin`, `DomainAdmin`, `SEOConfigAdmin`, `UserProfileAdmin`. Además `/superadmin/nuevo/` y `/tenants/` solo piden `is_staff` | `apps/orders/admin.py`, `apps/tenants/admin.py`, `apps/tenants/views.py:16,91`; el patrón correcto existe en `apps/accounts/mixins.py::TenantAdminMixin` | Un usuario staff no-superuser vería RUT, pagos y credenciales de todos los clientes. Hoy depende de que no exista ninguna cuenta así (verificar en producción) |
-| `SEC-06` | P0 | `smtp_password` y `api_key` de `ClientEmailSettings` en texto plano | `apps/tenants/models.py:504,521`; no hay librería de cifrado instalada | Una fuga de la base o del admin expone el correo de los clientes |
-| `SEC-07` | P0 | ~20 líneas de log escriben emails; el login de `apps/accounts` distingue "email inexistente" de "contraseña incorrecta" | `apps/accounts/views.py`, `apps/orders/views.py`, `views_onboarding.py`, `services/email_service.py`, `services/mercadopago_service.py` | Datos personales en logs de Render + enumeración de usuarios |
-| `SEC-10` | P0 | `Django==5.2.6`, `gunicorn==21.2.0`, `djangorestframework==3.15.1` (sin uso) y herramientas de desarrollo (`ipython`, `django-extensions`…) en el `requirements.txt` de producción; Render usa Python 3.11.0 y el entorno local 3.13 | `requirements.txt`, `render.yaml:40` | Vulnerabilidades conocidas sin parchear (confirmar con `pip-audit`), más superficie de la necesaria, diferencias entre local y producción |
-| `SEC-08` | P1 | Dos implementaciones de login bajo `/auth/`; la de `apps/accounts` es inalcanzable, sin tests y llama métodos de `UserProfile` que hay que verificar | `config/urls.py:19,40`, `apps/accounts/views.py` | Código de autenticación sin mantener |
-| `SEC-11` | P1 | Las subidas del dashboard no validan tipo ni tamaño en el servidor: `validate_image_file` / `validate_video_file` existen pero nadie los llama | `apps/core/cloudinary_utils.py:638,667`; grep sin usos | Archivos arbitrarios hacia Cloudinary, consumo de cuota |
 | `SEC-13` | P1 | `/superadmin/` sin segundo factor y fuera del rate limiter propio | `config/urls.py:16`; `RateLimiter` solo en `client_login` | Fuerza bruta contra la cuenta con más privilegios |
 | `SEC-09` | P2 (bloqueada) | `/checkout/` excluido de la CSP | `security_headers.py` | Requiere sandbox real de MercadoPago |
-| `SEC-14` | P2 | 21 avisos Medium de bandit por `mark_safe`; el JSON-LD de `seo_tags.py` no escapa `</`; `{{ section.content\|safe }}` en parciales legados | `apps/website/templatetags/cloudinary_tags.py`, `apps/tenants/templatetags/seo_tags.py:154`, `templates/partials/section_display.html` | XSS almacenado si un cliente escribe HTML en un campo que termina sin escapar |
 | `OPS-05` | P3 | Rate limiter sobre cache en memoria del proceso | `apps/core/rate_limit.py` | Se reinicia en cada deploy y no se comparte entre procesos |
 | `SEC-15` | P2 | No hay runbook de incidentes ni política de rotación de secretos | — | Respuesta improvisada ante una brecha |
 | `DB-02` | P1 | Sin backup con restore probado | — | Pérdida de datos irrecuperable |
@@ -57,7 +59,7 @@
 | **4–9** Derechos | Acceso, rectificación, supresión, oposición, portabilidad, no ser objeto de decisiones automatizadas | Sin exportación ni supresión asistida | `LEY-02` |
 | **10–11** Procedimiento | Canal sencillo y gratuito (correo o formulario); acusar recibo; responder en **30 días corridos** (prorrogables 30 una vez); **bloqueo temporal en 2 días hábiles**; guardar respaldo de la respuesta; informar el recurso ante la Agencia | No hay canal ni registro de solicitudes | `LEY-02` |
 | **14 quáter** Protección desde el diseño y por defecto | Tratar solo los datos estrictamente necesarios | `FormConfig` permite activar muchos campos; se guarda IP y user-agent de cada lead y orden. Decidido 2026-11-15: se guarda la IP y no el user-agent (la política ya lo dice; quitar el user-agent pendiente en `LEY-05`) | `LEY-05` |
-| **14 quinquies** Seguridad | Medidas acordes al riesgo: cifrado, confidencialidad/integridad/disponibilidad, **capacidad de restaurar**, **verificación regular**; ante un incidente, el responsable debe acreditar sus medidas. Aplica también al encargado | Ver §1 y §2: credenciales en claro, sin backup probado, sin CI | `SEC-05`, `SEC-06`, `SEC-07`, `SEC-10`, `SEC-12`, `DB-02` |
+| **14 quinquies** Seguridad | Medidas acordes al riesgo: cifrado, confidencialidad/integridad/disponibilidad, **capacidad de restaurar**, **verificación regular**; ante un incidente, el responsable debe acreditar sus medidas. Aplica también al encargado | Ver §1 y §2: credenciales cifradas (`SEC-06`), CI activo (`SEC-12`); pendiente el backup con restore probado | `DB-02` |
 | **14 sexies** Brechas | Reportar a la Agencia sin dilaciones indebidas cuando haya riesgo razonable; **registrar** naturaleza, efectos, categorías, número de afectados y medidas; avisar a los titulares si son datos sensibles, de menores de 14 o económicos. El encargado debe reportar al responsable | No existe procedimiento ni registro | `LEY-06`, `SEC-15` |
 | **15 bis** Encargo | Contrato con objeto, duración, finalidad, tipo de datos, categorías de titulares, derechos y obligaciones; prohibido usar los datos para otro fin; sub-encargo solo con autorización escrita; al terminar, **suprimir o devolver** los datos | No hay contrato de encargo con los clientes | `LEY-07`, `BIZ-03` |
 | **27–28** Transferencia internacional | Lícita con país adecuado, cláusulas contractuales u otras garantías, o cuando es necesaria para ejecutar un contrato con el titular | Datos en proveedores fuera de Chile sin contratos archivados | `LEY-04` |
@@ -77,8 +79,8 @@
 
 ```bash
 python -m bandit -r apps config -x "*/tests/*,*/tests*.py,*/migrations/*" -ll -q
-python -m pip_audit -r requirements.txt            # tras SEC-10 (pip install pip-audit)
-python manage.py check --deploy --settings=config.settings.production   # con SECRET_KEY, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
+python -m pip_audit -r requirements.txt            # pip install -r requirements-dev.txt
+python manage.py check --deploy --settings=config.settings.production   # con SECRET_KEY, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, FIELD_ENCRYPTION_KEY
 python manage.py test apps.tenants.tests_isolation apps.website.tests
 python manage.py test apps -v 1
 git ls-files | grep -iE "\.env$|\.pem$|\.key$|\.sqlite3$"                # debe salir vacío

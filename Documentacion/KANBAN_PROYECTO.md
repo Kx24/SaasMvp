@@ -125,15 +125,12 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
 | `CONS-08` | Registro de módulos (opción A) | P1 | L | Clase `Module` + registro: nombre, flag, límites, URLs, entrada de menú, componente público. Galería, contacto y servicios declarados como módulos |
 | `CONS-09` | Menú del dashboard generado desde el registro | P1 | M | Un módulo desactivado no aparece en el menú ni responde en su URL |
-| `CONS-11` | Subir la cobertura al contrato de TDD | P1 | L | `apps/orders/` ≥ 80 % (hoy 69,9), `apps/tenants/middleware.py` + `managers.py` ≥ 90 % (hoy 83,9), total ≥ 70 % (hoy 60,5). El gate (`gate_baseline.json`) solo impide que baje; esta card la sube y el baseline sube con ella. Hallado al medir el gate (2026-11-14) |
-| `CONS-12` | Camino único de objetos de tenant en `orders` y `accounts` | P2 | S | `tenant_object_or_404` (o equivalente) donde corresponda y guardia estática extendida a esas apps. `website_tags.get_section` ya filtra por tenant (verificado). Hallado por `BOLT-28` |
 
 ### `COMP` — Componentes
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
 | `COMP-01` | Generalizar componentes duplicados | P1 | L | `cta`, `about`, `services`, `contact`, `footer`, `navbar`, `hero_ctas`/`hero_overlay_theme` en `templates/components/` con el patrón de `media_collection` (parámetro `mode` + slots). Un componente por commit; a11y y guardia de tokens verdes |
 | `COMP-02` | Ordenar el árbol de temas | P2 | M | `andesscale/` dentro de `themes/`; `themes/electricidad` entra a `THEME_CHOICES` o se archiva; fuera `templates_library/` (vacía) y carpetas sueltas sin uso |
-| `COMP-03` | El botón de enviar del formulario de contacto se queda en "Enviando..." si el navegador bloquea el envío | P3 | S | `@click="submitting = true"` marca el estado antes de la validación; con el consentimiento `required` se nota. Pasar a `@submit` (o resetear el estado) en `components/contact_multistep.html`, `partials/contact_form*.html` y `themes/electricidad/components/contact.html`; test de render. Hallado en el ensayo `OPS-07` |
 
 ### `MOD` — Módulos
 | ID | Card | P | Esf. | Definición de hecho |
@@ -154,7 +151,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
 | `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |
-| `SEC-18` | Unificar los dos `TenantAdminMixin` | P2 | M | Uno solo (`apps/accounts/mixins.py`) usado también por `apps/website/admin.py`; `get_list_filter` y la regla de FK cubren también FKs que llegan al tenant por otro camino (`order__client`). Suite de aislamiento y `tests_admin_scope` verdes. Hallado por `BOLT-24`/`BOLT-32` |
 
 ### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`)
 | ID | Card | P | Esf. | Definición de hecho |
@@ -180,10 +176,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `OPS-04` | Alerta de créditos Cloudinary | P3 | S | Existe el comando `cloudinary_usage`; conectar umbrales y aviso; los umbrales (`CLOUDINARY_ALERT_THRESHOLDS`) se borraron con `DEUDA-06`: definirlos de nuevo |
 | `OPS-05` | Cache compartida, `/health/` real, Sentry | P3 | M | Antes de más de un proceso |
 | `OPS-07` | Ensayo de despliegue antes de `develop` → `main` | P0 | M | **Ensayo hecho 2026-11-15** (ver Retomar aquí). Falta el deploy real de `main`: Build Command de `saasmvp` → `./build.sh`, Manual Deploy y pruebas en vivo; luego borrar `saasmvp-staging` y la rama `staging-ensayo`. Pendiente de probar: formulario de contacto con consentimiento y correo, checkout sandbox (en local con credenciales `TEST-`), portada de Servelec. Build medido: 1 min |
-| `FLOW-04` | `provision_tenant` no crea `Domain` y avisa "Template origen _default no existe" | P2 | S | Crea el `Domain` primario (o lo deja explícito) y el aviso desaparece o se explica; test. Hallado por `BOLT-19` |
-| `TOOL-04` | Pulido de la CI y de las dependencias de desarrollo | P3 | S | `pip-audit` con versión fijada en `requirements-dev.txt`; evitar la doble ejecución `push` + `pull_request`; Python de CI alineado con `render.yaml` (3.11 vs 3.11.0); confirmar que `Procfile` y `render.yaml` arrancan con `gunicorn` 27; ningún comando de producción depende de `django_extensions`. Hallado por `BOLT-27`/`BOLT-30` |
-| `DOC-01` | Documentación desfasada tras las rondas 4–6 | P3 | S | `README.md`/`MASTER_PLAN` y `Documentacion/README.md` aún citan `OrderProcessor` y `cloudinary_settings.py`; `INDEX.md` líneas 29 y 54; `ARQUITECTURA.md:57` (`views.py` ya es un paquete); `SEGURIDAD.md` (`SEC-14` ya no tiene 21 avisos). **A mano:** el skill `.claude/skills/andesscale-saas` sigue diciendo Supabase y el agente no puede editar `.claude/` |
-| `DEUDA-09` | Vista `dashboard_services` sin ruta | P3 | S | `views/services.py` la exporta pero ninguna URL la usa; borrarla con su re-exportación. Hallado por `BOLT-21` |
 
 ### `RC` — Rancho Cachimba ⏸️ (rama `feature/RanchocachimbaEtapa1`; no tocar sin pedido explícito)
 | ID | Card | Depende de |
