@@ -1,0 +1,94 @@
+{
+  "ronda": 11,
+  "rama": "agent/ronda11",
+  "cards": [
+    {
+      "id": "BOLT-56",
+      "maestra": "COMP-02",
+      "titulo": "Ordenar el árbol de temas",
+      "estado": "TODO",
+      "spec": "BOLT-56.md",
+      "red_tests": [
+        "apps.tenants.tests_theme_tree"
+      ],
+      "permite_migracion": true
+    },
+    {
+      "id": "BOLT-57",
+      "maestra": "COMP-01",
+      "titulo": "Componente cta compartido (1 de 7)",
+      "estado": "TODO",
+      "spec": "BOLT-57.md",
+      "red_tests": [
+        "apps.core.tests.test_component_cta"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-58",
+      "maestra": "COMP-01",
+      "titulo": "Componente about compartido (2 de 7)",
+      "estado": "TODO",
+      "spec": "BOLT-58.md",
+      "red_tests": [
+        "apps.core.tests.test_component_about"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-59",
+      "maestra": "COMP-01",
+      "titulo": "Componente services compartido (3 de 7)",
+      "estado": "TODO",
+      "spec": "BOLT-59.md",
+      "red_tests": [
+        "apps.core.tests.test_component_services"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-60",
+      "maestra": "COMP-01",
+      "titulo": "Componente contact compartido (4 de 7)",
+      "estado": "TODO",
+      "spec": "BOLT-60.md",
+      "red_tests": [
+        "apps.core.tests.test_component_contact"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-61",
+      "maestra": "COMP-01",
+      "titulo": "Componente footer compartido (5 de 7)",
+      "estado": "TODO",
+      "spec": "BOLT-61.md",
+      "red_tests": [
+        "apps.core.tests.test_component_footer"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-62",
+      "maestra": "COMP-01",
+      "titulo": "Componente navbar compartido (6 de 7)",
+      "estado": "TODO",
+      "spec": "BOLT-62.md",
+      "red_tests": [
+        "apps.core.tests.test_component_navbar"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-63",
+      "maestra": "COMP-01",
+      "titulo": "hero_ctas y hero_overlay_theme compartidos; cierre (7 de 7)",
+      "estado": "TODO",
+      "spec": "BOLT-63.md",
+      "red_tests": [
+        "apps.core.tests.test_component_hero_ctas"
+      ],
+      "permite_migracion": false
+    }
+  ]
+}
