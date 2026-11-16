@@ -182,3 +182,68 @@ class UnattendedRoundRulesTestCase(SimpleTestCase):
         run_pipeline(runner)
 
         self.assertEqual(calls, [('BOLT-01', 'BLOCKED'), ('BOLT-02', 'REJECTED')])
+
+
+class QuotaRetryTests(SimpleTestCase):
+    """La cuota agotada de la cuenta no es un fallo de la card: se espera y se reintenta."""
+
+    def _runner(self, responses):
+        from orchestrate import ClaudeCliRunner
+
+        runner = ClaudeCliRunner.__new__(ClaudeCliRunner)  # sin exigir el ejecutable `claude`
+        prompts = []
+
+        def fake_once(prompt, extra_args, timeout):
+            prompts.append(prompt)
+            return responses[min(len(prompts) - 1, len(responses) - 1)]
+
+        runner._claude_once = fake_once
+        return runner, prompts
+
+    def test_quota_message_waits_and_retries_with_resume_note(self):
+        from unittest import mock
+
+        import orchestrate
+
+        quota = {'is_error': True, 'result': "You've hit your 5-hour limit · resets 2:10pm (America/Santiago)"}
+        runner, prompts = self._runner([quota, quota, {'result': 'RESULTADO: OK', 'session_id': 's1'}])
+
+        with mock.patch.object(orchestrate.time, 'sleep') as sleep:
+            payload = runner._claude('haz la card', [], 10)
+
+        self.assertEqual(payload['session_id'], 's1')
+        self.assertEqual(sleep.call_count, 2)
+        self.assertEqual(len(prompts), 3)
+        self.assertFalse(prompts[0].startswith(orchestrate.QUOTA_RESUME_NOTE))
+        self.assertTrue(prompts[1].startswith(orchestrate.QUOTA_RESUME_NOTE))
+        self.assertEqual(prompts[2].count(orchestrate.QUOTA_RESUME_NOTE), 1)
+
+    def test_long_report_quoting_the_phrase_is_not_a_quota_error(self):
+        from unittest import mock
+
+        import orchestrate
+
+        report = {'result': "informe " * 60 + "el log decía: You've hit your 5-hour limit"}
+        runner, prompts = self._runner([report])
+
+        with mock.patch.object(orchestrate.time, 'sleep') as sleep:
+            payload = runner._claude('haz la card', [], 10)
+
+        self.assertIs(payload, report)
+        sleep.assert_not_called()
+        self.assertEqual(len(prompts), 1)
+
+    def test_gives_up_after_max_wait(self):
+        from unittest import mock
+
+        import orchestrate
+
+        quota = {'is_error': True, 'result': "You've hit your 5-hour limit"}
+        runner, prompts = self._runner([quota])
+
+        with mock.patch.object(orchestrate.time, 'sleep'), \
+                mock.patch.object(orchestrate, 'QUOTA_MAX_WAIT_S', orchestrate.QUOTA_POLL_S * 2):
+            payload = runner._claude('haz la card', [], 10)
+
+        self.assertIs(payload, quota)
+        self.assertEqual(len(prompts), 3)
