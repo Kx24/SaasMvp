@@ -206,12 +206,14 @@
       "id": "BOLT-45",
       "maestra": "LEY-08",
       "titulo": "Aviso previo antes de purgar mensajes sin leer",
-      "estado": "TODO",
+      "estado": "BLOCKED",
       "spec": "BOLT-45.md",
       "red_tests": [
         "apps.tenants.tests_digest_warning"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "motivo": "la sesión del agente falló: timeout de 3600s",
+      "costo_usd": 0
     },
     {
       "id": "BOLT-46",
