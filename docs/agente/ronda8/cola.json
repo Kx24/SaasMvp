@@ -164,12 +164,19 @@
       "id": "BOLT-43",
       "maestra": "DEUDA-09",
       "titulo": "Borrar la vista dashboard_services huérfana",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-43.md",
       "red_tests": [
         "apps.website.tests.test_dashboard_orphans"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.94,
+      "tests": 637,
+      "hallazgos": [],
+      "revisar_humano": [
+        "El dev reportó que un primer intento falló en e2e, atribuido a saturación de carga. No se reprodujo, y la última corrida del gate pasó. Vale la pena fijarse en si la CI repite el fallo.",
+        "Playwright no cubre el dashboard, así que el render de la galería vacía solo lo valida el test de Django."
+      ]
     },
     {
       "id": "BOLT-44",

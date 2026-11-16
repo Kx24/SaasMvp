@@ -179,7 +179,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `FLOW-04` | `provision_tenant` no crea `Domain` y avisa "Template origen _default no existe" | P2 | S | Crea el `Domain` primario (o lo deja explícito) y el aviso desaparece o se explica; test. Hallado por `BOLT-19` |
 | `TOOL-04` | Pulido de la CI y de las dependencias de desarrollo | P3 | S | `pip-audit` con versión fijada en `requirements-dev.txt`; evitar la doble ejecución `push` + `pull_request`; Python de CI alineado con `render.yaml` (3.11 vs 3.11.0); confirmar que `Procfile` y `render.yaml` arrancan con `gunicorn` 27; ningún comando de producción depende de `django_extensions`. Hallado por `BOLT-27`/`BOLT-30` |
 | `DOC-01` | Documentación desfasada tras las rondas 4–6 | P3 | S | `README.md`/`MASTER_PLAN` y `Documentacion/README.md` aún citan `OrderProcessor` y `cloudinary_settings.py`; `INDEX.md` líneas 29 y 54; `ARQUITECTURA.md:57` (`views.py` ya es un paquete); `SEGURIDAD.md` (`SEC-14` ya no tiene 21 avisos). **A mano:** el skill `.claude/skills/andesscale-saas` sigue diciendo Supabase y el agente no puede editar `.claude/` |
-| `DEUDA-09` | Vista `dashboard_services` sin ruta | P3 | S | `views/services.py` la exporta pero ninguna URL la usa; borrarla con su re-exportación. Hallado por `BOLT-21` |
 
 ### `RC` — Rancho Cachimba ⏸️ (rama `feature/RanchocachimbaEtapa1`; no tocar sin pedido explícito)
 | ID | Card | Depende de |

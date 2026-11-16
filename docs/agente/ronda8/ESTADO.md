@@ -11,7 +11,7 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-40` | `CONS-12` | Guardia de objetos de tenant en orders y accounts | ✅ DONE | 625 | 0.4 |
 | `BOLT-41` | `SEC-18` | Un solo TenantAdminMixin | ✅ DONE | 631 | 0.59 |
 | `BOLT-42` | `COMP-03` | Botón de enviar sin quedarse en Enviando | ✅ DONE | 635 | 0.38 |
-| `BOLT-43` | `DEUDA-09` | Borrar la vista dashboard_services huérfana | ⏳ TODO |  |  |
+| `BOLT-43` | `DEUDA-09` | Borrar la vista dashboard_services huérfana | ✅ DONE | 637 | 0.94 |
 | `BOLT-44` | `FLOW-04` | provision_tenant deja un Domain primario | ⏳ TODO |  |  |
 | `BOLT-45` | `LEY-08` | Aviso previo antes de purgar mensajes sin leer | ⏳ TODO |  |  |
 | `BOLT-46` | `TOOL-04` | Pulido de la CI y dependencias de desarrollo | ⏳ TODO |  |  |
@@ -43,6 +43,8 @@ Rama `agent/ronda8` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-41`: Los permisos que el test da al staff (view/change/delete en 5 apps) y la lista cerrada de modelos cubiertos: un admin nuevo con el mixin hará fallar test_registry_is_covered_by_fixtures a propósito.
 - `BOLT-42`: Los tests de plantilla verifican el texto del template con regex; la recuperación ante error de servidor en los formularios de POST nativo depende de pageshow (bfcache/volver atrás), no de un reset explícito. Conviene probar a mano un 400/500 en el navegador.
 - `BOLT-42`: El e2e nuevo corre solo para tenants con contactFlow 'simple'. Los demás flujos no tienen caso e2e para este caso.
+- `BOLT-43`: El dev reportó que un primer intento falló en e2e, atribuido a saturación de carga. No se reprodujo, y la última corrida del gate pasó. Vale la pena fijarse en si la CI repite el fallo.
+- `BOLT-43`: Playwright no cubre el dashboard, así que el render de la galería vacía solo lo valida el test de Django.
 
 ## Hallazgos incidentales
 

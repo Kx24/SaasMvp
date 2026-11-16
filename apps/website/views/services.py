@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect
 
-from apps.accounts.decorators import tenant_member_required, tenant_permission_required
+from apps.accounts.decorators import tenant_permission_required
 from apps.core.template_resolver import render_tenant_template
 from apps.core.tenant_objects import tenant_object_or_404
 
@@ -18,20 +18,6 @@ logger = logging.getLogger(__name__)
 # ============================================================
 # DASHBOARD - SERVICIOS
 # ============================================================
-
-@tenant_member_required
-def dashboard_services(request):
-    """Lista de servicios"""
-    services = Service.objects.filter(
-        client=request.client
-    ).order_by('order')
-    
-    context = {
-        'client': request.client,
-        'services': services,
-    }
-    return render_tenant_template(request, 'dashboard/services.html', context)
-
 
 @tenant_permission_required('edit_content')
 def create_service_dashboard(request):
