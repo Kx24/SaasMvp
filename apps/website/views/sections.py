@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from apps.accounts.decorators import tenant_permission_required
 from apps.core.template_resolver import render_tenant_template
 from apps.core.tenant_objects import tenant_object_or_404
+from apps.tenants.modules import limit_for
 
 from ..forms import SectionForm
 from ..models import Section, Service
@@ -30,10 +31,14 @@ def dashboard_sections(request):
         client=request.client
     ).order_by('order')
     
+    services_limit = limit_for(request.client, 'services')
     context = {
         'client': request.client,
         'sections': sections,
         'services': services,
+        'services_used': len(services),
+        'services_limit': services_limit,
+        'services_at_limit': services_limit is not None and len(services) >= services_limit,
     }
     return render_tenant_template(request, 'dashboard/sections.html', context)
 

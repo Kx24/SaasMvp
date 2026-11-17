@@ -119,12 +119,24 @@
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-base font-semibold text-slate-900">Servicios</h2>
 {% if dash_perms.edit_content %}
-        <a href="{% url 'create_service' %}"
-           class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm"
-           style="background-color: var(--primary, #3B82F6);">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Agregar servicio
-        </a>
+        <div class="flex items-center gap-3">
+            <span class="text-xs px-2.5 py-1 rounded-full {% if services_at_limit %}bg-amber-50 text-amber-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+                {{ services_used }} de {{ services_limit }}
+            </span>
+            {% if services_at_limit %}
+            <span class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-400 bg-slate-100 rounded-lg cursor-not-allowed" aria-disabled="true"
+                  title="Tu plan permite {{ services_limit }} servicios. Borra uno o pide una ampliación.">
+                Agregar servicio
+            </span>
+            {% else %}
+            <a href="{% url 'create_service' %}"
+               class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm"
+               style="background-color: var(--primary, #3B82F6);">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Agregar servicio
+            </a>
+            {% endif %}
+        </div>
 {% endif %}
     </div>
 

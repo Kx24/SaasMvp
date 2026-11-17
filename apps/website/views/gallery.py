@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from apps.accounts.decorators import tenant_permission_required
 from apps.core.tenant_objects import tenant_object_or_404
-from apps.tenants.modules import module_required
+from apps.tenants.modules import ModuleLimitReached, check_limit, limit_for, module_required
 
 from ..forms import GalleryItemForm
 from ..models import GalleryItem, Section, Service
@@ -37,7 +37,6 @@ def dashboard_gallery(request):
     Solo gestiona la Section 'gallery' — portada tiene su propia vista.
     """
     client = request.client
-    settings = client.settings
 
     gallery_section, _ = Section.objects.get_or_create(
         client=client,
@@ -52,7 +51,7 @@ def dashboard_gallery(request):
         ).order_by('order', 'created_at')
     )
 
-    gallery_limit = settings.gallery_images_limit
+    gallery_limit = limit_for(client, 'gallery')
 
     context = {
         'client':           client,
@@ -80,12 +79,12 @@ def gallery_item_add(request):
 
     service_id = request.POST.get('service_id')
     owner_kwargs = {}
+    is_hero = False
 
     if service_id:
         service = tenant_object_or_404(request, Service, id=service_id)
         owner_kwargs = {'service': service}
         count = GalleryItem.objects.filter(client=client, service=service).count()
-        limit = settings.gallery_images_limit
         redirect_url = reverse('edit_service_dashboard', kwargs={'service_id': service.id})
         tipo = f'galería de "{service.name}"'
     else:
@@ -100,7 +99,8 @@ def gallery_item_add(request):
         )
         owner_kwargs = {'section': section}
 
-        if gallery_type == 'hero':
+        is_hero = gallery_type == 'hero'
+        if is_hero:
             count = GalleryItem.objects.filter(
                 client=client, section=section, is_default=False
             ).count()
@@ -110,13 +110,19 @@ def gallery_item_add(request):
             count = GalleryItem.objects.filter(
                 client=client, section=section
             ).count()
-            limit = settings.gallery_images_limit
             redirect_url = 'dashboard_gallery'
         tipo = 'portada' if gallery_type == 'hero' else 'galería'
 
-    if count >= limit:
-        messages.error(request, f'Has alcanzado el límite de {limit} imágenes de {tipo}.')
-        return redirect(redirect_url)
+    if is_hero:
+        if count >= limit:
+            messages.error(request, f'Has alcanzado el límite de {limit} imágenes de {tipo}.')
+            return redirect(redirect_url)
+    else:
+        try:
+            check_limit(client, 'gallery', usage=count)
+        except ModuleLimitReached as exc:
+            messages.error(request, exc.message)
+            return redirect(redirect_url)
 
     # Verificar que viene imagen
     if 'image' not in request.FILES:

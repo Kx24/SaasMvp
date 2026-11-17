@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from apps.accounts.decorators import tenant_permission_required
 from apps.core.template_resolver import render_tenant_template
 from apps.core.tenant_objects import tenant_object_or_404
-from apps.tenants.modules import is_enabled
+from apps.tenants.modules import ModuleLimitReached, check_limit, is_enabled, limit_for
 
 from ..forms import ServiceForm
 from ..models import GalleryItem, Service
@@ -23,6 +23,12 @@ logger = logging.getLogger(__name__)
 @tenant_permission_required('edit_content')
 def create_service_dashboard(request):
     """Crear servicio desde dashboard"""
+    try:
+        check_limit(request.client, 'services')
+    except ModuleLimitReached as exc:
+        messages.error(request, exc.message)
+        return redirect('dashboard_sections')
+
     if request.method == 'POST':
         form = ServiceForm(request.POST)
         if form.is_valid():
@@ -108,7 +114,7 @@ def edit_service_dashboard(request, service_id):
             GalleryItem.objects.filter(client=request.client, service=service)
             .order_by('order', 'created_at')
         )
-        gallery_limit = request.client.settings.gallery_images_limit
+        gallery_limit = limit_for(request.client, 'gallery')
 
     context = {
         'client': request.client,

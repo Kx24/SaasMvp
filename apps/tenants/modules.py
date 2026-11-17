@@ -7,6 +7,7 @@ entradas de menú aportan. El menú (``dashboard_menu``) y el acceso
 (``module_required``) derivan de aquí (``CONS-09``).
 """
 import functools
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from django.http import Http404
@@ -31,6 +32,8 @@ class Module:
     menu: tuple[MenuEntry, ...] = ()
     public_component: str | None = None
     menu_visible_when_disabled: bool = False
+    usage: Callable[[object], int] | None = None  # cuenta el uso del límite
+    limit_noun: str = ''  # plural para el mensaje: "servicios", "imágenes"
 
 
 MODULES = (
@@ -56,6 +59,8 @@ MODULES = (
         label='Servicios',
         flag=None,
         limit_field='max_services',
+        usage=lambda client: _usage_services(client),
+        limit_noun='servicios',
         url_names=(
             'create_service',
             'edit_service_dashboard',
@@ -71,6 +76,8 @@ MODULES = (
         label='Galería',
         flag='enable_gallery',
         limit_field='max_images',
+        usage=lambda client: _usage_gallery(client),
+        limit_noun='imágenes de galería',
         url_names=(
             # ``dashboard_portada`` va aquí y no en ``core``: la vista responde
             # con "El módulo de imágenes no está activado" si ``enable_gallery``
@@ -110,6 +117,76 @@ def get_module(key):
         if module.key == key:
             return module
     raise KeyError(key)
+
+
+class ModuleLimitReached(Exception):
+    """El tenant alcanzó el tope de su plan para un módulo (BIZ-01)."""
+
+    def __init__(self, module, limit):
+        self.module = module
+        self.limit = limit
+        super().__init__(f'Límite alcanzado en {module.key}: {limit}')
+
+    @property
+    def message(self):
+        nombre = self.module.limit_noun
+        return (
+            f'Tu plan permite {self.limit} {nombre}. '
+            'Borra uno o pide una ampliación.'
+        )
+
+
+def _usage_services(client):
+    from apps.website.models import Service
+
+    return Service.objects.filter(client=client).count()
+
+
+def _usage_gallery(client):
+    from apps.website.models import GalleryItem
+
+    return GalleryItem.objects.filter(
+        client=client, section__section_type='gallery'
+    ).count()
+
+
+def limit_for(client, key):
+    """Tope efectivo del módulo ``key`` para ``client``; ``None`` = sin límite.
+
+    Galería: el menor entre ``ClientSettings.gallery_images_limit`` y
+    ``Client.max_images``. Un valor <= 0 significa "sin cupo".
+    """
+    module = get_module(key)
+    if module.limit_field is None:
+        return None
+    limits = [getattr(client, module.limit_field, None)]
+    if key == 'gallery':
+        settings = getattr(client, 'settings', None)
+        limits.append(getattr(settings, 'gallery_images_limit', None))
+    limits = [max(value, 0) for value in limits if value is not None]
+    return min(limits) if limits else None
+
+
+def usage_for(client, key):
+    module = get_module(key)
+    if module.usage is None:
+        return 0
+    return module.usage(client)
+
+
+def check_limit(client, key, usage=None):
+    """Lanza ``ModuleLimitReached`` si ``usage >= limit``.
+
+    ``usage`` permite al llamador pasar un conteo más específico (p. ej. el de
+    una galería de servicio); por defecto se usa el del registro.
+    """
+    limit = limit_for(client, key)
+    if limit is None:
+        return
+    if usage is None:
+        usage = usage_for(client, key)
+    if usage >= limit:
+        raise ModuleLimitReached(get_module(key), limit)
 
 
 def is_enabled(client, key):
