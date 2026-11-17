@@ -26,9 +26,12 @@
 #   la imagen, no de un campo propio. Ver docstring de GalleryItem.
 # =============================================================================
 
+from datetime import timedelta
+
 from cloudinary.models import CloudinaryField
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.text import slugify
 
 from apps.core.cloudinary_utils import cloudinary_upload_path
@@ -627,3 +630,140 @@ class GalleryItem(models.Model):
             return '/static/img/placeholder-gallery.jpg'
         from apps.core.cloudinary_utils import get_cloudinary_url
         return get_cloudinary_url(self.image, preset)
+
+# =============================================================================
+# SOLICITUDES DE DERECHOS DEL TITULAR (LEY-02, Ley 21.719 art. 4 a 11)
+# =============================================================================
+
+class DataSubjectRequest(models.Model):
+    """
+    Solicitud de un titular para ejercer sus derechos sobre datos personales.
+
+    El responsable debe poder demostrar qué se pidió y qué se respondió, y
+    responder dentro de 30 días corridos (`due_at`). No guarda user-agent.
+    La identidad del solicitante NO se verifica en el formulario: la respuesta
+    va al correo indicado.
+    """
+
+    RESPONSE_DAYS = 30
+
+    TYPE_CHOICES = [
+        ('access',        'Acceso'),
+        ('rectification', 'Rectificación'),
+        ('erasure',       'Supresión'),
+        ('objection',     'Oposición'),
+        ('portability',   'Portabilidad'),
+        ('blocking',      'Bloqueo temporal'),
+    ]
+    STATUS_CHOICES = [
+        ('received',    'Recibida'),
+        ('in_progress', 'En curso'),
+        ('resolved',    'Resuelta'),
+        ('rejected',    'Rechazada'),
+    ]
+    OPEN_STATUSES = ('received', 'in_progress')
+    CLOSED_STATUSES = ('resolved', 'rejected')
+
+    client = models.ForeignKey(
+        'tenants.Client',
+        on_delete=models.CASCADE,
+        related_name='data_subject_requests',
+    )
+    request_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    name = models.CharField(max_length=200)
+    email = models.EmailField()
+    detail = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='received')
+    received_at = models.DateTimeField(auto_now_add=True)
+    due_at = models.DateTimeField(blank=True, null=True, editable=False)
+    resolved_at = models.DateTimeField(blank=True, null=True)
+    response_notes = models.TextField(
+        blank=True,
+        help_text='Qué se respondió. Obligatorio al resolver o rechazar.',
+    )
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+
+    objects = TenantAwareManager()
+
+    class Meta:
+        ordering = ['due_at']
+        verbose_name = 'Solicitud de datos personales'
+        verbose_name_plural = 'Solicitudes de datos personales'
+        indexes = [
+            models.Index(fields=['client', 'status']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_request_type_display()} - {self.email}"
+
+    def clean(self):
+        super().clean()
+        if self.status in self.CLOSED_STATUSES and not (self.response_notes or '').strip():
+            raise ValidationError({
+                'response_notes': 'Indica qué se respondió para resolver o rechazar la solicitud.',
+            })
+
+    def save(self, *args, **kwargs):
+        if self.due_at is None:
+            self.due_at = (self.received_at or timezone.now()) + timedelta(days=self.RESPONSE_DAYS)
+        if self.status in self.CLOSED_STATUSES and self.resolved_at is None:
+            self.resolved_at = timezone.now()
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None:
+            kwargs['update_fields'] = set(update_fields) | {'due_at', 'resolved_at'}
+        super().save(*args, **kwargs)
+
+    @property
+    def is_open(self):
+        return self.status in self.OPEN_STATUSES
+
+    @property
+    def days_left(self):
+        """Días enteros hasta `due_at` (negativo si ya venció)."""
+        if self.due_at is None:
+            return None
+        return (self.due_at - timezone.now()).days
+
+
+class BlockedSubject(models.Model):
+    """
+    Bloqueo temporal de los datos de una persona (Ley 21.719, art. 8 ter).
+
+    Mientras exista, los ContactSubmission de ese correo se ocultan del
+    dashboard, el digest y los contadores, y no se purgan.
+    """
+
+    client = models.ForeignKey(
+        'tenants.Client',
+        on_delete=models.CASCADE,
+        related_name='blocked_subjects',
+    )
+    email = models.EmailField()
+    blocked_at = models.DateTimeField(auto_now_add=True)
+    reason = models.CharField(max_length=300, blank=True)
+
+    objects = TenantAwareManager()
+
+    class Meta:
+        verbose_name = 'Titular bloqueado'
+        verbose_name_plural = 'Titulares bloqueados'
+        constraints = [
+            models.UniqueConstraint(fields=['client', 'email'], name='uniq_blocked_subject_client_email'),
+        ]
+
+    def save(self, *args, **kwargs):
+        self.email = (self.email or '').strip().lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.email} (bloqueado)"
+
+
+def exclude_blocked(queryset, client):
+    """Quita de un queryset de ContactSubmission los de correos bloqueados en `client`."""
+    from django.db.models.functions import Lower
+
+    blocked = list(BlockedSubject.objects.filter(client=client).values_list('email', flat=True))
+    if not blocked:
+        return queryset
+    return queryset.annotate(_email_lc=Lower('email')).exclude(_email_lc__in=blocked)

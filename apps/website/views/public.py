@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 from django.contrib import messages
+from django.db import transaction
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -9,9 +10,10 @@ from django.utils import timezone
 from apps.core.logging_utils import email_ref
 from apps.core.rate_limit import RateLimiter, get_client_ip
 from apps.core.template_resolver import get_tenant_template, render_tenant_template
+from apps.orders.services.email_service import EmailService
 
-from ..forms import ContactForm
-from ..models import ContactSubmission, Section, Service
+from ..forms import ContactForm, DataSubjectRequestForm
+from ..models import ContactSubmission, DataSubjectRequest, Section, Service
 
 logger = logging.getLogger(__name__)
 
@@ -67,11 +69,77 @@ def privacy_policy(request):
         'contact_phone': site_settings.contact_phone,
         'address': site_settings.address,
         'retention_days': settings.CONTACT_MAX_RETENTION_DAYS,
+        'order_retention_years': settings.ORDER_RETENTION_DAYS // 365,
+        'email_outbox_retention_days': settings.EMAIL_OUTBOX_RETENTION_DAYS,
         'version': settings.PRIVACY_POLICY_VERSION,
         'version_date': settings.PRIVACY_POLICY_DATE,
         'is_platform': client.slug == settings.PLATFORM_TENANT_SLUG,
     }
     return render_tenant_template(request, 'legal/privacy.html', context)
+
+
+def data_subject_request(request):
+    """
+    Formulario público para ejercer derechos sobre datos personales (LEY-02).
+
+    La respuesta de éxito es siempre la misma (no revela si el correo existe).
+    La identidad del solicitante no se verifica: la respuesta va al correo indicado.
+    """
+    client = request.client
+    if client is None:
+        raise Http404('Sin tenant')
+
+    context = {'client': client, 'form': DataSubjectRequestForm(), 'sent': False}
+    if request.method != 'POST':
+        context['sent'] = request.GET.get('enviado') == '1'
+        return render_tenant_template(request, 'legal/data_request.html', context)
+
+    limiter = RateLimiter(request, scope='dsr', limit=3, period=600)
+    if limiter.is_exceeded():
+        logger.warning(
+            f"[DSR] Rate limit exceeded for {get_client_ip(request)} on tenant {client.slug}"
+        )
+        context['rate_limited'] = True
+        response = render_tenant_template(request, 'legal/data_request.html', context)
+        response.status_code = 429
+        return response
+
+    form = DataSubjectRequestForm(request.POST)
+    if not form.is_valid():
+        context['form'] = form
+        response = render_tenant_template(request, 'legal/data_request.html', context)
+        response.status_code = 400
+        return response
+
+    if form.is_honeypot_triggered():
+        logger.info(f"[DSR] Honeypot triggered from {get_client_ip(request)} on tenant {client.slug}")
+        return redirect(f"{request.path}?enviado=1")
+
+    limiter.increment()
+    cleaned = form.cleaned_data
+
+    with transaction.atomic():
+        dsr = DataSubjectRequest.objects.create(
+            client=client,
+            request_type=cleaned['request_type'],
+            name=cleaned['name'],
+            email=cleaned['email'],
+            detail=cleaned['detail'],
+            ip_address=get_client_ip(request),
+        )
+
+        def send_notices():
+            service = EmailService()
+            try:
+                service.send_data_request_receipt(dsr)
+                service.send_data_request_notice(dsr)
+            except Exception:
+                logger.exception(f"[DSR] Error enviando avisos de la solicitud #{dsr.pk}")
+
+        transaction.on_commit(send_notices)
+
+    logger.info(f"[DSR] Solicitud #{dsr.pk} ({dsr.request_type}) en {client.slug} from {email_ref(dsr.email)}")
+    return redirect(f"{request.path}?enviado=1")
 
 
 # ============================================================

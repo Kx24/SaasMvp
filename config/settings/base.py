@@ -409,6 +409,19 @@ SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='soporte@andesscale.cl')
 # Tope legal de conservacion de mensajes de contacto (Ley 21.719 art. 14 d, LEY-03).
 # Maximo duro para todo tenant activo, con o sin auto_purge_enabled.
 CONTACT_MAX_RETENTION_DAYS = 365
+# Ordenes y registros de pago: 6 anios por obligacion tributaria (LEY-03, decision del
+# dueno 2026-11-15). Cola de correos: 90 dias, principio de proporcionalidad
+# (Ley 21.719 art. 14 d).
+ORDER_RETENTION_DAYS = 2190
+EMAIL_OUTBOX_RETENTION_DAYS = 90
+# Dias de anticipacion con que el digest avisa de mensajes sin leer que
+# alcanzaran el tope anterior (LEY-08).
+CONTACT_PURGE_WARNING_DAYS = 30
+
+# Creditos de Cloudinary (OPS-04): % de uso desde el que se avisa / se alerta.
+CLOUDINARY_ALERT_THRESHOLDS = {'warning': 70, 'critical': 90}
+# Destino de las alertas operativas de la plataforma (vacio = no se envian).
+PLATFORM_ALERT_EMAIL = config('PLATFORM_ALERT_EMAIL', default='')
 
 # Politica de privacidad vigente (LEY-01). Subir la version al cambiar el texto legal.
 PRIVACY_POLICY_VERSION = '2026-12-01'

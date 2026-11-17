@@ -1,0 +1,14 @@
+Nueva solicitud de datos personales en {{ client.name }}
+
+Derecho ejercido: {{ dsr.get_request_type_display }}
+Nombre: {{ dsr.name }}
+Correo: {{ dsr.email }}
+Plazo de respuesta: {{ dsr.due_at|date:"d/m/Y" }} (30 días corridos)
+
+Detalle:
+{{ dsr.detail }}
+
+La identidad del solicitante no fue verificada: la respuesta debe ir al correo indicado.
+Gestiónala en {{ site_url }}/superadmin/website/datasubjectrequest/
+
+{{ company_name }}

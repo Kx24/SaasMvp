@@ -1,6 +1,6 @@
 # Mapa de documentación — AndesScale SaaS
 
-> Actualizado 2026-11-12. Regla: **un tema, un archivo vigente**. Si un documento deja de ser cierto, va a `historico/` (con `git mv`, no se borra); no se deja "para después" en su lugar original.
+> Actualizado 2026-11-16. Regla: **un tema, un archivo vigente**. Si un documento deja de ser cierto, va a `historico/` (con `git mv`, no se borra); no se deja "para después" en su lugar original.
 
 ## 1. Planificación (qué falta, qué se hizo)
 
@@ -25,9 +25,9 @@
 | [`ARQUITECTURA.md`](ARQUITECTURA.md) | Arquitectura actual: ciclo de un request, cada tecnología y qué hace, apps, modelo de datos Django, flujos, despliegue (2026-11-12) | Vigente |
 | [`SEGURIDAD.md`](SEGURIDAD.md) | Controles vigentes, hallazgos del chequeo, mapa Ley 21.719, checklist por release (2026-11-12) | Vigente |
 | [`../docs/design-system.md`](../docs/design-system.md) | Contrato de temas, tokens CSS y componentes compartidos | Vigente |
-| [`../docs/CLOUDINARY.md`](../docs/CLOUDINARY.md) | Integración con Cloudinary (enero 2026) | ⚠️ Revisar contra `apps/core/cloudinary_utils.py` |
-| [`README.md`](README.md) | Documentación técnica larga (2026-08-24) | ⚠️ Revisar; aún dice "Supabase" (`CONS-02`) |
-| [`../README.md`](../README.md) | README del repo | ⚠️ Desactualizado (diciembre 2025): reescribir corto |
+| [`../docs/CLOUDINARY.md`](../docs/CLOUDINARY.md) | Integración con Cloudinary (enero 2026) | Vigente |
+| [`README.md`](README.md) | Documentación técnica larga (2026-08-24) | Vigente (2026-11-16) |
+| [`../README.md`](../README.md) | README del repo | Vigente (corto) |
 
 ## 4. Operación
 
@@ -51,6 +51,5 @@
 
 ## Pendientes de documentación (cards en el kanban)
 
-- Reescribir `README.md` raíz y revisar `Documentacion/README.md`, `docs/CLOUDINARY.md` → `CONS-02`.
 - `Informe_Cumplimiento_Ley21719.md` lo cita el Master Plan §1.4 pero **no está en el repo**: ubicarlo o regenerarlo → `LEY-00`.
 - Carpeta vacía sin trackear `Documentacion/Planificacion/` (solo `.claude/`, sin acento; la con acento se vació): borrar a mano si no la usás.

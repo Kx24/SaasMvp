@@ -13,6 +13,7 @@ const PORT = 8811;
 const PAGES = [
   { name: 'servelec home', host: 'servelec-e2e.localhost', path: '/' },
   { name: 'andesscale home', host: 'andesscale.localhost', path: '/' },
+  { name: 'solicitud de derechos (LEY-02)', host: 'servelec-e2e.localhost', path: '/privacidad/solicitud/' },
   { name: 'login (compartido)', host: 'servelec-e2e.localhost', path: '/auth/login/' },
 ];
 

@@ -15,7 +15,8 @@
               }
           }
       }"
-      @submit.prevent="submitting = true; $el.submit()">
+      @submit.prevent="submitting = true; $el.submit()"
+      @pageshow.window="submitting = false">
 
     {% csrf_token %}
     {# ContactForm exige intent/form_source (ChoiceField, sin required=False).#}

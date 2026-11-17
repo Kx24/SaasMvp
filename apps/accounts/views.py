@@ -116,6 +116,13 @@ def request_password_reset_view(request):
             try:
                 user = User.objects.get(email=email)
                 profile = user.profile
+
+                # Un usuario de otro tenant no se recupera desde este dominio:
+                # misma respuesta que si no existiera (sin enumeración).
+                current_client = getattr(request, 'client', None)
+                if (current_client is not None and not user.is_superuser
+                        and profile.client_id != current_client.id):
+                    raise User.DoesNotExist
                 
                 # Generar nuevo token
                 token = profile.generate_invitation_token(days=1)  # 24 horas para reset

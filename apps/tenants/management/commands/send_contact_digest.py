@@ -34,8 +34,10 @@ from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+from apps.core.management.commands.cloudinary_usage import check_credit_alert
+from apps.core.management.commands.purge_expired_data import purge_expired_data
 from apps.tenants.models import Client, ClientSettings
-from apps.website.models import ContactSubmission
+from apps.website.models import ContactSubmission, exclude_blocked
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +78,19 @@ class Command(BaseCommand):
 
         # ── Purga: independiente del digest ────
         purge_results = self._purge_all(tenant_slug, dry_run=dry_run)
+
+        # ── Purga de ordenes/pagos/cola de correos (LEY-03); no bloquea el digest ──
+        try:
+            purge_expired_data(dry_run=dry_run)
+        except Exception:
+            logger.error('[Digest] Fallo la purga de datos vencidos', exc_info=True)
+
+        # ── Alerta de créditos de Cloudinary (OPS-04); no bloquea el digest ──
+        if not dry_run:
+            try:
+                check_credit_alert()
+            except Exception:
+                logger.error('[Digest] Fallo la alerta de créditos de Cloudinary', exc_info=True)
 
         # ── Obtener tenants a procesar ─────────────────────────────────────
         if tenant_slug:
@@ -151,18 +166,21 @@ class Command(BaseCommand):
         )
 
         # Obtener mensajes del período (excluyendo spam)
-        base_qs = ContactSubmission.objects.filter(
+        base_qs = exclude_blocked(ContactSubmission.objects.filter(
             client=client,
             is_spam=False,
             created_at__gte=since,
-        )
+        ), client)
 
         contacts_new     = list(base_qs.filter(status='new').order_by('-created_at'))
         contacts_read    = list(base_qs.filter(status='read').order_by('-created_at'))
         contacts_replied = list(base_qs.filter(status='replied').order_by('-created_at'))
         total = len(contacts_new) + len(contacts_read) + len(contacts_replied)
 
-        if total == 0:
+        expiring_count, expiring_date = self._expiring_unread(client)
+
+        # El aviso de purga (LEY-08) es motivo suficiente para enviar.
+        if total == 0 and expiring_count == 0:
             self.stdout.write(f"  · {client.slug}: sin mensajes en el período, omitido")
             return 'skipped'
 
@@ -200,6 +218,8 @@ class Command(BaseCommand):
             'total':            total,
             'dashboard_url':    dashboard_url,
             'purge_info':       purge_info,
+            'expiring_count':   expiring_count,
+            'expiring_date':    expiring_date,
         }
 
         if dry_run:
@@ -218,6 +238,32 @@ class Command(BaseCommand):
             )
         )
         return 'sent'
+
+    # ── Aviso previo de purga (LEY-08) ───────────────────────────────────
+
+    def _expiring_unread(self, client):
+        """
+        Mensajes `new` (no spam) que alcanzarán el tope legal dentro de los
+        próximos CONTACT_PURGE_WARNING_DAYS días.
+
+        Returns:
+            (cantidad, fecha de borrado más próxima | None)
+        """
+        cap = timedelta(days=settings.CONTACT_MAX_RETENTION_DAYS)
+        warn = timedelta(days=settings.CONTACT_PURGE_WARNING_DAYS)
+        now = timezone.now()
+        qs = exclude_blocked(ContactSubmission.objects.filter(
+            client=client,
+            status='new',
+            is_spam=False,
+            created_at__gte=now - cap,
+            created_at__lt=now - cap + warn,
+        ), client)
+        count = qs.count()
+        if count == 0:
+            return 0, None
+        oldest = qs.order_by('created_at').values_list('created_at', flat=True).first()
+        return count, timezone.localtime(oldest + cap).date()
 
     # ── Verificar si corresponde enviar hoy ──────────────────────────────
 
@@ -306,7 +352,9 @@ class Command(BaseCommand):
         """
         cap_days = settings.CONTACT_MAX_RETENTION_DAYS
         cutoff = timezone.now() - timedelta(days=cap_days)
-        expired = ContactSubmission.objects.filter(client=client, created_at__lt=cutoff)
+        expired = exclude_blocked(
+            ContactSubmission.objects.filter(client=client, created_at__lt=cutoff), client,
+        )
 
         count = expired.count()
         if count == 0:
@@ -341,7 +389,9 @@ class Command(BaseCommand):
         retention_days = max(client_settings.inbox_retention_days, 7)  # mínimo 7 días
         cutoff = timezone.now() - timedelta(days=retention_days)
 
-        old = ContactSubmission.objects.filter(client=client, created_at__lt=cutoff)
+        old = exclude_blocked(
+            ContactSubmission.objects.filter(client=client, created_at__lt=cutoff), client,
+        )
         to_purge = old.filter(
             Q(status__in=['read', 'replied'], is_spam=False) | Q(is_spam=True)
         )

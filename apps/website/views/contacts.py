@@ -7,7 +7,7 @@ from apps.accounts.decorators import tenant_permission_required
 from apps.core.template_resolver import render_tenant_template
 from apps.core.tenant_objects import tenant_object_or_404
 
-from ..models import ContactSubmission
+from ..models import ContactSubmission, exclude_blocked
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +21,9 @@ logger = logging.getLogger(__name__)
 @tenant_permission_required('view_contacts')
 def dashboard_contacts(request):
     """Lista de mensajes de contacto"""
-    contacts = ContactSubmission.objects.filter(
-        client=request.client
+    contacts = exclude_blocked(
+        ContactSubmission.objects.filter(client=request.client),
+        request.client,
     ).order_by('-created_at')
     
     status_filter = request.GET.get('status')

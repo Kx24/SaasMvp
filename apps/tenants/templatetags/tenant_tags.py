@@ -13,6 +13,7 @@ from django import template
 from django.conf import settings
 from django.template.exceptions import TemplateDoesNotExist
 from django.template.loader import get_template, render_to_string
+from django.utils.html import format_html
 
 register = template.Library()
 
@@ -118,7 +119,7 @@ def tenant_include(context, template_name):
             continue
     
     # Si ninguno existe, retornar comentario HTML
-    return f"<!-- Template not found: {template_name} -->"
+    return format_html("<!-- Template not found: {} -->", template_name)
 
 
 @register.simple_tag(takes_context=True)

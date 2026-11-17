@@ -4,8 +4,7 @@ Management Command: provision_tenant
 
 Crea un tenant completo con:
 - Cliente en DB
-- Dominios asociados
-- Carpeta de templates copiada del template base
+- Dominio primario (--domain, o <slug>.localhost en dev / <slug>.PREVIEW_DOMAIN)
 - Contenido inicial (secciones, servicios)
 
 Uso:
@@ -28,9 +27,6 @@ valor guardado en Client.template nunca coincidía con ninguna carpeta
 real de templates/ y el tenant caía en el fallback genérico sin marca,
 sin ningún error visible (ver apps/tenants/tests_provisioning.py).
 """
-
-import shutil
-from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -154,25 +150,7 @@ class Command(BaseCommand):
             type=str,
             help='Número de WhatsApp en formato internacional (ej: 56912345678)'
         )
-        parser.add_argument(
-            '--copy-templates',
-            action='store_true',
-            default=True,
-            help='Copiar carpeta de templates (default: True)'
-        )
-        parser.add_argument(
-            '--no-copy-templates',
-            action='store_false',
-            dest='copy_templates',
-            help='No copiar templates (usar _default)'
-        )
-        parser.add_argument(
-            '--source-template',
-            type=str,
-            default='_default',
-            help='Carpeta de templates origen (default: _default)'
-        )
-    
+
     def handle(self, *args, **options):
         slug = options['slug'].lower().strip()
         industry = options['industry']
@@ -186,12 +164,15 @@ class Command(BaseCommand):
         if Client.objects.filter(slug=slug).exists():
             raise CommandError(f'El tenant "{slug}" ya existe')
 
+        # 1b. Resolver el dominio ANTES de crear nada: un tenant sin Domain
+        # no abre (el middleware resuelve por Host) y no debe quedar a medias.
+        domain, domain_type = self._resolve_domain(slug, options.get('domain'))
+
         # 2. Crear cliente
         client = self._create_client(slug, options, industry, theme)
 
-        # 3. Crear dominio si se proporciona
-        if options.get('domain'):
-            self._create_domain(client, options['domain'])
+        # 3. Crear el dominio primario (siempre)
+        self._create_domain(client, domain, domain_type)
 
         # 4. Aplicar configuración de template
         self._apply_template_config(client, industry)
@@ -202,10 +183,6 @@ class Command(BaseCommand):
         # 5. Crear contenido inicial
         self._create_initial_content(client, industry)
 
-        # 6. Copiar templates si aplica
-        if options['copy_templates']:
-            self._copy_templates(slug, options['source_template'])
-        
         self.stdout.write(self.style.HTTP_INFO('\n' + '='*60))
         self.stdout.write(self.style.SUCCESS(f'  TENANT "{slug}" CREADO EXITOSAMENTE'))
         self.stdout.write(self.style.HTTP_INFO('='*60 + '\n'))
@@ -244,24 +221,51 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'   Cliente "{name}" creado'))
         return client
     
-    def _create_domain(self, client, domain):
+    def _resolve_domain(self, slug, explicit):
+        """Devuelve (host, domain_type) del dominio primario del tenant.
+
+        --domain explícito > <slug>.localhost en DEBUG > <slug>.PREVIEW_DOMAIN.
+        Sin ninguna fuente falla con un mensaje accionable, antes de crear nada.
+        """
+        if explicit:
+            host = explicit.lower().strip()
+            kind = 'custom'
+        elif settings.DEBUG:
+            host = f'{slug}.localhost'
+            kind = 'subdomain'
+        else:
+            preview = (getattr(settings, 'PREVIEW_DOMAIN', None) or '').strip().lower()
+            if not preview:
+                raise CommandError(
+                    'No se pudo derivar un dominio para el tenant: pasa --domain=<host> '
+                    'o configura PREVIEW_DOMAIN (settings). Sin Domain el sitio no abre.'
+                )
+            host = f'{slug}.{preview}'
+            kind = 'subdomain'
+
+        existing = Domain.objects.filter(domain=host).select_related('client').first()
+        if existing:
+            raise CommandError(
+                f'El dominio "{host}" ya está asignado al tenant "{existing.client.slug}"'
+            )
+        return host, kind
+
+    def _create_domain(self, client, domain, domain_type='custom'):
         """Crear dominio para el cliente."""
         self.stdout.write('Configurando dominio...')
-        
-        domain = domain.lower().strip()
-        
+
         # Dominio principal
         Domain.objects.create(
             client=client,
             domain=domain,
-            domain_type='custom',
+            domain_type=domain_type,
             is_primary=True,
             is_active=True,
             is_verified=True,
         )
         
         # Si no tiene www, agregarlo también
-        if not domain.startswith('www.'):
+        if domain_type == 'custom' and not domain.startswith('www.'):
             Domain.objects.create(
                 client=client,
                 domain=f'www.{domain}',
@@ -381,27 +385,3 @@ class Command(BaseCommand):
             )
         
         self.stdout.write(f'   {len(services)} servicios creados')
-    
-    def _copy_templates(self, slug, source_template):
-        """Copiar carpeta de templates para el tenant."""
-        self.stdout.write('Copiando templates...')
-        
-        templates_base = Path(settings.BASE_DIR) / 'templates' / 'tenants'
-        source_path = templates_base / source_template
-        dest_path = templates_base / slug
-        
-        if not source_path.exists():
-            self.stdout.write(self.style.WARNING(f'   Template origen "{source_template}" no existe'))
-            return
-        
-        if dest_path.exists():
-            self.stdout.write(f'   Carpeta "{slug}" ya existe, omitiendo copia')
-            return
-        
-        # Copiar carpeta completa
-        shutil.copytree(source_path, dest_path)
-        
-        # Contar archivos copiados
-        file_count = sum(1 for _ in dest_path.rglob('*.html'))
-        
-        self.stdout.write(self.style.SUCCESS(f'   {file_count} templates copiados a /templates/tenants/{slug}/'))

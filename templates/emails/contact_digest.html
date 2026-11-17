@@ -56,6 +56,19 @@
   </td>
 </tr>
 
+{% if expiring_count > 0 %}
+<!-- Aviso previo de purga (LEY-08): solo conteo y fecha, sin datos personales -->
+<tr>
+  <td style="padding: 0 40px 24px;">
+    <div data-purge-warning style="padding:16px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; font-size:14px; color:#991b1b; line-height:1.5;">
+      <strong>⚠️ {{ expiring_count }} mensaje{{ expiring_count|pluralize }} sin leer se eliminará{{ expiring_count|pluralize:",n" }} automáticamente</strong>
+      a partir del {{ expiring_date|date:"d/m/Y" }}, al cumplir el plazo máximo de conservación.
+      <a href="{{ dashboard_url }}" style="color:#991b1b; font-weight:600;">Revísalos en el dashboard de mensajes</a>.
+    </div>
+  </td>
+</tr>
+{% endif %}
+
 {% if contacts_new %}
 <!-- Mensajes nuevos -->
 <tr>

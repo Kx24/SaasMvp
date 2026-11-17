@@ -6,138 +6,263 @@
       "id": "BOLT-36",
       "maestra": "CONS-11",
       "titulo": "Cobertura de tenants núcleo ≥ 90 % (1 de 4)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-36.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         "scripts/gate_baseline.json"
+      ],
+      "costo_usd": 0.53,
+      "tests": 423,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Cobertura antes y después: tenants_core 83,87 % → 100 %; total 65,04 % → 65,32 %; orders 70,41 % → 70,41 % (sin cambio).",
+        "scripts/gate_baseline.json lo actualizó el gate (--update-baseline). Ningún número bajó.",
+        "No hay test en rojo contra HEAD porque la card solo agrega cobertura sobre código que ya funcionaba. Es lo esperado, pero conviene saberlo.",
+        "El dev agregó CONS-11 (parte) al histórico con formato de fila de tabla, no de viñeta como decía el spec. Mira si te sirve así."
       ]
     },
     {
       "id": "BOLT-37",
       "maestra": "CONS-11",
       "titulo": "Cobertura de orders ≥ 80 % (2 de 4)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-37.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         "scripts/gate_baseline.json"
+      ],
+      "costo_usd": 0.92,
+      "tests": 500,
+      "hallazgos": [
+        "Bug corregido: except mercadopago.exceptions.MPException inexistente en process_payment.",
+        "Bug corregido: los templates checkout_success.html y checkout_error.html estaban fuera de orders/, lo que daba 500 tras cada pago aprobado.",
+        "Sin cubrir en orders: admin.py 64 %, forms.py 72 %, email_service.py 82 %, views_onboarding.py 93 %.",
+        "No se corrió --red-check. El rojo está documentado en el informe, con el AttributeError y el TemplateDoesNotExist."
+      ],
+      "revisar_humano": [
+        "Cobertura antes y después: orders 70,41 % → 92,46 %; total 65,32 % → 69,22 % (aún bajo 70 %, CONS-11 sigue parcial); tenants_core 100 % sin cambios.",
+        "Cambio de código de producción en mercadopago_service.py (flujo de pagos): ahora MercadoPagoError se propaga sin envolver. Confirmar que las vistas que la capturan se comportan como se espera.",
+        "Los templates de checkout se movieron a templates/orders/. Confirmar que no hay otros overrides de tenant que dependan de la ruta antigua.",
+        "Confirmar en producción o en un sandbox que la página de éxito del checkout se renderiza, porque antes daba 500."
       ]
     },
     {
       "id": "BOLT-38",
       "maestra": "CONS-11",
       "titulo": "Cobertura de core y servicios de tenants (3 de 4)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-38.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         "scripts/gate_baseline.json"
+      ],
+      "costo_usd": 0.95,
+      "tests": 622,
+      "hallazgos": [
+        "Los comandos de gestión con 0 % (audit_cloudinary_assets, check_cloudinary, create_tenant…) siguen sin cobertura. Es la card siguiente.",
+        "El spec citaba un 65,04 % de partida, pero el baseline de entrada ya era 69,22 % por BOLT-37."
+      ],
+      "revisar_humano": [
+        "Cobertura total: 69,22 % antes y 74,76 % después. orders 92,46 % sin cambio y tenants_core 100 % sin cambio.",
+        "El rojo no se confirmó contra el código original: red_check es null y el dev no lo verificó. Los tests de los 3 bugs se escribieron contra el código ya corregido.",
+        "Se eliminaron los tags get_testimonials y get_featured_testimonials de website_tags. Confirma que ningún template de un tema fuera de esta rama, por ejemplo feature/RanchocachimbaEtapa1, los use.",
+        "Cambio visible en tenant_include: el comentario HTML de fallback ahora se renderiza como comentario real y ya no como texto escapado.",
+        "El dev no confirmó el rojo de los tests de los bugs: el import de cloudinary.api, el fallback de tenant_include y los tags eliminados. Conviene ejecutar --red-check."
       ]
     },
     {
       "id": "BOLT-39",
       "maestra": "CONS-11",
       "titulo": "Cobertura total ≥ 70 % y cierre (4 de 4)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-39.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         "scripts/gate_baseline.json"
+      ],
+      "costo_usd": 0.27,
+      "tests": 622,
+      "hallazgos": [
+        "`create_tenant` (110 sentencias, 0 % de cobertura) parece código muerto frente a `provision_tenant`. Nadie confirmó que no se invoque desde otro lado, y no se borró.",
+        "Siguen en 0 % los comandos `audit_cloudinary_assets`, `check_cloudinary`, `cloudinary_usage`, `verify_search_console`, `setup_cloudinary_folders`, `setup_dev_env` y `seed_e2e_tenants`. Además, varios archivos de admin y vistas listados en el spec siguen con huecos. Esto no afecta el contrato, pero queda como deuda."
+      ],
+      "revisar_humano": [
+        "El spec pedía priorizar tests de vistas de accounts, sitemaps y admins, pero el dev no escribió ninguno porque los umbrales ya se cumplían. Conviene decidir si se quiere una card aparte para esa cobertura.",
+        "No existe una fila BOLT-39 en el plan de ejecución, así que no se marcó ningún ✅. Revisar si hace falta registrarla.",
+        "Confirmar si se elimina `create_tenant` o se documenta como vigente."
       ]
     },
     {
       "id": "BOLT-40",
       "maestra": "CONS-12",
       "titulo": "Guardia de objetos de tenant en orders y accounts",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-40.md",
       "red_tests": [
         "apps.core.tests.test_tenant_objects"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.4,
+      "tests": 625,
+      "hallazgos": [
+        "Fuga corregida: reset de contraseña cross-tenant en accounts/views.py (User.objects.get(email=...) sin validar tenant).",
+        "La guardia ahora escanea todo website, no solo website/views/; apareció website_tags.py (Section.objects.get), que ya filtra por client."
+      ],
+      "revisar_humano": [
+        "Lista TENANT_EXCEPTIONS en apps/core/tests/test_tenant_objects.py: Plan por slug (x2, modelo global), Order por uuid (secreto), Order por order_number y mp_payment_id (webhook sin tenant), Order por pk en signals.py, Section en website_tags (filtra por client) y User por email en accounts.",
+        "Cambio de comportamiento en autenticación: apps/accounts/views.py, request_password_reset_view. Un usuario cuyo profile.client difiere de request.client no recibe reset; superusers y request.client None quedan exentos. Confirma que ese es el comportamiento deseado (por ejemplo, usuarios que piden el reset desde un dominio de preview).",
+        "El dev no corrió el rojo con git stash; lo confirmó el red-check del gate (1 test falla contra HEAD)."
+      ]
     },
     {
       "id": "BOLT-41",
       "maestra": "SEC-18",
       "titulo": "Un solo TenantAdminMixin",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-41.md",
       "red_tests": [
         "apps.accounts.tests_admin_scope"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.59,
+      "tests": 631,
+      "hallazgos": [
+        "UserProfile.user listaba usuarios de todos los tenants (corregido en esta card).",
+        "Los get_list_filter de SectionAdmin, ServiceAdmin y ContactSubmissionAdmin repiten lo que ya hace el mixin (deuda menor, sin tocar).",
+        "El dev no pudo ver el rojo con git stash; el gate --red-check sí lo confirmó, pero solo con un test fallando (el de la clase única). El test del desplegable user de UserProfileAdmin no se vio en rojo."
+      ],
+      "revisar_humano": [
+        "apps/accounts/mixins.py: la nueva regla de FK usa profile__client para los FK a User y el filtro lateral oculta tenant_field. Es un cambio de permisos del admin.",
+        "La fila de SEC-18 en SEGURIDAD.md quedó entre SEC-05 y SEC-06, fuera de orden numérico. Es solo cosmético.",
+        "Los permisos que el test da al staff (view/change/delete en 5 apps) y la lista cerrada de modelos cubiertos: un admin nuevo con el mixin hará fallar test_registry_is_covered_by_fixtures a propósito."
+      ]
     },
     {
       "id": "BOLT-42",
       "maestra": "COMP-03",
       "titulo": "Botón de enviar sin quedarse en Enviando",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-42.md",
       "red_tests": [
         "apps.website.tests.test_contact_button"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.38,
+      "tests": 635,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Los tests de plantilla verifican el texto del template con regex; la recuperación ante error de servidor en los formularios de POST nativo depende de pageshow (bfcache/volver atrás), no de un reset explícito. Conviene probar a mano un 400/500 en el navegador.",
+        "El e2e nuevo corre solo para tenants con contactFlow 'simple'. Los demás flujos no tienen caso e2e para este caso."
+      ]
     },
     {
       "id": "BOLT-43",
       "maestra": "DEUDA-09",
       "titulo": "Borrar la vista dashboard_services huérfana",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-43.md",
       "red_tests": [
         "apps.website.tests.test_dashboard_orphans"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.94,
+      "tests": 637,
+      "hallazgos": [],
+      "revisar_humano": [
+        "El dev reportó que un primer intento falló en e2e, atribuido a saturación de carga. No se reprodujo, y la última corrida del gate pasó. Vale la pena fijarse en si la CI repite el fallo.",
+        "Playwright no cubre el dashboard, así que el render de la galería vacía solo lo valida el test de Django."
+      ]
     },
     {
       "id": "BOLT-44",
       "maestra": "FLOW-04",
       "titulo": "provision_tenant deja un Domain primario",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-44.md",
       "red_tests": [
         "apps.tenants.tests_provision_domain"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.59,
+      "tests": 642,
+      "hallazgos": [
+        "check_tenant_setup da [FAIL] por falta de SEOConfig('home') en tenants recién provisionados; no está arreglado ni tiene fila en el kanban.",
+        "El informe del dev dice que 4 tests de apps.core.tests.test_gatekeeper se colgaron por timeout de 120 s. El gate del orquestador pasó con 642 tests y 0 fallos, así que es probablemente ambiental, pero no se confirmó contra HEAD.",
+        "create_tenant sigue sin tocarse y puede tener el mismo problema de Domain."
+      ],
+      "revisar_humano": [
+        "Actualizar la sección 'Comandos frecuentes' de CLAUDE.md. Se eliminaron los flags --copy-templates, --no-copy-templates y --source-template, y ahora siempre se crea un Domain (en dev <slug>.localhost, en prod <slug>.PREVIEW_DOMAIN).",
+        "Decisión del dev que el spec no cubría: el Domain derivado se crea con domain_type='subdomain', is_preview=False y sin www.; verificar que PREVIEW_DOMAIN en producción produzca el host deseado.",
+        "Cambio de comportamiento: el comando ahora falla con CommandError si no hay --domain, no hay DEBUG y falta PREVIEW_DOMAIN, o si el host ya está asignado a otro tenant. Revisar si algún runbook o script de provisioning depende de crear tenants sin dominio.",
+        "Procedimiento_Nuevo_Tenant.md puede mencionar los flags eliminados; revisarlo."
+      ]
     },
     {
       "id": "BOLT-45",
       "maestra": "LEY-08",
       "titulo": "Aviso previo antes de purgar mensajes sin leer",
-      "estado": "TODO",
+      "estado": "BLOCKED",
       "spec": "BOLT-45.md",
       "red_tests": [
         "apps.tenants.tests_digest_warning"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "motivo": "la sesión del agente falló: timeout de 3600s",
+      "costo_usd": 0
     },
     {
       "id": "BOLT-46",
       "maestra": "TOOL-04",
       "titulo": "Pulido de la CI y dependencias de desarrollo",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-46.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         ".github/workflows/ci.yml"
+      ],
+      "costo_usd": 0.54,
+      "tests": 646,
+      "hallazgos": [
+        "test_gatekeeper: 4 tests lanzan el gatekeeper completo como subproceso con timeout fijo de 120 s, que da TimeoutExpired con la máquina cargada. No bloquea el DoD, pero puede dar falsos rojos.",
+        "Un PR desde una rama agent/* hacia develop sigue duplicando la CI, porque esas ramas disparan push y pull_request. Es consecuencia directa del spec."
+      ],
+      "revisar_humano": [
+        "Diff de .github/workflows/ci.yml: confirmar en GitHub que el primer push a una rama agent/* corre la CI una sola vez, y que un PR la corre una vez por actualización.",
+        "Con agent/** en push y pull_request hacia develop, los PR de ramas del agente seguirán corriendo la CI dos veces. Decidir si se acepta.",
+        "Confirmar que pip-audit==2.10.1 es la versión que resuelve hoy (python -m pip show pip-audit)."
       ]
     },
     {
       "id": "BOLT-47",
       "maestra": "DOC-01",
       "titulo": "Documentación al día tras las rondas 4 a 8",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-47.md",
       "red_tests": [
         "apps.core.tests.test_docs_vigentes"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.9,
+      "tests": 648,
+      "hallazgos": [
+        "test_gatekeeper lanza gatekeeper.py en un subproceso con tope de 120 s. Según el dev, en su máquina agotó el tiempo (4 errores); en el gate del orquestador la suite pasó.",
+        "MASTER_PLAN_Y_ARQUITECTURA.md conserva como diagnóstico histórico menciones a login y logs ya corregidos por SEC-07/SEC-08.",
+        "El dev no verificó docs/agente/README.md (ruta protegida)."
+      ],
+      "revisar_humano": [
+        "CLAUDE.md sigue diciendo 'Supabase' y 'Tailwind por CDN' en lugares donde pueda estar desfasado; el spec prohíbe tocarlo, así que lo corrige el dueño.",
+        "El skill .claude/skills/andesscale-saas sigue diciendo Supabase; corrección a mano.",
+        "docs/agente/README.md no se pudo editar ni verificar: revisar si está desfasado (reintento por cuota del orquestador, rondas 4 a 8).",
+        "Documentacion/README.md se reescribió más allá de la lista del spec (auto-filtro de manager, views/, login en auth_views.py); conviene leerlo.",
+        "MASTER_PLAN: se reescribió la nota de la discrepancia Neon/Render. Queda pendiente confirmar cuál DATABASE_URL está activa para el DPA.",
+        "SEGURIDAD.md afirma cifrado de credenciales, roles y consentimiento como controles vigentes; contrastarlo con el producción real tras el deploy de main (OPS-07)."
+      ]
     }
   ]
 }

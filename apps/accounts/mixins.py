@@ -28,6 +28,15 @@ class TenantAdminMixin:
         profile = getattr(request.user, 'profile', None)
         return getattr(profile, 'client', None)
 
+    @staticmethod
+    def _related_tenant_lookup(related):
+        """Camino al tenant de un modelo relacionado: `client`, o `profile__client` para User."""
+        if any(f.name == 'client' for f in related._meta.get_fields()):
+            return 'client'
+        if related._meta.label == 'auth.User':
+            return 'profile__client'
+        return None
+
     def _obj_tenant(self, obj):
         """Recorre `tenant_field` (con '__') sobre el objeto; None si no hay."""
         value = obj
@@ -58,7 +67,8 @@ class TenantAdminMixin:
         list_filter = super().get_list_filter(request)
         if request.user.is_superuser:
             return list_filter
-        return [f for f in list_filter if f != 'client']
+        hidden = {'client', self.tenant_field}
+        return [f for f in list_filter if f not in hidden]
 
     def save_model(self, request, obj, form, change):
         """Auto-asignar tenant al crear nuevos registros"""
@@ -80,11 +90,12 @@ class TenantAdminMixin:
                     from apps.tenants.models import Client
                     kwargs["queryset"] = Client.objects.filter(pk=request.user.profile.client.pk)
         elif not request.user.is_superuser and 'queryset' not in kwargs:
-            # BOLT-32: todo FK cuyo modelo tenga `client` se restringe al tenant del usuario
+            # BOLT-32 / SEC-18: todo FK a un modelo con camino al tenant se restringe
             related = db_field.remote_field.model
-            if any(f.name == 'client' for f in related._meta.get_fields()):
+            lookup = self._related_tenant_lookup(related)
+            if lookup:
                 tenant = self._user_tenant(request)
-                kwargs["queryset"] = (related._default_manager.filter(client=tenant)
+                kwargs["queryset"] = (related._default_manager.filter(**{lookup: tenant})
                                       if tenant else related._default_manager.none())
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)

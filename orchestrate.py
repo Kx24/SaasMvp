@@ -45,7 +45,7 @@ AGENT_SETTINGS = BASE_DIR / '.claude' / 'settings.agent.json'
 WORKFLOWS_DIR = BASE_DIR / '.claude' / 'workflows'
 GATEKEEPER = BASE_DIR / 'scripts' / 'gatekeeper.py'
 BASELINE_PATH = BASE_DIR / 'scripts' / 'gate_baseline.json'
-DEV_TIMEOUT_S = 60 * 60
+DEV_TIMEOUT_S = 90 * 60
 VALIDATOR_TIMEOUT_S = 20 * 60
 MAX_BUDGET_USD = '25'
 # Rutas que ninguna card puede tocar salvo que su entrada en cola.json las
@@ -249,6 +249,10 @@ class ClaudeCliRunner:
     def _env(self):
         env = dict(os.environ)
         env['PATH'] = str(Path(sys.executable).parent) + os.pathsep + env.get('PATH', '')
+        # La suite que corre el agente no relanza el gate desde test_gatekeeper (cada test
+        # repite la suite entera y con ~650 tests agota su timeout): BOLT-45 murio asi. El
+        # gate real lo corre este proceso despues; test_gatekeeper queda para la CI.
+        env['GATEKEEPER_TEST_RUN'] = '1'
         return env
 
     def _git(self, *args, check=False):
