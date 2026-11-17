@@ -126,6 +126,19 @@ No hay una tercera opción de "generalizar con un flag más" — eso es lo que
 ya pasó una vez con el `tailwind.config` duplicado y es el tipo de deuda que
 `#AUD-11` vino a sacar, no a repetir en otro lugar.
 
+### Componente `cta` (`components/cta.html`, COMP-01)
+
+Parámetros: `variant` = `"orbs"` (por defecto; fondo oscuro con orbs animados,
+dos botones — andesscale) | `"glow"` (fondo verde con brillo, badge y botón +
+teléfono de `client.settings.contact_phone` — servelec); `client`.
+Slots: ninguno por ahora (las dos variantes difieren en estructura de fondo y
+botones; se resuelven por `variant`). `themes/default` no usa `cta`.
+El `home.html` del tema incluye el compartido directamente
+(`{% include 'components/cta.html' with variant='glow' %}`); **no** crear
+`themes/<tema>/components/cta.html`: el loader lo resolvería primero y el
+include se llamaría a sí mismo. Equivalencia de HTML:
+`apps/core/tests/test_component_cta.py` + `apps/core/tests/fixtures/cta_*.html`.
+
 ## 3. Dónde se aplica esto
 
 `#RC-09` (landing de Rancho Cachimba por componente, sección por sección) es

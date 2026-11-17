@@ -80,6 +80,7 @@
 | `DEUDA-09` | Vista `dashboard_services` huérfana borrada con su re-exportación y `dashboard/services.html`; `{% include %}` multilínea del estado vacío de la galería corregido; test guardia de vistas `dashboard_*` sin ruta | 2026-11-15 | `BOLT-43` |
 | `COMP-03` | El botón de enviar de los 4 formularios de contacto activa "Enviando..." solo en el `submit` real (no en el clic) y se recupera de error o de volver a la página | 2026-11-15 | `BOLT-42` |
 | `COMP-02` | Árbol de temas ordenado: `themes/electricidad` archivado, `andesscale` movido a `themes/andesscale` (`THEME_CHOICES` + migración de datos 0031, loader sin literal), fuera `templates_library/` y 2 componentes vacíos de `themes/default` | 2026-11-17 | `BOLT-56` |
+| `COMP-01` (parte) | Componente `cta` compartido en `templates/components/cta.html` (parámetro `variant` orbs/glow); los `home.html` de andesscale y servelec lo incluyen directo y se borraron los `cta.html` de tema; equivalencia de HTML por fixture | 2026-11-17 | `BOLT-57` |
 
 ## Tooling, flujo comercial y operaciones
 

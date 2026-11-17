@@ -5,7 +5,7 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 | Card | Maestra | Título | Estado | Tests | Costo USD |
 |---|---|---|---|---|---|
 | `BOLT-56` | `COMP-02` | Ordenar el árbol de temas | ✅ DONE | 818 | 2.75 |
-| `BOLT-57` | `COMP-01` | Componente cta compartido (1 de 7) | ⏳ TODO |  |  |
+| `BOLT-57` | `COMP-01` | Componente cta compartido (1 de 7) | ✅ DONE | 822 | 0.63 |
 | `BOLT-58` | `COMP-01` | Componente about compartido (2 de 7) | ⏳ TODO |  |  |
 | `BOLT-59` | `COMP-01` | Componente services compartido (3 de 7) | ⏳ TODO |  |  |
 | `BOLT-60` | `COMP-01` | Componente contact compartido (4 de 7) | ⏳ TODO |  |  |
@@ -21,6 +21,10 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-56`: THEME_CHOICES ahora incluye 'themes/andesscale', y por eso aparece en el onboarding (apps/orders/forms.py, con la etiqueta 'Plataforma'). Confirmar que un cliente no pueda elegirlo, o que Plan.available_themes lo filtre.
 - `BOLT-56`: test_docs_theme_choices.py excluye 'themes/andesscale' de la comparación con las guías de agente, una decisión del dev que el spec no cubría.
 - `BOLT-56`: El cambio en tests/e2e/a11y.spec.js (esperar animaciones finitas antes de axe) quedó fuera del alcance de la card. No cambia umbrales ni selectores.
+- `BOLT-57`: Revisar en el navegador la sección CTA en servelec (con y sin teléfono) y en andesscale. El tema base no usa cta, así que ahí solo hay que confirmar que no cambió.
+- `BOLT-57`: Decisión del dev que el spec no cubría: no se dejaron envoltorios por la recursión del loader. Queda anotado en design-system.md como regla para los demás componentes de COMP-01.
+- `BOLT-57`: El dev no corrió Playwright. Solo hay constancia del e2e del gate, que pasó.
+- `BOLT-57`: La variante orbs conserva el comentario HTML de cabecera de andesscale porque tests_theme_tree.py lo compara con su fixture.
 
 ## Hallazgos incidentales
 
@@ -29,3 +33,5 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-56`: El dev no comprobó si el flake de a11y de Servelec ocurre también en el código original.
 - `BOLT-56`: Líneas de CLAUDE.md que quedaron desfasadas: la mención a templates/{tema} como ruta de andesscale, y el texto que lista los temas sin themes/andesscale. Esta card no toca CLAUDE.md.
 - `BOLT-56`: Comentarios obsoletos que citan themes/electricidad en apps/website/tests/test_contact_submit.py, apps/website/tests/test_navbar_cta.py y static/css/input.css.
+- `BOLT-57`: La variante glow mantiene style="" inline y colores hardcodeados de servelec (#0b2818, #1DB954, etc.). Falta migrarlos a tokens y utilidades Tailwind, y no hay fila en el kanban para eso.
+- `BOLT-57`: El test test_theme_files_do_not_repeat_shared_markup no comprueba nada mientras no existan archivos de tema, porque los salta. El rojo real sale del test de existencia del compartido y del de 15 líneas.
