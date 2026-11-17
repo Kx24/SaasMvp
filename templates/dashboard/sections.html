@@ -82,19 +82,19 @@
                 {% elif section.description %}
                     <p class="text-sm text-slate-500 mt-0.5 truncate">{{ section.description|truncatechars:60 }}</p>
                 {% else %}
-                    <p class="text-sm text-slate-400 mt-0.5 italic">Sin contenido</p>
+                    <p class="text-sm text-slate-500 mt-0.5 italic">Sin contenido</p>
                 {% endif %}
 
                 <div class="flex items-center gap-2 mt-4">
 {% if dash_perms.edit_content %}
                     <a href="{% url 'edit_section_dashboard' section.id %}"
                        class="flex-1 text-center py-2 text-sm font-medium text-white rounded-lg transition-colors"
-                       style="background-color: var(--primary, #3B82F6);">
+                       style="background-color: var(--color-primary);">
                         Editar
                     </a>
 {% endif %}
                     {% if section.is_active %}
-                    <span class="flex items-center gap-1 text-xs text-green-600 bg-green-50 border border-green-200 px-2 py-2 rounded-lg">
+                    <span class="flex items-center gap-1 text-xs text-green-700 bg-green-50 border border-green-200 px-2 py-2 rounded-lg">
                         <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
                         Activa
                     </span>
@@ -120,7 +120,7 @@
         <h2 class="text-base font-semibold text-slate-900">Servicios</h2>
 {% if dash_perms.edit_content %}
         <div class="flex items-center gap-3">
-            <span class="text-xs px-2.5 py-1 rounded-full {% if services_at_limit %}bg-amber-50 text-amber-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+            <span class="text-xs px-2.5 py-1 rounded-full {% if services_at_limit %}bg-amber-50 text-amber-700{% else %}bg-slate-100 text-slate-600{% endif %}">
                 {{ services_used }} de {{ services_limit }}
             </span>
             {% if services_at_limit %}
@@ -131,7 +131,7 @@
             {% else %}
             <a href="{% url 'create_service' %}"
                class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm"
-               style="background-color: var(--primary, #3B82F6);">
+               style="background-color: var(--color-primary);">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Agregar servicio
             </a>
@@ -171,7 +171,7 @@
                 </div>
                 <p class="text-sm text-slate-500 mt-0.5 truncate">{{ service.description|truncatechars:80 }}</p>
                 {% if service.price_text %}
-                <p class="text-xs text-slate-400 mt-0.5">{{ service.price_text }}</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ service.price_text }}</p>
                 {% endif %}
             </div>
 
@@ -210,7 +210,7 @@
         <p class="text-sm text-slate-500 mb-4">Los servicios aparecen como tarjetas en tu sitio web</p>
 {% if dash_perms.edit_content %}
         <a href="{% url 'create_service' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg"
-           style="background-color: var(--primary, #3B82F6);">
+           style="background-color: var(--color-primary);">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Agregar primer servicio
         </a>

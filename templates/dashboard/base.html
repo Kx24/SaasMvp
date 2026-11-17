@@ -120,11 +120,11 @@
 
         <!-- Navigation -->
         <nav class="flex-1 p-4 space-y-0.5 overflow-y-auto">
-            <p class="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Principal</p>
+            <p class="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Principal</p>
 
             {% for entry in dash_menu %}
             {% if forloop.counter == 2 %}
-            <p class="px-3 pt-4 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Contenido</p>
+            <p class="px-3 pt-4 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Contenido</p>
             {% endif %}
             <a href="{% url entry.url_name %}"
             class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
@@ -149,7 +149,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-slate-900 truncate">{{ user.username }}</p>
-                    <p class="text-xs text-slate-400 truncate">{{ user.email }}</p>
+                    <p class="text-xs text-slate-500 truncate">{{ user.email }}</p>
                 </div>
                 <a href="{% url 'client_logout' %}"
                    class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition"
@@ -169,7 +169,7 @@
         <div class="hidden lg:flex items-center justify-between px-8 py-4 bg-white border-b border-slate-200">
             <div>
                 <h2 class="text-lg font-semibold text-slate-900">{% block page_title %}Dashboard{% endblock %}</h2>
-                <p class="text-sm text-slate-400">{% block page_subtitle %}Bienvenido de vuelta{% endblock %}</p>
+                <p class="text-sm text-slate-500">{% block page_subtitle %}Bienvenido de vuelta{% endblock %}</p>
             </div>
             <div class="flex items-center gap-3">
                 <a href="{% url 'home' %}" target="_blank"
@@ -193,7 +193,7 @@
                     {% elif message.tags == 'success' %}bg-green-50 border-green-200 text-green-800
                     {% else %}bg-slate-50 border-slate-200 text-slate-700{% endif %}">
                     <span class="text-sm">{{ message }}</span>
-                    <button onclick="this.parentElement.remove()" class="opacity-40 hover:opacity-80 transition">
+                    <button onclick="this.parentElement.remove()" aria-label="Cerrar mensaje" class="opacity-40 hover:opacity-80 transition">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>

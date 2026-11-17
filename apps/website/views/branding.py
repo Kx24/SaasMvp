@@ -39,7 +39,8 @@ def dashboard(request):
     today = timezone.now().date()
     
     # Métricas
-    visible_contacts = exclude_blocked(ContactSubmission.objects.filter(client=client), client)
+    visible_contacts = exclude_blocked(
+        ContactSubmission.objects.filter(client=client, is_spam=False), client)
     total_contacts = visible_contacts.count()
     contacts_today = visible_contacts.filter(created_at__date=today).count()
     

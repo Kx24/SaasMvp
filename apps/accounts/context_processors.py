@@ -20,7 +20,16 @@ def dashboard_menu(request):
             if has_dashboard_permission(user, client, entry.permission):
                 entries.append(entry)
     entries.sort(key=lambda e: e.order)
-    return {'dash_menu': entries}
+    context = {'dash_menu': entries}
+    if client is not None and any(e.url_name == 'dashboard_contacts' for e in entries):
+        # Contador de "Mensajes" del menú: nuevos, sin spam ni correos bloqueados.
+        from apps.website.models import ContactSubmission, exclude_blocked
+
+        context['unread_contacts'] = exclude_blocked(
+            ContactSubmission.objects.filter(client=client, status='new', is_spam=False),
+            client,
+        ).count()
+    return context
 
 
 def dashboard_permissions(request):

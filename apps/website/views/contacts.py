@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def dashboard_contacts(request):
     """Lista de mensajes de contacto"""
     contacts = exclude_blocked(
-        ContactSubmission.objects.filter(client=request.client),
+        ContactSubmission.objects.filter(client=request.client, is_spam=False),
         request.client,
     ).order_by('-created_at')
     

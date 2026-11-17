@@ -79,12 +79,27 @@
       "id": "BOLT-55",
       "maestra": "DASH-05",
       "titulo": "Tests del dashboard",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-55.md",
       "red_tests": [],
       "permite_migracion": false,
       "rutas_permitidas_extra": [
         "scripts/gate_baseline.json"
+      ],
+      "costo_usd": 2.01,
+      "tests": 810,
+      "hallazgos": [
+        "`--update-baseline` bajó `orders` de 92.46 a 92.38 sin que el cambio toque `apps/orders`. Parece variación de medición, pero el trinquete quedó más laxo.",
+        "`DASH-06`: `var(--primary)` sigue roto en `templates/dashboard/base.html`; ya está en el kanban.",
+        "`DASH-07`: fallo de a11y abierto, ya está en el kanban. El informe del dev quedó truncado y no se ve el detalle."
+      ],
+      "revisar_humano": [
+        "Restaurar `orders` a 92.46 en `scripts/gate_baseline.json` antes de commitear; el dev no pudo hacerlo por estar bloqueado el archivo.",
+        "Fallos de a11y que quedaron abiertos: `DASH-06` (token `--primary` roto en `base.html`) y `DASH-07`. Revisa el kanban para el detalle.",
+        "`BrandingForm` ahora rechaza colores en forma corta (`#abc`) y cualquier valor que no sea hex de 6 dígitos. Verifica que no haya tenants con colores guardados en otro formato.",
+        "Los mensajes con `is_spam=True` ya no se ven en el dashboard ni en las métricas: cambio de comportamiento visible al cliente.",
+        "`seed_e2e_tenants` crea el usuario `owner-e2e` con contraseña de desarrollo. Confirma que solo corre con `DEBUG=True` y nunca contra producción.",
+        "El menú tiene seis pantallas y no cinco; el dev lo decidió sin que el spec lo cubriera, y usó un tenant `dash-e2e` separado."
       ]
     }
   ]

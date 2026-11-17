@@ -1,4 +1,6 @@
 # apps/tenants/forms.py
+import re
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
@@ -24,6 +26,23 @@ class BrandingForm(forms.ModelForm):
             if not ok:
                 raise forms.ValidationError(error)
         return value
+
+    # Los colores se inyectan tal cual en un <style> (--color-primary: ...):
+    # solo se aceptan hex de 6 dígitos.
+    def _clean_hex_color(self, field):
+        value = (self.cleaned_data.get(field) or '').strip()
+        if not re.fullmatch(r'#[0-9a-fA-F]{6}', value):
+            raise forms.ValidationError('Usa un color hexadecimal de 6 dígitos, por ejemplo #1A2B3C.')
+        return value
+
+    def clean_primary_color(self):
+        return self._clean_hex_color('primary_color')
+
+    def clean_secondary_color(self):
+        return self._clean_hex_color('secondary_color')
+
+    def clean_accent_color(self):
+        return self._clean_hex_color('accent_color')
 
     def clean_logo(self):
         return self._clean_uploaded_image('logo')

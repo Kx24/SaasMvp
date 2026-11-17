@@ -7,7 +7,7 @@ Rama `agent/ronda10` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-52` | `CONS-08` | Registro de módulos (opción A) | ✅ DONE | 721 | 0.41 |
 | `BOLT-53` | `CONS-09` | Menú y acceso del dashboard desde el registro | ✅ DONE | 728 | 0.87 |
 | `BOLT-54` | `BIZ-01` | Límites del plan con efecto real | ✅ DONE | 742 | 0.72 |
-| `BOLT-55` | `DASH-05` | Tests del dashboard | ⏳ TODO |  |  |
+| `BOLT-55` | `DASH-05` | Tests del dashboard | ✅ DONE | 810 | 2.01 |
 
 ## Revisar a mano en el PR
 
@@ -27,6 +27,12 @@ Rama `agent/ronda10` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-54`: Texto visible al cliente: el mensaje 'Tu plan permite N servicios / imágenes de galería. Borra uno o pide una ampliación.' y el indicador 'N de M'.
 - `BOLT-54`: Decisión del dev: el uso de galería cuenta solo los ítems de la sección gallery. Las imágenes de servicio y la portada no cuentan para el tope del tenant, y cada galería de servicio se limita por su propio conteo.
 - `BOLT-54`: Decidir si se borra max_pages (DEUDA-11); borrarlo requiere una migración.
+- `BOLT-55`: Restaurar `orders` a 92.46 en `scripts/gate_baseline.json` antes de commitear; el dev no pudo hacerlo por estar bloqueado el archivo.
+- `BOLT-55`: Fallos de a11y que quedaron abiertos: `DASH-06` (token `--primary` roto en `base.html`) y `DASH-07`. Revisa el kanban para el detalle.
+- `BOLT-55`: `BrandingForm` ahora rechaza colores en forma corta (`#abc`) y cualquier valor que no sea hex de 6 dígitos. Verifica que no haya tenants con colores guardados en otro formato.
+- `BOLT-55`: Los mensajes con `is_spam=True` ya no se ven en el dashboard ni en las métricas: cambio de comportamiento visible al cliente.
+- `BOLT-55`: `seed_e2e_tenants` crea el usuario `owner-e2e` con contraseña de desarrollo. Confirma que solo corre con `DEBUG=True` y nunca contra producción.
+- `BOLT-55`: El menú tiene seis pantallas y no cinco; el dev lo decidió sin que el spec lo cubriera, y usó un tenant `dash-e2e` separado.
 
 ## Hallazgos incidentales
 
@@ -37,3 +43,6 @@ Rama `agent/ronda10` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-54`: Client.max_pages no tiene uso: no existe modelo de páginas. Quedó como DEUDA-11 en el kanban.
 - `BOLT-54`: El botón 'Agregar servicio' del índice del dashboard (templates/dashboard/index.html) sigue activo al tope. La vista lo rechaza igual, pero no se deshabilita ni muestra el uso.
 - `BOLT-54`: El dev no corrió el rojo (escribió el código antes que los tests). El red_check del orquestador sí lo confirmó.
+- `BOLT-55`: `--update-baseline` bajó `orders` de 92.46 a 92.38 sin que el cambio toque `apps/orders`. Parece variación de medición, pero el trinquete quedó más laxo.
+- `BOLT-55`: `DASH-06`: `var(--primary)` sigue roto en `templates/dashboard/base.html`; ya está en el kanban.
+- `BOLT-55`: `DASH-07`: fallo de a11y abierto, ya está en el kanban. El informe del dev quedó truncado y no se ve el detalle.
