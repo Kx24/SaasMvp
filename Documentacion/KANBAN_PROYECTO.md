@@ -6,7 +6,7 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-11-16)
+## 🌙 Retomar aquí (actualizado 2026-11-17)
 
 **Foco del trimestre (nov 2026 – feb 2027), sin captar clientes:** ① consolidar la plataforma (módulos reutilizables + dashboard profesional estilo Instagram/Gmail), ② ciberseguridad, ③ Ley 21.719.
 
@@ -20,9 +20,9 @@
 
 **Ritmo:** 2 días/semana × 4–5 h. Card que no entra en 2 h se parte. Rondas del agente: `orchestrate.py` + `claude -p` (Sonnet 5.5) sobre ramas `agent/*`; tú revisas el PR a `develop`.
 
-**Rondas 8 y 9 (2026-11-16), en `agent/ronda8` y `agent/ronda9`, sin PR todavía:** ronda 8 con 12/12 (`CONS-11` cobertura al contrato: total 76 %, orders 92 %, tenants núcleo 100 %; `CONS-12`, `SEC-18`, `COMP-03`, `DEUDA-09`, `FLOW-04`, `TOOL-04`, `DOC-01`; `LEY-08` se rescató a mano del stash tras un timeout). Ronda 9: `LEY-03` (plazos de `Order`/`PaymentLog`/`EmailOutbox`) y `LEY-02` (formulario `/privacidad/solicitud/`, registro y comando `data_subject`). 697 tests. Detalle y puntos a revisar a mano en `docs/agente/ronda8/ESTADO.md` y `docs/agente/ronda9/ESTADO.md`; lo más sensible: `MercadoPagoError` sin envolver, reset de contraseña acotado al tenant, y `data_subject erase` (irreversible, usar `--dry-run`).
+**Rondas 8 a 11 (2026-11-16/17), en `agent/ronda8` a `agent/ronda11` (encadenadas, cada una incluye a la anterior), sin PR todavía:** 8: `CONS-11`/`12`, `SEC-18`, `COMP-03`, `DEUDA-09`, `FLOW-04`, `TOOL-04`, `DOC-01`. 9: `LEY-03` (plazos), `LEY-02` (formulario `/privacidad/solicitud/`, comando `data_subject`), `LEY-08` (rescatada del stash), `OPS-04`. 10: `CONS-08`, `CONS-09`, `BIZ-01`, `DASH-05`; "Portada" se movió a core a pedido. 11: `COMP-02` (árbol de temas, migración de datos `0031`) y `COMP-01` (`cta`, `about`, `services`, `contact`, `footer`, `navbar`, `hero_ctas`). 846 tests, 8/8 en la ronda 11. Detalle y puntos a revisar a mano en `docs/agente/ronda8..11/ESTADO.md`. Lo más sensible: `MercadoPagoError` sin envolver, reset de contraseña acotado al tenant, `data_subject erase` (irreversible, usar `--dry-run`), límites de plan ya activos (revisar clientes sobre su tope antes de desplegar), migración `0031` (ensayar en rama de Neon) y la ronda 11, que cambió los templates de todos los temas: **mirar en el navegador** home, navbar (375 px), footer, contacto y hero de Servelec, andesscale y default.
 
-**▶️ Próximo:** `BOLT-51` (`OPS-04`) y ronda 10 (`CONS-08`, `CONS-09`, `BIZ-01`, `DASH-05`), luego ronda 11 (`COMP-02`, `COMP-01`). Tuyo: revisar y mergear los PR de las rondas 8 y 9 a `develop`; decidir `LEY-09` (verificación de identidad) antes de usar `data_subject export` con un titular real.
+**▶️ Próximo:** revisar y mergear a `develop` los PR de las rondas 8 a 11 (en ese orden). Decidir `LEY-09` antes de usar `data_subject export` con un titular real. Candidatos para la ronda 12: `LEY-09`, `TOOL-08`, `DEUDA-10`, `COMP-04`, `DEUDA-12`, `DASH-08`; luego `MOD-01` (Media), que necesita spec y diseño.
 
 ---
 
@@ -130,6 +130,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `COMP` — Componentes
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
+| `COMP-04` | Migrar `style=""` y colores hex de los componentes compartidos a tokens y Tailwind | P3 | M | Las variantes `glow` (`cta`), `blocks` (`about`) y los slots de `contact`, `navbar` y servelec conservan estilos inline y colores de Servelec (`#0f3320`, `#1DB954`, `#0b2818`) para mantener el HTML idéntico. Cambia el aspecto, así que se hace con la marca del tenant a la vista. Hallado por `BOLT-57`, `58`, `60`, `62` |
 
 ### `MOD` — Módulos
 | ID | Card | P | Esf. | Definición de hecho |
@@ -145,6 +146,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `DASH-03` | Interacción con htmx | P2 | L | Guardar, ocultar y reordenar sin recargar; estados vacíos y de error. Servicios como patrón |
 | `DASH-06` | Token `--primary` inexistente en el dashboard | P3 | S | `base.html` (avatar) e `index.html` usan `var(--primary)`, que el dashboard no define (solo `--color-primary`): el avatar y 3 elementos de `index.html` quedan sin color de marca. Cambiar a `var(--color-primary)` y cubrir con test. Hallado por `BOLT-55` |
 | `DASH-07` | a11y del dashboard: pantallas sin cubrir y color de marca claro | P2 | M | `dashboard.spec.js` mide solo Inicio y Secciones; falta Marca, Portada, Galería, Mensajes y las pantallas de edición. Además `.btn-primary` y los botones "Editar" ponen texto blanco sobre el color de marca del tenant: con un primario claro no llegan a 4.5:1 (hoy pasa con `#0b5fa5`). Hallado por `BOLT-55` |
+| `DASH-08` | Contador de mensajes sin leer en el menú | P3 | S | `unread_contacts` no lo define ningún código, así que el contador del menú nunca se muestra (ya pasaba antes de `CONS-09`). Cablearlo en el context processor `dashboard_menu`. Hallado por `BOLT-53` |
 
 ### `SEC` — Ciberseguridad (detalle y evidencia en `SEGURIDAD.md`)
 | ID | Card | P | Esf. | Definición de hecho |
@@ -168,6 +170,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `DB-02` | Backup de Neon con restore probado | P1 | M | Restore a una rama, documentado con tiempos |
 | `DB-03` | `EXPLAIN ANALYZE` de consultas calientes en Neon | P3 | S | Junto a `DB-02` |
 | `DEUDA-11` | `Client.max_pages` sin uso: decidir si se borra | P3 | S | No existe modelo de páginas, así que el límite no se aplica a nada (el default 10 sigue en `apps/tenants/models.py`). Borrarlo exige migración. Hallado por `BOLT-54` |
+| `DEUDA-12` | Residuos de las rondas 10 y 11 | P3 | S | Comentarios que citan `themes/electricidad` (`test_contact_submit.py`, `test_navbar_cta.py`, `static/css/input.css`); `CLAUDE.md` y `Documentacion/ARQUITECTURA.md` desfasados (`themes/andesscale`, `hero_ctas_base`); `hero_overlay.html` de default y servelec sin referencias (¿muertos?); footer genérico con `© 2024` fijo; comentario `ANDESSCALE` suelto en `about`; `themes/default` pinta contacto en línea sin usar el componente; confirmar que `themes/andesscale` no se pueda elegir en el onboarding (`apps/orders/forms.py`, `Plan.available_themes`). Hallado por `BOLT-56`, `58`, `60`, `61`, `63` |
 | `BIZ-02` | `Plan.renewal_price` y `Client.monthly_fee` alineados al modelo real | P2 | S | Pago único + mantención 12 meses + renovación anual (`MASTER_PLAN` §4.4). `Client.plan` es texto, no FK a `Plan`: decidir |
 | `BIZ-03` | Cláusulas de mantención y fin de servicio | P2 | M | Sin código. `MASTER_PLAN` §4.5 |
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |
