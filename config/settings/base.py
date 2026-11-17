@@ -137,6 +137,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'apps.tenants.context_processors.client_context',
                 'apps.accounts.context_processors.dashboard_permissions',
+                'apps.accounts.context_processors.dashboard_menu',
             ],
             'loaders': [
                 # 1. Templates por tenant

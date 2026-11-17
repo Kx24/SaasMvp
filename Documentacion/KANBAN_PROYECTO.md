@@ -94,7 +94,7 @@
 | D8 | `CONS-06` ✅ `TenantOwnedMixin` | `DASH-04` ✅ Roles con efecto |
 | D9 | `SEC-05b` ✅ + `DEUDA-06` ✅ Restos del admin y código muerto | `CONS-07` ✅ Separar `views.py` |
 | D10 | `CONS-08` ✅ Registro de módulos (opción A) | `CONS-08` ✅ (continúa) |
-| D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
+| D11 | `CONS-09` ✅ Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
 
 ### Fase 3 — Módulos y dashboard (~20 días, enero–febrero 2027)
 Orden: `COMP-02` (1 d) → `COMP-01` (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` (1 d) → `LEY-02` ✅ + resto de `LEY-03` (2 d) → `LEY-04` + `LEY-07` (1 d) → `SEC-13` + `SEC-15` (2 d).
@@ -125,7 +125,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
-| `CONS-09` | Menú del dashboard generado desde el registro | P1 | M | Un módulo desactivado no aparece en el menú ni responde en su URL |
 | `CONS-13` | Cobertura de lo que sigue en 0 % | P3 | M | Tests de vistas de `accounts`, admins, sitemaps y comandos de gestión (`audit_cloudinary_assets`, `check_cloudinary`, `verify_search_console`, `setup_*`, `seed_e2e_tenants`). Decidir antes si `create_tenant` se borra (parece muerto frente a `provision_tenant`) o se documenta. Hallado por `BOLT-39` |
 
 ### `COMP` — Componentes

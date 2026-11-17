@@ -8,6 +8,7 @@ from django.shortcuts import redirect
 from apps.accounts.decorators import tenant_permission_required
 from apps.core.template_resolver import render_tenant_template
 from apps.core.tenant_objects import tenant_object_or_404
+from apps.tenants.modules import is_enabled
 
 from ..forms import ServiceForm
 from ..models import GalleryItem, Service
@@ -99,8 +100,7 @@ def edit_service_dashboard(request, service_id):
     else:
         form = ServiceForm(instance=service)
 
-    settings = getattr(request.client, 'settings', None)
-    gallery_enabled = bool(settings and settings.enable_gallery)
+    gallery_enabled = is_enabled(request.client, 'gallery')
     gallery_items = []
     gallery_limit = 0
     if gallery_enabled:
@@ -108,7 +108,7 @@ def edit_service_dashboard(request, service_id):
             GalleryItem.objects.filter(client=request.client, service=service)
             .order_by('order', 'created_at')
         )
-        gallery_limit = settings.gallery_images_limit
+        gallery_limit = request.client.settings.gallery_images_limit
 
     context = {
         'client': request.client,

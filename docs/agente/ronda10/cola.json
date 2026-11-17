@@ -25,12 +25,29 @@
       "id": "BOLT-53",
       "maestra": "CONS-09",
       "titulo": "Menú y acceso del dashboard desde el registro",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-53.md",
       "red_tests": [
         "apps.tenants.tests_module_access"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.87,
+      "tests": 728,
+      "hallazgos": [
+        "`unread_contacts` no lo define ningún código, así que el contador de mensajes sin leer del menú nunca se muestra (ya ocurría antes). Conviene una card para cablearlo.",
+        "Ninguna plantilla ni templatetag consultaba `enable_contact_form`, contra lo que decía el spec. Se resolvió con la variable `contact_disabled`, pasada solo desde la vista `home`; cualquier otra vista que renderice esos parciales no la recibe y mostraría el formulario.",
+        "El estado `active` de Secciones y Contactos cambió de `'sections' in request.path` / `'contacts' in request.path` a comparar `url_name`. En subpáginas (editar sección, etc.) esas entradas ya no se marcan activas.",
+        "El dev no corrió el rojo antes de implementar. El gate sí lo confirmó: 4 de 7 tests fallan contra HEAD."
+      ],
+      "revisar_humano": [
+        "CAMBIO VISIBLE: con la galería apagada, \"Portada\" y \"Galería\" ya no aparecen atenuados con \"Off\", desaparecen. \"Portada\" quedó en el módulo `gallery` (como lo dejó BOLT-52), así que también desaparece.",
+        "Revisar el menú en el navegador con cada rol (`owner`, `admin`, `editor`, `viewer`) y con galería y contacto apagados.",
+        "Cambio de permisos visibles: \"Galería\" y \"Secciones\" ahora exigen `edit_content` según el registro; `viewer` ya no los ve (antes los veían todos los roles). Confirmar que es lo deseado.",
+        "Las etiquetas del menú ahora salen del registro: \"Marca\" en vez de \"Personalizar\" y \"Mensajes\" en vez de \"Contactos\". Es un texto visible al cliente.",
+        "Con el contacto apagado, el formulario público desaparece de la home en `landing/home.html`, los parciales de contacto y el tema `electricidad`. Mirarlo en la home de un tenant con el contacto apagado.",
+        "`dashboard_sections` no lleva `module_required` porque no tiene flag. Verificar que un `viewer` aún pueda abrir esa URL a mano, ya que solo se le quitó el enlace del menú.",
+        "Se editó `config/settings/base.py` para registrar el context processor `dashboard_menu`."
+      ]
     },
     {
       "id": "BOLT-54",

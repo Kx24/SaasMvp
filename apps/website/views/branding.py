@@ -10,6 +10,7 @@ from apps.core.template_resolver import render_tenant_template
 from apps.tenants.fonts import FONT_CHOICES
 from apps.tenants.forms import BrandingForm
 from apps.tenants.models import ClientSettings
+from apps.tenants.modules import module_required
 
 from ..forms import GalleryItemForm
 from ..models import (
@@ -108,17 +109,14 @@ def dashboard_branding(request):
 
 
 @tenant_permission_required('edit_content')
+@module_required('gallery')
 def dashboard_portada(request):
     """
     Vista de Portada: imagen de fondo del hero default + toggle show_default_hero
     + gestión de imágenes hero del cliente.
     """
     client = request.client
-    settings = getattr(client, 'settings', None)
-
-    if not settings or not settings.enable_gallery:
-        messages.error(request, 'El módulo de imágenes no está activado.')
-        return redirect('dashboard')
+    settings = client.settings
 
     hero_section, _ = Section.objects.get_or_create(
         client=client,

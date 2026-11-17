@@ -147,6 +147,7 @@
             </div>
             
             <!-- Formulario de Contacto (SIEMPRE VISIBLE) -->
+            {% if not contact_disabled %}
             <div id="contact-form-container">
                 <form method="post" action="{% url 'contact_submit' %}" class="space-y-6 bg-gray-50 p-8 rounded-lg shadow-md">
                     {% csrf_token %}
@@ -249,7 +250,8 @@
                     </div>
                 </form>
             </div>
-            
+            {% endif %}
+
             <!-- Información de contacto adicional -->
             {% if client.settings %}
             <div class="mt-12 grid md:grid-cols-3 gap-6 text-center">

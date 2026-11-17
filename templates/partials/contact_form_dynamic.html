@@ -9,8 +9,8 @@ Ubicación: templates/partials/contact_form_dynamic.html
 -->
 
 {% load website_tags %}
-
-<form method="post" 
+{% if not contact_disabled %}
+<form method="post"
       action="{% url 'contact_submit' %}" 
       class="space-y-5"
       x-data="{ submitting: false }"
@@ -246,5 +246,6 @@ Ubicación: templates/partials/contact_form_dynamic.html
     </p>
     {% endif %}
 </form>
+{% endif %}
 
 <style>[x-cloak] { display: none !important; }</style>

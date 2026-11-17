@@ -1,4 +1,5 @@
 <!-- Formulario de Contacto Mejorado -->
+{% if not contact_disabled %}
 <form method="post"
       action="{% url 'contact_submit' %}"
       class="space-y-6"
@@ -167,6 +168,7 @@
     </div>
 
 </form>
+{% endif %}
 
 <style>
     [x-cloak] { display: none !important; }

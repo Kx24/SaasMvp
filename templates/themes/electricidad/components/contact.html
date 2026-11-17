@@ -1,5 +1,6 @@
 <!-- Contact Form - Servicios Eléctricos -->
-<form method="post" 
+{% if not contact_disabled %}
+<form method="post"
       action="{% url 'contact_submit' %}" 
       class="space-y-5"
       x-data="{ submitting: false }"
@@ -81,5 +82,6 @@
         Responderemos a la brevedad. Para emergencias, llámanos directamente.
     </p>
 </form>
+{% endif %}
 
 <style>[x-cloak] { display: none !important; }</style>

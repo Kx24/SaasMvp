@@ -3,10 +3,13 @@ Registro de módulos del dashboard (CONS-08, opción A).
 
 Declara qué módulos existen, qué flag de ``ClientSettings`` los enciende, qué
 límite del plan les aplica, qué rutas del dashboard les pertenecen y qué
-entradas de menú aportan. Esta card solo declara: ni el menú ni las vistas lo
-consumen todavía (``CONS-09``).
+entradas de menú aportan. El menú (``dashboard_menu``) y el acceso
+(``module_required``) derivan de aquí (``CONS-09``).
 """
+import functools
 from dataclasses import dataclass
+
+from django.http import Http404
 
 
 @dataclass(frozen=True)
@@ -122,6 +125,25 @@ def is_enabled(client, key):
     if settings is None:
         return False
     return bool(getattr(settings, module.flag, False))
+
+
+def module_required(key):
+    """Decorador de vista: 404 si el módulo ``key`` está apagado para el tenant.
+
+    Va *debajo* de ``tenant_permission_required`` (primero login y tenant,
+    luego módulo).
+    """
+
+    def decorator(view_func):
+        @functools.wraps(view_func)
+        def _check_module(request, *args, **kwargs):
+            if not is_enabled(getattr(request, 'client', None), key):
+                raise Http404('Módulo no disponible.')
+            return view_func(request, *args, **kwargs)
+
+        return _check_module
+
+    return decorator
 
 
 def enabled_modules(client):

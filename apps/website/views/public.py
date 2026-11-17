@@ -11,6 +11,7 @@ from apps.core.logging_utils import email_ref
 from apps.core.rate_limit import RateLimiter, get_client_ip
 from apps.core.template_resolver import get_tenant_template, render_tenant_template
 from apps.orders.services.email_service import EmailService
+from apps.tenants.modules import is_enabled
 
 from ..forms import ContactForm, DataSubjectRequestForm
 from ..models import ContactSubmission, DataSubjectRequest, Section, Service
@@ -51,6 +52,7 @@ def home(request):
         'contact_section': sections_dict.get('contact'),
         'services': services,
         'form': ContactForm(),
+        'contact_disabled': not is_enabled(request.client, 'contact'),
     }
     
     # ✅ Usar template del tenant
@@ -172,6 +174,9 @@ def contact_submit(request):
             {'ok': False, 'message': 'Error de configuración. Intenta más tarde.'},
             status=500
         )
+
+    if not is_enabled(request.client, 'contact'):
+        raise Http404('Formulario de contacto desactivado.')
  
     # ------------------------------------------------------------------
     # 1. RATE LIMITING
