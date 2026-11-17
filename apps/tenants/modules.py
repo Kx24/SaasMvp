@@ -46,11 +46,13 @@ MODULES = (
             'dashboard',
             'dashboard_sections',
             'dashboard_branding',
+            'dashboard_portada',
             'edit_section_dashboard',
         ),
         menu=(
             MenuEntry('Inicio', 'dashboard', 'home', 'view_dashboard', 10),
             MenuEntry('Marca', 'dashboard_branding', 'palette', 'manage_branding', 20),
+            MenuEntry('Portada', 'dashboard_portada', 'image', 'edit_content', 30),
             MenuEntry('Secciones', 'dashboard_sections', 'layout', 'edit_content', 40),
         ),
     ),
@@ -79,10 +81,6 @@ MODULES = (
         usage=lambda client: _usage_gallery(client),
         limit_noun='imágenes de galería',
         url_names=(
-            # ``dashboard_portada`` va aquí y no en ``core``: la vista responde
-            # con "El módulo de imágenes no está activado" si ``enable_gallery``
-            # está apagado (views/branding.py), o sea depende del flag de galería.
-            'dashboard_portada',
             'dashboard_gallery',
             'gallery_item_add',
             'gallery_item_edit',
@@ -90,7 +88,6 @@ MODULES = (
             'gallery_item_toggle',
         ),
         menu=(
-            MenuEntry('Portada', 'dashboard_portada', 'image', 'edit_content', 30),
             MenuEntry('Galería', 'dashboard_gallery', 'images', 'edit_content', 50),
         ),
     ),

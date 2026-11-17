@@ -58,7 +58,6 @@ class ModuleAccessBase(TestCase):
     def gallery_urls(self):
         kw = {'item_id': self.item.id}
         return {
-            'dashboard_portada': reverse('dashboard_portada'),
             'dashboard_gallery': reverse('dashboard_gallery'),
             'gallery_item_add': reverse('gallery_item_add'),
             'gallery_item_edit': reverse('gallery_item_edit', kwargs=kw),
@@ -84,23 +83,34 @@ class GalleryModuleAccessTests(ModuleAccessBase):
                 self.assertEqual(method(url, HTTP_HOST=HOST_A).status_code, 404, name)
         html = self.menu_urls()
         self.assertNotIn(reverse('dashboard_gallery'), html)
-        self.assertNotIn(reverse('dashboard_portada'), html)
 
     def test_galeria_encendida_200_y_enlaces(self):
         self.set_flags(enable_gallery=True)
         self.login('owner')
-        for name in ('dashboard_portada', 'dashboard_gallery'):
-            self.assertEqual(
-                self.client.get(self.gallery_urls()[name], HTTP_HOST=HOST_A).status_code, 200, name)
-        html = self.menu_urls()
-        self.assertIn(reverse('dashboard_gallery'), html)
-        self.assertIn(reverse('dashboard_portada'), html)
+        self.assertEqual(
+            self.client.get(self.gallery_urls()['dashboard_gallery'], HTTP_HOST=HOST_A).status_code, 200)
+        self.assertIn(reverse('dashboard_gallery'), self.menu_urls())
 
     def test_otro_tenant_recibe_403_y_no_404_en_modulo_apagado(self):
         self.set_flags(enable_gallery=False)
         self.client.force_login(self.owner_b)
         for name, url in self.gallery_urls().items():
             self.assertEqual(self.client.get(url, HTTP_HOST=HOST_A).status_code, 403, name)
+
+
+class PortadaCoreTests(ModuleAccessBase):
+    """Portada es del módulo core: no depende del flag de galería."""
+
+    def test_portada_responde_y_aparece_en_el_menu_con_galeria_apagada(self):
+        self.set_flags(enable_gallery=False)
+        self.login('owner')
+        url = reverse('dashboard_portada')
+        self.assertEqual(self.client.get(url, HTTP_HOST=HOST_A).status_code, 200)
+        self.assertIn(url, self.menu_urls())
+
+    def test_portada_declarada_en_core_y_no_en_galeria(self):
+        self.assertIn('dashboard_portada', modules.get_module('core').url_names)
+        self.assertNotIn('dashboard_portada', modules.get_module('gallery').url_names)
 
 
 class ContactModuleAccessTests(ModuleAccessBase):
