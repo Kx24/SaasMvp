@@ -81,6 +81,7 @@
 | `COMP-03` | El botón de enviar de los 4 formularios de contacto activa "Enviando..." solo en el `submit` real (no en el clic) y se recupera de error o de volver a la página | 2026-11-15 | `BOLT-42` |
 | `COMP-02` | Árbol de temas ordenado: `themes/electricidad` archivado, `andesscale` movido a `themes/andesscale` (`THEME_CHOICES` + migración de datos 0031, loader sin literal), fuera `templates_library/` y 2 componentes vacíos de `themes/default` | 2026-11-17 | `BOLT-56` |
 | `COMP-01` (parte) | Componente `cta` compartido en `templates/components/cta.html` (parámetro `variant` orbs/glow); los `home.html` de andesscale y servelec lo incluyen directo y se borraron los `cta.html` de tema; equivalencia de HTML por fixture | 2026-11-17 | `BOLT-57` |
+| `COMP-01` (parte) | Componente `about` compartido en `templates/components/about.html` (parámetro `variant` stripe/blocks); los `home.html` de andesscale y servelec lo incluyen directo y se borraron los `about.html` de tema; `themes/default` no tenía componente (renderiza en línea); equivalencia de HTML por fixture | 2026-11-17 | `BOLT-58` |
 
 ## Tooling, flujo comercial y operaciones
 

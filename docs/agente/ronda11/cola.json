@@ -57,12 +57,25 @@
       "id": "BOLT-58",
       "maestra": "COMP-01",
       "titulo": "Componente about compartido (2 de 7)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-58.md",
       "red_tests": [
         "apps.core.tests.test_component_about"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.66,
+      "tests": 826,
+      "hallazgos": [
+        "La variante blocks conserva style=\"\" inline y colores hardcodeados de servelec (#0f3320, #1DB954) para no alterar el HTML. Es la misma deuda que en cta y va contra la preferencia Tailwind.",
+        "El test Playwright del formulario multi-step de andesscale falló una vez por timeout y pasó en las dos corridas siguientes; parece intermitente y no toca about.",
+        "El informe del dev admite que no corrió el rojo contra HEAD. Lo confirma red_check del gate: 3 tests estructurales fallan contra el código original."
+      ],
+      "revisar_humano": [
+        "Revisar en el navegador la sección about en servelec, andesscale y el tema base. No hay cambios de HTML esperados salvo espacios y comentarios.",
+        "La variante stripe emite el comentario HTML 'ANDESSCALE' fuera del bloque condicional, para que apps.tenants.tests_theme_tree siga idéntico. Es un resto cosmético que habrá que limpiar luego.",
+        "Decisión del dev que el spec no cubría: no dejar envoltorios en los temas (el DoD permite 'o sin archivo').",
+        "Los textos de relleno ('Desarrollo ágil', 'Confianza', '5+', '100%') siguen visibles al cliente en la variante stripe."
+      ]
     },
     {
       "id": "BOLT-59",

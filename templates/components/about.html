@@ -1,8 +1,23 @@
+{% comment %}
+  components/about.html — sección "Sobre nosotros" (COMP-01).
+  Contenido dinámico desde el CMS (section type 'about').
+  Parámetros: variant = 'stripe' (por defecto; andesscale: cuadrícula tenue, métricas
+  y 3 cards de valor si no hay imagen) | 'blocks' (servelec: bloques de color en las
+  esquinas y botón "Contáctanos").
+  El home.html del tema lo incluye directo; no crear themes/<tema>/components/about.html
+  (el loader lo resolvería primero y se incluiría a sí mismo).
+{% endcomment %}
+{% if variant != 'blocks' %}
+<!--
+ANDESSCALE — components/about.html
+   Dinámica: content desde CMS (section type 'about').
+   Fallback: 3 cards de valor si no hay imagen.
+-->
+{% endif %}
 {% load website_tags %}
-
 {% get_section 'about' as about %}
-
 {% if about and about.is_active %}
+{% if variant == 'blocks' %}
 <section id="about" class="py-16 md:py-24 relative overflow-hidden bg-white z-0">
 
     <div class="absolute top-4 left-4 hidden md:grid grid-cols-4 grid-rows-4 gap-2 md:gap-4 w-32 h-32 md:w-56 md:h-56 lg:w-72 lg:h-72 z-0">
@@ -96,4 +111,79 @@
         </div>
     </div>
 </section>
+{% else %}
+<section id="about" class="py-24 relative overflow-hidden">
+    <div class="absolute inset-0 stripe-grid opacity-30" aria-hidden="true"></div>
+
+    <div class="relative max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+            <div class="fade-up">
+                <span class="inline-block px-4 py-1.5 bg-primary/10 text-primary text-sm font-semibold rounded-full mb-4">Sobre nosotros</span>
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-slate-900 mb-6">{{ about.title }}</h2>
+                {% if about.subtitle %}
+                <p class="text-xl text-slate-600 mb-6">{{ about.subtitle }}</p>
+                {% endif %}
+                {% if about.description %}
+                <div class="text-slate-600 space-y-4 mb-8 prose prose-slate">{{ about.description|linebreaks }}</div>
+                {% endif %}
+                <div class="grid grid-cols-3 gap-8 pt-8 border-t border-slate-200">
+                    <div>
+                        <div class="font-display text-3xl font-bold text-gradient">+</div>
+                        <div class="text-sm text-slate-500 mt-1">Confianza</div>
+                    </div>
+                    <div>
+                        <div class="font-display text-3xl font-bold text-gradient">5+</div>
+                        <div class="text-sm text-slate-500 mt-1">Compromiso</div>
+                    </div>
+                    <div>
+                        <div class="font-display text-3xl font-bold text-gradient">100%</div>
+                        <div class="text-sm text-slate-500 mt-1">Clientes satisfechos</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative fade-up" style="animation-delay:0.2s;">
+                {% if about.image %}
+                <div class="relative">
+                    <div class="absolute -inset-4 bg-gradient-to-r from-primary/10 to-indigo-400/10 rounded-3xl blur-2xl" aria-hidden="true"></div>
+                    <img src="{{ about.image.url }}" alt="{{ about.title }}" class="relative rounded-2xl shadow-xl">
+                </div>
+                {% else %}
+                <div class="space-y-4">
+                    <div class="stripe-card rounded-2xl p-6 flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-900 mb-1">Desarrollo ágil</h4>
+                            <p class="text-sm text-slate-600">Iteraciones rápidas con entregas constantes de valor.</p>
+                        </div>
+                    </div>
+                    <div class="stripe-card rounded-2xl p-6 flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-900 mb-1">Alto rendimiento</h4>
+                            <p class="text-sm text-slate-600">Aplicaciones optimizadas para escalar sin límites.</p>
+                        </div>
+                    </div>
+                    <div class="stripe-card rounded-2xl p-6 flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-900 mb-1">Seguridad primero</h4>
+                            <p class="text-sm text-slate-600">Protección de datos con los más altos estándares.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endif %}
 {% endif %}

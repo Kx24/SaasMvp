@@ -139,6 +139,21 @@ El `home.html` del tema incluye el compartido directamente
 include se llamaría a sí mismo. Equivalencia de HTML:
 `apps/core/tests/test_component_cta.py` + `apps/core/tests/fixtures/cta_*.html`.
 
+### Componente `about` (`components/about.html`, COMP-01)
+
+Parámetros: `variant` = `"stripe"` (por defecto; cuadrícula tenue, tres métricas y
+tres cards de valor si no hay imagen — andesscale) | `"blocks"` (bloques de color
+en las esquinas, botón "Contáctanos" a `#contacto` — servelec). Los datos salen de
+`{% get_section 'about' %}` (título, subtítulo, descripción, imagen); `client` para
+el texto de reemplazo de `blocks`.
+Slots: ninguno por ahora (las variantes difieren en estructura). `themes/default`
+no tiene componente `about`: su `home.html` renderiza la sección en línea.
+El `home.html` del tema incluye el compartido directamente
+(`{% include 'components/about.html' with variant='blocks' %}`); **no** crear
+`themes/<tema>/components/about.html` (el loader lo resolvería primero y el include
+se llamaría a sí mismo). Equivalencia de HTML:
+`apps/core/tests/test_component_about.py` + `apps/core/tests/fixtures/about_*.html`.
+
 ## 3. Dónde se aplica esto
 
 `#RC-09` (landing de Rancho Cachimba por componente, sección por sección) es

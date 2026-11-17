@@ -6,7 +6,7 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 |---|---|---|---|---|---|
 | `BOLT-56` | `COMP-02` | Ordenar el árbol de temas | ✅ DONE | 818 | 2.75 |
 | `BOLT-57` | `COMP-01` | Componente cta compartido (1 de 7) | ✅ DONE | 822 | 0.63 |
-| `BOLT-58` | `COMP-01` | Componente about compartido (2 de 7) | ⏳ TODO |  |  |
+| `BOLT-58` | `COMP-01` | Componente about compartido (2 de 7) | ✅ DONE | 826 | 0.66 |
 | `BOLT-59` | `COMP-01` | Componente services compartido (3 de 7) | ⏳ TODO |  |  |
 | `BOLT-60` | `COMP-01` | Componente contact compartido (4 de 7) | ⏳ TODO |  |  |
 | `BOLT-61` | `COMP-01` | Componente footer compartido (5 de 7) | ⏳ TODO |  |  |
@@ -25,6 +25,10 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-57`: Decisión del dev que el spec no cubría: no se dejaron envoltorios por la recursión del loader. Queda anotado en design-system.md como regla para los demás componentes de COMP-01.
 - `BOLT-57`: El dev no corrió Playwright. Solo hay constancia del e2e del gate, que pasó.
 - `BOLT-57`: La variante orbs conserva el comentario HTML de cabecera de andesscale porque tests_theme_tree.py lo compara con su fixture.
+- `BOLT-58`: Revisar en el navegador la sección about en servelec, andesscale y el tema base. No hay cambios de HTML esperados salvo espacios y comentarios.
+- `BOLT-58`: La variante stripe emite el comentario HTML 'ANDESSCALE' fuera del bloque condicional, para que apps.tenants.tests_theme_tree siga idéntico. Es un resto cosmético que habrá que limpiar luego.
+- `BOLT-58`: Decisión del dev que el spec no cubría: no dejar envoltorios en los temas (el DoD permite 'o sin archivo').
+- `BOLT-58`: Los textos de relleno ('Desarrollo ágil', 'Confianza', '5+', '100%') siguen visibles al cliente en la variante stripe.
 
 ## Hallazgos incidentales
 
@@ -35,3 +39,6 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-56`: Comentarios obsoletos que citan themes/electricidad en apps/website/tests/test_contact_submit.py, apps/website/tests/test_navbar_cta.py y static/css/input.css.
 - `BOLT-57`: La variante glow mantiene style="" inline y colores hardcodeados de servelec (#0b2818, #1DB954, etc.). Falta migrarlos a tokens y utilidades Tailwind, y no hay fila en el kanban para eso.
 - `BOLT-57`: El test test_theme_files_do_not_repeat_shared_markup no comprueba nada mientras no existan archivos de tema, porque los salta. El rojo real sale del test de existencia del compartido y del de 15 líneas.
+- `BOLT-58`: La variante blocks conserva style="" inline y colores hardcodeados de servelec (#0f3320, #1DB954) para no alterar el HTML. Es la misma deuda que en cta y va contra la preferencia Tailwind.
+- `BOLT-58`: El test Playwright del formulario multi-step de andesscale falló una vez por timeout y pasó en las dos corridas siguientes; parece intermitente y no toca about.
+- `BOLT-58`: El informe del dev admite que no corrió el rojo contra HEAD. Lo confirma red_check del gate: 3 tests estructurales fallan contra el código original.
