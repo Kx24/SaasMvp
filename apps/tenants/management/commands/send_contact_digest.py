@@ -169,7 +169,10 @@ class Command(BaseCommand):
         contacts_replied = list(base_qs.filter(status='replied').order_by('-created_at'))
         total = len(contacts_new) + len(contacts_read) + len(contacts_replied)
 
-        if total == 0:
+        expiring_count, expiring_date = self._expiring_unread(client)
+
+        # El aviso de purga (LEY-08) es motivo suficiente para enviar.
+        if total == 0 and expiring_count == 0:
             self.stdout.write(f"  · {client.slug}: sin mensajes en el período, omitido")
             return 'skipped'
 
@@ -207,6 +210,8 @@ class Command(BaseCommand):
             'total':            total,
             'dashboard_url':    dashboard_url,
             'purge_info':       purge_info,
+            'expiring_count':   expiring_count,
+            'expiring_date':    expiring_date,
         }
 
         if dry_run:
@@ -225,6 +230,32 @@ class Command(BaseCommand):
             )
         )
         return 'sent'
+
+    # ── Aviso previo de purga (LEY-08) ───────────────────────────────────
+
+    def _expiring_unread(self, client):
+        """
+        Mensajes `new` (no spam) que alcanzarán el tope legal dentro de los
+        próximos CONTACT_PURGE_WARNING_DAYS días.
+
+        Returns:
+            (cantidad, fecha de borrado más próxima | None)
+        """
+        cap = timedelta(days=settings.CONTACT_MAX_RETENTION_DAYS)
+        warn = timedelta(days=settings.CONTACT_PURGE_WARNING_DAYS)
+        now = timezone.now()
+        qs = ContactSubmission.objects.filter(
+            client=client,
+            status='new',
+            is_spam=False,
+            created_at__gte=now - cap,
+            created_at__lt=now - cap + warn,
+        )
+        count = qs.count()
+        if count == 0:
+            return 0, None
+        oldest = qs.order_by('created_at').values_list('created_at', flat=True).first()
+        return count, timezone.localtime(oldest + cap).date()
 
     # ── Verificar si corresponde enviar hoy ──────────────────────────────
 

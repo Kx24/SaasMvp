@@ -414,6 +414,9 @@ CONTACT_MAX_RETENTION_DAYS = 365
 # (Ley 21.719 art. 14 d).
 ORDER_RETENTION_DAYS = 2190
 EMAIL_OUTBOX_RETENTION_DAYS = 90
+# Dias de anticipacion con que el digest avisa de mensajes sin leer que
+# alcanzaran el tope anterior (LEY-08).
+CONTACT_PURGE_WARNING_DAYS = 30
 
 # Politica de privacidad vigente (LEY-01). Subir la version al cambiar el texto legal.
 PRIVACY_POLICY_VERSION = '2026-12-01'

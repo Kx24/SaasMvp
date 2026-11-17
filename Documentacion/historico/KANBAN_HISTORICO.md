@@ -52,6 +52,7 @@
 | `LEY-03` (parte) | Plazos de `Order`/`PaymentLog` (6 años, `ORDER_RETENTION_DAYS`) y `EmailOutbox` (90 días): comando `purge_expired_data` (con `--dry-run`), invocado por `send_contact_digest`; plazos publicados en la política | 2026-11-16 | `BOLT-48` |
 | `LEY-01` (parte) | Páginas de política de privacidad en `/privacidad/` (cliente y plataforma) con versión vigente; enlaces `href="#"` reemplazados; `check_tenant_setup` avisa si falta `contact_email` | 2026-11-15 | `BOLT-33` |
 | `LEY-01` | Captura y prueba del consentimiento: checkbox no pre-marcado en contacto (todas las variantes) y checkout, con `consent_at`, versión de política e IP; user-agent eliminado de `ContactSubmission` y `Order`; aviso con enlace en el onboarding | 2026-11-15 | `BOLT-34` |
+| `LEY-08` | Aviso previo en el digest (30 días, `CONTACT_PURGE_WARNING_DAYS`) de mensajes `new` por alcanzar el tope de 365 días; el digest sale aunque no haya mensajes nuevos; sin datos personales | 2026-11-15 | `BOLT-45` |
 
 ## Base de datos y rendimiento
 

@@ -161,7 +161,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `LEY-05` | Registro de tratamientos y bases de licitud (art. 13, 14, 14 quáter) | P1 | S | Documento por tratamiento: datos, finalidad, base de licitud, quién accede, conservación, proveedores. Decidido: IP sí, user-agent no |
 | `LEY-06` | Procedimiento de brechas (art. 14 sexies) | P1 | S | Documento + plantilla de registro: detección, evaluación de riesgo, reporte a la Agencia, aviso al cliente responsable cuando AndesScale es encargado, aviso a titulares cuando corresponde |
 | `LEY-07` | Contrato de encargo con clientes (art. 15 bis) | P1 | M | Cláusula con objeto, duración, finalidad, tipo de datos, categorías de titulares y obligaciones; autorización escrita de sub-encargados (Neon, Render, Cloudinary, Zoho); devolución o supresión al terminar (une con `BIZ-03`). Sin código; revisar con abogado |
-| `LEY-08` | Aviso previo antes de purgar mensajes sin leer | P3 | S | El digest avisa al cliente N días antes de que un mensaje `new` alcance el tope de 365 días (la purga cuenta desde `created_at`). Hallado por `BOLT-26` |
 
 ### Negocio, datos y operación
 | ID | Card | P | Esf. | Nota |
