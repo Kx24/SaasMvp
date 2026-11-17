@@ -174,6 +174,7 @@ class ClientOnboardingForm(forms.Form):
             theme_labels = {
                 'themes/default':  ('Tema Estándar', 'Diseño limpio y profesional'),
                 'themes/servelec': ('Electricidad', 'Ideal para servicios eléctricos'),
+                'themes/andesscale': ('Plataforma', 'Tema interno de AndesScale'),
             }
             
             for theme_slug in available_themes:

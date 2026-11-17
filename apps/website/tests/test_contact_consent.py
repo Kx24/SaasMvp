@@ -96,7 +96,6 @@ class ContactFormsRenderCheckboxTestCase(TestCase):
         'partials/contact_form.html',
         'partials/contact_form_dynamic.html',
         'components/contact_multistep.html',
-        'themes/electricidad/components/contact.html',
     ]
 
     def _assert_checkbox(self, html, name):

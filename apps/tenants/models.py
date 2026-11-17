@@ -49,6 +49,7 @@ class Client(models.Model):
     THEME_CHOICES = [
         ('themes/default',  'Tema Base (Servicios Profesionales)'),
         ('themes/servelec', 'Electricidad (Servelec)'),
+        ('themes/andesscale', 'Plataforma (AndesScale)'),
     ]
 
     template = models.CharField(

@@ -28,7 +28,12 @@ class DocsThemeChoicesTestCase(SimpleTestCase):
     después de que dejaron de ser valores válidos en esta rama)."""
 
     def setUp(self):
-        self.actual_choices = {value for value, _label in Client.THEME_CHOICES}
+        # COMP-02: 'themes/andesscale' es el tema interno de la plataforma
+        # (no se ofrece a clientes) y las guías de agente no lo citan.
+        self.actual_choices = {
+            value for value, _label in Client.THEME_CHOICES
+            if value != 'themes/andesscale'
+        }
 
     def test_claude_md_theme_choices_citation_matches_model(self):
         text = (BASE_DIR / "CLAUDE.md").read_text(encoding="utf-8")

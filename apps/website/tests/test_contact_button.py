@@ -12,7 +12,6 @@ TEMPLATES = [
     'components/contact_multistep.html',
     'partials/contact_form.html',
     'partials/contact_form_dynamic.html',
-    'themes/electricidad/components/contact.html',
 ]
 # Formularios que son un <form> nativo con estado Alpine ligado al evento submit.
 FORM_TEMPLATES = TEMPLATES[1:]

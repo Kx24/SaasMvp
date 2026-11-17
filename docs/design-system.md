@@ -8,8 +8,12 @@ o un componente repetido, el camino correcto sea obvio.
 
 ## 1. Contrato de variables CSS (obligatorio en todo `base.html`)
 
-Cada tema (`servelec`, `andesscale`, `ranchocachimba`, `themes/default`,
-`themes/electricidad`) define, en un único bloque `:root` dentro de su
+Árbol de temas (COMP-02): `templates/themes/{default,servelec,andesscale}` +
+`templates/components/` (compartidos) + `ranchocachimba` solo en su rama.
+`themes/electricidad` se archivó (historial de git).
+
+Cada tema (`themes/servelec`, `themes/andesscale`, `ranchocachimba`,
+`themes/default`) define, en un único bloque `:root` dentro de su
 `base.html`, templado desde `ClientSettings`:
 
 ```css
@@ -93,7 +97,7 @@ componente compartido, con:
   `servelec/components/hero_overlay_theme.html`) o los deja vacíos para el
   comportamiento por defecto.
 
-Consumido por `servelec/components/hero.html`, `andesscale/components/hero.html`
+Consumido por `themes/servelec/components/hero.html`, `themes/andesscale/components/hero.html`
 y `themes/default/components/hero.html` — cada uno un wrapper de ~10 líneas
 que llama a `media_collection.html` con sus propios paths de override. Ese
 wrapper por tema es aceptable: lo que no debe duplicarse es la lógica de

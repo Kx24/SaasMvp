@@ -27,10 +27,9 @@ from django.test import SimpleTestCase
 TEMPLATES_DIR = Path(settings.BASE_DIR) / 'templates'
 
 THEME_DIRS = {
-    'andesscale': TEMPLATES_DIR / 'andesscale',
+    'andesscale': TEMPLATES_DIR / 'themes' / 'andesscale',
     'servelec': TEMPLATES_DIR / 'themes' / 'servelec',
     'themes/default': TEMPLATES_DIR / 'themes' / 'default',
-    'themes/electricidad': TEMPLATES_DIR / 'themes' / 'electricidad',
 }
 SHARED_COMPONENTS_DIR = TEMPLATES_DIR / 'components'
 

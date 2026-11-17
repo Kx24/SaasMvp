@@ -24,6 +24,13 @@ for (const target of PAGES) {
     // sin esperar, axe mide el contraste a mitad de la transición y reporta
     // decenas de falsos positivos que no existen en la página asentada.
     await page.waitForTimeout(1000);
+    // Bajo carga el timeout fijo no alcanza (animation-delay + 0.6s): espera a
+    // que terminen todas las animaciones CSS finitas antes de medir.
+    await page.evaluate(() => Promise.all(
+      document.getAnimations()
+        .filter((a) => Number.isFinite(a.effect.getComputedTiming().endTime))
+        .map((a) => a.finished.catch(() => null)),
+    ));
 
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])

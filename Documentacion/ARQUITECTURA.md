@@ -114,7 +114,7 @@ La gestión de usuarios (invitar, cambiar roles) aún no existe en el dashboard;
 
 ## 5. Temas, componentes y página pública
 
-- **Tema** = carpeta bajo `templates/` con `base.html`, `landing/home.html` y `components/`. Existen `themes/default`, `themes/servelec`, `themes/electricidad` (no elegible en `THEME_CHOICES`) y `andesscale/` (fuera de `themes/`; es el sitio propio). `ranchocachimba` vive solo en su rama.
+- **Tema** = carpeta bajo `templates/` con `base.html`, `landing/home.html` y `components/`. Existen `themes/default`, `themes/servelec` y `themes/andesscale` (el sitio propio; `Client.template='themes/andesscale'` para el tenant de `PLATFORM_TENANT_SLUG`, con fallback por slug en el loader). `themes/electricidad` se archivó (COMP-02). Los componentes compartidos viven en `templates/components/`. `ranchocachimba` vive solo en su rama.
 - **Componentes compartidos** (`templates/components/`): `navbar`, `navbar_cta`, `footer`, `hero_gallery`, `hero_ctas_base`, `media_collection`, `media_item`, `contact_multistep`, `slots/`. Patrón de referencia: `media_collection.html` (parámetro `mode` + slots de override).
 - **Hoy la home no es modular:** `apps/website/views/public.py::home` entrega `hero`, `about`, `contact_section`, `services` y cada tema arma su página a mano. Objetivo y camino: registro de módulos (opción A, `CONS-08`) y después orden/visibilidad de bloques (opción B, `MOD-02`).
 - Emails: plantillas HTML + texto en `templates/emails/`.

@@ -26,7 +26,7 @@ class Command(BaseCommand):
             name='Andes Scale SaaS',
             slug='andesscale',
             domain='andesscale.localhost',
-            template='default',
+            template='themes/andesscale',
             plan='enterprise',
             primary_color='#0ea5e9', # Azul Stripe
             secondary_color='#0284c7',
@@ -52,7 +52,7 @@ class Command(BaseCommand):
             name='Servelec Ingeniería',
             slug='servelec-ingenieria',
             domain='servelec.localhost',
-            template='electricidad', # <--- Usa themes/electricidad/
+            template='themes/servelec', # <--- Usa themes/servelec/
             plan='pro',
             primary_color='#16a34a', # Verde
             secondary_color='#15803d',
