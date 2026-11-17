@@ -14,6 +14,7 @@ urlpatterns = [
     # ============================================================
     path('', views.home, name='home'),
     path('privacidad/', views.privacy_policy, name='privacy_policy'),
+    path('privacidad/solicitud/', views.data_subject_request, name='data_subject_request'),
 
     
     # ============================================================

@@ -26,7 +26,7 @@ from django import forms
 
 from apps.website.models import GalleryItem
 
-from .models import Section, Service
+from .models import DataSubjectRequest, Section, Service
 
 # =============================================================================
 # SECTION FORM — sin cambios
@@ -340,3 +340,37 @@ class GalleryItemForm(forms.ModelForm):
         # Imagen no requerida en edición (solo en creación)
         if self.instance and self.instance.pk:
             self.fields['image'].required = False
+
+
+# =============================================================================
+# SOLICITUD DE DERECHOS DEL TITULAR (LEY-02)
+# =============================================================================
+
+class DataSubjectRequestForm(forms.Form):
+    """Formulario público de /privacidad/solicitud/. `website` es el honeypot."""
+
+    TYPE_CHOICES = [('', 'Selecciona un derecho')] + DataSubjectRequest.TYPE_CHOICES
+
+    website = forms.CharField(required=False, widget=forms.TextInput(attrs={
+        'tabindex': '-1', 'autocomplete': 'off',
+    }))
+    request_type = forms.ChoiceField(
+        choices=TYPE_CHOICES,
+        error_messages={'required': 'Selecciona el derecho que quieres ejercer.'},
+    )
+    name = forms.CharField(
+        max_length=200, min_length=2,
+        error_messages={'required': 'Por favor ingresa tu nombre.'},
+    )
+    email = forms.EmailField(error_messages={
+        'required': 'Por favor ingresa tu correo.',
+        'invalid': 'Ingresa un correo válido (ej: nombre@dominio.com).',
+    })
+    detail = forms.CharField(
+        max_length=5000,
+        widget=forms.Textarea(attrs={'rows': 5}),
+        error_messages={'required': 'Cuéntanos qué necesitas.'},
+    )
+
+    def is_honeypot_triggered(self):
+        return bool(self.cleaned_data.get('website'))

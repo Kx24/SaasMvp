@@ -9,7 +9,7 @@ from django.utils.html import format_html
 
 from apps.accounts.mixins import TenantAdminMixin
 
-from .models import ContactSubmission, Section, Service
+from .models import ContactSubmission, DataSubjectRequest, Section, Service
 
 # =============================================================================
 # SECTION ADMIN
@@ -301,3 +301,36 @@ class ContactSubmissionAdmin(TenantAdminMixin, admin.ModelAdmin):
     @admin.action(description='Marcar como spam')
     def mark_as_spam(self, request, queryset):
         queryset.update(status='spam')
+
+# =============================================================================
+# SOLICITUDES DE DERECHOS DEL TITULAR (LEY-02)
+# =============================================================================
+
+@admin.register(DataSubjectRequest)
+class DataSubjectRequestAdmin(TenantAdminMixin, admin.ModelAdmin):
+    """Registro de solicitudes de la Ley 21.719; la identidad del solicitante no se verifica."""
+
+    tenant_field = 'client'
+
+    list_display = ['request_type', 'email', 'status', 'received_at', 'due_at', 'vence_en']
+    list_filter = ['status']
+    search_fields = ['name', 'email']
+    ordering = ['due_at']
+    readonly_fields = ['client', 'request_type', 'name', 'email', 'detail', 'received_at',
+                       'due_at', 'resolved_at', 'ip_address']
+    fields = ['client', 'request_type', 'name', 'email', 'detail', 'received_at', 'due_at',
+              'status', 'response_notes', 'resolved_at', 'ip_address']
+
+    def has_add_permission(self, request):
+        return False
+
+    @admin.display(description='Vence')
+    def vence_en(self, obj):
+        if not obj.is_open:
+            return '-'
+        days = obj.days_left
+        if days is None:
+            return '-'
+        if days < 0:
+            return 'vencida'
+        return f'vence en {days} días'

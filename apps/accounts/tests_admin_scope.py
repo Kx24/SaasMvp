@@ -220,7 +220,7 @@ class EveryTenantAdminScopeTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        from apps.website.models import ContactSubmission, Section, Service
+        from apps.website.models import ContactSubmission, DataSubjectRequest, Section, Service
 
         cls.a = _tenant('all-a')
         cls.b = _tenant('all-b')
@@ -234,6 +234,8 @@ class EveryTenantAdminScopeTests(TestCase):
                                    description='x')
             ContactSubmission.objects.create(client=tenant, name=f'N {tag}',
                                              email=f'n@{tag}.test', message='hola')
+            DataSubjectRequest.objects.create(client=tenant, request_type='access', name=f'D {tag}',
+                                              email=f'd@{tag}.test', detail='x')
             user = User.objects.create_user(username=f'user_all_{tag}', password='x')
             UserProfile.objects.filter(user=user).update(client=tenant)
         cls.staff_a = User.objects.get(username='user_all_a')
@@ -270,8 +272,8 @@ class EveryTenantAdminScopeTests(TestCase):
     def test_registry_is_covered_by_fixtures(self):
         covered = {Order, PaymentLog, Domain, ClientSettings, ClientEmailSettings, FormConfig,
                    SEOConfig, UserProfile}
-        from apps.website.models import ContactSubmission, Section, Service
-        covered |= {Section, Service, ContactSubmission}
+        from apps.website.models import ContactSubmission, DataSubjectRequest, Section, Service
+        covered |= {Section, Service, ContactSubmission, DataSubjectRequest}
         for ma in self._mixin_admins():
             self.assertIn(ma.model, covered, f'{ma.__class__.__name__} sin cobertura de aislamiento')
 

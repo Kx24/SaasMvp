@@ -24,12 +24,26 @@
       "id": "BOLT-49",
       "maestra": "LEY-02",
       "titulo": "Canal y registro de solicitudes de derechos (1 de 2)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-49.md",
       "red_tests": [
         "apps.website.tests.test_data_subject_requests"
       ],
-      "permite_migracion": true
+      "permite_migracion": true,
+      "costo_usd": 1.38,
+      "tests": 682,
+      "hallazgos": [
+        "El enlace 'Gestionar' del aviso del dashboard tiene la ruta /superadmin/website/datasubjectrequest/ escrita a mano en vez de usar `reverse`.",
+        "Si una solicitud cerrada vuelve a un estado abierto, `resolved_at` conserva el valor anterior. No hay lógica que lo limpie."
+      ],
+      "revisar_humano": [
+        "Migración 0024_data_subject_request: modelo nuevo, reversible, sin tocar datos existentes.",
+        "Textos visibles al público: formulario /privacidad/solicitud/, acuse de recibo y aviso al tenant (templates/emails/data_request_*, templates/legal/data_request.html).",
+        "Cambio en los cuerpos legales privacy_tenant_body y privacy_platform_body (enlace al formulario). PRIVACY_POLICY_VERSION no se tocó.",
+        "La identidad del solicitante no se verifica en el formulario: la respuesta va al correo indicado, por lo que alguien podría pedir datos ajenos. Conviene definir cómo se verifica antes de entregar datos en la parte 2.",
+        "Decisiones del dev que el spec no cubría: admin con campos de solo lectura y sin alta manual, y rate limit de 3 envíos cada 10 min por IP, que solo cuenta los envíos válidos.",
+        "El aviso del dashboard enlaza al superadmin. Confirmar que los roles con `view_contacts` que no son staff puedan abrir esa ruta, porque si no verán un enlace que no les sirve."
+      ]
     },
     {
       "id": "BOLT-50",

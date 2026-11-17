@@ -9,7 +9,7 @@ from apps.website import auth_urls, urls
 URL_NAMES = [
     'contact_submit',
     'create_service', 'dashboard', 'dashboard_branding', 'dashboard_contacts',
-    'dashboard_gallery', 'dashboard_portada', 'dashboard_sections', 'delete_service_dashboard', 'edit_section_dashboard', 'edit_service_dashboard', 'gallery_item_add', 'gallery_item_delete', 'gallery_item_edit',
+    'dashboard_gallery', 'dashboard_portada', 'dashboard_sections', 'data_subject_request', 'delete_service_dashboard', 'edit_section_dashboard', 'edit_service_dashboard', 'gallery_item_add', 'gallery_item_delete', 'gallery_item_edit',
     'gallery_item_toggle', 'home', 'mark_contact_read', 'mark_contact_replied',
     'privacy_policy', 'reorder_services', 'toggle_service_active', 'toggle_service_featured',
 ]

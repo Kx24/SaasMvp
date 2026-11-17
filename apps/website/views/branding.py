@@ -12,7 +12,7 @@ from apps.tenants.forms import BrandingForm
 from apps.tenants.models import ClientSettings
 
 from ..forms import GalleryItemForm
-from ..models import ContactSubmission, GalleryItem, Section, Service
+from ..models import ContactSubmission, DataSubjectRequest, GalleryItem, Section, Service
 from ._shared import _image_upload_ok
 
 logger = logging.getLogger(__name__)
@@ -48,8 +48,21 @@ def dashboard(request):
         ).order_by('-created_at')[:5]
     else:
         recent_contacts = []
-    
+
+    # Solicitudes de derechos abiertas (LEY-02): mismo permiso que los contactos
+    open_data_requests = 0
+    next_data_request_due = None
+    if has_dashboard_permission(request.user, client, 'view_contacts'):
+        open_qs = DataSubjectRequest.objects.filter(
+            client=client, status__in=DataSubjectRequest.OPEN_STATUSES,
+        )
+        open_data_requests = open_qs.count()
+        first = open_qs.order_by('due_at').first()
+        next_data_request_due = first.due_at if first else None
+
     context = {
+        'open_data_requests': open_data_requests,
+        'next_data_request_due': next_data_request_due,
         'client': client,
         'total_contacts': total_contacts,
         'contacts_today': contacts_today,

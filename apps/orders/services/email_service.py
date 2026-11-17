@@ -335,6 +335,51 @@ class EmailService:
             reply_to=contact_data.get('email')
         )
 
+    # =========================================================================
+    # EMAIL 7/8: SOLICITUD DE DERECHOS DEL TITULAR (LEY-02)
+    # =========================================================================
+
+    def send_data_request_receipt(self, dsr) -> bool:
+        """Acuse de recibo al solicitante, con la fecha límite de respuesta."""
+        client = dsr.client
+        return self._send_email(
+            to_email=dsr.email,
+            subject=f"Recibimos tu solicitud de datos personales - {client.name}",
+            template_name='data_request_receipt',
+            context={
+                'client': client,
+                'dsr': dsr,
+                'site_url': self._site_url(client),
+            },
+            reply_to=self._data_request_contact(client),
+        )
+
+    def send_data_request_notice(self, dsr) -> bool:
+        """Aviso al contacto del tenant (al correo de la plataforma si es el tenant de la plataforma)."""
+        client = dsr.client
+        to_email = self._data_request_contact(client)
+        if not to_email:
+            logger.warning(f"[Email] Client {client.slug} sin email de contacto para solicitudes de datos")
+            return False
+        return self._send_email(
+            to_email=to_email,
+            subject=f"Nueva solicitud de datos personales en {client.name}",
+            template_name='data_request_notice',
+            context={
+                'client': client,
+                'dsr': dsr,
+                'site_url': self._site_url(client),
+            },
+            reply_to=dsr.email,
+        )
+
+    @staticmethod
+    def _data_request_contact(client) -> str:
+        if client.slug == settings.PLATFORM_TENANT_SLUG:
+            return getattr(settings, 'SUPPORT_EMAIL', '')
+        site_settings = getattr(client, 'settings', None)
+        return (site_settings.contact_email if site_settings else '') or ''
+
 
 # =========================================================================
 # FUNCIONES HELPER (para usar sin instanciar la clase)
