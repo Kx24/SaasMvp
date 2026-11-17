@@ -149,12 +149,23 @@
       "id": "BOLT-62",
       "maestra": "COMP-01",
       "titulo": "Componente navbar compartido (6 de 7)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-62.md",
       "red_tests": [
         "apps.core.tests.test_component_navbar"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.66,
+      "tests": 846,
+      "hallazgos": [
+        "Los slots conservan los `style=\"\"` y colores inline originales. Quedan como deuda frente a la preferencia por Tailwind.",
+        "Los slots default, simple, stripe y servelec siguen duplicando bastante marcado entre sí (menú móvil, auth). Se unificó la ubicación, no el contenido."
+      ],
+      "revisar_humano": [
+        "Revisar en el navegador el navbar de Servelec, del tema default y de andesscale, incluido el menú móvil a 375 px. El dev no confirmó que Playwright cubra ese ancho.",
+        "Los tenants sin carpeta de tema usan la variante `simple`, que se elige cuando `variant` se omite. Confirmar que el navbar global se ve igual.",
+        "Los temas ya no tienen `components/navbar.html` propio. Un tema nuevo debe incluir el compartido con `variant`, según `docs/design-system.md`."
+      ]
     },
     {
       "id": "BOLT-63",

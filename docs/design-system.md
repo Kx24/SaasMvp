@@ -194,6 +194,18 @@ El marcado de cada variante vive en el slot `components/slots/footer_<variant>.h
 `themes/default` estaba vacío y dejaba sin footer al tema base). Equivalencia de HTML:
 `apps/core/tests/test_component_footer.py` + `apps/core/tests/fixtures/footer_*.html`.
 
+### Componente `navbar` (`components/navbar.html`, COMP-01)
+
+Parámetro: `variant` = `"simple"` (omitido; navbar global de los tenants sin tema propio) |
+`"default"` (tema base: RRSS, CTA configurable, scroll) | `"stripe"` (andesscale: transparente →
+glass al hacer scroll, CTA «Empezar ahora») | `"servelec"` (acento eléctrico, teléfono, CTA
+«Cotizar»). Contexto: `client`, `client.settings` y `user`. Incluye menú móvil (probar a 375 px)
+y botones de sesión; el CTA configurable sale de `components/navbar_cta.html`. El marcado de
+cada variante vive en `components/slots/navbar_<variant>.html`; `navbar.html` solo despacha.
+Los `base.html` de tema lo incluyen directo (`{% include "components/navbar.html" with
+variant="servelec" %}`); **no** crear `themes/<tema>/components/navbar.html`. Equivalencia de
+HTML: `apps/core/tests/test_component_navbar.py` + `apps/core/tests/fixtures/navbar_*.html`.
+
 ## 3. Dónde se aplica esto
 
 `#RC-09` (landing de Rancho Cachimba por componente, sección por sección) es

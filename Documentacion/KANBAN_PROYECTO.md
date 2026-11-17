@@ -130,7 +130,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `COMP` — Componentes
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `COMP-01` | Generalizar componentes duplicados | P1 | L | **Parcial:** `cta` ✅ (`BOLT-57`), `about` ✅ (`BOLT-58`), `services` ✅ (`BOLT-59`), `contact` ✅ (`BOLT-60`), `footer` ✅ (`BOLT-61`); faltan `navbar`, `hero_ctas`/`hero_overlay_theme` en `templates/components/` con el patrón de `media_collection` (parámetro `mode` + slots). Un componente por commit; a11y y guardia de tokens verdes |
+| `COMP-01` | Generalizar componentes duplicados | P1 | L | **Parcial:** `cta` ✅ (`BOLT-57`), `about` ✅ (`BOLT-58`), `services` ✅ (`BOLT-59`), `contact` ✅ (`BOLT-60`), `footer` ✅ (`BOLT-61`), `navbar` ✅ (`BOLT-62`); faltan `hero_ctas`/`hero_overlay_theme` en `templates/components/` con el patrón de `media_collection` (parámetro `mode` + slots). Un componente por commit; a11y y guardia de tokens verdes |
 
 ### `MOD` — Módulos
 | ID | Card | P | Esf. | Definición de hecho |

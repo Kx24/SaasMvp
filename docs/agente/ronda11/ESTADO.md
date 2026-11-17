@@ -10,7 +10,7 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-59` | `COMP-01` | Componente services compartido (3 de 7) | ✅ DONE | 830 | 0.62 |
 | `BOLT-60` | `COMP-01` | Componente contact compartido (4 de 7) | ✅ DONE | 834 | 0.75 |
 | `BOLT-61` | `COMP-01` | Componente footer compartido (5 de 7) | ✅ DONE | 840 | 0.58 |
-| `BOLT-62` | `COMP-01` | Componente navbar compartido (6 de 7) | ⏳ TODO |  |  |
+| `BOLT-62` | `COMP-01` | Componente navbar compartido (6 de 7) | ✅ DONE | 846 | 0.66 |
 | `BOLT-63` | `COMP-01` | hero_ctas y hero_overlay_theme compartidos; cierre (7 de 7) | ⏳ TODO |  |  |
 
 ## Revisar a mano en el PR
@@ -40,6 +40,9 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-61`: Tenants con tema default ahora muestran el footer genérico (antes en blanco): cambio visible al cliente.
 - `BOLT-61`: Verificar visualmente en navegador los footers de andesscale y servelec (la equivalencia se prueba contra fixtures normalizadas, no pixel a pixel).
 - `BOLT-61`: Texto del footer genérico (© 2024 fijo, 'Soluciones profesionales para tu negocio') visible al cliente.
+- `BOLT-62`: Revisar en el navegador el navbar de Servelec, del tema default y de andesscale, incluido el menú móvil a 375 px. El dev no confirmó que Playwright cubra ese ancho.
+- `BOLT-62`: Los tenants sin carpeta de tema usan la variante `simple`, que se elige cuando `variant` se omite. Confirmar que el navbar global se ve igual.
+- `BOLT-62`: Los temas ya no tienen `components/navbar.html` propio. Un tema nuevo debe incluir el compartido con `variant`, según `docs/design-system.md`.
 
 ## Hallazgos incidentales
 
@@ -59,3 +62,5 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-61`: 'Términos' y 'Cookies' del footer andesscale siguen con href="#" (ya en BOLT-33).
 - `BOLT-61`: El footer genérico trae '© 2024' fijo en lugar del año actual.
 - `BOLT-61`: themes/default/components/footer.html vacío ocultaba el footer global en el tema base.
+- `BOLT-62`: Los slots conservan los `style=""` y colores inline originales. Quedan como deuda frente a la preferencia por Tailwind.
+- `BOLT-62`: Los slots default, simple, stripe y servelec siguen duplicando bastante marcado entre sí (menú móvil, auth). Se unificó la ubicación, no el contenido.
