@@ -119,6 +119,21 @@ La gestión de usuarios (invitar, cambiar roles) aún no existe en el dashboard;
 - **Hoy la home no es modular:** `apps/website/views/public.py::home` entrega `hero`, `about`, `contact_section`, `services` y cada tema arma su página a mano. Objetivo y camino: registro de módulos (opción A, `CONS-08`) y después orden/visibilidad de bloques (opción B, `MOD-02`).
 - Emails: plantillas HTML + texto en `templates/emails/`.
 
+### Módulos
+
+Registro en `apps/tenants/modules.py` (`MODULES`, `Module`, `MenuEntry`; helpers `get_module`, `is_enabled`, `enabled_modules`, `module_for_url`). Hoy solo declara: ni el menú ni las vistas lo consumen (eso es `CONS-09`).
+
+| Módulo | Flag (`ClientSettings`) | Límite (`Client`) | Menú | Notas |
+|---|---|---|---|---|
+| `core` | — (siempre activo) | — | Inicio, Marca, Secciones | |
+| `services` | — (siempre activo) | `max_services` | sin entrada propia (vive en Secciones) | |
+| `gallery` | `enable_gallery` | `max_images` | Portada, Galería | `dashboard_portada` está aquí porque su vista exige `enable_gallery` |
+| `contact` | `enable_contact_form` | — | Mensajes | `menu_visible_when_disabled=True`: con contacto apagado "Mensajes" sigue visible |
+
+Decisión del dueño: un módulo apagado responderá 404 (se aplica en `CONS-09`).
+
+**Declarar un módulo nuevo:** agregar un `Module(...)` a `MODULES` con su `flag` (campo booleano de `ClientSettings`, o `None`), `limit_field` (campo de `Client`, o `None`), todas sus rutas del dashboard en `url_names` y sus `MenuEntry` (con una `permission` de `DASHBOARD_PERMISSIONS`). `apps.tenants.tests_modules` falla si una ruta del dashboard en `apps/website/urls.py` no pertenece a exactamente un módulo.
+
 ## 6. Flujos principales
 
 | Flujo | Recorrido |

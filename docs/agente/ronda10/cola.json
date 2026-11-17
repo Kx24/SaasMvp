@@ -6,12 +6,20 @@
       "id": "BOLT-52",
       "maestra": "CONS-08",
       "titulo": "Registro de módulos (opción A)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-52.md",
       "red_tests": [
         "apps.tenants.tests_modules"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.41,
+      "tests": 721,
+      "hallazgos": [],
+      "revisar_humano": [
+        "La entrada de menú \"Portada\" quedó en gallery, no en core como decía la tabla del spec. Es consecuencia de poner dashboard_portada en gallery. Con la galería apagada, CONS-09 ocultaría \"Portada\" y la ruta daría 404.",
+        "Los valores de orden del menú (10 Inicio, 20 Marca, 30 Portada, 40 Secciones, 50 Galería, 60 Mensajes) los eligió el dev; el spec no los fijaba.",
+        "La sección \"Módulos\" de ARQUITECTURA.md quedó como subsección de §5 para no renumerar las demás."
+      ]
     },
     {
       "id": "BOLT-53",
