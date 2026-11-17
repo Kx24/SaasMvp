@@ -6,12 +6,19 @@
       "id": "BOLT-48",
       "maestra": "LEY-03",
       "titulo": "Plazos de Order, PaymentLog y EmailOutbox",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-48.md",
       "red_tests": [
         "apps.core.tests.test_purge_expired_data"
       ],
-      "permite_migracion": true
+      "permite_migracion": true,
+      "costo_usd": 0,
+      "tests": 662,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Commit manual d1c25b2: el gate pasó al 2.º intento (e2e falló una vez y no se reprodujo) pero el validador no alcanzó a correr; la ronda se cortó a las 04:51.",
+        "BOLT-45 (LEY-08) rescatada del stash de la ronda 8 en 1baa89f, con conflictos resueltos a mano en base.py y SEGURIDAD.md; no pasó por el validador."
+      ]
     },
     {
       "id": "BOLT-49",
