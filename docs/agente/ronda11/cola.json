@@ -126,12 +126,24 @@
       "id": "BOLT-61",
       "maestra": "COMP-01",
       "titulo": "Componente footer compartido (5 de 7)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-61.md",
       "red_tests": [
         "apps.core.tests.test_component_footer"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.58,
+      "tests": 840,
+      "hallazgos": [
+        "'Términos' y 'Cookies' del footer andesscale siguen con href=\"#\" (ya en BOLT-33).",
+        "El footer genérico trae '© 2024' fijo en lugar del año actual.",
+        "themes/default/components/footer.html vacío ocultaba el footer global en el tema base."
+      ],
+      "revisar_humano": [
+        "Tenants con tema default ahora muestran el footer genérico (antes en blanco): cambio visible al cliente.",
+        "Verificar visualmente en navegador los footers de andesscale y servelec (la equivalencia se prueba contra fixtures normalizadas, no pixel a pixel).",
+        "Texto del footer genérico (© 2024 fijo, 'Soluciones profesionales para tu negocio') visible al cliente."
+      ]
     },
     {
       "id": "BOLT-62",

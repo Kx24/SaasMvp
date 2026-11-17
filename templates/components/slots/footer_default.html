@@ -1,0 +1,33 @@
+<footer class="bg-gray-900 text-gray-300 py-12">
+    <div class="container mx-auto px-4">
+        <div class="grid md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-white text-xl font-bold mb-4">{{ client.settings.company_name }}</h3>
+                <p class="text-gray-400">Soluciones profesionales para tu negocio</p>
+            </div>
+            
+            <div>
+                <h4 class="text-white font-semibold mb-4">Enlaces</h4>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'home' %}" class="hover:text-white">Inicio</a></li>
+                    <li><a href="#servicios" class="hover:text-white">Servicios</a></li>
+                    <li><a href="#contacto" class="hover:text-white">Contacto</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="text-white font-semibold mb-4">Contacto</h4>
+                {% if client.settings.contact_email %}
+                <p>📧 {{ client.settings.contact_email }}</p>
+                {% endif %}
+                {% if client.settings.contact_phone %}
+                <p>📞 {{ client.settings.contact_phone }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+            <p class="text-gray-400">© 2024 {{ client.settings.company_name }}. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>

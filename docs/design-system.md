@@ -182,6 +182,18 @@ crear `themes/<tema>/components/contact.html` (el loader lo resolvería primero 
 se llamaría a sí mismo). Equivalencia de HTML: `apps/core/tests/test_component_contact.py` +
 `apps/core/tests/fixtures/contact_*.html`.
 
+### Componente `footer` (`components/footer.html`, COMP-01)
+
+Parámetro: `variant` = `"default"` (omitido; footer genérico de 3 columnas) | `"stripe"`
+(andesscale: 4 columnas, redes, WhatsApp, barra con `/privacidad/`) | `"servelec"` (fondo
+verde, descripción/logo_footer, crédito Andesscale). Contexto: `client` y `client.settings`.
+El marcado de cada variante vive en el slot `components/slots/footer_<variant>.html`;
+`footer.html` solo despacha. Los `base.html` de tema incluyen el compartido directamente
+(`{% include "components/footer.html" with variant="stripe" %}`); **no** crear
+`themes/<tema>/components/footer.html` (el loader lo resolvería primero; el de
+`themes/default` estaba vacío y dejaba sin footer al tema base). Equivalencia de HTML:
+`apps/core/tests/test_component_footer.py` + `apps/core/tests/fixtures/footer_*.html`.
+
 ## 3. Dónde se aplica esto
 
 `#RC-09` (landing de Rancho Cachimba por componente, sección por sección) es
