@@ -7,7 +7,7 @@ Rama `agent/ronda9` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-48` | `LEY-03` | Plazos de Order, PaymentLog y EmailOutbox | ✅ DONE | 662 | 0 |
 | `BOLT-49` | `LEY-02` | Canal y registro de solicitudes de derechos (1 de 2) | ✅ DONE | 682 | 1.38 |
 | `BOLT-50` | `LEY-02` | Exportar, suprimir y bloquear datos de una persona (2 de 2) | ✅ DONE | 697 | 0.87 |
-| `BOLT-51` | `OPS-04` | Alerta de créditos de Cloudinary | ⏳ TODO |  |  |
+| `BOLT-51` | `OPS-04` | Alerta de créditos de Cloudinary | ✅ DONE | 707 | 0.49 |
 
 ## Revisar a mano en el PR
 
@@ -27,6 +27,11 @@ Rama `agent/ronda9` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-50`: Las compras con Order.client nulo se asignan al tenant de plataforma (PLATFORM_TENANT_SLUG): confirmar que ese criterio es correcto.
 - `BOLT-50`: Modelos con datos personales que quedaron fuera: cuentas auth.User y UserProfile; ClientSettings, Client.contact_email y los from_email y reply_to de configuración del tenant (datos del cliente, no de terceros); logs de aplicación y backups.
 - `BOLT-50`: Los mensajes de contacto bloqueados siguen accesibles por URL directa de detalle (ver hallazgos).
+- `BOLT-51`: Crear la variable PLATFORM_ALERT_EMAIL en Render, tanto en el servicio web como en los crons. Sin ella la alerta solo queda en el log.
+- `BOLT-51`: El digest semanal es ahora el único disparador automático de la alerta. Al correr una vez por semana, un cruce de umbral puede tardar hasta 7 días en avisarse. Hay que decidir si hace falta un cron propio para `cloudinary_usage --alert`.
+- `BOLT-51`: `--alert` con la API caída no avisa a nadie: solo imprime el error y sale con código 0, como pedía el spec.
+- `BOLT-51`: El texto del correo (asunto y cuerpo) es visible para quien reciba la alerta y no estaba redactado en el spec.
+- `BOLT-51`: En el histórico del kanban la fecha puesta es 2026-11-16, la del turno anterior, no la de hoy.
 
 ## Hallazgos incidentales
 

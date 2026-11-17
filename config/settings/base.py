@@ -418,6 +418,11 @@ EMAIL_OUTBOX_RETENTION_DAYS = 90
 # alcanzaran el tope anterior (LEY-08).
 CONTACT_PURGE_WARNING_DAYS = 30
 
+# Creditos de Cloudinary (OPS-04): % de uso desde el que se avisa / se alerta.
+CLOUDINARY_ALERT_THRESHOLDS = {'warning': 70, 'critical': 90}
+# Destino de las alertas operativas de la plataforma (vacio = no se envian).
+PLATFORM_ALERT_EMAIL = config('PLATFORM_ALERT_EMAIL', default='')
+
 # Politica de privacidad vigente (LEY-01). Subir la version al cambiar el texto legal.
 PRIVACY_POLICY_VERSION = '2026-12-01'
 PRIVACY_POLICY_DATE = '1 de diciembre de 2026'

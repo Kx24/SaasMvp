@@ -107,6 +107,7 @@
 | `CONS-04` | Edición inline pública eliminada (7 rutas, vistas, 6 templates legacy); `delete_service_dashboard` renderizaba un template inexistente (`dashboard/delete_service.html`) y ahora usa `service_confirm_delete.html` con el `{% url %}` corregido | 2026-11-14 | `BOLT-21` |
 | `CONS-12` | Guardia estática de objetos de tenant extendida a `orders` y `accounts` con lista explícita de excepciones justificadas; corregida fuga: recuperar contraseña desde el dominio de A ya no dispara el reset de un usuario de B (respuesta idéntica, sin enumeración) | 2026-11-15 | `BOLT-40` |
 | `DOC-01` | Documentación al día tras las rondas 4 a 8: ARQUITECTURA (paquete `views/`, Build Command `./build.sh`, variables obligatorias, Render no sincroniza `render.yaml`), SEGURIDAD (hallazgos cerrados pasan a controles; bandit en 0), INDEX, MASTER_PLAN y `Documentacion/README.md` sin código borrado ni auto-filtro de manager; guardia `test_docs_vigentes` | 2026-11-16 | `BOLT-47` |
+| `OPS-04` | Alerta de créditos de Cloudinary: `CLOUDINARY_ALERT_THRESHOLDS` (70/90) y `PLATFORM_ALERT_EMAIL` en settings; `cloudinary_usage --alert` envía un correo de aviso/alerta y `send_contact_digest` lo ejecuta una vez por corrida (no en `--dry-run`, sin bloquear el digest) | 2026-11-16 | `BOLT-51` |
 
 ## Rancho Cachimba (en pausa — rama `feature/RanchocachimbaEtapa1`)
 

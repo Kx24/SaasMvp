@@ -34,6 +34,7 @@ from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+from apps.core.management.commands.cloudinary_usage import check_credit_alert
 from apps.core.management.commands.purge_expired_data import purge_expired_data
 from apps.tenants.models import Client, ClientSettings
 from apps.website.models import ContactSubmission, exclude_blocked
@@ -83,6 +84,13 @@ class Command(BaseCommand):
             purge_expired_data(dry_run=dry_run)
         except Exception:
             logger.error('[Digest] Fallo la purga de datos vencidos', exc_info=True)
+
+        # ── Alerta de créditos de Cloudinary (OPS-04); no bloquea el digest ──
+        if not dry_run:
+            try:
+                check_credit_alert()
+            except Exception:
+                logger.error('[Digest] Fallo la alerta de créditos de Cloudinary', exc_info=True)
 
         # ── Obtener tenants a procesar ─────────────────────────────────────
         if tenant_slug:

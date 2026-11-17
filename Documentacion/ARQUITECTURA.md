@@ -139,6 +139,7 @@ La gestión de usuarios (invitar, cambiar roles) aún no existe en el dashboard;
 - **Variables obligatorias en producción:** `SECRET_KEY`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `FIELD_ENCRYPTION_KEY` (cifra las credenciales SMTP/API de `ClientEmailSettings`; `SEC-06`) y `DATABASE_URL` (Neon). Detalle en [`Inventario_Secretos.md`](Inventario_Secretos.md).
 - **Render no se sincroniza desde `render.yaml`:** el servicio `saasmvp` se configuró a mano en el dashboard; cambiar el archivo no cambia el servicio (ni crea los crons que declara). Todo ajuste (Build Command, variables, crons) se hace en el dashboard.
 - **Ramas:** `main` = producción (deploy automático en Render), `develop` = integración.
+- **Alerta de créditos de Cloudinary (`OPS-04`):** `PLATFORM_ALERT_EMAIL` (vacío = no se envía, solo log) recibe un correo al llegar a `CLOUDINARY_ALERT_THRESHOLDS` (`warning` 70 %, `critical` 90 %, en `config/settings/base.py`). Lo dispara `cloudinary_usage --alert` y cada corrida de `send_contact_digest` (salvo `--dry-run`). Crear la variable en Render (web y crons).
 - **Variables y secretos:** inventario en [`Inventario_Secretos.md`](Inventario_Secretos.md).
 - **Calidad:** suite completa (`python manage.py test apps`), suite de aislamiento (`apps.tenants.tests_isolation`), Playwright (humo + a11y). El gate corre en GitHub Actions (`.github/workflows/ci.yml`, `SEC-12`) y también a mano. Reglas: sección "Arnés de TDD" del kanban.
 

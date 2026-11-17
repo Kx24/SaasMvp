@@ -175,7 +175,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `BIZ-03` | Cláusulas de mantención y fin de servicio | P2 | M | Sin código. `MASTER_PLAN` §4.5 |
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |
 | `PAY-02` | Registro de fricciones del cobro manual | P3 | S | — |
-| `OPS-04` | Alerta de créditos Cloudinary | P3 | S | Existe el comando `cloudinary_usage`; conectar umbrales y aviso; los umbrales (`CLOUDINARY_ALERT_THRESHOLDS`) se borraron con `DEUDA-06`: definirlos de nuevo |
 | `TOOL-08` | `test_gatekeeper` sin falsos rojos | P2 | S | Sus tests lanzan el gate completo con tope fijo de 120 s y fallan por tiempo con la máquina cargada. Mitigado en las rondas del agente (`orchestrate.py` exporta `GATEKEEPER_TEST_RUN`); falta que no falle en la suite a mano. Hallado por `BOLT-44`, `46`, `47` |
 | `DEUDA-10` | `check_tenant_setup` falla en un tenant recién provisionado | P2 | S | Da `[FAIL]` por falta de `SEOConfig('home')`: que `provision_tenant` lo cree o que el chequeo lo trate como aviso. Hallado por `BOLT-44` |
 | `OPS-05` | Cache compartida, `/health/` real, Sentry | P3 | M | Antes de más de un proceso |
