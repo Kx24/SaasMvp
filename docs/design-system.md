@@ -168,6 +168,20 @@ directamente (`{% include "components/services.html" with variant="adaptive" %}`
 el include se llamaría a sí mismo). Equivalencia de HTML:
 `apps/core/tests/test_component_services.py` + `apps/core/tests/fixtures/services_*.html`.
 
+### Componente `contact` (`components/contact.html`, COMP-01)
+
+Parámetros: `variant` = `"stripe"` (por defecto; andesscale: datos email/teléfono/WhatsApp,
+descripción de la sección y formulario multistep `components/contact_multistep.html`) |
+`"servelec"` (datos email/teléfono/dirección en filas enlazables y formulario
+`partials/contact_form.html` en panel gris). Contexto: `client.settings` y la sección
+`contact` (`get_section`). Slots: ninguno por ahora. El consentimiento (`LEY-01`) y el botón
+(`COMP-03`) viven en los formularios, no en el componente. `themes/default` no usa componente
+(su `home.html` renderiza en línea). El `home.html` del tema incluye el compartido
+directamente (`{% include "components/contact.html" with variant="servelec" %}`); **no**
+crear `themes/<tema>/components/contact.html` (el loader lo resolvería primero y el include
+se llamaría a sí mismo). Equivalencia de HTML: `apps/core/tests/test_component_contact.py` +
+`apps/core/tests/fixtures/contact_*.html`.
+
 ## 3. Dónde se aplica esto
 
 `#RC-09` (landing de Rancho Cachimba por componente, sección por sección) es

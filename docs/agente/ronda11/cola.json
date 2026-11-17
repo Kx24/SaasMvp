@@ -103,12 +103,24 @@
       "id": "BOLT-60",
       "maestra": "COMP-01",
       "titulo": "Componente contact compartido (4 de 7)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-60.md",
       "red_tests": [
         "apps.core.tests.test_component_contact"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.75,
+      "tests": 834,
+      "hallazgos": [
+        "Servelec conserva colores hex y estilos style=\"\" en contact; conviene migrarlos a tokens/Tailwind cuando se pueda cambiar su HTML.",
+        "themes/default pinta la sección de contacto en línea en su home.html, sin usar el componente compartido."
+      ],
+      "revisar_humano": [
+        "Ver en el navegador la sección contacto en Servelec, andesscale y el tema base.",
+        "El componente usa ramas {% if variant %} en vez de slots; es una decisión del dev para mantener el HTML idéntico.",
+        "El comentario HTML de andesscale se conserva dentro del componente porque lo exige la fixture de tests_theme_tree.",
+        "No pude ver el diff completo (git estaba denegado en esta sesión). Revisé los archivos nuevos y las referencias con Read y Grep. Conviene mirar los cambios en los home.html y los kanban en el PR."
+      ]
     },
     {
       "id": "BOLT-61",

@@ -83,6 +83,7 @@
 | `COMP-01` (parte) | Componente `cta` compartido en `templates/components/cta.html` (parámetro `variant` orbs/glow); los `home.html` de andesscale y servelec lo incluyen directo y se borraron los `cta.html` de tema; equivalencia de HTML por fixture | 2026-11-17 | `BOLT-57` |
 | `COMP-01` (parte) | Componente `about` compartido en `templates/components/about.html` (parámetro `variant` stripe/blocks); los `home.html` de andesscale y servelec lo incluyen directo y se borraron los `about.html` de tema; `themes/default` no tenía componente (renderiza en línea); equivalencia de HTML por fixture | 2026-11-17 | `BOLT-58` |
 | `COMP-01` (parte) | Componente `services` compartido en `templates/components/services.html` (parámetros `variant` stripe/adaptive y `subtitle`); los `home.html` de andesscale y servelec lo incluyen directo y se borraron los `services.html` de tema (también el de `themes/default`, que nadie incluía); equivalencia de HTML por fixture | 2026-11-17 | `BOLT-59` |
+| `COMP-01` (parte) | Componente `contact` compartido en `templates/components/contact.html` (parámetro `variant` stripe/servelec); los `home.html` de andesscale y servelec lo incluyen directo y se borraron los `contact.html` de tema; equivalencia de HTML por fixture | 2026-11-17 | `BOLT-60` |
 
 ## Tooling, flujo comercial y operaciones
 

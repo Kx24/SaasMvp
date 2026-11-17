@@ -8,7 +8,7 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-57` | `COMP-01` | Componente cta compartido (1 de 7) | ✅ DONE | 822 | 0.63 |
 | `BOLT-58` | `COMP-01` | Componente about compartido (2 de 7) | ✅ DONE | 826 | 0.66 |
 | `BOLT-59` | `COMP-01` | Componente services compartido (3 de 7) | ✅ DONE | 830 | 0.62 |
-| `BOLT-60` | `COMP-01` | Componente contact compartido (4 de 7) | ⏳ TODO |  |  |
+| `BOLT-60` | `COMP-01` | Componente contact compartido (4 de 7) | ✅ DONE | 834 | 0.75 |
 | `BOLT-61` | `COMP-01` | Componente footer compartido (5 de 7) | ⏳ TODO |  |  |
 | `BOLT-62` | `COMP-01` | Componente navbar compartido (6 de 7) | ⏳ TODO |  |  |
 | `BOLT-63` | `COMP-01` | hero_ctas y hero_overlay_theme compartidos; cierre (7 de 7) | ⏳ TODO |  |  |
@@ -33,6 +33,10 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-59`: Confirmar que el tema base (default) no cambió: su home renderiza en línea y ya no tiene services.html.
 - `BOLT-59`: El normalizador del test colapsa espacios dentro de class="..." y quita comentarios HTML. Las únicas diferencias aceptadas son de espacios y comentarios, y servelec tenía atributos multilínea con espacios sobrantes.
 - `BOLT-59`: La decisión de no dejar envoltorios en los temas la tomó el dev. El spec ofrecía envoltorio fino o sin archivo, así que está dentro del DoD.
+- `BOLT-60`: Ver en el navegador la sección contacto en Servelec, andesscale y el tema base.
+- `BOLT-60`: El componente usa ramas {% if variant %} en vez de slots; es una decisión del dev para mantener el HTML idéntico.
+- `BOLT-60`: El comentario HTML de andesscale se conserva dentro del componente porque lo exige la fixture de tests_theme_tree.
+- `BOLT-60`: No pude ver el diff completo (git estaba denegado en esta sesión). Revisé los archivos nuevos y las referencias con Read y Grep. Conviene mirar los cambios en los home.html y los kanban en el PR.
 
 ## Hallazgos incidentales
 
@@ -47,3 +51,5 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-58`: El test Playwright del formulario multi-step de andesscale falló una vez por timeout y pasó en las dos corridas siguientes; parece intermitente y no toca about.
 - `BOLT-58`: El informe del dev admite que no corrió el rojo contra HEAD. Lo confirma red_check del gate: 3 tests estructurales fallan contra el código original.
 - `BOLT-59`: themes/default/components/services.html era huérfano (su home renderiza la sección en línea); se borró como código muerto.
+- `BOLT-60`: Servelec conserva colores hex y estilos style="" en contact; conviene migrarlos a tokens/Tailwind cuando se pueda cambiar su HTML.
+- `BOLT-60`: themes/default pinta la sección de contacto en línea en su home.html, sin usar el componente compartido.
