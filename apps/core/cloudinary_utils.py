@@ -22,6 +22,7 @@
 import logging
 
 import cloudinary
+import cloudinary.api
 import cloudinary.uploader
 
 logger = logging.getLogger(__name__)

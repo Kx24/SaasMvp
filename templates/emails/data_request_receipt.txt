@@ -1,0 +1,11 @@
+Hola {{ dsr.name }},
+
+Recibimos tu solicitud de datos personales ({{ dsr.get_request_type_display }}) en {{ client.name }}.
+
+Responderemos al correo {{ dsr.email }} a más tardar el {{ dsr.due_at|date:"d/m/Y" }} (30 días corridos desde la recepción).
+
+Si no fuiste tú quien hizo esta solicitud, puedes ignorar este mensaje.
+
+Política de privacidad: {{ site_url }}/privacidad/
+
+{{ company_name }}

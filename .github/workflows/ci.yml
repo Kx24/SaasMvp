@@ -1,7 +1,11 @@
 name: CI
 
+# push solo en ramas de integración y del agente; el resto de las ramas se
+# valida vía pull_request. Sin este filtro, cada push a una rama con PR abierto
+# corría la CI dos veces (push + pull_request).
 on:
   push:
+    branches: [develop, main, 'agent/**']
   pull_request:
     branches: [develop, main]
 
@@ -32,6 +36,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Render fija PYTHON_VERSION=3.11.0; la CI usa el último parche de 3.11
+      # a propósito (detecta regresiones de parche antes de que lleguen a Render).
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
