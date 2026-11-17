@@ -36,7 +36,7 @@ from django.utils import timezone
 
 from apps.core.management.commands.purge_expired_data import purge_expired_data
 from apps.tenants.models import Client, ClientSettings
-from apps.website.models import ContactSubmission
+from apps.website.models import ContactSubmission, exclude_blocked
 
 logger = logging.getLogger(__name__)
 
@@ -158,11 +158,11 @@ class Command(BaseCommand):
         )
 
         # Obtener mensajes del período (excluyendo spam)
-        base_qs = ContactSubmission.objects.filter(
+        base_qs = exclude_blocked(ContactSubmission.objects.filter(
             client=client,
             is_spam=False,
             created_at__gte=since,
-        )
+        ), client)
 
         contacts_new     = list(base_qs.filter(status='new').order_by('-created_at'))
         contacts_read    = list(base_qs.filter(status='read').order_by('-created_at'))
@@ -244,13 +244,13 @@ class Command(BaseCommand):
         cap = timedelta(days=settings.CONTACT_MAX_RETENTION_DAYS)
         warn = timedelta(days=settings.CONTACT_PURGE_WARNING_DAYS)
         now = timezone.now()
-        qs = ContactSubmission.objects.filter(
+        qs = exclude_blocked(ContactSubmission.objects.filter(
             client=client,
             status='new',
             is_spam=False,
             created_at__gte=now - cap,
             created_at__lt=now - cap + warn,
-        )
+        ), client)
         count = qs.count()
         if count == 0:
             return 0, None
@@ -344,7 +344,9 @@ class Command(BaseCommand):
         """
         cap_days = settings.CONTACT_MAX_RETENTION_DAYS
         cutoff = timezone.now() - timedelta(days=cap_days)
-        expired = ContactSubmission.objects.filter(client=client, created_at__lt=cutoff)
+        expired = exclude_blocked(
+            ContactSubmission.objects.filter(client=client, created_at__lt=cutoff), client,
+        )
 
         count = expired.count()
         if count == 0:
@@ -379,7 +381,9 @@ class Command(BaseCommand):
         retention_days = max(client_settings.inbox_retention_days, 7)  # mínimo 7 días
         cutoff = timezone.now() - timedelta(days=retention_days)
 
-        old = ContactSubmission.objects.filter(client=client, created_at__lt=cutoff)
+        old = exclude_blocked(
+            ContactSubmission.objects.filter(client=client, created_at__lt=cutoff), client,
+        )
         to_purge = old.filter(
             Q(status__in=['read', 'replied'], is_spam=False) | Q(is_spam=True)
         )

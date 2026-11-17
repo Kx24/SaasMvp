@@ -723,3 +723,47 @@ class DataSubjectRequest(models.Model):
         if self.due_at is None:
             return None
         return (self.due_at - timezone.now()).days
+
+
+class BlockedSubject(models.Model):
+    """
+    Bloqueo temporal de los datos de una persona (Ley 21.719, art. 8 ter).
+
+    Mientras exista, los ContactSubmission de ese correo se ocultan del
+    dashboard, el digest y los contadores, y no se purgan.
+    """
+
+    client = models.ForeignKey(
+        'tenants.Client',
+        on_delete=models.CASCADE,
+        related_name='blocked_subjects',
+    )
+    email = models.EmailField()
+    blocked_at = models.DateTimeField(auto_now_add=True)
+    reason = models.CharField(max_length=300, blank=True)
+
+    objects = TenantAwareManager()
+
+    class Meta:
+        verbose_name = 'Titular bloqueado'
+        verbose_name_plural = 'Titulares bloqueados'
+        constraints = [
+            models.UniqueConstraint(fields=['client', 'email'], name='uniq_blocked_subject_client_email'),
+        ]
+
+    def save(self, *args, **kwargs):
+        self.email = (self.email or '').strip().lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.email} (bloqueado)"
+
+
+def exclude_blocked(queryset, client):
+    """Quita de un queryset de ContactSubmission los de correos bloqueados en `client`."""
+    from django.db.models.functions import Lower
+
+    blocked = list(BlockedSubject.objects.filter(client=client).values_list('email', flat=True))
+    if not blocked:
+        return queryset
+    return queryset.annotate(_email_lc=Lower('email')).exclude(_email_lc__in=blocked)

@@ -66,6 +66,7 @@ class EmailService:
         context: dict,
         reply_to: str = None,
         force_sync: bool = False,
+        client=None,
     ) -> bool:
         """
         Método interno para enviar emails con template HTML.
@@ -99,6 +100,7 @@ class EmailService:
 
             if getattr(settings, 'EMAIL_ASYNC', False) and not force_sync:
                 EmailOutbox.objects.create(
+                    client=client,
                     to_email=to_email,
                     from_email=self.from_email,
                     subject=subject,
@@ -161,7 +163,8 @@ class EmailService:
             to_email=order.email,
             subject=f"✅ Pago confirmado - {order.plan.name} | Andesscale",
             template_name='payment_success',
-            context=context
+            context=context,
+            client=order.client,
         )
     
     # =========================================================================
@@ -196,7 +199,8 @@ class EmailService:
             to_email=user.email,
             subject="🎉 ¡Bienvenido a Andesscale! - Configura tu contraseña",
             template_name='welcome',
-            context=context
+            context=context,
+            client=client,
         )
     
     # =========================================================================
@@ -229,7 +233,8 @@ class EmailService:
             to_email=user.email,
             subject=f"🚀 ¡Tu sitio {client.name} está listo!",
             template_name='site_ready',
-            context=context
+            context=context,
+            client=client,
         )
     
     # =========================================================================
@@ -264,7 +269,8 @@ class EmailService:
             to_email=order.email,
             subject=f"⏰ Tu enlace de configuración expira en {hours_remaining} horas",
             template_name='token_expiring',
-            context=context
+            context=context,
+            client=order.client,
         )
     
     # =========================================================================
@@ -332,7 +338,8 @@ class EmailService:
             subject=f"📬 Nuevo mensaje de contacto en {client.name}",
             template_name='contact_received',
             context=context,
-            reply_to=contact_data.get('email')
+            reply_to=contact_data.get('email'),
+            client=client,
         )
 
     # =========================================================================
@@ -352,6 +359,7 @@ class EmailService:
                 'site_url': self._site_url(client),
             },
             reply_to=self._data_request_contact(client),
+            client=client,
         )
 
     def send_data_request_notice(self, dsr) -> bool:
@@ -371,6 +379,7 @@ class EmailService:
                 'site_url': self._site_url(client),
             },
             reply_to=dsr.email,
+            client=client,
         )
 
     @staticmethod
