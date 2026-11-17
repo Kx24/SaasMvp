@@ -11,7 +11,7 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-60` | `COMP-01` | Componente contact compartido (4 de 7) | ✅ DONE | 834 | 0.75 |
 | `BOLT-61` | `COMP-01` | Componente footer compartido (5 de 7) | ✅ DONE | 840 | 0.58 |
 | `BOLT-62` | `COMP-01` | Componente navbar compartido (6 de 7) | ✅ DONE | 846 | 0.66 |
-| `BOLT-63` | `COMP-01` | hero_ctas y hero_overlay_theme compartidos; cierre (7 de 7) | ⏳ TODO |  |  |
+| `BOLT-63` | `COMP-01` | hero_ctas y hero_overlay_theme compartidos; cierre (7 de 7) | ✅ DONE | 846 | 0.69 |
 
 ## Revisar a mano en el PR
 
@@ -43,6 +43,10 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-62`: Revisar en el navegador el navbar de Servelec, del tema default y de andesscale, incluido el menú móvil a 375 px. El dev no confirmó que Playwright cubra ese ancho.
 - `BOLT-62`: Los tenants sin carpeta de tema usan la variante `simple`, que se elige cuando `variant` se omite. Confirmar que el navbar global se ve igual.
 - `BOLT-62`: Los temas ya no tienen `components/navbar.html` propio. Un tema nuevo debe incluir el compartido con `variant`, según `docs/design-system.md`.
+- `BOLT-63`: Confirmar en el navegador que el hero de default y el de servelec se ven igual que antes (CTAs y overlay), porque la equivalencia de HTML ignora los espacios en blanco.
+- `BOLT-63`: El dev no corrió el rojo él mismo; lo corrió el gate, que lo confirmó.
+- `BOLT-63`: Decisión del dev: las variantes van como slots en components/slots/, no con el parámetro mode, porque media_collection solo recibe rutas.
+- `BOLT-63`: El dev no justificó en detalle la lista de componentes aún duplicados entre temas; solo mencionó hero.html (envoltorios de media_collection) y los componentes que existen en un solo tema.
 
 ## Hallazgos incidentales
 
@@ -64,3 +68,5 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-61`: themes/default/components/footer.html vacío ocultaba el footer global en el tema base.
 - `BOLT-62`: Los slots conservan los `style=""` y colores inline originales. Quedan como deuda frente a la preferencia por Tailwind.
 - `BOLT-62`: Los slots default, simple, stripe y servelec siguen duplicando bastante marcado entre sí (menú móvil, auth). Se unificó la ubicación, no el contenido.
+- `BOLT-63`: themes/default/components/hero_overlay.html y themes/servelec/components/hero_overlay.html no los referencia ningún template ni vista activa (candidatos a código muerto); no hay fila nueva en el kanban.
+- `BOLT-63`: Documentacion/ARQUITECTURA.md y AUDITORIA_PLATAFORMA_2026-11.md aún nombran hero_ctas_base, que ya no existe.

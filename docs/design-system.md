@@ -94,7 +94,7 @@ componente compartido, con:
 - **Slots de override opcionales, pasados como ruta de template**
   (`effects`, `overlay`, `theme_ctas`), no como bloques de contenido inline.
   Cada tema pasa su propio archivo (p. ej.
-  `servelec/components/hero_overlay_theme.html`) o los deja vacíos para el
+  `components/slots/hero_overlay_theme_servelec.html`) o los deja vacíos para el
   comportamiento por defecto.
 
 Consumido por `themes/servelec/components/hero.html`, `themes/andesscale/components/hero.html`
@@ -205,6 +205,21 @@ cada variante vive en `components/slots/navbar_<variant>.html`; `navbar.html` so
 Los `base.html` de tema lo incluyen directo (`{% include "components/navbar.html" with
 variant="servelec" %}`); **no** crear `themes/<tema>/components/navbar.html`. Equivalencia de
 HTML: `apps/core/tests/test_component_navbar.py` + `apps/core/tests/fixtures/navbar_*.html`.
+
+### Componentes `hero_ctas` y `hero_overlay_theme` (COMP-01)
+
+`components/hero_ctas.html`: par de botones del hero. Parámetros: `primary_text`
+(«Contáctanos»), `primary_href` (`#contacto`), `primary_style`, `secondary_text`,
+`secondary_href` (`#servicios`), `secondary_style`; defaults = tema base (tokens). El botón
+secundario solo se renderiza si recibe `secondary_text`.
+`components/hero_overlay_theme.html`: gradiente de legibilidad + línea decorativa. Parámetros:
+`shade_style`, `line_style`, `line_opacity` (defaults = tema base).
+Slots por variante (solo fijan parámetros): `components/slots/hero_ctas_default.html`,
+`hero_ctas_servelec.html`, `hero_overlay_theme_servelec.html`; el hero de cada tema los pasa a
+`media_collection` como `theme_ctas` / `overlay`. **No** crear
+`themes/<tema>/components/hero_ctas.html` ni `hero_overlay_theme.html` (sombrearían al
+compartido). Equivalencia de HTML: `apps/core/tests/test_component_hero_ctas.py` +
+`apps/core/tests/fixtures/hero_*.html`.
 
 ## 3. Dónde se aplica esto
 

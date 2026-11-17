@@ -171,12 +171,24 @@
       "id": "BOLT-63",
       "maestra": "COMP-01",
       "titulo": "hero_ctas y hero_overlay_theme compartidos; cierre (7 de 7)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-63.md",
       "red_tests": [
         "apps.core.tests.test_component_hero_ctas"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.69,
+      "tests": 846,
+      "hallazgos": [
+        "themes/default/components/hero_overlay.html y themes/servelec/components/hero_overlay.html no los referencia ningún template ni vista activa (candidatos a código muerto); no hay fila nueva en el kanban.",
+        "Documentacion/ARQUITECTURA.md y AUDITORIA_PLATAFORMA_2026-11.md aún nombran hero_ctas_base, que ya no existe."
+      ],
+      "revisar_humano": [
+        "Confirmar en el navegador que el hero de default y el de servelec se ven igual que antes (CTAs y overlay), porque la equivalencia de HTML ignora los espacios en blanco.",
+        "El dev no corrió el rojo él mismo; lo corrió el gate, que lo confirmó.",
+        "Decisión del dev: las variantes van como slots en components/slots/, no con el parámetro mode, porque media_collection solo recibe rutas.",
+        "El dev no justificó en detalle la lista de componentes aún duplicados entre temas; solo mencionó hero.html (envoltorios de media_collection) y los componentes que existen en un solo tema."
+      ]
     }
   ]
 }

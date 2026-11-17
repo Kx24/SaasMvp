@@ -97,7 +97,7 @@
 | D11 | `CONS-09` ✅ Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
 
 ### Fase 3 — Módulos y dashboard (~20 días, enero–febrero 2027)
-Orden: `COMP-02` ✅ (1 d) → `COMP-01` (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` ✅ (1 d) → `LEY-02` ✅ + resto de `LEY-03` (2 d) → `LEY-04` + `LEY-07` (1 d) → `SEC-13` + `SEC-15` (2 d).
+Orden: `COMP-02` ✅ (1 d) → `COMP-01` ✅ (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` ✅ (1 d) → `LEY-02` ✅ + resto de `LEY-03` (2 d) → `LEY-04` + `LEY-07` (1 d) → `SEC-13` + `SEC-15` (2 d).
 Después: `MOD-02` (opción B) y Rancho Cachimba — **no antes de marzo de 2027** (la meta anterior de mediados de febrero no cabe).
 
 Las estimaciones no están medidas; recalibrar al cerrar cada fase.
@@ -130,7 +130,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `COMP` — Componentes
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `COMP-01` | Generalizar componentes duplicados | P1 | L | **Parcial:** `cta` ✅ (`BOLT-57`), `about` ✅ (`BOLT-58`), `services` ✅ (`BOLT-59`), `contact` ✅ (`BOLT-60`), `footer` ✅ (`BOLT-61`), `navbar` ✅ (`BOLT-62`); faltan `hero_ctas`/`hero_overlay_theme` en `templates/components/` con el patrón de `media_collection` (parámetro `mode` + slots). Un componente por commit; a11y y guardia de tokens verdes |
 
 ### `MOD` — Módulos
 | ID | Card | P | Esf. | Definición de hecho |

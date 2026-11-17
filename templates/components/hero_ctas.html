@@ -1,18 +1,16 @@
 {% comment %}
-Par de CTAs del hero, compartido entre temas (BOLT-08, design-system §2a).
-Única fuente del markup de botones — los temas lo consumen vía un wrapper
-{tema}/components/hero_ctas.html de pocas líneas:
+Par de CTAs del hero, compartido entre temas (COMP-01, design-system §2a).
+Única fuente del markup de botones. Los temas NO tienen su propio
+{tema}/components/hero_ctas.html (el TenantTemplateLoader lo resolvería antes
+que este archivo y el include recursaría): pasan por un slot de
+components/slots/hero_ctas_<variante>.html, que solo fija parámetros:
 
-  {% include 'components/hero_ctas_base.html' with
+  {% include 'components/hero_ctas.html' with
       primary_text='...' primary_href='#contacto' primary_style='...'
       secondary_text='...' secondary_href='#servicios' secondary_style='...' %}
 
 Defaults = tema default (tokens del contrato). El botón secundario solo se
 renderiza si recibe secondary_text (1 o 2 botones, sin flags extra — §2b).
-
-Naming: NO llamar a este archivo components/hero_ctas.html — el
-TenantTemplateLoader lo resolvería al wrapper del tema activo y el include
-recursaría (shadowing, mismo hallazgo que BOLT-07).
 {% endcomment %}
 <a href="{{ primary_href|default:'#contacto' }}"
    class="group px-8 py-4 font-black rounded-lg inline-flex items-center

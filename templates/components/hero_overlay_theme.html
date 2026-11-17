@@ -1,0 +1,19 @@
+{% comment %}
+    Overlay visual del hero (gradiente + línea decorativa), compartido entre temas
+    (COMP-01). Solo efectos — sin texto ni CTAs; el contenido va en
+    components/slots/hero_overlay.html.
+
+    Parámetros (defaults = tema default):
+        shade_style  → style del gradiente de legibilidad
+        line_style   → style de la línea decorativa izquierda
+        line_opacity → clase de opacidad de la línea (opacity-50 | opacity-40)
+
+    Los temas con variante propia lo consumen vía
+    components/slots/hero_overlay_theme_<variante>.html.
+{% endcomment %}
+<div class="absolute inset-0 pointer-events-none" aria-hidden="true"
+     style="{{ shade_style|default:'background: linear-gradient(to right, rgba(0,0,0,0.70) 40%, rgba(0,0,0,0.30) 100%);' }}">
+</div>
+<div class="absolute left-0 top-0 bottom-0 w-0.5 {{ line_opacity|default:'opacity-50' }}" aria-hidden="true"
+     style="{{ line_style|default:'background: linear-gradient(to bottom, transparent, var(--color-accent, #f59e0b), transparent);' }}">
+</div>
