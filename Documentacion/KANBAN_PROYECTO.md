@@ -6,7 +6,7 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-11-15)
+## 🌙 Retomar aquí (actualizado 2026-11-16)
 
 **Foco del trimestre (nov 2026 – feb 2027), sin captar clientes:** ① consolidar la plataforma (módulos reutilizables + dashboard profesional estilo Instagram/Gmail), ② ciberseguridad, ③ Ley 21.719.
 
@@ -20,7 +20,9 @@
 
 **Ritmo:** 2 días/semana × 4–5 h. Card que no entra en 2 h se parte. Rondas del agente: `orchestrate.py` + `claude -p` (Sonnet 5.5) sobre ramas `agent/*`; tú revisas el PR a `develop`.
 
-**▶️ Próximo:** ronda 8 con `CONS-11` (cobertura al contrato) y una card `LEY` con decisión clara (`LEY-02`/`05`/`06` aún sin spec).
+**Rondas 8 y 9 (2026-11-16), en `agent/ronda8` y `agent/ronda9`, sin PR todavía:** ronda 8 con 12/12 (`CONS-11` cobertura al contrato: total 76 %, orders 92 %, tenants núcleo 100 %; `CONS-12`, `SEC-18`, `COMP-03`, `DEUDA-09`, `FLOW-04`, `TOOL-04`, `DOC-01`; `LEY-08` se rescató a mano del stash tras un timeout). Ronda 9: `LEY-03` (plazos de `Order`/`PaymentLog`/`EmailOutbox`) y `LEY-02` (formulario `/privacidad/solicitud/`, registro y comando `data_subject`). 697 tests. Detalle y puntos a revisar a mano en `docs/agente/ronda8/ESTADO.md` y `docs/agente/ronda9/ESTADO.md`; lo más sensible: `MercadoPagoError` sin envolver, reset de contraseña acotado al tenant, y `data_subject erase` (irreversible, usar `--dry-run`).
+
+**▶️ Próximo:** `BOLT-51` (`OPS-04`) y ronda 10 (`CONS-08`, `CONS-09`, `BIZ-01`, `DASH-05`), luego ronda 11 (`COMP-02`, `COMP-01`). Tuyo: revisar y mergear los PR de las rondas 8 y 9 a `develop`; decidir `LEY-09` (verificación de identidad) antes de usar `data_subject export` con un titular real.
 
 ---
 
@@ -125,6 +127,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
 | `CONS-08` | Registro de módulos (opción A) | P1 | L | Clase `Module` + registro: nombre, flag, límites, URLs, entrada de menú, componente público. Galería, contacto y servicios declarados como módulos |
 | `CONS-09` | Menú del dashboard generado desde el registro | P1 | M | Un módulo desactivado no aparece en el menú ni responde en su URL |
+| `CONS-13` | Cobertura de lo que sigue en 0 % | P3 | M | Tests de vistas de `accounts`, admins, sitemaps y comandos de gestión (`audit_cloudinary_assets`, `check_cloudinary`, `verify_search_console`, `setup_*`, `seed_e2e_tenants`). Decidir antes si `create_tenant` se borra (parece muerto frente a `provision_tenant`) o se documenta. Hallado por `BOLT-39` |
 
 ### `COMP` — Componentes
 | ID | Card | P | Esf. | Definición de hecho |
@@ -160,6 +163,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `LEY-05` | Registro de tratamientos y bases de licitud (art. 13, 14, 14 quáter) | P1 | S | Documento por tratamiento: datos, finalidad, base de licitud, quién accede, conservación, proveedores. Decidido: IP sí, user-agent no |
 | `LEY-06` | Procedimiento de brechas (art. 14 sexies) | P1 | S | Documento + plantilla de registro: detección, evaluación de riesgo, reporte a la Agencia, aviso al cliente responsable cuando AndesScale es encargado, aviso a titulares cuando corresponde |
 | `LEY-07` | Contrato de encargo con clientes (art. 15 bis) | P1 | M | Cláusula con objeto, duración, finalidad, tipo de datos, categorías de titulares y obligaciones; autorización escrita de sub-encargados (Neon, Render, Cloudinary, Zoho); devolución o supresión al terminar (une con `BIZ-03`). Sin código; revisar con abogado |
+| `LEY-09` | Cierre de `LEY-02`: verificación de identidad y huecos | P1 | M | Definir cómo se verifica al solicitante antes de entregar datos (hoy la respuesta va al correo que indica el formulario); un mensaje de un titular bloqueado no se abre por URL directa (`contacts.py`); backfill de `EmailOutbox.client` nulo para que `erase` los alcance; el aviso del dashboard usa `reverse` y solo se muestra a quien puede abrir `/superadmin/`; `resolved_at` se limpia al reabrir. Hallado por `BOLT-49` y `BOLT-50` |
 
 ### Negocio, datos y operación
 | ID | Card | P | Esf. | Nota |
@@ -172,6 +176,8 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |
 | `PAY-02` | Registro de fricciones del cobro manual | P3 | S | — |
 | `OPS-04` | Alerta de créditos Cloudinary | P3 | S | Existe el comando `cloudinary_usage`; conectar umbrales y aviso; los umbrales (`CLOUDINARY_ALERT_THRESHOLDS`) se borraron con `DEUDA-06`: definirlos de nuevo |
+| `TOOL-08` | `test_gatekeeper` sin falsos rojos | P2 | S | Sus tests lanzan el gate completo con tope fijo de 120 s y fallan por tiempo con la máquina cargada. Mitigado en las rondas del agente (`orchestrate.py` exporta `GATEKEEPER_TEST_RUN`); falta que no falle en la suite a mano. Hallado por `BOLT-44`, `46`, `47` |
+| `DEUDA-10` | `check_tenant_setup` falla en un tenant recién provisionado | P2 | S | Da `[FAIL]` por falta de `SEOConfig('home')`: que `provision_tenant` lo cree o que el chequeo lo trate como aviso. Hallado por `BOLT-44` |
 | `OPS-05` | Cache compartida, `/health/` real, Sentry | P3 | M | Antes de más de un proceso |
 | `OPS-07` | Ensayo de despliegue antes de `develop` → `main` | P0 | M | **Ensayo hecho 2026-11-15** (ver Retomar aquí). Falta el deploy real de `main`: Build Command de `saasmvp` → `./build.sh`, Manual Deploy y pruebas en vivo; luego borrar `saasmvp-staging` y la rama `staging-ensayo`. Pendiente de probar: formulario de contacto con consentimiento y correo, checkout sandbox (en local con credenciales `TEST-`), portada de Servelec. Build medido: 1 min |
 
