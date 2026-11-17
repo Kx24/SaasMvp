@@ -7,7 +7,7 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-56` | `COMP-02` | Ordenar el árbol de temas | ✅ DONE | 818 | 2.75 |
 | `BOLT-57` | `COMP-01` | Componente cta compartido (1 de 7) | ✅ DONE | 822 | 0.63 |
 | `BOLT-58` | `COMP-01` | Componente about compartido (2 de 7) | ✅ DONE | 826 | 0.66 |
-| `BOLT-59` | `COMP-01` | Componente services compartido (3 de 7) | ⏳ TODO |  |  |
+| `BOLT-59` | `COMP-01` | Componente services compartido (3 de 7) | ✅ DONE | 830 | 0.62 |
 | `BOLT-60` | `COMP-01` | Componente contact compartido (4 de 7) | ⏳ TODO |  |  |
 | `BOLT-61` | `COMP-01` | Componente footer compartido (5 de 7) | ⏳ TODO |  |  |
 | `BOLT-62` | `COMP-01` | Componente navbar compartido (6 de 7) | ⏳ TODO |  |  |
@@ -29,6 +29,10 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-58`: La variante stripe emite el comentario HTML 'ANDESSCALE' fuera del bloque condicional, para que apps.tenants.tests_theme_tree siga idéntico. Es un resto cosmético que habrá que limpiar luego.
 - `BOLT-58`: Decisión del dev que el spec no cubría: no dejar envoltorios en los temas (el DoD permite 'o sin archivo').
 - `BOLT-58`: Los textos de relleno ('Desarrollo ágil', 'Confianza', '5+', '100%') siguen visibles al cliente en la variante stripe.
+- `BOLT-59`: Revisar en el navegador la sección Servicios en Servelec y andesscale (renderizado, grilla de 4/5 columnas, panel de detalle).
+- `BOLT-59`: Confirmar que el tema base (default) no cambió: su home renderiza en línea y ya no tiene services.html.
+- `BOLT-59`: El normalizador del test colapsa espacios dentro de class="..." y quita comentarios HTML. Las únicas diferencias aceptadas son de espacios y comentarios, y servelec tenía atributos multilínea con espacios sobrantes.
+- `BOLT-59`: La decisión de no dejar envoltorios en los temas la tomó el dev. El spec ofrecía envoltorio fino o sin archivo, así que está dentro del DoD.
 
 ## Hallazgos incidentales
 
@@ -42,3 +46,4 @@ Rama `agent/ronda11` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-58`: La variante blocks conserva style="" inline y colores hardcodeados de servelec (#0f3320, #1DB954) para no alterar el HTML. Es la misma deuda que en cta y va contra la preferencia Tailwind.
 - `BOLT-58`: El test Playwright del formulario multi-step de andesscale falló una vez por timeout y pasó en las dos corridas siguientes; parece intermitente y no toca about.
 - `BOLT-58`: El informe del dev admite que no corrió el rojo contra HEAD. Lo confirma red_check del gate: 3 tests estructurales fallan contra el código original.
+- `BOLT-59`: themes/default/components/services.html era huérfano (su home renderiza la sección en línea); se borró como código muerto.

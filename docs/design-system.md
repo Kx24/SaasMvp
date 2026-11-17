@@ -154,6 +154,20 @@ El `home.html` del tema incluye el compartido directamente
 se llamaría a sí mismo). Equivalencia de HTML:
 `apps/core/tests/test_component_about.py` + `apps/core/tests/fixtures/about_*.html`.
 
+### Componente `services` (`components/services.html`, COMP-01)
+
+Parámetros: `variant` = `"stripe"` (por defecto; grilla fija de 3 columnas, badge
+`text-primary` — andesscale) | `"adaptive"` (4 servicios → 4 columnas, 5 → última fila
+centrada, badge `text-primary-a11y` — servelec); `subtitle` = texto bajo el título (por
+defecto el de andesscale). Contexto: `services` (lista de `Service`, la entrega la vista);
+incluye el panel de detalle Alpine (`serviciosSection`). Slots: ninguno por ahora.
+`themes/default` no usa componente (su `home.html` renderiza en línea; su
+`services.html` huérfano se borró). El `home.html` del tema incluye el compartido
+directamente (`{% include "components/services.html" with variant="adaptive" %}`);
+**no** crear `themes/<tema>/components/services.html` (el loader lo resolvería primero y
+el include se llamaría a sí mismo). Equivalencia de HTML:
+`apps/core/tests/test_component_services.py` + `apps/core/tests/fixtures/services_*.html`.
+
 ## 3. Dónde se aplica esto
 
 `#RC-09` (landing de Rancho Cachimba por componente, sección por sección) es

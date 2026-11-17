@@ -81,12 +81,23 @@
       "id": "BOLT-59",
       "maestra": "COMP-01",
       "titulo": "Componente services compartido (3 de 7)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-59.md",
       "red_tests": [
         "apps.core.tests.test_component_services"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.62,
+      "tests": 830,
+      "hallazgos": [
+        "themes/default/components/services.html era huérfano (su home renderiza la sección en línea); se borró como código muerto."
+      ],
+      "revisar_humano": [
+        "Revisar en el navegador la sección Servicios en Servelec y andesscale (renderizado, grilla de 4/5 columnas, panel de detalle).",
+        "Confirmar que el tema base (default) no cambió: su home renderiza en línea y ya no tiene services.html.",
+        "El normalizador del test colapsa espacios dentro de class=\"...\" y quita comentarios HTML. Las únicas diferencias aceptadas son de espacios y comentarios, y servelec tenía atributos multilínea con espacios sobrantes.",
+        "La decisión de no dejar envoltorios en los temas la tomó el dev. El spec ofrecía envoltorio fino o sin archivo, así que está dentro del DoD."
+      ]
     },
     {
       "id": "BOLT-60",
