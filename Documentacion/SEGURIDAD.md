@@ -54,7 +54,7 @@ Cerrados en las rondas 4 a 8: `SEC-05`/`SEC-05b`, `SEC-06`, `SEC-07`, `SEC-08`, 
 |---|---|---|---|
 | **12** Consentimiento | Libre, informado, específico, previo e inequívoco (acto afirmativo); revocable por un medio equivalente; **el responsable debe poder probarlo** | **Implementado** (`BOLT-34`): checkbox no pre-marcado y obligatorio en el contacto (todas las variantes) y en el checkout; se guardan `consent_at`, `consent_policy_version` e IP en `ContactSubmission` y `Order`; el user-agent ya no se captura. El onboarding no lleva checkbox (base: ejecución del contrato, art. 13 c) y solo enlaza la política. La política ya está publicada en `/privacidad/`, con fecha y versión (`PRIVACY_POLICY_VERSION`), y el aviso del formulario la enlaza (`BOLT-33`) | `LEY-01` ✅ (`BOLT-34`) |
 | **13** Otras bases de licitud | c) ejecución de contrato o **medidas precontractuales a solicitud del titular**; d) interés legítimo. El responsable debe acreditar la base | Sin base documentada por tratamiento. Un formulario de contacto puede apoyarse en 13 c), pero entonces aplica el 14 d) | `LEY-05` |
-| **14 d)** | Suprimir o anonimizar los datos obtenidos para medidas precontractuales | Mensajes de contacto: tope duro de 365 días (`CONTACT_MAX_RETENTION_DAYS`) para todo tenant activo y cualquier estado, más purga por preferencia (`BOLT-14`, `BOLT-26`). Pendiente: `Order`, `PaymentLog`, `EmailOutbox` | `LEY-03` |
+| **14 d)** | Suprimir o anonimizar los datos obtenidos para medidas precontractuales | Mensajes de contacto: tope duro de 365 días (`CONTACT_MAX_RETENTION_DAYS`) para todo tenant activo y cualquier estado, más purga por preferencia (`BOLT-14`, `BOLT-26`). `Order`/`PaymentLog` 6 años y `EmailOutbox` 90 días (`BOLT-48`, tabla de plazos abajo). Pendiente solo el cron en Render (`OPS-06`) | `LEY-03` (parcial) |
 | **14 ter** Información y transparencia | Publicar de forma permanente la política (con fecha y versión) y: identidad y contacto del responsable, canal para solicitudes, categorías de datos, universo de personas, destinatarios, finalidades, base de licitud, medidas de seguridad, derechos del titular y recurso ante la Agencia, transferencias internacionales y sus garantías, plazo de conservación, origen de los datos, derecho a retirar el consentimiento, decisiones automatizadas | Política publicada en `/privacidad/` por tenant (cliente responsable) y de AndesScale (tenant `PLATFORM_TENANT_SLUG`), con versión y fecha (`BOLT-33`). Texto legal pendiente de revisión por abogado | `LEY-01` (hecho) |
 | **4–9** Derechos | Acceso, rectificación, supresión, oposición, portabilidad, no ser objeto de decisiones automatizadas | Sin exportación ni supresión asistida | `LEY-02` |
 | **10–11** Procedimiento | Canal sencillo y gratuito (correo o formulario); acusar recibo; responder en **30 días corridos** (prorrogables 30 una vez); **bloqueo temporal en 2 días hábiles**; guardar respaldo de la respuesta; informar el recurso ante la Agencia | No hay canal ni registro de solicitudes | `LEY-02` |
@@ -65,6 +65,14 @@ Cerrados en las rondas 4 a 8: `SEC-05`/`SEC-05b`, `SEC-06`, `SEC-07`, `SEC-08`, 
 | **27–28** Transferencia internacional | Lícita con país adecuado, cláusulas contractuales u otras garantías, o cuando es necesaria para ejecutar un contrato con el titular | Datos en proveedores fuera de Chile sin contratos archivados | `LEY-04` |
 | **15 ter** Evaluación de impacto | Obligatoria para perfiles automatizados, tratamiento masivo, monitoreo de zonas públicas o datos sensibles | En principio no aplica (sin datos sensibles ni gran escala); confirmar si un cliente pide capturar datos de salud o de menores | — |
 | **49–51** Modelo de prevención | Voluntario; certificarlo es atenuante | No abordado | Congelado |
+
+**Plazos de conservación por tipo de dato** (purga: `send_contact_digest` y `purge_expired_data`):
+
+| Dato | Plazo | Setting | Razón |
+|---|---|---|---|
+| `ContactSubmission` | 365 días | `CONTACT_MAX_RETENTION_DAYS` | Art. 14 d (medida precontractual) |
+| `Order` y `PaymentLog` | 6 años (2190 días) | `ORDER_RETENTION_DAYS` | Obligación tributaria |
+| `EmailOutbox` (enviado o fallido; los pendientes no se borran) | 90 días | `EMAIL_OUTBOX_RETENTION_DAYS` | Proporcionalidad |
 
 ### 3.3 Sanciones (art. 34 bis a 37 y sexto transitorio)
 - **Leves** (p. ej. incumplir el deber de información del 14 ter, no tener canal de contacto, responder tarde): amonestación o multa de hasta 5.000 UTM.

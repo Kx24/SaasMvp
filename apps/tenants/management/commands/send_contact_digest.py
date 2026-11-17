@@ -34,6 +34,7 @@ from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+from apps.core.management.commands.purge_expired_data import purge_expired_data
 from apps.tenants.models import Client, ClientSettings
 from apps.website.models import ContactSubmission
 
@@ -76,6 +77,12 @@ class Command(BaseCommand):
 
         # ── Purga: independiente del digest ────
         purge_results = self._purge_all(tenant_slug, dry_run=dry_run)
+
+        # ── Purga de ordenes/pagos/cola de correos (LEY-03); no bloquea el digest ──
+        try:
+            purge_expired_data(dry_run=dry_run)
+        except Exception:
+            logger.error('[Digest] Fallo la purga de datos vencidos', exc_info=True)
 
         # ── Obtener tenants a procesar ─────────────────────────────────────
         if tenant_slug:

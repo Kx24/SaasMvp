@@ -67,6 +67,8 @@ def privacy_policy(request):
         'contact_phone': site_settings.contact_phone,
         'address': site_settings.address,
         'retention_days': settings.CONTACT_MAX_RETENTION_DAYS,
+        'order_retention_years': settings.ORDER_RETENTION_DAYS // 365,
+        'email_outbox_retention_days': settings.EMAIL_OUTBOX_RETENTION_DAYS,
         'version': settings.PRIVACY_POLICY_VERSION,
         'version_date': settings.PRIVACY_POLICY_DATE,
         'is_platform': client.slug == settings.PLATFORM_TENANT_SLUG,

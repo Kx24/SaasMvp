@@ -156,7 +156,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
 | `LEY-02` | Derechos del titular (art. 4–11) | P1 | M | Canal de solicitudes (correo o formulario) + registro de cada solicitud con fecha y respuesta; comando que exporta en JSON y suprime los datos de una persona; bloqueo temporal. Plazos: 30 días corridos, bloqueo en 2 días hábiles |
-| `LEY-03` | Retención y purga (art. 14 d y principio de proporcionalidad) | P1 | M | Purga de contactos independiente del digest (`BOLT-14`) y tope legal de 365 días para mensajes de contacto (`BOLT-26`). Falta: plazos para `Order`, `PaymentLog`, `EmailOutbox`; plazo publicado en la política; cron en Render (`OPS-06`) para que corra en producción |
+| `LEY-03` | Retención y purga (art. 14 d y principio de proporcionalidad) | P1 | M | Plazos y purga implementados (contactos 365 d, `Order`/`PaymentLog` 6 años, `EmailOutbox` 90 d; publicados en la política). Falta solo: cron en Render (`OPS-06`) para que corra en producción |
 | `LEY-04` | Proveedores y transferencia internacional (art. 15 bis, 27–28) | P2 | S | DPA o cláusulas contractuales de Neon, Render, Cloudinary y Zoho archivados; listados en la política |
 | `LEY-05` | Registro de tratamientos y bases de licitud (art. 13, 14, 14 quáter) | P1 | S | Documento por tratamiento: datos, finalidad, base de licitud, quién accede, conservación, proveedores. Decidido: IP sí, user-agent no |
 | `LEY-06` | Procedimiento de brechas (art. 14 sexies) | P1 | S | Documento + plantilla de registro: detección, evaluación de riesgo, reporte a la Agencia, aviso al cliente responsable cuando AndesScale es encargado, aviso a titulares cuando corresponde |
