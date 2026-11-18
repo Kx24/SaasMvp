@@ -15,7 +15,7 @@
 | Aislamiento | Dashboard exige pertenencia al tenant; login cruzado rechazado; suite de aislamiento por HTTP (IDOR incluido) | `apps/accounts/decorators.py`, `apps/tenants/tests_isolation.py`, `apps/website/tests/` |
 | Pagos | Webhook MercadoPago con firma HMAC, falla cerrado; nunca confía en el payload (re-consulta el pago) | `apps/orders/services/mercadopago_service.py`, `apps/orders/tests/test_webhooks.py` |
 | Abuso | Rate limit en login (IP+usuario+tenant), checkout y contacto; honeypot en el formulario; IP tomada del proxy confiable | `apps/core/rate_limit.py` |
-| Secretos | `.env` fuera de git y de su historial; sin claves reales trackeadas; superusuario sin contraseña por defecto | `Inventario_Secretos.md`, `setup_production` |
+| Secretos | `.env` fuera de git y de su historial; sin claves reales trackeadas; superusuario sin contraseña por defecto | `Inventario_Secretos.md` (política de rotación), `Runbook_Incidentes.md` (qué hacer ante una fuga, `SEC-15`), `setup_production` |
 | Integración continua | GitHub Actions en cada push y en PR a `develop`/`main`: `gatekeeper.py --strict`, suite de aislamiento, `ruff check apps/ config/` y `pip-audit`; permisos `contents: read`, sin secretos, variables ficticias | `.github/workflows/ci.yml`, `apps/core/tests/test_ci_workflow.py` (`SEC-12`) |
 | Código | `bandit -ll`: **0 High y 0 Medium** (`bandit_medium_high` = 0 en `scripts/gate_baseline.json`; el gate impide que suba); `mark_safe` reemplazado por `format_html` y JSON-LD escapado (`SEC-14`) | `scripts/gate_baseline.json`, `apps/website/templatetags/cloudinary_tags.py` |
 | Credenciales de clientes | `smtp_password` y `api_key` de `ClientEmailSettings` cifradas en reposo (`MultiFernet`, `FIELD_ENCRYPTION_KEY`; producción falla al importar sin la clave); el admin no devuelve el secreto (`SEC-06`) | `apps/tenants/models.py`, `Inventario_Secretos.md` |
@@ -29,14 +29,13 @@
 
 ## 2. Hallazgos abiertos
 
-Cerrados en las rondas 4 a 8: `SEC-05`/`SEC-05b`, `SEC-06`, `SEC-07`, `SEC-08`, `SEC-10`, `SEC-11`, `SEC-14`, `SEC-17`, `SEC-18` (detalle y commit en `historico/KANBAN_HISTORICO.md`).
+Cerrados en las rondas 4 a 12: `SEC-05`/`SEC-05b`, `SEC-06`, `SEC-07`, `SEC-08`, `SEC-10`, `SEC-11`, `SEC-14`, `SEC-15`, `SEC-17`, `SEC-18` (detalle y commit en `historico/KANBAN_HISTORICO.md`).
 
 | Card | Prioridad | Hallazgo | Evidencia | Riesgo |
 |---|---|---|---|---|
 | `SEC-13` | P1 | `/superadmin/` sin segundo factor y fuera del rate limiter propio | `config/urls.py:16`; `RateLimiter` solo en `client_login` | Fuerza bruta contra la cuenta con más privilegios |
 | `SEC-09` | P2 (bloqueada) | `/checkout/` excluido de la CSP | `security_headers.py` | Requiere sandbox real de MercadoPago |
 | `OPS-05` | P3 | Rate limiter sobre cache en memoria del proceso | `apps/core/rate_limit.py` | Se reinicia en cada deploy y no se comparte entre procesos |
-| `SEC-15` | P2 | No hay runbook de incidentes ni política de rotación de secretos | — | Respuesta improvisada ante una brecha |
 | `DB-02` | P1 | Sin backup con restore probado | — | Pérdida de datos irrecuperable |
 
 ## 3. Ley 21.719 (protección de datos personales) — rige desde el 15-oct-2027 (postergada)
@@ -60,7 +59,7 @@ Cerrados en las rondas 4 a 8: `SEC-05`/`SEC-05b`, `SEC-06`, `SEC-07`, `SEC-08`, 
 | **10–11** Procedimiento | Canal sencillo y gratuito (correo o formulario); acusar recibo; responder en **30 días corridos** (prorrogables 30 una vez); **bloqueo temporal en 2 días hábiles**; guardar respaldo de la respuesta; informar el recurso ante la Agencia | Formulario público con acuse de recibo y registro con `due_at` (30 días); la identidad del solicitante no se verifica (la respuesta va al correo indicado). Bloqueo temporal con `data_subject block` (`BOLT-50`); el plazo de 2 días hábiles lo cumple quien atiende la solicitud | `LEY-02` ✅ |
 | **14 quáter** Protección desde el diseño y por defecto | Tratar solo los datos estrictamente necesarios | `FormConfig` permite activar muchos campos; se guarda IP y user-agent de cada lead y orden. Decidido 2026-11-15: se guarda la IP y no el user-agent (la política ya lo dice; quitar el user-agent pendiente en `LEY-05`) | `LEY-05` |
 | **14 quinquies** Seguridad | Medidas acordes al riesgo: cifrado, confidencialidad/integridad/disponibilidad, **capacidad de restaurar**, **verificación regular**; ante un incidente, el responsable debe acreditar sus medidas. Aplica también al encargado | Ver §1 y §2: credenciales cifradas (`SEC-06`), CI activo (`SEC-12`); pendiente el backup con restore probado | `DB-02` |
-| **14 sexies** Brechas | Reportar a la Agencia sin dilaciones indebidas cuando haya riesgo razonable; **registrar** naturaleza, efectos, categorías, número de afectados y medidas; avisar a los titulares si son datos sensibles, de menores de 14 o económicos. El encargado debe reportar al responsable | No existe procedimiento ni registro | `LEY-06`, `SEC-15` |
+| **14 sexies** Brechas | Reportar a la Agencia sin dilaciones indebidas cuando haya riesgo razonable; **registrar** naturaleza, efectos, categorías, número de afectados y medidas; avisar a los titulares si son datos sensibles, de menores de 14 o económicos. El encargado debe reportar al responsable | Runbook general en `Runbook_Incidentes.md` (`SEC-15`); falta el procedimiento específico de brechas y su registro | `LEY-06` |
 | **15 bis** Encargo | Contrato con objeto, duración, finalidad, tipo de datos, categorías de titulares, derechos y obligaciones; prohibido usar los datos para otro fin; sub-encargo solo con autorización escrita; al terminar, **suprimir o devolver** los datos | No hay contrato de encargo con los clientes | `LEY-07`, `BIZ-03` |
 | **27–28** Transferencia internacional | Lícita con país adecuado, cláusulas contractuales u otras garantías, o cuando es necesaria para ejecutar un contrato con el titular | Datos en proveedores fuera de Chile sin contratos archivados | `LEY-04` |
 | **15 ter** Evaluación de impacto | Obligatoria para perfiles automatizados, tratamiento masivo, monitoreo de zonas públicas o datos sensibles | En principio no aplica (sin datos sensibles ni gran escala); confirmar si un cliente pide capturar datos de salud o de menores | — |

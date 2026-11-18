@@ -67,10 +67,19 @@
       "id": "BOLT-67",
       "maestra": "SEC-15",
       "titulo": "Runbook de incidentes y rotación de secretos",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-67.md",
       "red_tests": [],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.45,
+      "tests": 852,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Los pasos de consola de Neon (restore a una rama nueva) y de Render (Rollback) no están verificados en el repo. El runbook lo admite para la sección 2c, porque DB-02 sigue pendiente.",
+        "En la sección 2b, `Session.objects.all().delete()` cierra la sesión de todos los usuarios, no solo de la cuenta afectada. Confirmar que ese es el comportamiento deseado.",
+        "Las dos ediciones de SEGURIDAD.md que el spec no pedía literalmente: mover SEC-15 a cerrados y reescribir la fila del art. 14 sexies. Verificar que el texto legal sigue siendo fiel.",
+        "La sección 2d dice que producción falla al importar sin FIELD_ENCRYPTION_KEY. Esto coincide con Inventario_Secretos.md pero conviene confirmarlo contra production.py."
+      ]
     }
   ]
 }
