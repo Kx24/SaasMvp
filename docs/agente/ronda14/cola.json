@@ -1,0 +1,7 @@
+{
+  "ronda": 14,
+  "rama": "agent/ronda14",
+  "cards": [
+    {"id": "BOLT-73", "maestra": "DEUDA-14", "titulo": "Import de cloudinary.api y fixtures con slug de tema inválido", "estado": "TODO", "spec": "BOLT-73.md", "red_tests": ["apps.tenants.tests_setup_cloudinary_folders_import"], "permite_migracion": false}
+  ]
+}
