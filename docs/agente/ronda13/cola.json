@@ -1,0 +1,11 @@
+{
+  "ronda": 13,
+  "rama": "agent/ronda13",
+  "cards": [
+    {"id": "BOLT-68", "maestra": "DASH-09", "titulo": "Fondo del ícono de mensajes con token de marca", "estado": "TODO", "spec": "BOLT-68.md", "red_tests": ["apps.website.tests.test_dashboard_icon_token"], "permite_migracion": false},
+    {"id": "BOLT-69", "maestra": "DEUDA-13", "titulo": "Plan.get_available_themes_list sin slug inválido", "estado": "TODO", "spec": "BOLT-69.md", "red_tests": ["apps.orders.tests.test_plan_available_themes_fallback"], "permite_migracion": false},
+    {"id": "BOLT-72", "maestra": "OPS-05", "titulo": "Endpoint /health/ real (parte)", "estado": "TODO", "spec": "BOLT-72.md", "red_tests": ["apps.core.tests.test_health"], "permite_migracion": false},
+    {"id": "BOLT-70", "maestra": "CONS-13", "titulo": "Cobertura de comandos de gestión (1 de 2)", "estado": "TODO", "spec": "BOLT-70.md", "red_tests": [], "permite_migracion": false},
+    {"id": "BOLT-71", "maestra": "CONS-13", "titulo": "Cobertura de vistas de accounts, sitemaps y admins (2 de 2)", "estado": "TODO", "spec": "BOLT-71.md", "red_tests": [], "permite_migracion": false}
+  ]
+}
