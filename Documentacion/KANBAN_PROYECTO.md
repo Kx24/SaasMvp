@@ -176,7 +176,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |
 | `PAY-02` | Registro de fricciones del cobro manual | P3 | S | — |
 | `DEUDA-10` | `check_tenant_setup` falla en un tenant recién provisionado | P3 | S | **Probablemente es el gate funcionando:** `_check_seo` exige `SEOConfig('home')` con título y descripción reales, y un tenant recién provisionado todavía no los tiene (es el QA previo a publicar, `FLOW-02`). No crear un relleno que lo silencie. Decidir con el dueño si `provision_tenant` debe sembrar el SEO desde el contenido del cliente o si la tarjeta se descarta. Hallado por `BOLT-44` |
-| `OPS-05` | Cache compartida, `/health/` real, Sentry | P3 | M | Antes de más de un proceso |
+| `OPS-05` | Cache compartida y Sentry | P3 | M | Antes de más de un proceso. `/health/` ya existe (`BOLT-72`); falta configurar el Health Check Path en Render |
 | `OPS-07` | Ensayo de despliegue antes de `develop` → `main` | P0 | M | **Ensayo hecho 2026-11-15** (ver Retomar aquí). Falta el deploy real de `main`: Build Command de `saasmvp` → `./build.sh`, Manual Deploy y pruebas en vivo; luego borrar `saasmvp-staging` y la rama `staging-ensayo`. Pendiente de probar: formulario de contacto con consentimiento y correo, checkout sandbox (en local con credenciales `TEST-`), portada de Servelec. Build medido: 1 min |
 
 ### `RC` — Rancho Cachimba ⏸️ (rama `feature/RanchocachimbaEtapa1`; no tocar sin pedido explícito)

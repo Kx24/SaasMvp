@@ -49,9 +49,19 @@ class TenantMiddleware(MiddlewareMixin):
         # de la página "en construcción" (POST a /contact/submit/) responda.
         self.CONSTRUCTION_BYPASS_PREFIXES = ('/dashboard', '/auth', '/superadmin', '/contact')
 
+    HEALTH_PATH = '/health/'
+
     def __call__(self, request):
         clear_current_tenant()
-        
+
+        # #OPS-05: el health check de Render llega con cualquier Host y debe
+        # responder aunque no haya tenant ni el tenant esté en construcción.
+        # Solo esta ruta exacta; la vista no toca datos de tenants.
+        if request.path == self.HEALTH_PATH:
+            request.client = None
+            request.tenant_domain = None
+            return self.get_response(request)
+
         # 1. Obtener Host limpio (sin puerto)
         host = request.get_host().split(':')[0].lower()
         

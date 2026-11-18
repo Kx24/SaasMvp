@@ -43,12 +43,23 @@
       "id": "BOLT-72",
       "maestra": "OPS-05",
       "titulo": "Endpoint /health/ real (parte)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-72.md",
       "red_tests": [
         "apps.core.tests.test_health"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.43,
+      "tests": 870,
+      "hallazgos": [
+        "Con SECURE_SSL_REDIRECT=True en producción, un health check por HTTP plano sin X-Forwarded-Proto recibiría 301 (el dev no lo cambió). Render normalmente envía el proto correcto, pero conviene verificarlo tras el deploy."
+      ],
+      "revisar_humano": [
+        "Configurar en el dashboard de Render el Health Check Path = /health/ (render.yaml no sincroniza el servicio).",
+        "Cambio en apps/tenants/middleware.py: bypass de la ruta exacta /health/ antes de resolver Host (request.client = None). Revisar que sea aceptable.",
+        "Verificar tras el deploy que el health check no reciba 301 por SECURE_SSL_REDIRECT.",
+        "En el histórico se usó el formato de tabla de las filas vecinas, no la viñeta del spec."
+      ]
     },
     {
       "id": "BOLT-70",
