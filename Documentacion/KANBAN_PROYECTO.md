@@ -149,7 +149,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `DASH-02` | Flujo "Publicar" mobile-first | P1 | XL (~4 d) | Grilla de medios tipo Instagram sobre `MOD-01`. Una persona no técnica publica sin ayuda; probado con Servelec |
 | `DASH-03` | Interacción con htmx | P2 | L | Guardar, ocultar y reordenar sin recargar; estados vacíos y de error. Servicios como patrón |
 | `DASH-07` | a11y del dashboard: pantallas sin cubrir y color de marca claro | P2 | M | `dashboard.spec.js` mide solo Inicio y Secciones; falta Marca, Portada, Galería, Mensajes y las pantallas de edición. Además `.btn-primary` y los botones "Editar" ponen texto blanco sobre el color de marca del tenant: con un primario claro no llegan a 4.5:1 (hoy pasa con `#0b5fa5`). Hallado por `BOLT-55` |
-| `DASH-09` | Fondo del ícono de mensajes sin token de marca | P3 | S | `index.html` usa `rgba(var(--primary-rgb, ...))`, token que no existe: siempre cae al azul por defecto. Cambiar a `color-mix` sobre `--color-primary`. Hallado por `BOLT-64` |
 
 ### `SEC` — Ciberseguridad (detalle y evidencia en `SEGURIDAD.md`)
 | ID | Card | P | Esf. | Definición de hecho |

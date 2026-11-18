@@ -35,6 +35,7 @@
 | `DASH-05` | Tests del dashboard: un archivo por área en `apps/website/tests/` (secciones, servicios, galería, marca, mensajes) con éxito y error de cada flujo, `dashboard.spec.js` con login real y a11y en Inicio y Secciones; `seed_e2e_tenants` crea el owner `owner-e2e` y se niega a correr con `DEBUG=False`. Hallazgos corregidos: los colores de marca aceptaban cualquier texto (ahora hex de 6 dígitos), el spam aparecía en Mensajes e Inicio, y el contador de no leídos del menú nunca se mostraba (`unread_contacts` no existía); contraste y `aria-label` del dashboard | 2026-11-17 | `BOLT-55` |
 | `DASH-06` | Avatar e íconos del dashboard usaban el token inexistente `var(--primary)`; ahora `var(--color-primary)` (color de marca del tenant), con test que recorre `templates/dashboard/` | 2026-11-18 | `BOLT-64` |
 | `DASH-08` | Ya cubierta por `BOLT-55`: el context processor define `unread_contacts`; la fila quedó obsoleta | 2026-11-18 | `BOLT-64` |
+| `DASH-09` | Fondo del ícono de Contactos usaba `--primary-rgb` (inexistente, siempre azul); ahora `color-mix` sobre `--color-primary`, con test que recorre `templates/` | 2026-11-18 | `BOLT-68` |
 | `SEC-15` | Runbook de incidentes y rotación de secretos (`Documentacion/Runbook_Incidentes.md`): primeros 15 minutos, fuga de secreto, acceso indebido, base dañada (con `DB-02` pendiente), deploy caído, correo/dominio comprometido, datos personales (remite a `LEY-06`), contactos y registro de incidentes | 2026-11-18 | `BOLT-67` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
