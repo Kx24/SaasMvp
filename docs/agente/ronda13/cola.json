@@ -65,10 +65,21 @@
       "id": "BOLT-70",
       "maestra": "CONS-13",
       "titulo": "Cobertura de comandos de gestión (1 de 2)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-70.md",
       "red_tests": [],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.62,
+      "tests": 907,
+      "hallazgos": [
+        "audit_cloudinary_assets: cualquier CharField de cualquier modelo cuenta como referencia a un asset, así que un asset puede parecer referenciado por un valor que no es un public_id.",
+        "setup_cloudinary_folders usa cloudinary.api sin importarlo; funciona solo porque otro módulo lo importa antes.",
+        "Los conteos de tests por archivo del informe del dev (21/6/10) difieren de los que cuenta grep (19/6/12), pero el total de 37 coincide con el histórico."
+      ],
+      "revisar_humano": [
+        "Decidir si create_tenant se borra o se documenta (parece muerto frente a provision_tenant); quedó cubierto y anotado en el kanban.",
+        "El dev quitó un import sin uso en un test después de la corrida con cobertura. El gate (suite y ruff) corrió sobre el estado final y pasó, así que el riesgo es mínimo."
+      ]
     },
     {
       "id": "BOLT-71",
