@@ -24,7 +24,7 @@ class CheckoutProcessTests(TestCase):
         cache.clear()
         self.plan = Plan.objects.create(
             name='Plan Test', slug='plan-test', price=10000,
-            available_themes=['default'],
+            available_themes=['themes/default'],
         )
 
     def _post(self, raw=None, **overrides):
@@ -161,7 +161,7 @@ class CheckoutPagesTests(TestCase):
     def setUp(self):
         self.plan = Plan.objects.create(
             name='Plan Test', slug='plan-test', price=10000,
-            available_themes=['default'],
+            available_themes=['themes/default'],
         )
 
     def test_checkout_view_plan_inexistente_404(self):

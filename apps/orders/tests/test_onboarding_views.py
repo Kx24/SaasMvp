@@ -21,7 +21,7 @@ class OnboardingBase(TestCase):
     def setUp(self):
         self.plan = Plan.objects.create(
             name='Plan Test', slug='plan-test', price=10000,
-            available_themes=['default'],
+            available_themes=['themes/default'],
         )
 
     def _order(self, status='paid', token=True, **kwargs):

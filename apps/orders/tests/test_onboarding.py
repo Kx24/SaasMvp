@@ -17,7 +17,7 @@ class OnboardingViewGetTestCase(TestCase):
     def setUp(self):
         self.plan = Plan.objects.create(
             name='Plan Test', slug='plan-test', price=10000,
-            available_themes=['default'],
+            available_themes=['themes/default'],
         )
         self.order = Order.objects.create(
             plan=self.plan, email='comprador@test.com', amount=10000,

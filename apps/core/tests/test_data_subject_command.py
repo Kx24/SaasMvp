@@ -59,7 +59,7 @@ def _populate(client, plan, tag):
 
 class DataSubjectBase(TestCase):
     def setUp(self):
-        self.plan = Plan.objects.create(name='P', slug='p-ds', price=10000, available_themes=['default'])
+        self.plan = Plan.objects.create(name='P', slug='p-ds', price=10000, available_themes=['themes/default'])
         self.a = _tenant('ds-a', 'ds-a.test')
         self.b = _tenant('ds-b', 'ds-b.test')
         self.a_objs = _populate(self.a, self.plan, 'A')
