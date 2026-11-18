@@ -129,7 +129,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
-| `CONS-13` | Cobertura de lo que sigue en 0 % | P3 | M | Tests de vistas de `accounts`, admins y sitemaps (comandos de gestión ya cubiertos: `CONS-13` parte 1, `BOLT-70`). Pendiente de decisión del dueño: `create_tenant` quedó cubierto pero parece muerto frente a `provision_tenant` (borrarlo o documentarlo). Hallado por `BOLT-39` |
 
 ### `COMP` — Componentes
 | ID | Card | P | Esf. | Definición de hecho |

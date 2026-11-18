@@ -85,10 +85,24 @@
       "id": "BOLT-71",
       "maestra": "CONS-13",
       "titulo": "Cobertura de vistas de accounts, sitemaps y admins (2 de 2)",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-71.md",
       "red_tests": [],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.63,
+      "tests": 934,
+      "hallazgos": [
+        "TenantSectionsSitemap siempre devuelve vacío: Section no tiene campo slug ni existe la ruta website:section_detail, y los except lo ocultan. No se corrigió ni se abrió fila en el kanban.",
+        "create_tenant parece muerto frente a provision_tenant; la decisión de borrarlo o documentarlo quedó solo en la línea del histórico."
+      ],
+      "revisar_humano": [
+        "Archivos escogidos, cobertura antes → después: marketing/views_robots.py 14→90 %; marketing/views_verification.py 14→86 %; marketing/sitemaps.py 33→93 %; tenants/views.py 38→92 %; marketing/views_sitemap.py 41→88 %; marketing/admin.py 48→92 %.",
+        "El hallazgo de TenantSectionsSitemap no tiene fila en el kanban; conviene abrir una card para que no se pierda.",
+        "La decisión pendiente sobre create_tenant (borrar o documentar) ahora vive solo en el histórico, no en el kanban; considera reabrirla como card.",
+        "El dev no corrió makemigrations --check ni Playwright; el gate sí pasó migraciones (e2e no se ejecutó). No se tocaron modelos, templates ni estáticos.",
+        "Los tests de vistas de tenants y del admin usan HTTP_HOST='localhost' (dominio de sistema), porque 'testserver' da 404 en el middleware.",
+        "Los 'antes' de la tabla de cobertura salen de una medición que no omitía los archivos de test, y el dev no pudo verificarlos con el gate."
+      ]
     }
   ]
 }
