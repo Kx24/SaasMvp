@@ -1,0 +1,10 @@
+{
+  "ronda": 12,
+  "rama": "agent/ronda12",
+  "cards": [
+    {"id": "BOLT-64", "maestra": "DASH-06", "titulo": "Token --primary inexistente en el dashboard", "estado": "TODO", "spec": "BOLT-64.md", "red_tests": ["apps.website.tests.test_dashboard_brand_token"], "permite_migracion": false},
+    {"id": "BOLT-65", "maestra": "TOOL-08", "titulo": "test_gatekeeper sin falsos rojos", "estado": "TODO", "spec": "BOLT-65.md", "red_tests": ["apps.core.tests.test_gatekeeper_runtime"], "permite_migracion": false},
+    {"id": "BOLT-66", "maestra": "DEUDA-12", "titulo": "Residuos de las rondas 10 y 11", "estado": "TODO", "spec": "BOLT-66.md", "red_tests": ["apps.core.tests.test_deuda12_residuos"], "permite_migracion": false},
+    {"id": "BOLT-67", "maestra": "SEC-15", "titulo": "Runbook de incidentes y rotación de secretos", "estado": "TODO", "spec": "BOLT-67.md", "red_tests": [], "permite_migracion": false}
+  ]
+}
