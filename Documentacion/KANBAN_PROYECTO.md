@@ -170,7 +170,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `DB-02` | Backup de Neon con restore probado | P1 | M | Restore a una rama, documentado con tiempos |
 | `DB-03` | `EXPLAIN ANALYZE` de consultas calientes en Neon | P3 | S | Junto a `DB-02` |
 | `DEUDA-11` | `Client.max_pages` sin uso: decidir si se borra | P3 | S | No existe modelo de páginas, así que el límite no se aplica a nada (el default 10 sigue en `apps/tenants/models.py`). Borrarlo exige migración. Hallado por `BOLT-54` |
-| `DEUDA-12` | Residuos de las rondas 10 y 11 | P3 | S | Comentarios que citan `themes/electricidad` (`test_contact_submit.py`, `test_navbar_cta.py`, `static/css/input.css`); `CLAUDE.md` y `Documentacion/ARQUITECTURA.md` desfasados (`themes/andesscale`, `hero_ctas_base`); `hero_overlay.html` de default y servelec sin referencias (¿muertos?); footer genérico con `© 2024` fijo; comentario `ANDESSCALE` suelto en `about`; `themes/default` pinta contacto en línea sin usar el componente; confirmar que `themes/andesscale` no se pueda elegir en el onboarding (`apps/orders/forms.py`, `Plan.available_themes`). Hallado por `BOLT-56`, `58`, `60`, `61`, `63` |
 | `BIZ-02` | `Plan.renewal_price` y `Client.monthly_fee` alineados al modelo real | P2 | S | Pago único + mantención 12 meses + renovación anual (`MASTER_PLAN` §4.4). `Client.plan` es texto, no FK a `Plan`: decidir |
 | `BIZ-03` | Cláusulas de mantención y fin de servicio | P2 | M | Sin código. `MASTER_PLAN` §4.5 |
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |

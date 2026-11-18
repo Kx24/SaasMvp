@@ -48,6 +48,8 @@ def normalize_html(html):
     html = re.sub(r'<!--.*?-->', '', html, flags=re.S)
     html = re.sub(r'class="([^"]*)"', lambda m: 'class="%s"' % ' '.join(m.group(1).split()), html)
     html = html.replace('© %s' % date.today().year, '© YEAR')
+    # La fixture default se capturó con el año fijo (DEUDA-12 lo volvió {% now "Y" %}).
+    html = html.replace('© 2024', '© YEAR')
     html = re.sub(r'\s+', ' ', html)
     return re.sub(r'>\s+<', '><', html).strip()
 

@@ -73,7 +73,7 @@ class OnboardingViewStatesTests(OnboardingBase):
         order = self._order()
         with patch.object(Plan, 'get_available_themes_list', return_value=[]):
             response = self.client.get(self._url(order), **HOST)
-        self.assertEqual(response.context['available_themes'], ['default'])
+        self.assertEqual(response.context['available_themes'], ['themes/default'])
 
     def test_post_invalido_muestra_errores_como_mensajes(self):
         order = self._order()

@@ -44,12 +44,24 @@
       "id": "BOLT-66",
       "maestra": "DEUDA-12",
       "titulo": "Residuos de las rondas 10 y 11",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-66.md",
       "red_tests": [
         "apps.core.tests.test_deuda12_residuos"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.55,
+      "tests": 852,
+      "hallazgos": [
+        "`Plan.get_available_themes_list` (apps/orders/models.py:206) devuelve `['default']`, un slug inválido, cuando `available_themes` no es una lista. Es el mismo bug que se arregla en la vista, pero queda sin cubrir y sin fila en el kanban.",
+        "El caso (b) del test se corrigió tras el primer intento (404 por el host) y no se volvió a correr contra el código original; el red-check del gate sí lo confirmó en rojo (2 fallos)."
+      ],
+      "revisar_humano": [
+        "Se borraron `templates/themes/default/components/hero_overlay.html` y `templates/themes/servelec/components/hero_overlay.html`. Conviene verificar a mano que ninguna home de tema los resuelve por nombre dinámico: el grep del validador no encontró referencias.",
+        "El dev modificó `test_component_footer.normalize_html` para neutralizar `© 2024` porque la fixture default no es editable. Es un ajuste del test, no del contenido; revisar si se prefiere regenerar la fixture.",
+        "Decidir si se abre una card para `Plan.get_available_themes_list` (devuelve `['default']`); el dev no la creó.",
+        "El dev no corrió Playwright pese a tocar `templates/`; el gate sí ejecutó e2e y pasó."
+      ]
     },
     {
       "id": "BOLT-67",

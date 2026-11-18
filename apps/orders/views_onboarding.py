@@ -83,7 +83,7 @@ def onboarding_view(request, token):
     # Obtener temas disponibles según el plan
     available_themes = order.plan.get_available_themes_list()
     if not available_themes:
-        available_themes = ['default']
+        available_themes = ['themes/default']
 
     if request.method == 'POST':
         # Marcar que comenzó el onboarding -- solo en POST: un GET (link
