@@ -171,7 +171,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `DB-02` | Backup de Neon con restore probado | P1 | M | Restore a una rama, documentado con tiempos |
 | `DB-03` | `EXPLAIN ANALYZE` de consultas calientes en Neon | P3 | S | Junto a `DB-02` |
 | `DEUDA-11` | `Client.max_pages` sin uso: decidir si se borra | P3 | S | No existe modelo de páginas, así que el límite no se aplica a nada (el default 10 sigue en `apps/tenants/models.py`). Borrarlo exige migración. Hallado por `BOLT-54` |
-| `DEUDA-13` | `Plan.get_available_themes_list` devuelve el slug inválido `default` | P3 | S | Fallback y filtro contra `Client.THEME_CHOICES`. Hallado por `BOLT-66` |
 | `BIZ-02` | `Plan.renewal_price` y `Client.monthly_fee` alineados al modelo real | P2 | S | Pago único + mantención 12 meses + renovación anual (`MASTER_PLAN` §4.4). `Client.plan` es texto, no FK a `Plan`: decidir |
 | `BIZ-03` | Cláusulas de mantención y fin de servicio | P2 | M | Sin código. `MASTER_PLAN` §4.5 |
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |

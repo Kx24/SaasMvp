@@ -200,10 +200,15 @@ class Plan(models.Model):
         return []
     
     def get_available_themes_list(self):
-        """Retorna temas disponibles como lista."""
-        if isinstance(self.available_themes, list):
-            return self.available_themes
-        return ['default']
+        """Retorna temas disponibles, solo los presentes en Client.THEME_CHOICES."""
+        from apps.tenants.models import Client
+
+        fallback = ['themes/default']
+        if not isinstance(self.available_themes, list):
+            return fallback
+        valid = {value for value, _label in Client.THEME_CHOICES}
+        themes = [t for t in self.available_themes if t in valid]
+        return themes or fallback
     
     def get_absolute_url(self):
         """URL del checkout para este plan."""

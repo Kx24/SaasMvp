@@ -29,7 +29,7 @@ class PaymentToProvisioningE2ETestCase(TestCase):
     def setUp(self):
         self.plan = Plan.objects.create(
             name='Plan Test', slug='plan-test', price=10000,
-            available_themes=['default'],
+            available_themes=['themes/default'],
         )
 
     def _checkout(self, mock_process_payment, mp_result):
@@ -88,7 +88,7 @@ class PaymentToProvisioningE2ETestCase(TestCase):
                     'slug': 'rancho-sandbox',
                     'primary_color': '#2563eb',
                     'secondary_color': '#1e40af',
-                    'template': 'default',
+                    'template': 'themes/default',
                     'contact_phone': '',
                     'whatsapp_number': '',
                     'tagline': 'Turismo rural',

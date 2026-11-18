@@ -23,12 +23,21 @@
       "id": "BOLT-69",
       "maestra": "DEUDA-13",
       "titulo": "Plan.get_available_themes_list sin slug inválido",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-69.md",
       "red_tests": [
         "apps.orders.tests.test_plan_available_themes_fallback"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.35,
+      "tests": 859,
+      "hallazgos": [
+        "Otros fixtures de tests siguen con available_themes=['default'] (test_checkout_consent, test_checkout_views, test_onboarding, test_onboarding_views, core/test_data_subject_command). Hoy pasan, pero usan el slug inválido que ahora se filtra."
+      ],
+      "revisar_humano": [
+        "Cambio de comportamiento visible en el onboarding: un plan con available_themes que contenga solo slugs viejos (p. ej. 'default') ahora ofrece únicamente themes/default. Conviene revisar los datos reales de los planes en Neon.",
+        "Se modificaron dos tests existentes (test_onboarding_views, test_pay03_e2e_sandbox) para adaptarlos al nuevo slug; no se debilitó ninguna aserción."
+      ]
     },
     {
       "id": "BOLT-72",

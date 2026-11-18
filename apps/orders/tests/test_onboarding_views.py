@@ -148,7 +148,7 @@ class OrderModelTests(OnboardingBase):
         self.plan.features = 'texto'
         self.plan.available_themes = None
         self.assertEqual(self.plan.get_features_list(), [])
-        self.assertEqual(self.plan.get_available_themes_list(), ['default'])
+        self.assertEqual(self.plan.get_available_themes_list(), ['themes/default'])
 
     def test_is_token_valid_casos(self):
         order = self._order(token=False)
