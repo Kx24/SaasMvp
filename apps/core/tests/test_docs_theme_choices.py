@@ -30,10 +30,8 @@ class DocsThemeChoicesTestCase(SimpleTestCase):
     def setUp(self):
         # COMP-02: 'themes/andesscale' es el tema interno de la plataforma
         # (no se ofrece a clientes) y las guías de agente no lo citan.
-        self.actual_choices = {
-            value for value, _label in Client.THEME_CHOICES
-            if value != 'themes/andesscale'
-        }
+        self.all_choices = {value for value, _label in Client.THEME_CHOICES}
+        self.actual_choices = self.all_choices - {'themes/andesscale'}
 
     def test_claude_md_theme_choices_citation_matches_model(self):
         text = (BASE_DIR / "CLAUDE.md").read_text(encoding="utf-8")
@@ -41,9 +39,10 @@ class DocsThemeChoicesTestCase(SimpleTestCase):
         self.assertIsNotNone(
             cited, "CLAUDE.md no tiene ninguna cita literal de `THEME_CHOICES`"
         )
+        # CLAUDE.md es la guía del repo y cita los tres temas (incl. el interno).
         self.assertEqual(
             cited,
-            self.actual_choices,
+            self.all_choices,
             "CLAUDE.md cita valores de THEME_CHOICES que no coinciden con "
             "Client.THEME_CHOICES real en esta rama",
         )

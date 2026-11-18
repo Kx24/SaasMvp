@@ -33,6 +33,8 @@
 | `SEC-18` | Un solo `TenantAdminMixin` (`apps/accounts/mixins.py`; borrado el fallback de `apps/website/admin.py`): el staff no ve filtros por tenant ni desplegables FK a `User` ajenos (`profile__client`); un test recorre `admin.site._registry` | 2026-11-15 | `BOLT-41` |
 | `DASH-04` | Roles con efecto en el dashboard: matriz única `DASHBOARD_PERMISSIONS` (`apps/accounts/permissions.py`) aplicada con `tenant_permission_required` en las vistas del dashboard; `viewer` solo lectura y sin mensajes, `editor` no borra ni cambia la marca; la interfaz oculta lo no permitido (`dash_perms`) | 2026-11-15 | `BOLT-35` |
 | `DASH-05` | Tests del dashboard: un archivo por área en `apps/website/tests/` (secciones, servicios, galería, marca, mensajes) con éxito y error de cada flujo, `dashboard.spec.js` con login real y a11y en Inicio y Secciones; `seed_e2e_tenants` crea el owner `owner-e2e` y se niega a correr con `DEBUG=False`. Hallazgos corregidos: los colores de marca aceptaban cualquier texto (ahora hex de 6 dígitos), el spam aparecía en Mensajes e Inicio, y el contador de no leídos del menú nunca se mostraba (`unread_contacts` no existía); contraste y `aria-label` del dashboard | 2026-11-17 | `BOLT-55` |
+| `DASH-06` | Avatar e íconos del dashboard usaban el token inexistente `var(--primary)`; ahora `var(--color-primary)` (color de marca del tenant), con test que recorre `templates/dashboard/` | 2026-11-18 | `BOLT-64` |
+| `DASH-08` | Ya cubierta por `BOLT-55`: el context processor define `unread_contacts`; la fila quedó obsoleta | 2026-11-18 | `BOLT-64` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
 

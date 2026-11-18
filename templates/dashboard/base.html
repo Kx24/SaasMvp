@@ -111,7 +111,7 @@
                 <img src="{{ client.settings.logo.url }}" alt="{{ client.name }}" class="h-8 w-auto">
                 {% else %}
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg"
-                     style="background: var(--primary);">
+                     style="background: var(--color-primary);">
                     {{ client.name|slice:":1"|upper }}
                 </div>
                 {% endif %}
@@ -144,7 +144,7 @@
         <div class="p-4 border-t border-slate-200">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0"
-                     style="background: var(--primary);">
+                     style="background: var(--color-primary);">
                     {{ user.username|slice:":1"|upper }}
                 </div>
                 <div class="flex-1 min-w-0">
