@@ -24,41 +24,42 @@ apps.core.tests.test_gatekeeper`), sin esa env var seteada.
 """
 import json
 import os
-import subprocess
-import sys
 import textwrap
 import unittest
 from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.core.gatekeeper_runner import run_gatekeeper
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-GATEKEEPER_PATH = BASE_DIR / 'scripts' / 'gatekeeper.py'
 
 _RUNNING_INSIDE_GATEKEEPER = os.environ.get('GATEKEEPER_TEST_RUN') == '1'
 
 
-def _run_gatekeeper(timeout=120):
-    return subprocess.run(
-        [sys.executable, str(GATEKEEPER_PATH)],
-        cwd=BASE_DIR,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-    )
+_run_gatekeeper = run_gatekeeper
 
 
-@unittest.skipIf(
-    _RUNNING_INSIDE_GATEKEEPER,
-    "evita recursión: el propio gatekeeper ya está corriendo este archivo",
-)
 class GatekeeperHealthyRepoTestCase(SimpleTestCase):
+    """Una sola corrida del gate para los tres tests (se cachea en setUpClass)."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        if _RUNNING_INSIDE_GATEKEEPER:
+            # Evita recursión: el propio gatekeeper ya está corriendo este archivo.
+            raise unittest.SkipTest(
+                "evita recursión: el propio gatekeeper ya está corriendo este archivo"
+            )
+        cls.result = _run_gatekeeper()
+        cls.payload = json.loads(cls.result.stdout)
+
     def test_passes_and_exits_zero_on_healthy_repo(self):
-        result = _run_gatekeeper()
+        result = self.result
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
-        payload = json.loads(result.stdout)
+        payload = self.payload
         self.assertTrue(payload['passed'], payload)
         self.assertIn('gates', payload)
         self.assertIn('ruff', payload['gates'])
@@ -66,8 +67,7 @@ class GatekeeperHealthyRepoTestCase(SimpleTestCase):
         self.assertIn('migrations', payload['gates'])
 
     def test_tests_gate_reports_totals_matching_real_suite(self):
-        result = _run_gatekeeper()
-        payload = json.loads(result.stdout)
+        payload = self.payload
 
         tests_gate = payload['gates']['tests']
         self.assertGreater(tests_gate['total'], 0)
@@ -75,12 +75,9 @@ class GatekeeperHealthyRepoTestCase(SimpleTestCase):
         self.assertGreaterEqual(tests_gate['skipped'], 0)
 
     def test_output_is_a_single_json_object_on_stdout(self):
-        result = _run_gatekeeper()
-
-        # Un solo objeto JSON en toda la salida -- json.loads falla si hay
-        # texto extra antes/después (logging de settings, prints sueltos).
-        payload = json.loads(result.stdout)
-        self.assertIsInstance(payload, dict)
+        # Un solo objeto JSON en toda la salida -- json.loads (en setUpClass)
+        # falla si hay texto extra antes/después (logging de settings, prints sueltos).
+        self.assertIsInstance(self.payload, dict)
 
 
 @unittest.skipIf(

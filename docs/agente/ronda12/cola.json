@@ -26,12 +26,19 @@
       "id": "BOLT-65",
       "maestra": "TOOL-08",
       "titulo": "test_gatekeeper sin falsos rojos",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-65.md",
       "red_tests": [
         "apps.core.tests.test_gatekeeper_runtime"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.82,
+      "tests": 849,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Un valor no entero en GATEKEEPER_TEST_TIMEOUT_S cae silenciosamente al valor por defecto de 900 s, sin avisar.",
+        "El módulo nuevo apps/core/gatekeeper_runner.py es código de herramienta dentro de apps/core: decisión del dev para que el rojo no se evalúe sobre archivos de test copiados."
+      ]
     },
     {
       "id": "BOLT-66",
