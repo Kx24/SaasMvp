@@ -39,9 +39,9 @@ Cerrados en las rondas 4 a 8: `SEC-05`/`SEC-05b`, `SEC-06`, `SEC-07`, `SEC-08`, 
 | `SEC-15` | P2 | No hay runbook de incidentes ni política de rotación de secretos | — | Respuesta improvisada ante una brecha |
 | `DB-02` | P1 | Sin backup con restore probado | — | Pérdida de datos irrecuperable |
 
-## 3. Ley 21.719 (protección de datos personales) — rige desde el 1-dic-2026
+## 3. Ley 21.719 (protección de datos personales) — rige desde el 15-oct-2027 (postergada)
 
-**Fuente:** texto oficial en [`Ley-21719_13-DIC-2024.pdf`](Ley-21719_13-DIC-2024.pdf) (BCN, versión con la modificación de la Ley 21.806 del 05-feb-2026). Los artículos citados son los de la Ley 19.628 tal como quedan modificados. Vigencia: día primero del mes 24 tras la publicación (art. primero transitorio) = **1-dic-2026**. Lectura técnica, no asesoría jurídica.
+**Fuente:** texto oficial en [`Ley-21719_13-DIC-2024.pdf`](Ley-21719_13-DIC-2024.pdf) (BCN, versión con la modificación de la Ley 21.806 del 05-feb-2026). Los artículos citados son los de la Ley 19.628 tal como quedan modificados. Vigencia: día primero del mes 24 tras la publicación (art. primero transitorio) = 1-dic-2026 en el texto original. **Actualización 2026-11-18:** prórroga a **15-oct-2027** despachada por el Congreso (informada por el dueño el 2026-11-18; confirmar la publicación en el Diario Oficial). Las referencias a "1-dic-2026" del resto de este documento quedan superadas por esa fecha. Lectura técnica, no asesoría jurídica.
 
 ### 3.1 Rol de AndesScale
 - **Responsable** (art. 2 n) de los datos de sus compradores y usuarios: `Order`, `PaymentLog`, `User`/`UserProfile`.
@@ -119,4 +119,4 @@ Greps útiles: `csrf_exempt` (solo los 2 webhooks), `mark_safe` y `|safe`, `logg
 
 ## 6. Próxima revisión
 
-Repetir este chequeo al cerrar la Fase 1 del plan (antes del 1-dic-2026) y en cada release. Pendiente fuera del repo: cuentas staff reales en producción, 2FA en Render/Neon/Cloudinary/Cloudflare/Zoho/GitHub, permisos del repositorio.
+Repetir este chequeo al cerrar la Fase 1 del plan (con la Fase 1 ya cerrada) y en cada release. Pendiente fuera del repo: cuentas staff reales en producción, 2FA en Render/Neon/Cloudinary/Cloudflare/Zoho/GitHub, permisos del repositorio.

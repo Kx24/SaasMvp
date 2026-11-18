@@ -6,23 +6,25 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-11-17)
+## 🌙 Retomar aquí (actualizado 2026-11-18)
 
-**Foco del trimestre (nov 2026 – feb 2027), sin captar clientes:** ① consolidar la plataforma (módulos reutilizables + dashboard profesional estilo Instagram/Gmail), ② ciberseguridad, ③ Ley 21.719.
+**Foco del trimestre (nov 2026 – feb 2027), sin captar clientes:** ① consolidar la plataforma (módulos reutilizables + dashboard profesional estilo Instagram/Gmail), ② ciberseguridad, ③ Ley 21.719 (**ya no es prioridad**: vigencia postergada al 15-oct-2027, ver nota en "Retomar aquí").
 
-**Decisiones vigentes:** composición de página `MOD-00` opción A ahora, B después (`MOD-02`). Seguridad y ley primero (la ley rige el 1-dic-2026). Matriz de roles de `DASH-04` confirmada, el editor sigue por defecto.
+**Decisiones vigentes:** composición de página `MOD-00` opción A ahora, B después (`MOD-02`). Consolidación y seguridad primero; la ley 21.719 pasó a segundo plano al postergarse su vigencia al 15-oct-2027 (2026-11-18). Matriz de roles de `DASH-04` confirmada, el editor sigue por defecto.
 
 **Estado (2026-11-15):** rondas 3 a 7 del agente mergeadas en `main` (PR #3) y `develop` igualada a `main`. **Producción (Render `saasmvp`) sigue en el commit de agosto `1a5d3e2`**: el merge no se desplegó y Auto-Deploy debe quedar en Off hasta decidir. Cerradas: `LEY-01`, `DASH-04`, `SEC-06`, `SEC-10`, `SEC-14`, `CONS-04`/`05`/`06`/`07`, entre otras (detalle en `historico/KANBAN_HISTORICO.md` y `docs/agente/ronda*/`).
 **Ensayo `OPS-07` hecho (2026-11-15):** rama de Neon `staging-ensayo` + servicio temporal `saasmvp-staging` desplegado desde `main` (5a2c734) con `./build.sh`. Build de 1 min, migraciones sin error, login, subida de imagen (`pillow` 13), `/privacidad/`, borrado de servicio y admin OK. Hallazgo: el Build Command de Render **no usaba `build.sh`** y sin él no se compila `output.css` (sitio sin estilos). Pendiente del ensayo: contacto con consentimiento y correo, checkout sandbox, portada de Servelec (`DEUDA-08`).
 **Hecho en Render:** `FIELD_ENCRYPTION_KEY` creada y cargada, 2FA activo, Environment Group `saasmvp-shared`. **Aún sin crear:** crons `contact-digest` y `send-pending-emails` (`OPS-06`); sin el primero la purga de 365 días (`LEY-03`) no corre en producción.
 
-**Pendiente tuyo, en orden:** ① cambiar el Build Command de `saasmvp` a `./build.sh` y hacer Manual Deploy de `main` (respaldo: rama de Neon `staging-ensayo`, o crear otra justo antes); ② probar en vivo login, `/privacidad/`, contacto y borrado de servicio; ③ crear los dos crons; ④ borrar `saasmvp-staging` y la rama de Neon; ⑤ activar protección de ramas en `main` y `develop`; ⑥ revisión legal de los textos de privacidad antes del 1-dic.
+**Pendiente tuyo, en orden:** ① cambiar el Build Command de `saasmvp` a `./build.sh` y hacer Manual Deploy de `main` (respaldo: rama de Neon `staging-ensayo`, o crear otra justo antes); ② probar en vivo login, `/privacidad/`, contacto y borrado de servicio; ③ crear los dos crons; ④ borrar `saasmvp-staging` y la rama de Neon; ⑤ activar protección de ramas en `main` y `develop`; ⑥ revisión legal de los textos de privacidad antes del 15-oct-2027 (ya sin urgencia).
 
 **Ritmo:** 2 días/semana × 4–5 h. Card que no entra en 2 h se parte. Rondas del agente: `orchestrate.py` + `claude -p` (Sonnet 5.5) sobre ramas `agent/*`; tú revisas el PR a `develop`.
 
+**⚖️ Cambio de calendario legal (2026-11-18):** prórroga a **15-oct-2027** despachada por el Congreso (informada por el dueño el 2026-11-18; confirmar la publicación en el Diario Oficial). La Ley 21.719 pasa de 1-dic-2026 a 15-oct-2027: las cards `LEY` bajan a P3 y salen del camino de diciembre-febrero. **Lo ya hecho se queda** (consentimiento, política, retención y purga, aviso previo, `DataSubjectRequest` y `data_subject`; todo es mejora de producto y no se revierte). **Pendiente de la ley, para el segundo semestre de 2027:** `LEY-09` (verificación de identidad y huecos de `LEY-02`), `LEY-05` (registro de tratamientos), `LEY-06` (brechas), `LEY-04` (proveedores), `LEY-07` (contrato de encargo, con abogado), la revisión legal de la política (`LEY-00`) y el cron de purga (`OPS-06`, que sigue valiendo como operación). Plan sugerido: retomarlas entre julio y septiembre de 2027 para llegar con margen; si el texto de la ley o la instrucción de la Agencia (art. 14 septies) cambian, reevaluar entonces. La política publica la fecha `PRIVACY_POLICY_DATE = 1 de diciembre de 2026`: es la fecha de la versión del texto, no de vigencia legal; ajustarla al publicar de verdad.
+
 **Rondas 8 a 11 (2026-11-16/17), en `agent/ronda8` a `agent/ronda11` (encadenadas, cada una incluye a la anterior), sin PR todavía:** 8: `CONS-11`/`12`, `SEC-18`, `COMP-03`, `DEUDA-09`, `FLOW-04`, `TOOL-04`, `DOC-01`. 9: `LEY-03` (plazos), `LEY-02` (formulario `/privacidad/solicitud/`, comando `data_subject`), `LEY-08` (rescatada del stash), `OPS-04`. 10: `CONS-08`, `CONS-09`, `BIZ-01`, `DASH-05`; "Portada" se movió a core a pedido. 11: `COMP-02` (árbol de temas, migración de datos `0031`) y `COMP-01` (`cta`, `about`, `services`, `contact`, `footer`, `navbar`, `hero_ctas`). 846 tests, 8/8 en la ronda 11. Detalle y puntos a revisar a mano en `docs/agente/ronda8..11/ESTADO.md`. Lo más sensible: `MercadoPagoError` sin envolver, reset de contraseña acotado al tenant, `data_subject erase` (irreversible, usar `--dry-run`), límites de plan ya activos (revisar clientes sobre su tope antes de desplegar), migración `0031` (ensayar en rama de Neon) y la ronda 11, que cambió los templates de todos los temas: **mirar en el navegador** home, navbar (375 px), footer, contacto y hero de Servelec, andesscale y default.
 
-**▶️ Próximo:** revisar y mergear a `develop` los PR de las rondas 8 a 11 (en ese orden). Decidir `LEY-09` antes de usar `data_subject export` con un titular real. Candidatos para la ronda 12: `LEY-09`, `TOOL-08`, `DEUDA-10`, `COMP-04`, `DEUDA-12`, `DASH-08`; luego `MOD-01` (Media), que necesita spec y diseño.
+**▶️ Próximo:** revisar y mergear a `develop` los PR de las rondas 8 a 11 (en ese orden). `LEY-09` ya no corre prisa (solo hay que resolverla antes de atender una solicitud real con `data_subject export`). Candidatos para la ronda 12, sin cards `LEY`: `TOOL-08`, `DEUDA-10`, `DEUDA-11`, `DEUDA-12`, `COMP-04`, `DASH-06`, `DASH-07`, `DASH-08`, `SEC-13` y `SEC-15`; luego `MOD-01` (Media), que necesita spec y diseño.
 
 ---
 
@@ -78,13 +80,13 @@
 |---|---|---|
 | D1 | `CONS-01` Push de `develop` + smoke test de producción | `SEC-10` ✅ Dependencias al día + `pip-audit` |
 
-### Fase 1 — Seguridad y ley mínima (D2–D5, antes del 1-dic-2026)
+### Fase 1 — Seguridad y ley mínima (D2–D5; la parte de ley ya no tiene fecha límite en 2026, ver "Retomar aquí")
 | Día | Bloque A | Bloque B |
 |---|---|---|
 | D2 | `SEC-06` ✅ Credenciales SMTP/API cifradas | `SEC-06` ✅ (continúa: migración de datos y clave en Render) |
 | D3 | `SEC-08` ✅ Un solo login (+ open redirect de `next`) | `CONS-04` ✅ Borrar rutas legacy |
 | D4 | `LEY-01` ✅ Consentimiento en contacto y onboarding | `LEY-01` ✅ Página de política de privacidad (contenidos del art. 14 ter) |
-| D5 | `SEC-14` ✅ + `SEC-17` ✅ Salidas sin escapar y comentarios DEBUG | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
+| D5 | `SEC-14` ✅ + `SEC-17` ✅ Salidas sin escapar y comentarios DEBUG | `LEY-05` + `LEY-06` ⏸️ diferidas a 2027 (vigencia 15-oct-2027) |
 
 ### Fase 2 — Consolidación (D6–D11, diciembre)
 | Día | Bloque A | Bloque B |
@@ -97,7 +99,7 @@
 | D11 | `CONS-09` ✅ Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
 
 ### Fase 3 — Módulos y dashboard (~20 días, enero–febrero 2027)
-Orden: `COMP-02` ✅ (1 d) → `COMP-01` ✅ (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` ✅ (1 d) → `LEY-02` ✅ + resto de `LEY-03` (2 d) → `LEY-04` + `LEY-07` (1 d) → `SEC-13` + `SEC-15` (2 d).
+Orden: `COMP-02` ✅ (1 d) → `COMP-01` ✅ (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` ✅ (1 d) → `SEC-13` + `SEC-15` (2 d). Las cards `LEY` quedan fuera de esta secuencia (P3, segundo semestre de 2027).
 Después: `MOD-02` (opción B) y Rancho Cachimba — **no antes de marzo de 2027** (la meta anterior de mediados de febrero no cabe).
 
 Las estimaciones no están medidas; recalibrar al cerrar cada fase.
@@ -154,15 +156,15 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
 | `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |
 
-### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`)
+### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`) — **P3: vigencia postergada al 15-oct-2027**
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `LEY-03` | Retención y purga (art. 14 d y principio de proporcionalidad) | P1 | M | Plazos y purga implementados (contactos 365 d, `Order`/`PaymentLog` 6 años, `EmailOutbox` 90 d; publicados en la política). Falta solo: cron en Render (`OPS-06`) para que corra en producción |
-| `LEY-04` | Proveedores y transferencia internacional (art. 15 bis, 27–28) | P2 | S | DPA o cláusulas contractuales de Neon, Render, Cloudinary y Zoho archivados; listados en la política |
-| `LEY-05` | Registro de tratamientos y bases de licitud (art. 13, 14, 14 quáter) | P1 | S | Documento por tratamiento: datos, finalidad, base de licitud, quién accede, conservación, proveedores. Decidido: IP sí, user-agent no |
-| `LEY-06` | Procedimiento de brechas (art. 14 sexies) | P1 | S | Documento + plantilla de registro: detección, evaluación de riesgo, reporte a la Agencia, aviso al cliente responsable cuando AndesScale es encargado, aviso a titulares cuando corresponde |
-| `LEY-07` | Contrato de encargo con clientes (art. 15 bis) | P1 | M | Cláusula con objeto, duración, finalidad, tipo de datos, categorías de titulares y obligaciones; autorización escrita de sub-encargados (Neon, Render, Cloudinary, Zoho); devolución o supresión al terminar (une con `BIZ-03`). Sin código; revisar con abogado |
-| `LEY-09` | Cierre de `LEY-02`: verificación de identidad y huecos | P1 | M | Definir cómo se verifica al solicitante antes de entregar datos (hoy la respuesta va al correo que indica el formulario); un mensaje de un titular bloqueado no se abre por URL directa (`contacts.py`); backfill de `EmailOutbox.client` nulo para que `erase` los alcance; el aviso del dashboard usa `reverse` y solo se muestra a quien puede abrir `/superadmin/`; `resolved_at` se limpia al reabrir. Hallado por `BOLT-49` y `BOLT-50` |
+| `LEY-03` | Retención y purga (art. 14 d y principio de proporcionalidad) | P3 | M | Plazos y purga implementados (contactos 365 d, `Order`/`PaymentLog` 6 años, `EmailOutbox` 90 d; publicados en la política). Falta solo: cron en Render (`OPS-06`) para que corra en producción |
+| `LEY-04` | Proveedores y transferencia internacional (art. 15 bis, 27–28) | P3 | S | DPA o cláusulas contractuales de Neon, Render, Cloudinary y Zoho archivados; listados en la política |
+| `LEY-05` | Registro de tratamientos y bases de licitud (art. 13, 14, 14 quáter) | P3 | S | Documento por tratamiento: datos, finalidad, base de licitud, quién accede, conservación, proveedores. Decidido: IP sí, user-agent no |
+| `LEY-06` | Procedimiento de brechas (art. 14 sexies) | P3 | S | Documento + plantilla de registro: detección, evaluación de riesgo, reporte a la Agencia, aviso al cliente responsable cuando AndesScale es encargado, aviso a titulares cuando corresponde |
+| `LEY-07` | Contrato de encargo con clientes (art. 15 bis) | P3 | M | Cláusula con objeto, duración, finalidad, tipo de datos, categorías de titulares y obligaciones; autorización escrita de sub-encargados (Neon, Render, Cloudinary, Zoho); devolución o supresión al terminar (une con `BIZ-03`). Sin código; revisar con abogado |
+| `LEY-09` | Cierre de `LEY-02`: verificación de identidad y huecos | P3 | M | Definir cómo se verifica al solicitante antes de entregar datos (hoy la respuesta va al correo que indica el formulario); un mensaje de un titular bloqueado no se abre por URL directa (`contacts.py`); backfill de `EmailOutbox.client` nulo para que `erase` los alcance; el aviso del dashboard usa `reverse` y solo se muestra a quien puede abrir `/superadmin/`; `resolved_at` se limpia al reabrir. Hallado por `BOLT-49` y `BOLT-50` |
 
 ### Negocio, datos y operación
 | ID | Card | P | Esf. | Nota |
