@@ -6,7 +6,7 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-11-18, tarde)
+## 🌙 Retomar aquí (actualizado 2026-11-18, noche)
 
 **Foco del trimestre (nov 2026 – feb 2027), sin captar clientes:** ① consolidar la plataforma (módulos reutilizables + dashboard profesional estilo Instagram/Gmail), ② ciberseguridad, ③ Ley 21.719 (**ya no es prioridad**: vigencia postergada al 15-oct-2027, ver nota en "Retomar aquí").
 
@@ -25,6 +25,10 @@
 **Rondas 8 a 12 (2026-11-16/18), en `agent/ronda8` a `agent/ronda12` (encadenadas, cada una incluye a la anterior), sin PR todavía:** 8: `CONS-11`/`12`, `SEC-18`, `COMP-03`, `DEUDA-09`, `FLOW-04`, `TOOL-04`, `DOC-01`. 9: `LEY-03` (plazos), `LEY-02` (formulario `/privacidad/solicitud/`, comando `data_subject`), `LEY-08` (rescatada del stash), `OPS-04`. 10: `CONS-08`, `CONS-09`, `BIZ-01`, `DASH-05`; "Portada" se movió a core a pedido. 11: `COMP-02` (árbol de temas, migración de datos `0031`) y `COMP-01` (`cta`, `about`, `services`, `contact`, `footer`, `navbar`, `hero_ctas`). 846 tests, 8/8 en la ronda 11. Detalle y puntos a revisar a mano en `docs/agente/ronda8..11/ESTADO.md`. Lo más sensible: `MercadoPagoError` sin envolver, reset de contraseña acotado al tenant, `data_subject erase` (irreversible, usar `--dry-run`), límites de plan ya activos (revisar clientes sobre su tope antes de desplegar), migración `0031` (ensayar en rama de Neon) y la ronda 11, que cambió los templates de todos los temas: **mirar en el navegador** home, navbar (375 px), footer, contacto y hero de Servelec, andesscale y default.
 
 **Ronda 12 (2026-11-18, 4/4):** `DASH-06` (+ `DASH-08` obsoleta), `TOOL-08` (gate una vez por clase, timeout 900 s), `DEUDA-12` (footer con año actual, se borraron los `hero_overlay.html` de default y servelec) y `SEC-15` (`Documentacion/Runbook_Incidentes.md`). 852 tests. **Ronda 13 armada** (`agent/ronda13`): `DASH-09`, `DEUDA-13`, `OPS-05` (solo `/health/`) y `CONS-13` en dos partes. **A mano:** verificar en el navegador que ninguna home de default/servelec use `hero_overlay.html` (el agente borró los dos archivos; grep limpio); revisar el runbook (pasos de Neon y Render sin verificar; `Session.objects.all().delete()` cierra todas las sesiones); configurar `/health/` como Health Check Path en Render al desplegar.
+
+**Ronda 13 (2026-11-18, 5/5) y ronda 14 (1/1), 935 tests:** `DASH-09`, `DEUDA-13`, `OPS-05` (`/health/`, con bypass de la ruta exacta en el middleware), `CONS-13` completa (comandos de gestión y vistas SEO/admins de menor cobertura al 86–93 %) y `DEUDA-14`. **Se acabó lo que puede ir desatendido sin una decisión tuya.**
+
+**Decisiones tuyas pendientes:** `DEUDA-15` (¿se borra `create_tenant`?), `DEUDA-16` (sitemap de secciones siempre vacío), `DEUDA-10` (¿`provision_tenant` siembra el SEO?), `DEUDA-11` (¿se borra `max_pages`?), `LEY-09` (2027). **A mano:** Health Check Path `/health/` en Render y verificar que no reciba 301 por `SECURE_SSL_REDIRECT`; revisar los datos de `Plan.available_themes` en Neon (planes con solo `default` ahora ofrecen `themes/default`); mirar el ícono de contactos y las homes de default/servelec en el navegador.
 
 **▶️ Próximo:** revisar y mergear a `develop` los PR de las rondas 8 a 11 (en ese orden). `LEY-09` ya no corre prisa (solo hay que resolverla antes de atender una solicitud real con `data_subject export`). **Ronda 12 armada (2026-11-18, `agent/ronda12`, sin cards `LEY`):** `BOLT-64` `DASH-06` (+ cierra `DASH-08`, obsoleta), `BOLT-65` `TOOL-08`, `BOLT-66` `DEUDA-12`, `BOLT-67` `SEC-15`. Quedan fuera a propósito: `DASH-07` (contraste: decisión de diseño), `COMP-04` (cambia el aspecto), `DEUDA-10` (parece el gate funcionando) y `DEUDA-11` (migración y decisión), `SEC-13` (dependencia nueva TOTP); luego `MOD-01` (Media), que necesita spec y diseño.
 
@@ -170,6 +174,9 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `DB-02` | Backup de Neon con restore probado | P1 | M | Restore a una rama, documentado con tiempos |
 | `DB-03` | `EXPLAIN ANALYZE` de consultas calientes en Neon | P3 | S | Junto a `DB-02` |
 | `DEUDA-11` | `Client.max_pages` sin uso: decidir si se borra | P3 | S | No existe modelo de páginas, así que el límite no se aplica a nada (el default 10 sigue en `apps/tenants/models.py`). Borrarlo exige migración. Hallado por `BOLT-54` |
+| `DEUDA-15` | `create_tenant`: ¿borrar o documentar? | P3 | S | Parece muerto frente a `provision_tenant` (110 sentencias; ahora con tests de `BOLT-70`). Decidir: borrarlo con sus tests, o dejarlo documentado como vigente. Hallado por `BOLT-39`, `70`, `71` |
+| `DEUDA-16` | Sitemap de secciones siempre vacío | P3 | S | `TenantSectionsSitemap` filtra por `Section.slug`, campo que no existe, y apunta a `website:section_detail`, ruta que no existe; los `except` lo ocultan. Resultado: `/sitemap-sections.xml` sale vacío. Decidir: quitarlo del índice o darle URLs públicas reales a las secciones (esto último es producto/SEO). Hallado por `BOLT-71` |
+| `DEUDA-17` | `audit_cloudinary_assets` cuenta cualquier `CharField` como referencia | P3 | S | Un asset puede parecer en uso por un valor que no es un `public_id`. Acotar a los campos de imagen conocidos. Hallado por `BOLT-70` |
 | `BIZ-02` | `Plan.renewal_price` y `Client.monthly_fee` alineados al modelo real | P2 | S | Pago único + mantención 12 meses + renovación anual (`MASTER_PLAN` §4.4). `Client.plan` es texto, no FK a `Plan`: decidir |
 | `BIZ-03` | Cláusulas de mantención y fin de servicio | P2 | M | Sin código. `MASTER_PLAN` §4.5 |
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |
