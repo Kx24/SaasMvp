@@ -49,7 +49,7 @@ def dashboard(request):
     # Contactos recientes (últimos 5)
     # (datos personales de terceros: solo para roles con `view_contacts`)
     if has_dashboard_permission(request.user, client, 'view_contacts'):
-        recent_contacts = visible_contacts.order_by('-created_at')[:5]
+        recent_contacts = visible_contacts.order_by('-created_at', '-id')[:5]
     else:
         recent_contacts = []
 
