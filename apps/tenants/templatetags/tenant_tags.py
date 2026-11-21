@@ -36,7 +36,7 @@ def tenant_static(context, path):
     
     if client:
         # Ruta del tenant
-        tenant_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / path
+        tenant_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / str(path)
         
         if tenant_path.exists():
             return f"{settings.MEDIA_URL}tenants/{client.slug}/{path}"
@@ -76,7 +76,7 @@ def get_tenant_media_url(context, filename):
     client = context.get('client') or getattr(request, 'client', None)
     
     if client:
-        file_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / filename
+        file_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / str(filename)
         if file_path.exists():
             return f"{settings.MEDIA_URL}tenants/{client.slug}/{filename}"
     
