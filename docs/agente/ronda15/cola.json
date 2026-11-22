@@ -6,12 +6,19 @@
       "id": "BOLT-74",
       "maestra": "DEUDA-15",
       "titulo": "Borrar el comando create_tenant y sus tests",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-74.md",
       "red_tests": [
         "apps.tenants.tests_create_tenant_removed"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.54,
+      "tests": 931,
+      "hallazgos": [],
+      "revisar_humano": [
+        "La cobertura total bajó de 90.27% a 90.10% y la de orders de 92.46% a 92.41%, por borrar código cubierto; el gate pasó, pero el baseline de gate_baseline.json quizá convenga recalibrarlo.",
+        "Las menciones de create_tenant en docs/kanban_agente.md y en Documentacion/KANBAN_PROYECTO.md (sección Retomar aquí, línea 31) quedaron intactas a propósito: son históricas o de decisiones."
+      ]
     },
     {
       "id": "BOLT-75",

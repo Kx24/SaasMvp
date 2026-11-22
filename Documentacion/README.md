@@ -198,7 +198,6 @@ project_root/
 **Comandos de management:**
  
 ```bash
-python manage.py create_tenant          # Crea tenant interactivo
 python manage.py provision_tenant --industry=<rubro> --theme=<Client.THEME_CHOICES>  # Alta completa con seed data (#FLOW-01)
 python manage.py check_tenant_setup <slug>  # Gate de QA: tema, dominio, email, SEO, contenido
 python manage.py list_tenants           # Lista todos los tenants activos
