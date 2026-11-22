@@ -1,0 +1,39 @@
+{
+  "ronda": 15,
+  "rama": "agent/ronda15",
+  "cards": [
+    {
+      "id": "BOLT-74",
+      "maestra": "DEUDA-15",
+      "titulo": "Borrar el comando create_tenant y sus tests",
+      "estado": "TODO",
+      "spec": "BOLT-74.md",
+      "red_tests": [
+        "apps.tenants.tests_create_tenant_removed"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-75",
+      "maestra": "DEUDA-16",
+      "titulo": "Quitar TenantSectionsSitemap del sitemap",
+      "estado": "TODO",
+      "spec": "BOLT-75.md",
+      "red_tests": [
+        "apps.marketing.tests_sitemap_sin_secciones"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-76",
+      "maestra": "DEUDA-11",
+      "titulo": "Borrar max_pages de Client y Plan",
+      "estado": "TODO",
+      "spec": "BOLT-76.md",
+      "red_tests": [
+        "apps.tenants.tests_max_pages_removed"
+      ],
+      "permite_migracion": true
+    }
+  ]
+}
