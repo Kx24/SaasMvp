@@ -334,7 +334,7 @@ Usuario → /checkout/ → MercadoPago (preferencia) → Pago externo
 | Archivo | Función |
 |---|---|
 | `seo_tags.py` | `{% seo_tags "home" %}` — inyecta en `<head>`: title, meta, OG, JSON-LD, canonical |
-| `sitemaps.py` | `TenantStaticSitemap`, `TenantSectionsSitemap` — filtrado por tenant |
+| `sitemaps.py` | `TenantStaticSitemap` — filtrado por tenant |
 | `views_robots.py` | `/robots.txt` dinámico por tenant |
 | `views_verification.py` | Sirve `/google<code>.html` para verificar Search Console |
 | `views_sitemap.py` | Sirve `/sitemap.xml` y `/sitemap-<section>.xml` |

@@ -2,7 +2,7 @@
 from django.test import RequestFactory, TestCase
 
 from apps.marketing.models import SEOConfig
-from apps.marketing.sitemaps import TenantSectionsSitemap, TenantStaticSitemap
+from apps.marketing.sitemaps import TenantStaticSitemap
 from apps.marketing.views_sitemap import get_tenant_sitemaps
 from apps.tenants.models import Client, Domain
 
@@ -91,7 +91,7 @@ class SitemapTests(TestCase):
     def test_get_tenant_sitemaps_keys(self):
         request = RequestFactory().get('/')
         request.client = self.a
-        self.assertEqual(set(get_tenant_sitemaps(request)), {'pages', 'sections'})
+        self.assertEqual(set(get_tenant_sitemaps(request)), {'pages'})
 
     def test_static_sitemap_lastmod_follows_active_seoconfig(self):
         request = RequestFactory().get('/')
@@ -113,15 +113,3 @@ class SitemapTests(TestCase):
     def test_static_sitemap_location_falls_back_to_root(self):
         request = RequestFactory().get('/')
         self.assertEqual(TenantStaticSitemap(request).location({'url_name': 'no-existe'}), '/')
-
-    def test_sections_sitemap_empty_without_client(self):
-        request = RequestFactory().get('/')
-        sm = TenantSectionsSitemap(request)
-        self.assertEqual(sm.items(), [])
-        self.assertEqual(sm.location(object()), '/')
-        self.assertIsNone(sm.lastmod(object()))
-
-    def test_sections_sitemap_with_client_never_raises(self):
-        request = RequestFactory().get('/')
-        request.client = self.a
-        self.assertEqual(list(TenantSectionsSitemap(request).items()), [])

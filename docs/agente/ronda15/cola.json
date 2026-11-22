@@ -24,12 +24,23 @@
       "id": "BOLT-75",
       "maestra": "DEUDA-16",
       "titulo": "Quitar TenantSectionsSitemap del sitemap",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-75.md",
       "red_tests": [
         "apps.marketing.tests_sitemap_sin_secciones"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.83,
+      "tests": 938,
+      "hallazgos": [
+        "DEUDA-18: SEOConfig.get_schema_json lee settings.phone y settings.address, campos que ClientSettings no tiene; esas ramas nunca se ejecutan. Ya está en el kanban.",
+        "La cobertura de orders (92.41%) queda bajo su baseline (92.46%). El gate pasó igual y el dev no confirmó si la baja es previa a este cambio."
+      ],
+      "revisar_humano": [
+        "Decidir DEUDA-18: agregar los campos de teléfono y dirección a ClientSettings o borrar las ramas.",
+        "tests_seoconfig_model.py es un archivo de tests nuevo que no pedía el spec; se agregó solo para sostener la cobertura total. Conviene mirar que no fije comportamiento que se quiera cambiar (por ejemplo, que telephone y address no aparezcan en el JSON-LD).",
+        "El dev no confirmó si la baja de cobertura de orders (92.41% contra 92.46%) viene de antes de este cambio."
+      ]
     },
     {
       "id": "BOLT-76",

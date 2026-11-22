@@ -1,7 +1,7 @@
 from django.contrib.sitemaps.views import index as sitemap_index
 from django.contrib.sitemaps.views import sitemap
 
-from .sitemaps import TenantSectionsSitemap, TenantStaticSitemap
+from .sitemaps import TenantStaticSitemap
 
 
 def get_tenant_sitemaps(request):
@@ -11,7 +11,6 @@ def get_tenant_sitemaps(request):
     """
     return {
         "pages": TenantStaticSitemap(request),
-        "sections": TenantSectionsSitemap(request),
     }
 
 
@@ -31,7 +30,7 @@ def tenant_sitemap_index(request):
 def tenant_sitemap_section(request, section):
     """
     Vista para /sitemap-<section>.xml
-    Retorna el sitemap de una sección específica (pages, sections).
+    Retorna el sitemap de una sección específica (pages).
     """
     sitemaps = get_tenant_sitemaps(request)
 
