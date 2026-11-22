@@ -174,7 +174,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `DB-02` | Backup de Neon con restore probado | P1 | M | Restore a una rama, documentado con tiempos |
 | `DB-03` | `EXPLAIN ANALYZE` de consultas calientes en Neon | P3 | S | Junto a `DB-02` |
-| `DEUDA-11` | Borrar `max_pages` de `Client` **y** de `Plan` (decidido 2026-11-22) | P3 | S | No existe modelo de páginas y `MOD-00` descartó el page-builder multipágina: el límite no se aplica a nada. Una migración que quite ambos campos y limpie `admin.py` (tenants y orders), `setup_plans.py` y `views_onboarding.py`; revisar copy de planes. Test que falle mientras el campo exista. Hallado por `BOLT-54`. |
 | `DEUDA-17` | `audit_cloudinary_assets` cuenta cualquier `CharField` como referencia | P3 | S | Un asset puede parecer en uso por un valor que no es un `public_id`. Acotar a los campos de imagen conocidos. Hallado por `BOLT-70` |
 | `DEUDA-18` | `SEOConfig.get_schema_json` lee `settings.phone` y `settings.address`, campos que `ClientSettings` no tiene | P3 | S | Esas ramas (`apps/marketing/models.py`) nunca se ejecutan: el JSON-LD sale sin teléfono ni dirección. Decidir si se agregan los campos o se borran las ramas. Hallado por `BOLT-75` |
 | `BIZ-02` | `Plan.renewal_price` y `Client.monthly_fee` alineados al modelo real | P2 | S | Pago único + mantención 12 meses + renovación anual (`MASTER_PLAN` §4.4). `Client.plan` es texto, no FK a `Plan`: decidir |

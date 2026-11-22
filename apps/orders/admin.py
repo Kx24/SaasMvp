@@ -62,7 +62,6 @@ class PlanAdmin(admin.ModelAdmin):
         }),
         ('Límites', {
             'fields': (
-                'max_pages',
                 'max_services', 
                 'max_images',
                 'max_storage_mb'

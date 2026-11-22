@@ -211,7 +211,6 @@ def process_onboarding(order: Order, data: dict) -> tuple:
         is_active=True,
         setup_completed=True,
         # Límites del plan
-        max_pages=plan.max_pages,
         max_services=plan.max_services,
         max_images=plan.max_images,
     )

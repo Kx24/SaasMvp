@@ -46,12 +46,24 @@
       "id": "BOLT-76",
       "maestra": "DEUDA-11",
       "titulo": "Borrar max_pages de Client y Plan",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-76.md",
       "red_tests": [
         "apps.tenants.tests_max_pages_removed"
       ],
-      "permite_migracion": true
+      "permite_migracion": true,
+      "costo_usd": 0.38,
+      "tests": 940,
+      "hallazgos": [
+        "MASTER_PLAN_Y_ARQUITECTURA.md §4.3 (~línea 161) sigue describiendo los planes con \"5 páginas / 10 / 50 páginas\" (Esencial, Pro y Enterprise). Es copy comercial en un doc vigente, y el spec manda reportarlo en vez de cambiarlo. Decisión de negocio: si el número de páginas se sigue vendiendo o se quita.",
+        "El dev reportó que no hay copy comercial con páginas. Eso es cierto en templates y setup_plans, pero el MASTER_PLAN sí lo tiene, como se ve arriba."
+      ],
+      "revisar_humano": [
+        "Dos migraciones: orders 0004 (RemoveField Plan.max_pages) y tenants 0032 (RemoveField Client.max_pages). Los valores guardados se pierden al aplicarlas, como decidió el dueño. Hay que correr migrate en Neon al desplegar.",
+        "Decidir qué hacer con la promesa de \"5/10/50 páginas\" que queda en MASTER_PLAN §4.3.",
+        "El párrafo \"Decisiones del dueño\" de \"Retomar aquí\" no fue tocado, como pide el spec, y lo edita el dueño.",
+        "El dev no corrió el rojo él mismo. El red_check del orquestador sí lo confirmó."
+      ]
     }
   ]
 }

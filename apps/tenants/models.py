@@ -87,7 +87,6 @@ class Client(models.Model):
     
     # ==================== LÍMITES ====================
     max_images = models.IntegerField(default=100)
-    max_pages = models.IntegerField(default=10)
     max_services = models.IntegerField(default=20)
     
     # ==================== METADATA ====================
