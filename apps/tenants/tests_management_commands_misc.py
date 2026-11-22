@@ -6,9 +6,10 @@ from io import StringIO
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.test import TestCase
 
+from apps.orders.models import Plan
 from apps.tenants.models import Client, Domain
 from apps.website.models import Section, Service
 
@@ -54,6 +55,15 @@ class SetupCloudinaryFoldersTests(TestCase):
 
 
 class SetupDevEnvTests(TestCase):
+    def setUp(self):
+        for slug in ('pro', 'enterprise'):
+            Plan.objects.create(name=slug.title(), slug=slug, price=1000)
+
+    def test_missing_plan_gives_clear_error(self):
+        Plan.objects.filter(slug='enterprise').delete()
+        with self.assertRaisesMessage(CommandError, 'setup_plans'):
+            run('setup_dev_env')
+
     def test_creates_two_tenants_and_admin(self):
         run('setup_dev_env')
         self.assertTrue(User.objects.filter(username='admin', is_superuser=True).exists())
@@ -64,6 +74,7 @@ class SetupDevEnvTests(TestCase):
         self.assertEqual(Section.objects.filter(client=servelec).count(), 3)
         self.assertEqual(servelec.settings.primary_color, '#16a34a')
         self.assertTrue(Client.objects.filter(slug='andesscale').exists())
+        self.assertEqual(servelec.plan.slug, 'pro')
 
     def test_is_rerunnable_without_duplicates(self):
         run('setup_dev_env')

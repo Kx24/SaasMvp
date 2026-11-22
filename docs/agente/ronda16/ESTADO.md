@@ -7,7 +7,7 @@ Rama `agent/ronda16` · generado por `orchestrate.py` (no editar a mano).
 | `BOLT-77` | `DEUDA-18` | Teléfono del JSON-LD desde ClientSettings.contact_phone | ✅ DONE | 942 | 0.42 |
 | `BOLT-78` | `SEC-19` | Rechazar rutas fuera del directorio del tenant en tenant_tags | ✅ DONE | 947 | 0.36 |
 | `BOLT-79` | `DEUDA-17` | Acotar las referencias de audit_cloudinary_assets | ✅ DONE | 950 | 0.4 |
-| `BOLT-80` | `BIZ-04` | Client.plan como FK a Plan | ⏳ TODO |  |  |
+| `BOLT-80` | `BIZ-04` | Client.plan como FK a Plan | ✅ DONE | 954 | 0.6 |
 
 ## Revisar a mano en el PR
 
@@ -17,6 +17,10 @@ Rama `agent/ronda16` · generado por `orchestrate.py` (no editar a mano).
 - `BOLT-79`: Antes de correr --fix en producción, ejecutar la auditoría en modo dry-run y revisar la lista de huérfanos, porque la dirección del cambio es de riesgo para la purga.
 - `BOLT-79`: Decisión del dev que el spec no cubría: usar los slugs de Client como prefijos legacy y la heurística del segundo segmento en VALID_RESOURCE_TYPES.
 - `BOLT-79`: El dev no ejecutó el rojo por su cuenta, pero el red_check del gate lo confirmó: el test de no-referencia falla en HEAD.
+- `BOLT-80`: Antes de migrar en Neon, comprobar que existen los 3 Plan (si no, correr setup_plans antes del deploy); si falta alguno, ese Client queda con plan en null.
+- `BOLT-80`: Migraciones 0033-0035 de tenants: dependen de orders 0004; revisar el reverse (los clientes con plan null vuelven a 'essential').
+- `BOLT-80`: El dev probó la migración y su reverse solo en SQLite local, no en Postgres/Neon.
+- `BOLT-80`: setup_dev_env ahora aborta con CommandError si faltan los Plan; revisar si es el comportamiento deseado en entornos de desarrollo.
 
 ## Hallazgos incidentales
 

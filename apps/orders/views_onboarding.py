@@ -207,7 +207,7 @@ def process_onboarding(order: Order, data: dict) -> tuple:
         contact_email=order.email,
         contact_phone=data.get('contact_phone', ''),
         template=data['template'],
-        plan=plan.slug,  # Guardar referencia al plan
+        plan=plan,  # Guardar referencia al plan
         is_active=True,
         setup_completed=True,
         # Límites del plan

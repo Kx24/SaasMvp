@@ -137,6 +137,7 @@
 | `OPS-04` | Alerta de créditos de Cloudinary: `CLOUDINARY_ALERT_THRESHOLDS` (70/90) y `PLATFORM_ALERT_EMAIL` en settings; `cloudinary_usage --alert` envía un correo de aviso/alerta y `send_contact_digest` lo ejecuta una vez por corrida (no en `--dry-run`, sin bloquear el digest) | 2026-11-16 | `BOLT-51` |
 | `OPS-05` (parcial) | Endpoint `GET /health/` (200/503 con `SELECT 1`, sin detalles, `never_cache`, solo GET/HEAD) que responde con cualquier `Host` y con tenant en construcción vía excepción de ruta exacta en `TenantMiddleware` (`apps.core.tests.test_health`); quedan cache compartida y Sentry | 2026-11-18 | `BOLT-72` |
 | `TOOL-08` | `test_gatekeeper` sin falsos rojos: tope de 900 s (sobrescribible con `GATEKEEPER_TEST_TIMEOUT_S`), una sola corrida del gate para la clase sana (cacheada en `setUpClass`) y `TimeoutExpired` convertido en fallo que sugiere subir el tope (`apps.core.tests.test_gatekeeper_runtime`) | 2026-11-18 | `BOLT-65` |
+| `BIZ-04` | `Client.plan` es FK a `orders.Plan` (`null=True`, `PROTECT`): migraciones `0033`–`0035` copian el slug al FK (slug sin `Plan` queda en null y se informa), con `reverse` probado en la base de desarrollo; onboarding asigna el objeto y `setup_dev_env` busca el `Plan` por slug (`apps.tenants.tests_client_plan_fk`) | 2026-11-22 | `BOLT-80` |
 
 ## Rancho Cachimba (en pausa — rama `feature/RanchocachimbaEtapa1`)
 

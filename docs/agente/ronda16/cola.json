@@ -62,12 +62,21 @@
       "id": "BOLT-80",
       "maestra": "BIZ-04",
       "titulo": "Client.plan como FK a Plan",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-80.md",
       "red_tests": [
         "apps.tenants.tests_client_plan_fk"
       ],
-      "permite_migracion": true
+      "permite_migracion": true,
+      "costo_usd": 0.6,
+      "tests": 954,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Antes de migrar en Neon, comprobar que existen los 3 Plan (si no, correr setup_plans antes del deploy); si falta alguno, ese Client queda con plan en null.",
+        "Migraciones 0033-0035 de tenants: dependen de orders 0004; revisar el reverse (los clientes con plan null vuelven a 'essential').",
+        "El dev probó la migración y su reverse solo en SQLite local, no en Postgres/Neon.",
+        "setup_dev_env ahora aborta con CommandError si faltan los Plan; revisar si es el comportamiento deseado en entornos de desarrollo."
+      ]
     }
   ]
 }

@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
+from apps.orders.models import Plan
 from apps.tenants.models import Client, ClientSettings, Domain
 from apps.website.models import Section, Service
 
@@ -94,6 +95,13 @@ class Command(BaseCommand):
         
         self.stdout.write(f"⚙️  Configurando: {name} ({slug})...")
 
+        plan_obj = Plan.objects.filter(slug=plan).first()
+        if plan_obj is None:
+            raise CommandError(
+                f"No existe el Plan '{plan}'. Corre `python manage.py setup_plans` "
+                f"antes de setup_dev_env."
+            )
+
         # 1. Cliente
         client, _ = Client.objects.get_or_create(
             slug=slug,
@@ -101,7 +109,7 @@ class Command(BaseCommand):
                 'name': name,
                 'company_name': name,
                 'template': template,
-                'plan': plan
+                'plan': plan_obj
             }
         )
         
