@@ -6,7 +6,7 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-11-21)
+## 🌙 Retomar aquí (actualizado 2026-11-22)
 
 **Foco del trimestre (nov 2026 – feb 2027), sin captar clientes:** ① consolidar la plataforma (módulos reutilizables + dashboard profesional estilo Instagram/Gmail), ② ciberseguridad, ③ Ley 21.719 (**ya no es prioridad**: vigencia postergada al 15-oct-2027, ver nota en "Retomar aquí").
 
@@ -28,9 +28,11 @@
 
 **Hallazgo incidental (2026-11-21, commits `6b5d123` y `2af917d`):** la CI (Python 3.11 en Linux) fallaba en 4 tests de `test_template_tags` que pasaban en local (3.13): `Path / SafeString` lanza `TypeError` en 3.11, y `str()` no desenvuelve un `SafeString` (`SafeData.__str__` devuelve `self`); se usa `str.__str__`. Además, `recent_contacts` ordenaba solo por `created_at` y empataba en relojes gruesos (Windows): se agregó `-id`. **Para no repetirlo, correr la suite en 3.11 antes de empujar:** `uv run --no-project --python 3.11 --with-requirements requirements-dev.txt python manage.py test apps` (~4 min). Alta de `SEC-19` abajo.
 
-**Decisiones tuyas pendientes (bloquean la ronda 15):** `DEUDA-15` (¿se borra `create_tenant`?), `DEUDA-16` (sitemap de secciones siempre vacío), `DEUDA-10` (¿`provision_tenant` siembra el SEO?), `DEUDA-11` (¿se borra `max_pages`? implica migración), `LEY-09` (2027). Quedan fuera de las rondas desatendidas a propósito: `DASH-07` (contraste, diseño), `COMP-04` (cambia el aspecto), `SEC-13` (dependencia nueva TOTP) y `MOD-01` (Media, necesita spec y diseño).
+**Ronda 15 (2026-11-22, 3/3, 940 tests, ~1,75 USD, CI verde), en `agent/ronda15`, sin PR todavía:** decisiones del dueño del 2026-11-22 ejecutadas: `DEUDA-15` (`create_tenant` borrado), `DEUDA-16` (`TenantSectionsSitemap` quitado, `/sitemap-sections.xml` da 404), `DEUDA-11` (`max_pages` borrado de `Client` y `Plan`; migraciones `orders 0004` y `tenants 0032`, los valores guardados se pierden). `DEUDA-10` descartada: `check_tenant_setup` sigue siendo el gate de QA previo a publicar. **A mano en el PR:** `tests_seoconfig_model.py` es un archivo de tests que el spec no pedía (fija que `telephone`/`address` no salen en el JSON-LD: cambiará con `DEUDA-18`); cobertura total 90,27 → 90,10 % y `orders` 92,41 % contra baseline 92,46 % (dentro de la tolerancia de 0,2). **Al desplegar:** ensayar `0031`, `orders 0004` y `tenants 0032` juntas en una rama de Neon. **Criterio vigente para el resto (2026-11-22):** `SEC-13` es la más urgente (P1): `django-otp` + `apps/core/rate_limit.py` en el login de `/superadmin/`, después del dashboard y antes de abrir clientes nuevos. `DASH-07` (P2) va con `DASH-01`/`DASH-02`: luminancia relativa del primario y texto `#FFFFFF`/`#111827` si no llega a 4.5:1. `COMP-04` (P3) solo con Servelec o Rancho Cachimba a la vista. `MOD-01` es la próxima pieza a bajar a spec.
 
-**▶️ Próximo:** ① verificar a mano lo de arriba en el navegador; ② tomar las 4 decisiones `DEUDA` y armar la ronda 15; ③ despliegue a producción como paso manual aparte (lista en "Pendiente tuyo").
+**Tanda de decisiones 2 (dueño, 2026-11-22):** ① **ronda 16** con `DEUDA-18`, `SEC-19`, `DEUDA-17` y `BIZ-04`; baseline de `orders` recalibrado a 92,41 % (hecho a mano en `scripts/gate_baseline.json`). ② **Planes:** no se venden "páginas": un plan es **módulos activables + cuotas de medios y servicios** (`MASTER_PLAN` §4.3 ya ajustado). ③ **`Client.plan` pasa a FK de `Plan` ahora**, con migración y antes del despliegue (`BIZ-04`). ④ **`MOD-01`:** video solo como embed de YouTube/Vimeo (nada de video en Cloudinary); límite por **cantidad** de archivos, con tope técnico por peso; en 3 partes: (1) modelo + subida firmada, (2) UI multiarchivo, (3) migración de imágenes existentes y templates. ⑤ **Despliegue a producción justo después de mergear la ronda 16 y antes de `MOD-01`**; el dueño activa 2FA (`SEC-16`) antes. ⑥ `PREV-00`: **alta manual** con `add_preview_domain`, wildcard descartado por ahora.
+
+**▶️ Próximo:** ① PR `agent/ronda15` → `develop`; ② lanzar la ronda 16 (`agent/ronda16`, encadenada sobre la 15) y su PR; ③ despliegue a producción siguiendo [`Runbook_Despliegue.md`](Runbook_Despliegue.md) (lista en "Pendiente tuyo" + migraciones `0031`, `orders 0004`, `tenants 0032` y la de `BIZ-04` ensayadas juntas en una rama de Neon; correr `setup_plans` antes si en Neon faltan los `Plan`); ④ spec de `MOD-01` parte 1.
 
 ---
 
@@ -119,7 +121,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `LEY-00` | Ubicar `Informe_Cumplimiento_Ley21719.md` (lo cita `MASTER_PLAN` §1.4, no está en el repo). Ya no bloquea: el texto de la ley está en `Documentacion/`. Sí conviene que un abogado revise la política (`LEY-01`) y el contrato (`LEY-07`) |
 | `SEC-16` | Activar 2FA en Render, Neon, Cloudinary, Cloudflare, Zoho y GitHub; revisar qué cuentas `staff`/superuser existen en producción |
 | `OPS-01` | Servelec: `servelec-ingenieria.cl` en NXDOMAIN (web **y correo** caídos), mitigado con `servelec.andesscale.com`. Definitivo: recuperar la clave NIC, o reactivar la zona en Bluehosting, o zona en Cloudflare + cambio de NS (A `@` 216.24.57.1, CNAME `www`, MX Zoho 10/20/50, SPF `v=spf1 include:zoho.com ~all`, DKIM). Confirmar en vivo los pasos de la mitigación |
-| `PREV-00` | Decidir: wildcard `*.andesscale.com` (~US$29,78/mes) vs alta manual con `add_preview_domain` |
 | `OPS-06` | Crear cron `send-pending-emails` en Render (pagado) para volver a `EMAIL_ASYNC=true`; tampoco existe `contact-digest` |
 | `PAY-01` | MercadoPago a producción: `MP_*`, trámite SII, pasada manual en sandbox. Hoy apagado a propósito |
 | `MAIL-01` | SPF/DKIM de Zoho; probar plantillas en Gmail/Outlook móvil |
@@ -142,7 +143,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `MOD` — Módulos
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `MOD-01` | Módulo **Media** | P1 | XL (~5 d) | `MediaAsset` (imagen / video Cloudinary / embed YouTube-Vimeo), subida directa navegador→Cloudinary firmada, multi-archivo, límites por plan (`BIZ-01`). Unifica las 6 subidas del dashboard, que hoy llaman `cloudinary.uploader.upload` a mano con carpeta `{slug}/…` en vez de `upload_to_cloudinary` y `tenants/{slug}/…` (hallado por `BOLT-13`). Migra `Section.image`/`background_image`/`Service.image` al pool (~16 templates). DoD: subir 10 fotos y un video desde el celular; los 3 tenants renderizan igual |
+| `MOD-01` | Módulo **Media** (3 partes, decidido 2026-11-22: solo embeds de video, límite por cantidad) | P1 | XL (~5 d) | `MediaAsset` (imagen / video Cloudinary / embed YouTube-Vimeo), subida directa navegador→Cloudinary firmada, multi-archivo, límites por plan (`BIZ-01`). Unifica las 6 subidas del dashboard, que hoy llaman `cloudinary.uploader.upload` a mano con carpeta `{slug}/…` en vez de `upload_to_cloudinary` y `tenants/{slug}/…` (hallado por `BOLT-13`). Migra `Section.image`/`background_image`/`Service.image` al pool (~16 templates). DoD: subir 10 fotos y un video desde el celular; los 3 tenants renderizan igual |
 | `MOD-02` | Orden y visibilidad de bloques (opción B) | P2 | L | El cliente reordena y oculta los bloques que su tema trae; cada `home.html` itera una lista en vez de includes fijos |
 
 ### `DASH` — Dashboard
@@ -157,7 +158,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
-| `SEC-19` | `tenant_static` y `get_tenant_media_url` (`apps/tenants/templatetags/tenant_tags.py`) arman la ruta con `path` sin validar: `../` puede sondear archivos fuera de `MEDIA_ROOT/tenants/<slug>/` (solo revela si existen; el `path` viene del template, no del usuario) | P3 | S | Test que falla con `'../x'` y el helper rechaza rutas que salen del directorio del tenant |
 
 ### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`) — **P3: vigencia postergada al 15-oct-2027**
 | ID | Card | P | Esf. | Definición de hecho |
@@ -174,15 +174,10 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `DB-02` | Backup de Neon con restore probado | P1 | M | Restore a una rama, documentado con tiempos |
 | `DB-03` | `EXPLAIN ANALYZE` de consultas calientes en Neon | P3 | S | Junto a `DB-02` |
-| `DEUDA-11` | `Client.max_pages` sin uso: decidir si se borra | P3 | S | No existe modelo de páginas, así que el límite no se aplica a nada (el default 10 sigue en `apps/tenants/models.py`). Borrarlo exige migración. Hallado por `BOLT-54` |
-| `DEUDA-15` | `create_tenant`: ¿borrar o documentar? | P3 | S | Parece muerto frente a `provision_tenant` (110 sentencias; ahora con tests de `BOLT-70`). Decidir: borrarlo con sus tests, o dejarlo documentado como vigente. Hallado por `BOLT-39`, `70`, `71` |
-| `DEUDA-16` | Sitemap de secciones siempre vacío | P3 | S | `TenantSectionsSitemap` filtra por `Section.slug`, campo que no existe, y apunta a `website:section_detail`, ruta que no existe; los `except` lo ocultan. Resultado: `/sitemap-sections.xml` sale vacío. Decidir: quitarlo del índice o darle URLs públicas reales a las secciones (esto último es producto/SEO). Hallado por `BOLT-71` |
-| `DEUDA-17` | `audit_cloudinary_assets` cuenta cualquier `CharField` como referencia | P3 | S | Un asset puede parecer en uso por un valor que no es un `public_id`. Acotar a los campos de imagen conocidos. Hallado por `BOLT-70` |
-| `BIZ-02` | `Plan.renewal_price` y `Client.monthly_fee` alineados al modelo real | P2 | S | Pago único + mantención 12 meses + renovación anual (`MASTER_PLAN` §4.4). `Client.plan` es texto, no FK a `Plan`: decidir |
+| `BIZ-02` | `Plan.renewal_price` y `Client.monthly_fee` alineados al modelo real | P2 | S | Pago único + mantención 12 meses + renovación anual (`MASTER_PLAN` §4.4). La FK de `Client.plan` se separó en `BIZ-04` |
 | `BIZ-03` | Cláusulas de mantención y fin de servicio | P2 | M | Sin código. `MASTER_PLAN` §4.5 |
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |
 | `PAY-02` | Registro de fricciones del cobro manual | P3 | S | — |
-| `DEUDA-10` | `check_tenant_setup` falla en un tenant recién provisionado | P3 | S | **Probablemente es el gate funcionando:** `_check_seo` exige `SEOConfig('home')` con título y descripción reales, y un tenant recién provisionado todavía no los tiene (es el QA previo a publicar, `FLOW-02`). No crear un relleno que lo silencie. Decidir con el dueño si `provision_tenant` debe sembrar el SEO desde el contenido del cliente o si la tarjeta se descarta. Hallado por `BOLT-44` |
 | `OPS-05` | Cache compartida y Sentry | P3 | M | Antes de más de un proceso. `/health/` ya existe (`BOLT-72`); falta configurar el Health Check Path en Render |
 | `OPS-07` | Ensayo de despliegue antes de `develop` → `main` | P0 | M | **Ensayo hecho 2026-11-15** (ver Retomar aquí). Falta el deploy real de `main`: Build Command de `saasmvp` → `./build.sh`, Manual Deploy y pruebas en vivo; luego borrar `saasmvp-staging` y la rama `staging-ensayo`. Pendiente de probar: formulario de contacto con consentimiento y correo, checkout sandbox (en local con credenciales `TEST-`), portada de Servelec. Build medido: 1 min |
 

@@ -18,6 +18,19 @@ from django.utils.html import format_html
 register = template.Library()
 
 
+def _tenant_file_exists(client, path):
+    """True si `path` existe dentro de MEDIA_ROOT/tenants/<slug>/ (rechaza `../` y rutas absolutas)."""
+    # str.__str__: `path` puede ser SafeString y `Path / SafeString` falla en Python 3.11.
+    relative = str.__str__(path)
+    if Path(relative).is_absolute() or Path(relative).drive:
+        return False
+    base = (Path(settings.MEDIA_ROOT) / 'tenants' / client.slug).resolve()
+    candidate = (base / relative).resolve()
+    if not candidate.is_relative_to(base):
+        return False
+    return candidate.exists()
+
+
 @register.simple_tag(takes_context=True)
 def tenant_static(context, path):
     """
@@ -35,10 +48,7 @@ def tenant_static(context, path):
     client = context.get('client') or getattr(request, 'client', None)
     
     if client:
-        # Ruta del tenant
-        tenant_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / str.__str__(path)
-        
-        if tenant_path.exists():
+        if _tenant_file_exists(client, path):
             return f"{settings.MEDIA_URL}tenants/{client.slug}/{path}"
     
     # Fallback a static
@@ -76,8 +86,7 @@ def get_tenant_media_url(context, filename):
     client = context.get('client') or getattr(request, 'client', None)
     
     if client:
-        file_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / str.__str__(filename)
-        if file_path.exists():
+        if _tenant_file_exists(client, filename):
             return f"{settings.MEDIA_URL}tenants/{client.slug}/{filename}"
     
     return ""

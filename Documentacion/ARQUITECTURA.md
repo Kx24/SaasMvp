@@ -60,7 +60,7 @@ Sin uso real hoy (candidatos a retirar, `SEC-10`): `djangorestframework`, `djang
 | `apps/marketing` | SEO por página, `sitemap.xml`, `robots.txt`, verificación de Google | `models.py::SEOConfig`, `views_robots.py` |
 | `apps/core` | Utilidades transversales | `cloudinary_utils.py`, `rate_limit.py`, `template_resolver.py`, `models.py::EmailOutbox` |
 
-**Comandos de gestión:** `provision_tenant`, `check_tenant_setup` (gate de QA, `--check-dns`), `list_tenants`, `add_preview_domain`, `update_domain`, `create_tenant`, `setup_production`, `setup_dev_env`, `seed_e2e_tenants`, `setup_cloudinary_folders`, `send_contact_digest` (tenants) · `send_pending_emails`, `cloudinary_usage`, `check_cloudinary`, `audit_cloudinary_assets` (core) · `setup_plans` (orders) · `verify_search_console` (marketing).
+**Comandos de gestión:** `provision_tenant`, `check_tenant_setup` (gate de QA, `--check-dns`), `list_tenants`, `add_preview_domain`, `update_domain`, `setup_production`, `setup_dev_env`, `seed_e2e_tenants`, `setup_cloudinary_folders`, `send_contact_digest` (tenants) · `send_pending_emails`, `cloudinary_usage`, `check_cloudinary`, `audit_cloudinary_assets` (core) · `setup_plans` (orders) · `verify_search_console` (marketing).
 
 ## 4. Modelo de datos
 

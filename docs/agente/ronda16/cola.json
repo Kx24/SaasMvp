@@ -1,0 +1,82 @@
+{
+  "ronda": 16,
+  "rama": "agent/ronda16",
+  "cards": [
+    {
+      "id": "BOLT-77",
+      "maestra": "DEUDA-18",
+      "titulo": "Teléfono del JSON-LD desde ClientSettings.contact_phone",
+      "estado": "DONE",
+      "spec": "BOLT-77.md",
+      "red_tests": [
+        "apps.marketing.tests_schema_telefono"
+      ],
+      "permite_migracion": false,
+      "costo_usd": 0.42,
+      "tests": 942,
+      "hallazgos": [],
+      "revisar_humano": []
+    },
+    {
+      "id": "BOLT-78",
+      "maestra": "SEC-19",
+      "titulo": "Rechazar rutas fuera del directorio del tenant en tenant_tags",
+      "estado": "DONE",
+      "spec": "BOLT-78.md",
+      "red_tests": [
+        "apps.tenants.tests_tenant_tags_traversal"
+      ],
+      "permite_migracion": false,
+      "costo_usd": 0.36,
+      "tests": 947,
+      "hallazgos": [],
+      "revisar_humano": [
+        "tenant_media sigue devolviendo URLs con `../` sin validar. No lee el disco y el spec lo dejaba como opcional.",
+        "test_tenant_static_rechaza_ruta_absoluta construye la ruta con repr() dentro de la plantilla. En Windows las barras invertidas quedan duplicadas, y el test pasa por la comprobación de `drive` y no por la de is_absolute.",
+        "Es solo lectura, así que no pude confirmar que la fila SEC-19 ya no esté en la tabla del kanban; la búsqueda solo encontró menciones en las líneas 29 y 33 del texto de arriba, que son narrativa."
+      ]
+    },
+    {
+      "id": "BOLT-79",
+      "maestra": "DEUDA-17",
+      "titulo": "Acotar las referencias de audit_cloudinary_assets",
+      "estado": "DONE",
+      "spec": "BOLT-79.md",
+      "red_tests": [
+        "apps.core.tests.test_audit_cloudinary_referencias"
+      ],
+      "permite_migracion": false,
+      "costo_usd": 0.4,
+      "tests": 950,
+      "hallazgos": [
+        "Brecha de riesgo anotada por el dev: un asset legacy de un tenant ya borrado (slug que ya no existe en Client) cuyo segundo segmento no es una categoría conocida, p. ej. viejo/foo.jpg, ya no cuenta como referenciado, así que --fix podría purgarlo. Es un residuo sin dueño.",
+        "Un CharField cuyo valor no contiene '/' (p. ej. un public_id suelto en la raíz de Cloudinary) deja de contar como referencia. Es coherente con el spec, pero amplía lo que --fix puede considerar huérfano."
+      ],
+      "revisar_humano": [
+        "Antes de correr --fix en producción, ejecutar la auditoría en modo dry-run y revisar la lista de huérfanos, porque la dirección del cambio es de riesgo para la purga.",
+        "Decisión del dev que el spec no cubría: usar los slugs de Client como prefijos legacy y la heurística del segundo segmento en VALID_RESOURCE_TYPES.",
+        "El dev no ejecutó el rojo por su cuenta, pero el red_check del gate lo confirmó: el test de no-referencia falla en HEAD."
+      ]
+    },
+    {
+      "id": "BOLT-80",
+      "maestra": "BIZ-04",
+      "titulo": "Client.plan como FK a Plan",
+      "estado": "DONE",
+      "spec": "BOLT-80.md",
+      "red_tests": [
+        "apps.tenants.tests_client_plan_fk"
+      ],
+      "permite_migracion": true,
+      "costo_usd": 0.6,
+      "tests": 954,
+      "hallazgos": [],
+      "revisar_humano": [
+        "Antes de migrar en Neon, comprobar que existen los 3 Plan (si no, correr setup_plans antes del deploy); si falta alguno, ese Client queda con plan en null.",
+        "Migraciones 0033-0035 de tenants: dependen de orders 0004; revisar el reverse (los clientes con plan null vuelven a 'essential').",
+        "El dev probó la migración y su reverse solo en SQLite local, no en Postgres/Neon.",
+        "setup_dev_env ahora aborta con CommandError si faltan los Plan; revisar si es el comportamiento deseado en entornos de desarrollo."
+      ]
+    }
+  ]
+}
