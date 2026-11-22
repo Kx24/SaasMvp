@@ -165,8 +165,8 @@ class SEOConfig(models.Model):
         }
         settings = getattr(client, "settings", None)
         if settings:
-            if getattr(settings, "phone", None):
-                schema["telephone"] = settings.phone
+            if getattr(settings, "contact_phone", None):
+                schema["telephone"] = settings.contact_phone
             if getattr(settings, "address", None):
                 schema["address"] = {
                     "@type": "PostalAddress",

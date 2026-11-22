@@ -6,12 +6,16 @@
       "id": "BOLT-77",
       "maestra": "DEUDA-18",
       "titulo": "Teléfono del JSON-LD desde ClientSettings.contact_phone",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-77.md",
       "red_tests": [
         "apps.marketing.tests_schema_telefono"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.42,
+      "tests": 942,
+      "hallazgos": [],
+      "revisar_humano": []
     },
     {
       "id": "BOLT-78",

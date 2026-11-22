@@ -44,6 +44,7 @@ class SEOConfigMethodsTests(TestCase):
                               is_active=True, is_verified=True)
         cs = self.client_obj.settings
         cs.description = 'Desc'
+        cs.contact_phone = '+56912345678'
         cs.save()
         client = Client.objects.get(pk=self.client_obj.pk)
         cfg = SEOConfig.objects.create(client=client, page_key='s', schema_type='LocalBusiness')
@@ -51,6 +52,6 @@ class SEOConfigMethodsTests(TestCase):
         self.assertEqual(schema['@type'], 'LocalBusiness')
         self.assertEqual(schema['name'], 'Acme')
         self.assertEqual(schema['url'], 'https://acme.test')
-        self.assertNotIn('telephone', schema)
+        self.assertEqual(schema['telephone'], '+56912345678')
         self.assertNotIn('address', schema)
         self.assertEqual(schema['description'], 'Desc')
