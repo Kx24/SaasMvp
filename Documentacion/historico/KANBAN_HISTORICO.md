@@ -37,6 +37,7 @@
 | `DASH-08` | Ya cubierta por `BOLT-55`: el context processor define `unread_contacts`; la fila quedó obsoleta | 2026-11-18 | `BOLT-64` |
 | `DASH-09` | Fondo del ícono de Contactos usaba `--primary-rgb` (inexistente, siempre azul); ahora `color-mix` sobre `--color-primary`, con test que recorre `templates/` | 2026-11-18 | `BOLT-68` |
 | `SEC-15` | Runbook de incidentes y rotación de secretos (`Documentacion/Runbook_Incidentes.md`): primeros 15 minutos, fuga de secreto, acceso indebido, base dañada (con `DB-02` pendiente), deploy caído, correo/dominio comprometido, datos personales (remite a `LEY-06`), contactos y registro de incidentes | 2026-11-18 | `BOLT-67` |
+| `SEC-19` | `tenant_static` y `get_tenant_media_url` rechazan rutas con `../` o absolutas que salen de `MEDIA_ROOT/tenants/<slug>/` (helper `_tenant_file_exists` con `resolve()` + `is_relative_to`); caen al fallback / cadena vacía | 2026-11-22 | `BOLT-78` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
 

@@ -158,7 +158,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
-| `SEC-19` | `tenant_static` y `get_tenant_media_url` (`apps/tenants/templatetags/tenant_tags.py`) arman la ruta con `path` sin validar: `../` puede sondear archivos fuera de `MEDIA_ROOT/tenants/<slug>/` (solo revela si existen; el `path` viene del template, no del usuario) | P3 | S | Test que falla con `'../x'` y el helper rechaza rutas que salen del directorio del tenant |
 
 ### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`) — **P3: vigencia postergada al 15-oct-2027**
 | ID | Card | P | Esf. | Definición de hecho |
