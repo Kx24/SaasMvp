@@ -174,7 +174,6 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 |---|---|---|---|---|
 | `DB-02` | Backup de Neon con restore probado | P1 | M | Restore a una rama, documentado con tiempos |
 | `DB-03` | `EXPLAIN ANALYZE` de consultas calientes en Neon | P3 | S | Junto a `DB-02` |
-| `DEUDA-17` | `audit_cloudinary_assets` cuenta cualquier `CharField` como referencia | P3 | S | Un asset puede parecer en uso por un valor que no es un `public_id`. Acotar a los campos de imagen conocidos. Hallado por `BOLT-70` |
 | `BIZ-02` | `Plan.renewal_price` y `Client.monthly_fee` alineados al modelo real | P2 | S | Pago único + mantención 12 meses + renovación anual (`MASTER_PLAN` §4.4). La FK de `Client.plan` se separó en `BIZ-04` |
 | `BIZ-04` | `Client.plan` como FK a `Plan` (decidido 2026-11-22) | P1 | M | Hoy es texto con `PLAN_CHOICES` (`essential`/`pro`/`enterprise`, mismos slugs que `Plan`). FK con migración de datos antes del despliegue; los límites copiados (`max_images`, `max_services`) quedan en `Client` por ahora |
 | `BIZ-03` | Cláusulas de mantención y fin de servicio | P2 | M | Sin código. `MASTER_PLAN` §4.5 |
