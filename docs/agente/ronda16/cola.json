@@ -1,0 +1,50 @@
+{
+  "ronda": 16,
+  "rama": "agent/ronda16",
+  "cards": [
+    {
+      "id": "BOLT-77",
+      "maestra": "DEUDA-18",
+      "titulo": "Teléfono del JSON-LD desde ClientSettings.contact_phone",
+      "estado": "TODO",
+      "spec": "BOLT-77.md",
+      "red_tests": [
+        "apps.marketing.tests_schema_telefono"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-78",
+      "maestra": "SEC-19",
+      "titulo": "Rechazar rutas fuera del directorio del tenant en tenant_tags",
+      "estado": "TODO",
+      "spec": "BOLT-78.md",
+      "red_tests": [
+        "apps.tenants.tests_tenant_tags_traversal"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-79",
+      "maestra": "DEUDA-17",
+      "titulo": "Acotar las referencias de audit_cloudinary_assets",
+      "estado": "TODO",
+      "spec": "BOLT-79.md",
+      "red_tests": [
+        "apps.core.tests.test_audit_cloudinary_referencias"
+      ],
+      "permite_migracion": false
+    },
+    {
+      "id": "BOLT-80",
+      "maestra": "BIZ-04",
+      "titulo": "Client.plan como FK a Plan",
+      "estado": "TODO",
+      "spec": "BOLT-80.md",
+      "red_tests": [
+        "apps.tenants.tests_client_plan_fk"
+      ],
+      "permite_migracion": true
+    }
+  ]
+}

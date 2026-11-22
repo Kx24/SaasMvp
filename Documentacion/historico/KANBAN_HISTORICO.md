@@ -154,3 +154,4 @@
 - **Reorganización de documentación** (2026-11-11): kanban unificado, snapshot y archivos obsoletos a `Documentacion/historico/`.
 - **`MOD-00` decidido** (2026-11-12): composición de página = opción A ahora (registro de módulos, home por tema), B después (`MOD-02`), page-builder descartado. Detalle en `AUDITORIA_PLATAFORMA_2026-11.md` §4.
 - **Chequeo de ciberseguridad y plan trimestral** (2026-11-12): `SEGURIDAD.md`, `ARQUITECTURA.md`, diccionario de nomenclaturas y plan de ejecución por fases en el kanban; orden "seguridad y ley primero".
+- **`PREV-00` decidido** (2026-11-22): URL temporal con alta manual (`add_preview_domain`); wildcard `*.andesscale.com` descartado por ahora.
