@@ -2,7 +2,7 @@
    Cuerpo de la política de privacidad de un SITIO DE CLIENTE (el cliente es el responsable; AndesScale es su encargado).
    Se incluye desde templates/legal/privacy.html. Contexto: company, contact_email, contact_phone, address,
    retention_days, version, version_date. Texto redactado por el planificador (2026-11-15): REVISAR CON ABOGADO
-   antes del 1-dic-2026. Los (comentarios) no se renderizan.
+   antes del 15-oct-2027 (vigencia postergada, 2026-11-18). Los (comentarios) no se renderizan.
 {% endcomment %}
 <section class="space-y-8 text-base leading-relaxed">
 
@@ -64,6 +64,8 @@
     <p>
       Eliminamos automáticamente los mensajes de contacto a más tardar a los <strong>{{ retention_days }} días</strong>
       de recibidos, y antes si {{ company }} lo decide o tú lo solicitas. Cumplido el plazo, los datos se suprimen.
+      Los comprobantes de compra y de pago se conservan <strong>{{ order_retention_years }} años</strong> por obligación
+      tributaria. Los registros de correos enviados se eliminan a los <strong>{{ email_outbox_retention_days }} días</strong>.
     </p>
   </div>
 
@@ -84,7 +86,8 @@
       temporalmente, y a retirar tu consentimiento cuando quieras, por el mismo medio por el que lo diste.
     </p>
     <p class="mt-2">
-      Para ejercerlos escribe a <a class="underline" href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+      Para ejercerlos usa el <a class="underline font-semibold" href="{% url 'data_subject_request' %}">formulario de solicitud</a>
+      o escribe a <a class="underline" href="mailto:{{ contact_email }}">{{ contact_email }}</a>
       indicando qué derecho ejerces y el correo con el que nos contactaste. Acusaremos recibo y responderemos en un plazo
       máximo de <strong>30 días corridos</strong>, prorrogable una vez por otros 30 si la complejidad lo justifica. Si no
       estás conforme con la respuesta, puedes recurrir a la <strong>Agencia de Protección de Datos Personales</strong>.

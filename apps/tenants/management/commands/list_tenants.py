@@ -5,7 +5,7 @@ VERSIÓN FINAL - Adaptada a campos reales de ClientSettings
 from django.core.management.base import BaseCommand
 
 from apps.tenants.models import Client
-from apps.website.models import ContactSubmission, Section, Service
+from apps.website.models import ContactSubmission, Section, Service, exclude_blocked
 
 
 class Command(BaseCommand):
@@ -47,11 +47,9 @@ class Command(BaseCommand):
             # Contar contenido
             sections = Section.objects.filter(client=client).count()
             services = Service.objects.filter(client=client).count()
-            contacts = ContactSubmission.objects.filter(client=client).count()
-            new_contacts = ContactSubmission.objects.filter(
-                client=client,
-                status='new'
-            ).count()
+            visible = exclude_blocked(ContactSubmission.objects.filter(client=client), client)
+            contacts = visible.count()
+            new_contacts = visible.filter(status='new').count()
 
             # Imprimir información
             self.stdout.write(f'{i}. {client.name}')

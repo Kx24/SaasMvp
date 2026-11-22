@@ -6,6 +6,7 @@
 # =============================================================================
 
 import cloudinary
+import cloudinary.api
 import cloudinary.uploader
 from django.core.management.base import BaseCommand
 

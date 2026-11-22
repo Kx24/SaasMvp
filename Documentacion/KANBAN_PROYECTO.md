@@ -6,21 +6,31 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-11-12)
+## 🌙 Retomar aquí (actualizado 2026-11-18, noche)
 
-**Foco del trimestre (nov 2026 – feb 2027), sin captar clientes:** ① consolidar la plataforma (módulos reutilizables + dashboard profesional estilo Instagram/Gmail), ② ciberseguridad, ③ Ley 21.719.
+**Foco del trimestre (nov 2026 – feb 2027), sin captar clientes:** ① consolidar la plataforma (módulos reutilizables + dashboard profesional estilo Instagram/Gmail), ② ciberseguridad, ③ Ley 21.719 (**ya no es prioridad**: vigencia postergada al 15-oct-2027, ver nota en "Retomar aquí").
 
-**Decisiones tomadas el 2026-11-12:**
-- **Composición de página (`MOD-00`): opción A ahora, B después.** Registro de módulos de funcionalidad + menú del dashboard generado; la home sigue escrita por tema. Orden/visibilidad de bloques por cliente (B) es `MOD-02`. Page-builder completo, descartado.
-- **Seguridad y ley primero.** La Ley 21.719 rige el 1-dic-2026; la consolidación arranca en diciembre.
+**Decisiones vigentes:** composición de página `MOD-00` opción A ahora, B después (`MOD-02`). Consolidación y seguridad primero; la ley 21.719 pasó a segundo plano al postergarse su vigencia al 15-oct-2027 (2026-11-18). Matriz de roles de `DASH-04` confirmada, el editor sigue por defecto.
 
-**Estado:** `develop` con commits de documentación pendientes de push (PyCharm). Producción en `main` con PR #2 (`f140bf0`).
-**Ronda 3 del piloto agéntico terminada (2026-11-12) en la rama `agent/fase1-seguridad`, sin push y sin mergear:** `CONS-10`, `SEC-07`, `SEC-11`, `LEY-03` (parte), `SEC-05` y `CONS-03` cerrados — detalle en `historico/KANBAN_HISTORICO.md` y `docs/kanban_agente.md`. Gate en esa rama: 291 tests OK (1 skip), `makemigrations --check` limpio, **ruff en 0**, Playwright 7/7. Hallazgos corregidos de paso: `/auth/set-password/` y `/auth/forgot-password/` daban 500 (métodos de `UserProfile` inexistentes) y `redirect('dashboard:home')` inexistente. Hallazgos abiertos nuevos: `DEUDA-08` (portada sin titular por defecto), `SEC-17`, `SEC-05b`.
-**Pendiente tuyo:** revisar la rama y abrir el PR `agent/fase1-seguridad` → `develop` desde PyCharm (antes, push de `develop`).
+**Estado (2026-11-15):** rondas 3 a 7 del agente mergeadas en `main` (PR #3) y `develop` igualada a `main`. **Producción (Render `saasmvp`) sigue en el commit de agosto `1a5d3e2`**: el merge no se desplegó y Auto-Deploy debe quedar en Off hasta decidir. Cerradas: `LEY-01`, `DASH-04`, `SEC-06`, `SEC-10`, `SEC-14`, `CONS-04`/`05`/`06`/`07`, entre otras (detalle en `historico/KANBAN_HISTORICO.md` y `docs/agente/ronda*/`).
+**Ensayo `OPS-07` hecho (2026-11-15):** rama de Neon `staging-ensayo` + servicio temporal `saasmvp-staging` desplegado desde `main` (5a2c734) con `./build.sh`. Build de 1 min, migraciones sin error, login, subida de imagen (`pillow` 13), `/privacidad/`, borrado de servicio y admin OK. Hallazgo: el Build Command de Render **no usaba `build.sh`** y sin él no se compila `output.css` (sitio sin estilos). Pendiente del ensayo: contacto con consentimiento y correo, checkout sandbox, portada de Servelec (`DEUDA-08`).
+**Hecho en Render:** `FIELD_ENCRYPTION_KEY` creada y cargada, 2FA activo, Environment Group `saasmvp-shared`. **Aún sin crear:** crons `contact-digest` y `send-pending-emails` (`OPS-06`); sin el primero la purga de 365 días (`LEY-03`) no corre en producción.
 
-**Ritmo:** 2 días/semana × 4–5 h. Cada día = Bloque A (~2 h) + Bloque B (~2 h) + cierre (suite, `ruff` en lo tocado, `makemigrations --check`, commit, actualizar esta sección, push). Ningún día cierra en rojo ni sin commit. Card que no entra en 2 h se parte.
+**Pendiente tuyo, en orden:** ① cambiar el Build Command de `saasmvp` a `./build.sh` y hacer Manual Deploy de `main` (respaldo: rama de Neon `staging-ensayo`, o crear otra justo antes); ② probar en vivo login, `/privacidad/`, contacto y borrado de servicio; ③ crear los dos crons; ④ borrar `saasmvp-staging` y la rama de Neon; ⑤ activar protección de ramas en `main` y `develop`; ⑥ revisión legal de los textos de privacidad antes del 15-oct-2027 (ya sin urgencia).
 
-**▶️ Próxima sesión: D1** (`CONS-01` + `SEC-10`), después de revisar y mergear la rama del agente.
+**Ritmo:** 2 días/semana × 4–5 h. Card que no entra en 2 h se parte. Rondas del agente: `orchestrate.py` + `claude -p` (Sonnet 5.5) sobre ramas `agent/*`; tú revisas el PR a `develop`.
+
+**⚖️ Cambio de calendario legal (2026-11-18):** prórroga a **15-oct-2027** despachada por el Congreso (informada por el dueño el 2026-11-18; confirmar la publicación en el Diario Oficial). La Ley 21.719 pasa de 1-dic-2026 a 15-oct-2027: las cards `LEY` bajan a P3 y salen del camino de diciembre-febrero. **Lo ya hecho se queda** (consentimiento, política, retención y purga, aviso previo, `DataSubjectRequest` y `data_subject`; todo es mejora de producto y no se revierte). **Pendiente de la ley, para el segundo semestre de 2027:** `LEY-09` (verificación de identidad y huecos de `LEY-02`), `LEY-05` (registro de tratamientos), `LEY-06` (brechas), `LEY-04` (proveedores), `LEY-07` (contrato de encargo, con abogado), la revisión legal de la política (`LEY-00`) y el cron de purga (`OPS-06`, que sigue valiendo como operación). Plan sugerido: retomarlas entre julio y septiembre de 2027 para llegar con margen; si el texto de la ley o la instrucción de la Agencia (art. 14 septies) cambian, reevaluar entonces. La política publica la fecha `PRIVACY_POLICY_DATE = 1 de diciembre de 2026`: es la fecha de la versión del texto, no de vigencia legal; ajustarla al publicar de verdad.
+
+**Rondas 8 a 12 (2026-11-16/18), en `agent/ronda8` a `agent/ronda12` (encadenadas, cada una incluye a la anterior), sin PR todavía:** 8: `CONS-11`/`12`, `SEC-18`, `COMP-03`, `DEUDA-09`, `FLOW-04`, `TOOL-04`, `DOC-01`. 9: `LEY-03` (plazos), `LEY-02` (formulario `/privacidad/solicitud/`, comando `data_subject`), `LEY-08` (rescatada del stash), `OPS-04`. 10: `CONS-08`, `CONS-09`, `BIZ-01`, `DASH-05`; "Portada" se movió a core a pedido. 11: `COMP-02` (árbol de temas, migración de datos `0031`) y `COMP-01` (`cta`, `about`, `services`, `contact`, `footer`, `navbar`, `hero_ctas`). 846 tests, 8/8 en la ronda 11. Detalle y puntos a revisar a mano en `docs/agente/ronda8..11/ESTADO.md`. Lo más sensible: `MercadoPagoError` sin envolver, reset de contraseña acotado al tenant, `data_subject erase` (irreversible, usar `--dry-run`), límites de plan ya activos (revisar clientes sobre su tope antes de desplegar), migración `0031` (ensayar en rama de Neon) y la ronda 11, que cambió los templates de todos los temas: **mirar en el navegador** home, navbar (375 px), footer, contacto y hero de Servelec, andesscale y default.
+
+**Ronda 12 (2026-11-18, 4/4):** `DASH-06` (+ `DASH-08` obsoleta), `TOOL-08` (gate una vez por clase, timeout 900 s), `DEUDA-12` (footer con año actual, se borraron los `hero_overlay.html` de default y servelec) y `SEC-15` (`Documentacion/Runbook_Incidentes.md`). 852 tests. **Ronda 13 armada** (`agent/ronda13`): `DASH-09`, `DEUDA-13`, `OPS-05` (solo `/health/`) y `CONS-13` en dos partes. **A mano:** verificar en el navegador que ninguna home de default/servelec use `hero_overlay.html` (el agente borró los dos archivos; grep limpio); revisar el runbook (pasos de Neon y Render sin verificar; `Session.objects.all().delete()` cierra todas las sesiones); configurar `/health/` como Health Check Path en Render al desplegar.
+
+**Ronda 13 (2026-11-18, 5/5) y ronda 14 (1/1), 935 tests:** `DASH-09`, `DEUDA-13`, `OPS-05` (`/health/`, con bypass de la ruta exacta en el middleware), `CONS-13` completa (comandos de gestión y vistas SEO/admins de menor cobertura al 86–93 %) y `DEUDA-14`. **Se acabó lo que puede ir desatendido sin una decisión tuya.**
+
+**Decisiones tuyas pendientes:** `DEUDA-15` (¿se borra `create_tenant`?), `DEUDA-16` (sitemap de secciones siempre vacío), `DEUDA-10` (¿`provision_tenant` siembra el SEO?), `DEUDA-11` (¿se borra `max_pages`?), `LEY-09` (2027). **A mano:** Health Check Path `/health/` en Render y verificar que no reciba 301 por `SECURE_SSL_REDIRECT`; revisar los datos de `Plan.available_themes` en Neon (planes con solo `default` ahora ofrecen `themes/default`); mirar el ícono de contactos y las homes de default/servelec en el navegador.
+
+**▶️ Próximo:** revisar y mergear a `develop` los PR de las rondas 8 a 11 (en ese orden). `LEY-09` ya no corre prisa (solo hay que resolverla antes de atender una solicitud real con `data_subject export`). **Ronda 12 armada (2026-11-18, `agent/ronda12`, sin cards `LEY`):** `BOLT-64` `DASH-06` (+ cierra `DASH-08`, obsoleta), `BOLT-65` `TOOL-08`, `BOLT-66` `DEUDA-12`, `BOLT-67` `SEC-15`. Quedan fuera a propósito: `DASH-07` (contraste: decisión de diseño), `COMP-04` (cambia el aspecto), `DEUDA-10` (parece el gate funcionando) y `DEUDA-11` (migración y decisión), `SEC-13` (dependencia nueva TOTP); luego `MOD-01` (Media), que necesita spec y diseño.
 
 ---
 
@@ -76,13 +86,13 @@
 |---|---|---|
 | D1 | `CONS-01` Push de `develop` + smoke test de producción | `SEC-10` ✅ Dependencias al día + `pip-audit` |
 
-### Fase 1 — Seguridad y ley mínima (D2–D5, antes del 1-dic-2026)
+### Fase 1 — Seguridad y ley mínima (D2–D5; la parte de ley ya no tiene fecha límite en 2026, ver "Retomar aquí")
 | Día | Bloque A | Bloque B |
 |---|---|---|
 | D2 | `SEC-06` ✅ Credenciales SMTP/API cifradas | `SEC-06` ✅ (continúa: migración de datos y clave en Render) |
 | D3 | `SEC-08` ✅ Un solo login (+ open redirect de `next`) | `CONS-04` ✅ Borrar rutas legacy |
 | D4 | `LEY-01` ✅ Consentimiento en contacto y onboarding | `LEY-01` ✅ Página de política de privacidad (contenidos del art. 14 ter) |
-| D5 | `SEC-14` ✅ + `SEC-17` ✅ Salidas sin escapar y comentarios DEBUG | `LEY-05` + `LEY-06` Registro de tratamientos y procedimiento de brechas (documentos) |
+| D5 | `SEC-14` ✅ + `SEC-17` ✅ Salidas sin escapar y comentarios DEBUG | `LEY-05` + `LEY-06` ⏸️ diferidas a 2027 (vigencia 15-oct-2027) |
 
 ### Fase 2 — Consolidación (D6–D11, diciembre)
 | Día | Bloque A | Bloque B |
@@ -91,11 +101,11 @@
 | D7 | `CONS-02` ✅ Documentación al día (Neon, `CLAUDE.md`, README) | `DEUDA-08` ✅ Portada sin titular por defecto |
 | D8 | `CONS-06` ✅ `TenantOwnedMixin` | `DASH-04` ✅ Roles con efecto |
 | D9 | `SEC-05b` ✅ + `DEUDA-06` ✅ Restos del admin y código muerto | `CONS-07` ✅ Separar `views.py` |
-| D10 | `CONS-08` Registro de módulos (opción A) | `CONS-08` (continúa) |
-| D11 | `CONS-09` Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
+| D10 | `CONS-08` ✅ Registro de módulos (opción A) | `CONS-08` ✅ (continúa) |
+| D11 | `CONS-09` ✅ Menú del dashboard desde el registro | `CONS-05` ✅ Flags sin módulo |
 
 ### Fase 3 — Módulos y dashboard (~20 días, enero–febrero 2027)
-Orden: `COMP-02` (1 d) → `COMP-01` (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` (1 d) → `LEY-02` + resto de `LEY-03` (2 d) → `LEY-04` + `LEY-07` (1 d) → `SEC-13` + `SEC-15` (2 d).
+Orden: `COMP-02` ✅ (1 d) → `COMP-01` ✅ (2 d) → `MOD-01` Media (5 d) → `DASH-01` (1 d) → `DASH-02` (4 d) → `DASH-03` (2 d) → `DASH-05` ✅ (1 d) → `SEC-13` + `SEC-15` ✅ (2 d). Las cards `LEY` quedan fuera de esta secuencia (P3, segundo semestre de 2027).
 Después: `MOD-02` (opción B) y Rancho Cachimba — **no antes de marzo de 2027** (la meta anterior de mediados de febrero no cabe).
 
 Las estimaciones no están medidas; recalibrar al cerrar cada fase.
@@ -123,16 +133,11 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
 | `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
-| `CONS-08` | Registro de módulos (opción A) | P1 | L | Clase `Module` + registro: nombre, flag, límites, URLs, entrada de menú, componente público. Galería, contacto y servicios declarados como módulos |
-| `CONS-09` | Menú del dashboard generado desde el registro | P1 | M | Un módulo desactivado no aparece en el menú ni responde en su URL |
-| `CONS-11` | Subir la cobertura al contrato de TDD | P1 | L | `apps/orders/` ≥ 80 % (hoy 69,9), `apps/tenants/middleware.py` + `managers.py` ≥ 90 % (hoy 83,9), total ≥ 70 % (hoy 60,5). El gate (`gate_baseline.json`) solo impide que baje; esta card la sube y el baseline sube con ella. Hallado al medir el gate (2026-11-14) |
-| `CONS-12` | Camino único de objetos de tenant en `orders` y `accounts` | P2 | S | `tenant_object_or_404` (o equivalente) donde corresponda y guardia estática extendida a esas apps. `website_tags.get_section` ya filtra por tenant (verificado). Hallado por `BOLT-28` |
 
 ### `COMP` — Componentes
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `COMP-01` | Generalizar componentes duplicados | P1 | L | `cta`, `about`, `services`, `contact`, `footer`, `navbar`, `hero_ctas`/`hero_overlay_theme` en `templates/components/` con el patrón de `media_collection` (parámetro `mode` + slots). Un componente por commit; a11y y guardia de tokens verdes |
-| `COMP-02` | Ordenar el árbol de temas | P2 | M | `andesscale/` dentro de `themes/`; `themes/electricidad` entra a `THEME_CHOICES` o se archiva; fuera `templates_library/` (vacía) y carpetas sueltas sin uso |
+| `COMP-04` | Migrar `style=""` y colores hex de los componentes compartidos a tokens y Tailwind | P3 | M | Las variantes `glow` (`cta`), `blocks` (`about`) y los slots de `contact`, `navbar` y servelec conservan estilos inline y colores de Servelec (`#0f3320`, `#1DB954`, `#0b2818`) para mantener el HTML idéntico. Cambia el aspecto, así que se hace con la marca del tenant a la vista. Hallado por `BOLT-57`, `58`, `60`, `62` |
 
 ### `MOD` — Módulos
 | ID | Card | P | Esf. | Definición de hecho |
@@ -146,43 +151,39 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | `DASH-01` | Navegación por tareas | P1 | M | Inicio (estado del sitio + qué sigue) · Publicar · Mensajes · Mi sitio · Ajustes, generado desde el registro |
 | `DASH-02` | Flujo "Publicar" mobile-first | P1 | XL (~4 d) | Grilla de medios tipo Instagram sobre `MOD-01`. Una persona no técnica publica sin ayuda; probado con Servelec |
 | `DASH-03` | Interacción con htmx | P2 | L | Guardar, ocultar y reordenar sin recargar; estados vacíos y de error. Servicios como patrón |
-| `DASH-05` | Tests del dashboard | P2 | M | Guardar sección, subir, reordenar; a11y de Playwright extendida al dashboard; `apps/accounts` deja de tener 0 tests |
+| `DASH-07` | a11y del dashboard: pantallas sin cubrir y color de marca claro | P2 | M | `dashboard.spec.js` mide solo Inicio y Secciones; falta Marca, Portada, Galería, Mensajes y las pantallas de edición. Además `.btn-primary` y los botones "Editar" ponen texto blanco sobre el color de marca del tenant: con un primario claro no llegan a 4.5:1 (hoy pasa con `#0b5fa5`). Hallado por `BOLT-55` |
 
 ### `SEC` — Ciberseguridad (detalle y evidencia en `SEGURIDAD.md`)
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
 | `SEC-13` | Endurecer `/superadmin/` | P1 | M | Segundo factor (TOTP) y rate limit en su login |
-| `SEC-15` | Runbook de incidentes y rotación de secretos | P2 | S | Documento: qué hacer ante una fuga, cómo rotar cada secreto de `Inventario_Secretos.md`, a quién avisar (enlaza `LEY-06`) |
-| `SEC-18` | Unificar los dos `TenantAdminMixin` | P2 | M | Uno solo (`apps/accounts/mixins.py`) usado también por `apps/website/admin.py`; `get_list_filter` y la regla de FK cubren también FKs que llegan al tenant por otro camino (`order__client`). Suite de aislamiento y `tests_admin_scope` verdes. Hallado por `BOLT-24`/`BOLT-32` |
 
-### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`)
+### `LEY` — Ley 21.719 (artículos y estado en `SEGURIDAD.md` §3; texto en `Ley-21719_13-DIC-2024.pdf`) — **P3: vigencia postergada al 15-oct-2027**
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `LEY-02` | Derechos del titular (art. 4–11) | P1 | M | Canal de solicitudes (correo o formulario) + registro de cada solicitud con fecha y respuesta; comando que exporta en JSON y suprime los datos de una persona; bloqueo temporal. Plazos: 30 días corridos, bloqueo en 2 días hábiles |
-| `LEY-03` | Retención y purga (art. 14 d y principio de proporcionalidad) | P1 | M | Purga de contactos independiente del digest (`BOLT-14`) y tope legal de 365 días para mensajes de contacto (`BOLT-26`). Falta: plazos para `Order`, `PaymentLog`, `EmailOutbox`; plazo publicado en la política; cron en Render (`OPS-06`) para que corra en producción |
-| `LEY-04` | Proveedores y transferencia internacional (art. 15 bis, 27–28) | P2 | S | DPA o cláusulas contractuales de Neon, Render, Cloudinary y Zoho archivados; listados en la política |
-| `LEY-05` | Registro de tratamientos y bases de licitud (art. 13, 14, 14 quáter) | P1 | S | Documento por tratamiento: datos, finalidad, base de licitud, quién accede, conservación, proveedores. Decidido: IP sí, user-agent no |
-| `LEY-06` | Procedimiento de brechas (art. 14 sexies) | P1 | S | Documento + plantilla de registro: detección, evaluación de riesgo, reporte a la Agencia, aviso al cliente responsable cuando AndesScale es encargado, aviso a titulares cuando corresponde |
-| `LEY-07` | Contrato de encargo con clientes (art. 15 bis) | P1 | M | Cláusula con objeto, duración, finalidad, tipo de datos, categorías de titulares y obligaciones; autorización escrita de sub-encargados (Neon, Render, Cloudinary, Zoho); devolución o supresión al terminar (une con `BIZ-03`). Sin código; revisar con abogado |
-| `LEY-08` | Aviso previo antes de purgar mensajes sin leer | P3 | S | El digest avisa al cliente N días antes de que un mensaje `new` alcance el tope de 365 días (la purga cuenta desde `created_at`). Hallado por `BOLT-26` |
+| `LEY-03` | Retención y purga (art. 14 d y principio de proporcionalidad) | P3 | M | Plazos y purga implementados (contactos 365 d, `Order`/`PaymentLog` 6 años, `EmailOutbox` 90 d; publicados en la política). Falta solo: cron en Render (`OPS-06`) para que corra en producción |
+| `LEY-04` | Proveedores y transferencia internacional (art. 15 bis, 27–28) | P3 | S | DPA o cláusulas contractuales de Neon, Render, Cloudinary y Zoho archivados; listados en la política |
+| `LEY-05` | Registro de tratamientos y bases de licitud (art. 13, 14, 14 quáter) | P3 | S | Documento por tratamiento: datos, finalidad, base de licitud, quién accede, conservación, proveedores. Decidido: IP sí, user-agent no |
+| `LEY-06` | Procedimiento de brechas (art. 14 sexies) | P3 | S | Documento + plantilla de registro: detección, evaluación de riesgo, reporte a la Agencia, aviso al cliente responsable cuando AndesScale es encargado, aviso a titulares cuando corresponde |
+| `LEY-07` | Contrato de encargo con clientes (art. 15 bis) | P3 | M | Cláusula con objeto, duración, finalidad, tipo de datos, categorías de titulares y obligaciones; autorización escrita de sub-encargados (Neon, Render, Cloudinary, Zoho); devolución o supresión al terminar (une con `BIZ-03`). Sin código; revisar con abogado |
+| `LEY-09` | Cierre de `LEY-02`: verificación de identidad y huecos | P3 | M | Definir cómo se verifica al solicitante antes de entregar datos (hoy la respuesta va al correo que indica el formulario); un mensaje de un titular bloqueado no se abre por URL directa (`contacts.py`); backfill de `EmailOutbox.client` nulo para que `erase` los alcance; el aviso del dashboard usa `reverse` y solo se muestra a quien puede abrir `/superadmin/`; `resolved_at` se limpia al reabrir. Hallado por `BOLT-49` y `BOLT-50` |
 
 ### Negocio, datos y operación
 | ID | Card | P | Esf. | Nota |
 |---|---|---|---|---|
 | `DB-02` | Backup de Neon con restore probado | P1 | M | Restore a una rama, documentado con tiempos |
 | `DB-03` | `EXPLAIN ANALYZE` de consultas calientes en Neon | P3 | S | Junto a `DB-02` |
-| `BIZ-01` | Límites de plan con efecto real | P2 | M | `max_images/pages/services` verificados al crear contenido. Se resuelve en el registro de módulos |
+| `DEUDA-11` | `Client.max_pages` sin uso: decidir si se borra | P3 | S | No existe modelo de páginas, así que el límite no se aplica a nada (el default 10 sigue en `apps/tenants/models.py`). Borrarlo exige migración. Hallado por `BOLT-54` |
+| `DEUDA-15` | `create_tenant`: ¿borrar o documentar? | P3 | S | Parece muerto frente a `provision_tenant` (110 sentencias; ahora con tests de `BOLT-70`). Decidir: borrarlo con sus tests, o dejarlo documentado como vigente. Hallado por `BOLT-39`, `70`, `71` |
+| `DEUDA-16` | Sitemap de secciones siempre vacío | P3 | S | `TenantSectionsSitemap` filtra por `Section.slug`, campo que no existe, y apunta a `website:section_detail`, ruta que no existe; los `except` lo ocultan. Resultado: `/sitemap-sections.xml` sale vacío. Decidir: quitarlo del índice o darle URLs públicas reales a las secciones (esto último es producto/SEO). Hallado por `BOLT-71` |
+| `DEUDA-17` | `audit_cloudinary_assets` cuenta cualquier `CharField` como referencia | P3 | S | Un asset puede parecer en uso por un valor que no es un `public_id`. Acotar a los campos de imagen conocidos. Hallado por `BOLT-70` |
 | `BIZ-02` | `Plan.renewal_price` y `Client.monthly_fee` alineados al modelo real | P2 | S | Pago único + mantención 12 meses + renovación anual (`MASTER_PLAN` §4.4). `Client.plan` es texto, no FK a `Plan`: decidir |
 | `BIZ-03` | Cláusulas de mantención y fin de servicio | P2 | M | Sin código. `MASTER_PLAN` §4.5 |
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |
 | `PAY-02` | Registro de fricciones del cobro manual | P3 | S | — |
-| `OPS-04` | Alerta de créditos Cloudinary | P3 | S | Existe el comando `cloudinary_usage`; conectar umbrales y aviso; los umbrales (`CLOUDINARY_ALERT_THRESHOLDS`) se borraron con `DEUDA-06`: definirlos de nuevo |
-| `OPS-05` | Cache compartida, `/health/` real, Sentry | P3 | M | Antes de más de un proceso |
-| `OPS-07` | Ensayo de despliegue antes de `develop` → `main` | P0 | M | Rama de Neon con las migraciones nuevas (`tenants` 0027–0029 y las de `LEY-01`); servicio temporal de Render desde `develop` con `FIELD_ENCRYPTION_KEY`, `gunicorn` 27, `pillow` 13, `Django` 5.2.19 y `cryptography` 50; probar login, subida de imagen real, contacto, borrado de servicio y checkout sandbox. Documentar tiempos |
-| `FLOW-04` | `provision_tenant` no crea `Domain` y avisa "Template origen _default no existe" | P2 | S | Crea el `Domain` primario (o lo deja explícito) y el aviso desaparece o se explica; test. Hallado por `BOLT-19` |
-| `TOOL-04` | Pulido de la CI y de las dependencias de desarrollo | P3 | S | `pip-audit` con versión fijada en `requirements-dev.txt`; evitar la doble ejecución `push` + `pull_request`; Python de CI alineado con `render.yaml` (3.11 vs 3.11.0); confirmar que `Procfile` y `render.yaml` arrancan con `gunicorn` 27; ningún comando de producción depende de `django_extensions`. Hallado por `BOLT-27`/`BOLT-30` |
-| `DOC-01` | Documentación desfasada tras las rondas 4–6 | P3 | S | `README.md`/`MASTER_PLAN` y `Documentacion/README.md` aún citan `OrderProcessor` y `cloudinary_settings.py`; `INDEX.md` líneas 29 y 54; `ARQUITECTURA.md:57` (`views.py` ya es un paquete); `SEGURIDAD.md` (`SEC-14` ya no tiene 21 avisos). **A mano:** el skill `.claude/skills/andesscale-saas` sigue diciendo Supabase y el agente no puede editar `.claude/` |
-| `DEUDA-09` | Vista `dashboard_services` sin ruta | P3 | S | `views/services.py` la exporta pero ninguna URL la usa; borrarla con su re-exportación. Hallado por `BOLT-21` |
+| `DEUDA-10` | `check_tenant_setup` falla en un tenant recién provisionado | P3 | S | **Probablemente es el gate funcionando:** `_check_seo` exige `SEOConfig('home')` con título y descripción reales, y un tenant recién provisionado todavía no los tiene (es el QA previo a publicar, `FLOW-02`). No crear un relleno que lo silencie. Decidir con el dueño si `provision_tenant` debe sembrar el SEO desde el contenido del cliente o si la tarjeta se descarta. Hallado por `BOLT-44` |
+| `OPS-05` | Cache compartida y Sentry | P3 | M | Antes de más de un proceso. `/health/` ya existe (`BOLT-72`); falta configurar el Health Check Path en Render |
+| `OPS-07` | Ensayo de despliegue antes de `develop` → `main` | P0 | M | **Ensayo hecho 2026-11-15** (ver Retomar aquí). Falta el deploy real de `main`: Build Command de `saasmvp` → `./build.sh`, Manual Deploy y pruebas en vivo; luego borrar `saasmvp-staging` y la rama `staging-ensayo`. Pendiente de probar: formulario de contacto con consentimiento y correo, checkout sandbox (en local con credenciales `TEST-`), portada de Servelec. Build medido: 1 min |
 
 ### `RC` — Rancho Cachimba ⏸️ (rama `feature/RanchocachimbaEtapa1`; no tocar sin pedido explícito)
 | ID | Card | Depende de |

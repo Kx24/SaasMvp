@@ -6,18 +6,26 @@
 
 {% block content %}
 
+{% if open_data_requests %}
+<div role="alert" class="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+    Tienes {{ open_data_requests }} solicitud{{ open_data_requests|pluralize:"es" }} de datos personales;
+    la más próxima vence el {{ next_data_request_due|date:"d/m/Y" }}.
+    <a href="/superadmin/website/datasubjectrequest/" class="font-semibold underline">Gestionar</a>
+</div>
+{% endif %}
+
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     
     <!-- Contactos -->
     <div class="bg-white rounded-xl border border-slate-200 p-6">
         <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);">
-                <svg class="w-6 h-6" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--color-primary) 10%, transparent);">
+                <svg class="w-6 h-6" style="color: var(--color-primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
             </div>
-            <span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
+            <span class="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full">
                 {% if contacts_today > 0 %}+{{ contacts_today }} hoy{% else %}--{% endif %}
             </span>
         </div>
@@ -138,7 +146,7 @@
         <div class="bg-white rounded-xl border border-slate-200 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-semibold text-slate-900">Últimos contactos</h3>
-                <a href="{% url 'dashboard_contacts' %}" class="text-sm font-medium hover:underline" style="color: var(--primary);">
+                <a href="{% url 'dashboard_contacts' %}" class="text-sm font-medium hover:underline" style="color: var(--color-primary);">
                     Ver todos →
                 </a>
             </div>
@@ -169,7 +177,7 @@
                     </svg>
                 </div>
                 <p class="text-sm text-slate-500">Aún no hay contactos</p>
-                <p class="text-xs text-slate-400 mt-1">Los mensajes aparecerán aquí</p>
+                <p class="text-xs text-slate-500 mt-1">Los mensajes aparecerán aquí</p>
             </div>
             {% endif %}
         </div>

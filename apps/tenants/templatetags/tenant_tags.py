@@ -13,6 +13,7 @@ from django import template
 from django.conf import settings
 from django.template.exceptions import TemplateDoesNotExist
 from django.template.loader import get_template, render_to_string
+from django.utils.html import format_html
 
 register = template.Library()
 
@@ -35,7 +36,7 @@ def tenant_static(context, path):
     
     if client:
         # Ruta del tenant
-        tenant_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / path
+        tenant_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / str(path)
         
         if tenant_path.exists():
             return f"{settings.MEDIA_URL}tenants/{client.slug}/{path}"
@@ -75,7 +76,7 @@ def get_tenant_media_url(context, filename):
     client = context.get('client') or getattr(request, 'client', None)
     
     if client:
-        file_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / filename
+        file_path = Path(settings.MEDIA_ROOT) / 'tenants' / client.slug / str(filename)
         if file_path.exists():
             return f"{settings.MEDIA_URL}tenants/{client.slug}/{filename}"
     
@@ -118,7 +119,7 @@ def tenant_include(context, template_name):
             continue
     
     # Si ninguno existe, retornar comentario HTML
-    return f"<!-- Template not found: {template_name} -->"
+    return format_html("<!-- Template not found: {} -->", template_name)
 
 
 @register.simple_tag(takes_context=True)

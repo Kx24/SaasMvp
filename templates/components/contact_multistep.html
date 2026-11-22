@@ -7,7 +7,7 @@
 -->
 
 {% load static %}
-
+{% if not contact_disabled %}
 <div
   x-data="contactMultistep('{{ source|default:"page" }}')"
   x-init="init()"
@@ -401,3 +401,4 @@ function contactMultistep(formSource) {
   };
 }
 </script>
+{% endif %}

@@ -11,10 +11,26 @@ hacen falta acá (copiar carpetas de templates, subir a Cloudinary).
 Uso:
     python manage.py seed_e2e_tenants --settings=config.settings.e2e
 """
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand, CommandError
 
+from apps.accounts.models import UserProfile
 from apps.tenants.models import Client, Domain
-from apps.website.models import Section, Service
+from apps.website.models import ContactSubmission, Section, Service
+
+# DASH-05: tenant propio para la suite del dashboard (galería activa, un
+# usuario owner y un mensaje sin leer). Separado de los 3 de arriba para no
+# alterar lo que miden smoke.spec.js y a11y.spec.js. La contraseña es solo
+# de desarrollo: este comando se niega a correr con DEBUG=False.
+DASHBOARD_TENANT = {
+    'slug': 'dash-e2e',
+    'name': 'Dashboard E2E',
+    'domain': 'dash-e2e.localhost',
+    'template': 'themes/default',
+    'primary_color': '#0b5fa5',
+}
+DASHBOARD_OWNER = {'username': 'owner-e2e', 'password': 'e2e-only-owner-pass'}
 
 # domain usa *.localhost: todo resolver de SO/browser moderno lo manda a
 # 127.0.0.1 por RFC 6761 sin tocar /etc/hosts (confirmado en Windows con
@@ -49,7 +65,12 @@ class Command(BaseCommand):
     help = 'Seed idempotente de tenants para la suite Playwright (#TOOL-01)'
 
     def handle(self, *args, **options):
-        for spec in TENANTS:
+        if not settings.DEBUG:
+            raise CommandError(
+                'seed_e2e_tenants solo corre con DEBUG=True (crea un usuario con '
+                'contraseña de desarrollo): usa --settings=config.settings.e2e.')
+
+        for spec in [*TENANTS, DASHBOARD_TENANT]:
             client, _ = Client.objects.update_or_create(
                 slug=spec['slug'],
                 defaults={
@@ -110,4 +131,27 @@ class Command(BaseCommand):
                 },
             )
 
+            if spec is DASHBOARD_TENANT:
+                self._seed_dashboard(client)
+
             self.stdout.write(self.style.SUCCESS(f"OK: {spec['slug']} -> {spec['domain']}"))
+
+    def _seed_dashboard(self, client):
+        client.settings.enable_gallery = True
+        client.settings.save(update_fields=['enable_gallery'])
+        # Mismas secciones editables que ve el dueño en "Secciones".
+        Section.objects.update_or_create(
+            client=client, section_type='about',
+            defaults={'title': 'Quiénes somos', 'description': 'Texto de prueba E2E',
+                      'order': 20, 'is_active': True},
+        )
+        user, _ = User.objects.get_or_create(username=DASHBOARD_OWNER['username'])
+        user.set_password(DASHBOARD_OWNER['password'])
+        user.save()
+        # El profile lo crea el signal de User: update_or_create, no create.
+        UserProfile.objects.update_or_create(
+            user=user, defaults={'client': client, 'role': 'owner'})
+        if not ContactSubmission.objects.filter(client=client).exists():
+            ContactSubmission.objects.create(
+                client=client, name='Visita E2E', email='visita@e2e.test',
+                message='Mensaje de prueba E2E')

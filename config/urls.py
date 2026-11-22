@@ -6,7 +6,12 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from apps.core.views import health
+
 urlpatterns = [
+    # 0. Health check de infraestructura (Render): sin tenant, sin auth (#OPS-05)
+    path('health/', health, name='health'),
+
     # 1. URLs de Tenants (Custom Superadmin) - PRIORIDAD ALTA
     # Las ponemos primero para que 'superadmin/nuevo/' no sea "comido" por el admin de Django
     path('', include('apps.tenants.urls')),

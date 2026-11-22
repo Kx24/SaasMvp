@@ -77,9 +77,7 @@
             {% endfor %}
         </div>
         {% else %}
-        {% include 'dashboard/partials/gallery_empty.html' with
-            message="No hay imágenes en la galería"
-            hint="Sube tu primera imagen usando el formulario" %}
+        {% include 'dashboard/partials/gallery_empty.html' with message="No hay imágenes en la galería" hint="Sube tu primera imagen usando el formulario" %}
         {% endif %}
 
     </div>

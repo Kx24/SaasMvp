@@ -32,6 +32,11 @@ class EmailOutbox(models.Model):
         ('failed', 'Fallido (máximo de reintentos alcanzado)'),
     ]
 
+    client = models.ForeignKey(
+        'tenants.Client', null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='+',
+        help_text='Tenant al que pertenece el envío (LEY-02: acota la supresión por titular).',
+    )
     to_email = models.EmailField()
     from_email = models.CharField(max_length=255)
     subject = models.CharField(max_length=255)

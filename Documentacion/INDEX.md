@@ -1,6 +1,6 @@
 # Mapa de documentación — AndesScale SaaS
 
-> Actualizado 2026-11-12. Regla: **un tema, un archivo vigente**. Si un documento deja de ser cierto, va a `historico/` (con `git mv`, no se borra); no se deja "para después" en su lugar original.
+> Actualizado 2026-11-16. Regla: **un tema, un archivo vigente**. Si un documento deja de ser cierto, va a `historico/` (con `git mv`, no se borra); no se deja "para después" en su lugar original.
 
 ## 1. Planificación (qué falta, qué se hizo)
 
@@ -25,9 +25,9 @@
 | [`ARQUITECTURA.md`](ARQUITECTURA.md) | Arquitectura actual: ciclo de un request, cada tecnología y qué hace, apps, modelo de datos Django, flujos, despliegue (2026-11-12) | Vigente |
 | [`SEGURIDAD.md`](SEGURIDAD.md) | Controles vigentes, hallazgos del chequeo, mapa Ley 21.719, checklist por release (2026-11-12) | Vigente |
 | [`../docs/design-system.md`](../docs/design-system.md) | Contrato de temas, tokens CSS y componentes compartidos | Vigente |
-| [`../docs/CLOUDINARY.md`](../docs/CLOUDINARY.md) | Integración con Cloudinary (enero 2026) | ⚠️ Revisar contra `apps/core/cloudinary_utils.py` |
-| [`README.md`](README.md) | Documentación técnica larga (2026-08-24) | ⚠️ Revisar; aún dice "Supabase" (`CONS-02`) |
-| [`../README.md`](../README.md) | README del repo | ⚠️ Desactualizado (diciembre 2025): reescribir corto |
+| [`../docs/CLOUDINARY.md`](../docs/CLOUDINARY.md) | Integración con Cloudinary (enero 2026) | Vigente |
+| [`README.md`](README.md) | Documentación técnica larga (2026-08-24) | Vigente (2026-11-16) |
+| [`../README.md`](../README.md) | README del repo | Vigente (corto) |
 
 ## 4. Operación
 
@@ -35,7 +35,8 @@
 |---|---|
 | [`Procedimiento_Nuevo_Tenant.md`](Procedimiento_Nuevo_Tenant.md) | Runbook de alta de cliente (+ checklist de custodia DNS) |
 | [`Inventario_Secretos.md`](Inventario_Secretos.md) | Qué env vars/secretos existen y dónde viven |
-| [`Ley-21719_13-DIC-2024.pdf`](Ley-21719_13-DIC-2024.pdf) | Texto oficial de la Ley 21.719 (BCN, rige el 1-dic-2026). Su aplicación a la plataforma está en `SEGURIDAD.md` §3 |
+| [`Runbook_Incidentes.md`](Runbook_Incidentes.md) | Qué hacer ante una fuga, acceso indebido, base dañada, deploy caído o correo/dominio comprometido; rotación de secretos |
+| [`Ley-21719_13-DIC-2024.pdf`](Ley-21719_13-DIC-2024.pdf) | Texto oficial de la Ley 21.719 (BCN, vigencia postergada al 15-oct-2027). Su aplicación a la plataforma está en `SEGURIDAD.md` §3 |
 
 ## 5. Piloto agéntico (se queda en `docs/` porque el código lo referencia por ruta)
 
@@ -51,6 +52,5 @@
 
 ## Pendientes de documentación (cards en el kanban)
 
-- Reescribir `README.md` raíz y revisar `Documentacion/README.md`, `docs/CLOUDINARY.md` → `CONS-02`.
 - `Informe_Cumplimiento_Ley21719.md` lo cita el Master Plan §1.4 pero **no está en el repo**: ubicarlo o regenerarlo → `LEY-00`.
 - Carpeta vacía sin trackear `Documentacion/Planificacion/` (solo `.claude/`, sin acento; la con acento se vació): borrar a mano si no la usás.

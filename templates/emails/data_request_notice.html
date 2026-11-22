@@ -1,0 +1,27 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Nueva solicitud de datos personales{% endblock %}
+
+{% block content %}
+<h1 class="text-center">Nueva solicitud de datos personales</h1>
+
+<p>Se recibió una solicitud en <strong>{{ client.name }}</strong>. El plazo legal de respuesta es el
+<strong>{{ dsr.due_at|date:"d/m/Y" }}</strong> (30 días corridos).</p>
+
+<div class="info-box">
+    <dl class="details-list" style="margin: 0;">
+        <dt>Derecho</dt>
+        <dd>{{ dsr.get_request_type_display }}</dd>
+        <dt>Nombre</dt>
+        <dd>{{ dsr.name }}</dd>
+        <dt>Correo</dt>
+        <dd>{{ dsr.email }}</dd>
+        <dt>Detalle</dt>
+        <dd>{{ dsr.detail|linebreaksbr }}</dd>
+    </dl>
+</div>
+
+<p>La identidad del solicitante no fue verificada: la respuesta debe ir al correo indicado.</p>
+
+<p><a href="{{ site_url }}/superadmin/website/datasubjectrequest/">Gestionar en el panel</a></p>
+{% endblock %}

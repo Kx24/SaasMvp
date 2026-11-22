@@ -201,13 +201,10 @@ class MercadoPagoService:
                     details={"cause": error_cause}
                 )
         
-        except mercadopago.exceptions.MPException as e:
-            logger.error(f"[MP Service] SDK Exception: {e}")
-            raise MercadoPagoError(
-                message=str(e),
-                code="SDK_ERROR"
-            )
-        
+        except MercadoPagoError:
+            # Error de API ya normalizado arriba: no re-envolver.
+            raise
+
         except Exception as e:
             logger.error(f"[MP Service] Unexpected error: {e}")
             raise MercadoPagoError(

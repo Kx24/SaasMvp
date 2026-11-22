@@ -8,8 +8,12 @@ o un componente repetido, el camino correcto sea obvio.
 
 ## 1. Contrato de variables CSS (obligatorio en todo `base.html`)
 
-Cada tema (`servelec`, `andesscale`, `ranchocachimba`, `themes/default`,
-`themes/electricidad`) define, en un único bloque `:root` dentro de su
+Árbol de temas (COMP-02): `templates/themes/{default,servelec,andesscale}` +
+`templates/components/` (compartidos) + `ranchocachimba` solo en su rama.
+`themes/electricidad` se archivó (historial de git).
+
+Cada tema (`themes/servelec`, `themes/andesscale`, `ranchocachimba`,
+`themes/default`) define, en un único bloque `:root` dentro de su
 `base.html`, templado desde `ClientSettings`:
 
 ```css
@@ -90,10 +94,10 @@ componente compartido, con:
 - **Slots de override opcionales, pasados como ruta de template**
   (`effects`, `overlay`, `theme_ctas`), no como bloques de contenido inline.
   Cada tema pasa su propio archivo (p. ej.
-  `servelec/components/hero_overlay_theme.html`) o los deja vacíos para el
+  `components/slots/hero_overlay_theme_servelec.html`) o los deja vacíos para el
   comportamiento por defecto.
 
-Consumido por `servelec/components/hero.html`, `andesscale/components/hero.html`
+Consumido por `themes/servelec/components/hero.html`, `themes/andesscale/components/hero.html`
 y `themes/default/components/hero.html` — cada uno un wrapper de ~10 líneas
 que llama a `media_collection.html` con sus propios paths de override. Ese
 wrapper por tema es aceptable: lo que no debe duplicarse es la lógica de
@@ -121,6 +125,101 @@ componente propio del tema, documentado igual de explícito que en este caso.
 No hay una tercera opción de "generalizar con un flag más" — eso es lo que
 ya pasó una vez con el `tailwind.config` duplicado y es el tipo de deuda que
 `#AUD-11` vino a sacar, no a repetir en otro lugar.
+
+### Componente `cta` (`components/cta.html`, COMP-01)
+
+Parámetros: `variant` = `"orbs"` (por defecto; fondo oscuro con orbs animados,
+dos botones — andesscale) | `"glow"` (fondo verde con brillo, badge y botón +
+teléfono de `client.settings.contact_phone` — servelec); `client`.
+Slots: ninguno por ahora (las dos variantes difieren en estructura de fondo y
+botones; se resuelven por `variant`). `themes/default` no usa `cta`.
+El `home.html` del tema incluye el compartido directamente
+(`{% include 'components/cta.html' with variant='glow' %}`); **no** crear
+`themes/<tema>/components/cta.html`: el loader lo resolvería primero y el
+include se llamaría a sí mismo. Equivalencia de HTML:
+`apps/core/tests/test_component_cta.py` + `apps/core/tests/fixtures/cta_*.html`.
+
+### Componente `about` (`components/about.html`, COMP-01)
+
+Parámetros: `variant` = `"stripe"` (por defecto; cuadrícula tenue, tres métricas y
+tres cards de valor si no hay imagen — andesscale) | `"blocks"` (bloques de color
+en las esquinas, botón "Contáctanos" a `#contacto` — servelec). Los datos salen de
+`{% get_section 'about' %}` (título, subtítulo, descripción, imagen); `client` para
+el texto de reemplazo de `blocks`.
+Slots: ninguno por ahora (las variantes difieren en estructura). `themes/default`
+no tiene componente `about`: su `home.html` renderiza la sección en línea.
+El `home.html` del tema incluye el compartido directamente
+(`{% include 'components/about.html' with variant='blocks' %}`); **no** crear
+`themes/<tema>/components/about.html` (el loader lo resolvería primero y el include
+se llamaría a sí mismo). Equivalencia de HTML:
+`apps/core/tests/test_component_about.py` + `apps/core/tests/fixtures/about_*.html`.
+
+### Componente `services` (`components/services.html`, COMP-01)
+
+Parámetros: `variant` = `"stripe"` (por defecto; grilla fija de 3 columnas, badge
+`text-primary` — andesscale) | `"adaptive"` (4 servicios → 4 columnas, 5 → última fila
+centrada, badge `text-primary-a11y` — servelec); `subtitle` = texto bajo el título (por
+defecto el de andesscale). Contexto: `services` (lista de `Service`, la entrega la vista);
+incluye el panel de detalle Alpine (`serviciosSection`). Slots: ninguno por ahora.
+`themes/default` no usa componente (su `home.html` renderiza en línea; su
+`services.html` huérfano se borró). El `home.html` del tema incluye el compartido
+directamente (`{% include "components/services.html" with variant="adaptive" %}`);
+**no** crear `themes/<tema>/components/services.html` (el loader lo resolvería primero y
+el include se llamaría a sí mismo). Equivalencia de HTML:
+`apps/core/tests/test_component_services.py` + `apps/core/tests/fixtures/services_*.html`.
+
+### Componente `contact` (`components/contact.html`, COMP-01)
+
+Parámetros: `variant` = `"stripe"` (por defecto; andesscale: datos email/teléfono/WhatsApp,
+descripción de la sección y formulario multistep `components/contact_multistep.html`) |
+`"servelec"` (datos email/teléfono/dirección en filas enlazables y formulario
+`partials/contact_form.html` en panel gris). Contexto: `client.settings` y la sección
+`contact` (`get_section`). Slots: ninguno por ahora. El consentimiento (`LEY-01`) y el botón
+(`COMP-03`) viven en los formularios, no en el componente. `themes/default` no usa componente
+(su `home.html` renderiza en línea). El `home.html` del tema incluye el compartido
+directamente (`{% include "components/contact.html" with variant="servelec" %}`); **no**
+crear `themes/<tema>/components/contact.html` (el loader lo resolvería primero y el include
+se llamaría a sí mismo). Equivalencia de HTML: `apps/core/tests/test_component_contact.py` +
+`apps/core/tests/fixtures/contact_*.html`.
+
+### Componente `footer` (`components/footer.html`, COMP-01)
+
+Parámetro: `variant` = `"default"` (omitido; footer genérico de 3 columnas) | `"stripe"`
+(andesscale: 4 columnas, redes, WhatsApp, barra con `/privacidad/`) | `"servelec"` (fondo
+verde, descripción/logo_footer, crédito Andesscale). Contexto: `client` y `client.settings`.
+El marcado de cada variante vive en el slot `components/slots/footer_<variant>.html`;
+`footer.html` solo despacha. Los `base.html` de tema incluyen el compartido directamente
+(`{% include "components/footer.html" with variant="stripe" %}`); **no** crear
+`themes/<tema>/components/footer.html` (el loader lo resolvería primero; el de
+`themes/default` estaba vacío y dejaba sin footer al tema base). Equivalencia de HTML:
+`apps/core/tests/test_component_footer.py` + `apps/core/tests/fixtures/footer_*.html`.
+
+### Componente `navbar` (`components/navbar.html`, COMP-01)
+
+Parámetro: `variant` = `"simple"` (omitido; navbar global de los tenants sin tema propio) |
+`"default"` (tema base: RRSS, CTA configurable, scroll) | `"stripe"` (andesscale: transparente →
+glass al hacer scroll, CTA «Empezar ahora») | `"servelec"` (acento eléctrico, teléfono, CTA
+«Cotizar»). Contexto: `client`, `client.settings` y `user`. Incluye menú móvil (probar a 375 px)
+y botones de sesión; el CTA configurable sale de `components/navbar_cta.html`. El marcado de
+cada variante vive en `components/slots/navbar_<variant>.html`; `navbar.html` solo despacha.
+Los `base.html` de tema lo incluyen directo (`{% include "components/navbar.html" with
+variant="servelec" %}`); **no** crear `themes/<tema>/components/navbar.html`. Equivalencia de
+HTML: `apps/core/tests/test_component_navbar.py` + `apps/core/tests/fixtures/navbar_*.html`.
+
+### Componentes `hero_ctas` y `hero_overlay_theme` (COMP-01)
+
+`components/hero_ctas.html`: par de botones del hero. Parámetros: `primary_text`
+(«Contáctanos»), `primary_href` (`#contacto`), `primary_style`, `secondary_text`,
+`secondary_href` (`#servicios`), `secondary_style`; defaults = tema base (tokens). El botón
+secundario solo se renderiza si recibe `secondary_text`.
+`components/hero_overlay_theme.html`: gradiente de legibilidad + línea decorativa. Parámetros:
+`shade_style`, `line_style`, `line_opacity` (defaults = tema base).
+Slots por variante (solo fijan parámetros): `components/slots/hero_ctas_default.html`,
+`hero_ctas_servelec.html`, `hero_overlay_theme_servelec.html`; el hero de cada tema los pasa a
+`media_collection` como `theme_ctas` / `overlay`. **No** crear
+`themes/<tema>/components/hero_ctas.html` ni `hero_overlay_theme.html` (sombrearían al
+compartido). Equivalencia de HTML: `apps/core/tests/test_component_hero_ctas.py` +
+`apps/core/tests/fixtures/hero_*.html`.
 
 ## 3. Dónde se aplica esto
 

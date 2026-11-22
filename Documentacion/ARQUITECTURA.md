@@ -13,7 +13,7 @@ Navegador → Cloudflare (DNS) → Render (gunicorn) → Django
        Host → Domain (allowlist dinámica) → request.client
        localhost y dominios de sistema → request.client = None
        mode_under_construction → página "en construcción" (salvo dominio is_preview)
-  3. Vista (apps/website/views.py, etc.) → SIEMPRE filtra .filter(client=request.client)
+  3. Vista (apps/website/views/, etc.) → SIEMPRE filtra .filter(client=request.client)
   4. apps/core/template_resolver.py::render_tenant_template(request, 'landing/home.html', ctx)
   5. apps/tenants/template_loader.py::TenantTemplateLoader
        templates/{client.template}/landing/home.html   (tema del cliente)
@@ -54,7 +54,7 @@ Sin uso real hoy (candidatos a retirar, `SEC-10`): `djangorestframework`, `djang
 | App | Responsabilidad | Piezas clave |
 |---|---|---|
 | `apps/tenants` | Quién es el cliente: resolución por dominio, marca, configuración, alta de tenants | `middleware.py`, `template_loader.py`, `managers.py`, `fonts.py`, `templatetags/seo_tags.py`, comandos de provisioning |
-| `apps/website` | Contenido del sitio y dashboard del cliente | `models.py`, `views.py` (1.099 líneas, a separar en `CONS-07`), `forms.py`, `auth_views.py` |
+| `apps/website` | Contenido del sitio y dashboard del cliente | `models.py`, paquete `views/` (`public`, `sections`, `services`, `gallery`, `contacts`, `branding`, `_shared`; `CONS-07`), `forms.py`, `auth_views.py` |
 | `apps/accounts` | Perfil de usuario ↔ tenant, roles, invitación/contraseña | `models.py::UserProfile`, `decorators.py::tenant_member_required`/`tenant_permission_required`, `permissions.py`, `mixins.py::TenantAdminMixin` |
 | `apps/orders` | Planes, checkout, webhook, onboarding post-pago, correo | `models.py`, `views.py`, `views_onboarding.py`, `services/` |
 | `apps/marketing` | SEO por página, `sitemap.xml`, `robots.txt`, verificación de Google | `models.py::SEOConfig`, `views_robots.py` |
@@ -114,10 +114,25 @@ La gestión de usuarios (invitar, cambiar roles) aún no existe en el dashboard;
 
 ## 5. Temas, componentes y página pública
 
-- **Tema** = carpeta bajo `templates/` con `base.html`, `landing/home.html` y `components/`. Existen `themes/default`, `themes/servelec`, `themes/electricidad` (no elegible en `THEME_CHOICES`) y `andesscale/` (fuera de `themes/`; es el sitio propio). `ranchocachimba` vive solo en su rama.
-- **Componentes compartidos** (`templates/components/`): `navbar`, `navbar_cta`, `footer`, `hero_gallery`, `hero_ctas_base`, `media_collection`, `media_item`, `contact_multistep`, `slots/`. Patrón de referencia: `media_collection.html` (parámetro `mode` + slots de override).
-- **Hoy la home no es modular:** `apps/website/views.py::home` entrega `hero`, `about`, `contact_section`, `services` y cada tema arma su página a mano. Objetivo y camino: registro de módulos (opción A, `CONS-08`) y después orden/visibilidad de bloques (opción B, `MOD-02`).
+- **Tema** = carpeta bajo `templates/` con `base.html`, `landing/home.html` y `components/`. Existen `themes/default`, `themes/servelec` y `themes/andesscale` (el sitio propio; `Client.template='themes/andesscale'` para el tenant de `PLATFORM_TENANT_SLUG`, con fallback por slug en el loader). `themes/electricidad` se archivó (COMP-02). Los componentes compartidos viven en `templates/components/`. `ranchocachimba` vive solo en su rama.
+- **Componentes compartidos** (`templates/components/`): `navbar`, `navbar_cta`, `footer`, `hero_gallery`, `hero_ctas` (par de CTAs único; cada tema solo fija parámetros desde `slots/hero_ctas_<variante>.html`), `media_collection`, `media_item`, `contact_multistep`, `slots/`. Patrón de referencia: `media_collection.html` (parámetro `mode` + slots de override).
+- **Hoy la home no es modular:** `apps/website/views/public.py::home` entrega `hero`, `about`, `contact_section`, `services` y cada tema arma su página a mano. Objetivo y camino: registro de módulos (opción A, `CONS-08`) y después orden/visibilidad de bloques (opción B, `MOD-02`).
 - Emails: plantillas HTML + texto en `templates/emails/`.
+
+### Módulos
+
+Registro en `apps/tenants/modules.py` (`MODULES`, `Module`, `MenuEntry`; helpers `get_module`, `is_enabled`, `enabled_modules`, `module_for_url`). Hoy solo declara: ni el menú ni las vistas lo consumen (eso es `CONS-09`).
+
+| Módulo | Flag (`ClientSettings`) | Límite (`Client`) | Menú | Notas |
+|---|---|---|---|---|
+| `core` | — (siempre activo) | — | Inicio, Marca, Secciones | |
+| `services` | — (siempre activo) | `max_services` | sin entrada propia (vive en Secciones) | |
+| `gallery` | `enable_gallery` | `max_images` | Portada, Galería | `dashboard_portada` está aquí porque su vista exige `enable_gallery` |
+| `contact` | `enable_contact_form` | — | Mensajes | `menu_visible_when_disabled=True`: con contacto apagado "Mensajes" sigue visible |
+
+Decisión del dueño: un módulo apagado responderá 404 (se aplica en `CONS-09`).
+
+**Declarar un módulo nuevo:** agregar un `Module(...)` a `MODULES` con su `flag` (campo booleano de `ClientSettings`, o `None`), `limit_field` (campo de `Client`, o `None`), todas sus rutas del dashboard en `url_names` y sus `MenuEntry` (con una `permission` de `DASHBOARD_PERMISSIONS`). `apps.tenants.tests_modules` falla si una ruta del dashboard en `apps/website/urls.py` no pertenece a exactamente un módulo.
 
 ## 6. Flujos principales
 
@@ -133,11 +148,16 @@ La gestión de usuarios (invitar, cambiar roles) aún no existe en el dashboard;
 
 ## 7. Entornos, despliegue y calidad
 
-- **Settings:** `base.py` (común) → `development.py` (SQLite, `DEBUG`) · `production.py` (falla al importar sin `SECRET_KEY`/`EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD`; `DEBUG=False` fijo; `ALLOWED_HOSTS` y `CSRF_TRUSTED_ORIGINS` derivados de la misma lista de dominios) · `e2e.py` (Playwright). Selección por `DJANGO_ENVIRONMENT`.
+- **Settings:** `base.py` (común) → `development.py` (SQLite, `DEBUG`) · `production.py` (falla al importar sin `SECRET_KEY`/`EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD`/`FIELD_ENCRYPTION_KEY`; `DEBUG=False` fijo; `ALLOWED_HOSTS` y `CSRF_TRUSTED_ORIGINS` derivados de la misma lista de dominios) · `e2e.py` (Playwright). Selección por `DJANGO_ENVIRONMENT`.
 - **Build en Render** (`build.sh`): `pip install` → `npm ci && npm run build:css` → `collectstatic` → `migrate` → `setup_production`.
+- **Build Command de Render: `./build.sh`** (obligatorio). Es lo que compila Tailwind; con `pip install -r requirements.txt` a secas el sitio sale **sin estilos** (hallazgo del ensayo `OPS-07`).
+- **Variables obligatorias en producción:** `SECRET_KEY`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `FIELD_ENCRYPTION_KEY` (cifra las credenciales SMTP/API de `ClientEmailSettings`; `SEC-06`) y `DATABASE_URL` (Neon). Detalle en [`Inventario_Secretos.md`](Inventario_Secretos.md).
+- **Render no se sincroniza desde `render.yaml`:** el servicio `saasmvp` se configuró a mano en el dashboard; cambiar el archivo no cambia el servicio (ni crea los crons que declara). Todo ajuste (Build Command, variables, crons) se hace en el dashboard.
 - **Ramas:** `main` = producción (deploy automático en Render), `develop` = integración.
+- **Alerta de créditos de Cloudinary (`OPS-04`):** `PLATFORM_ALERT_EMAIL` (vacío = no se envía, solo log) recibe un correo al llegar a `CLOUDINARY_ALERT_THRESHOLDS` (`warning` 70 %, `critical` 90 %, en `config/settings/base.py`). Lo dispara `cloudinary_usage --alert` y cada corrida de `send_contact_digest` (salvo `--dry-run`). Crear la variable en Render (web y crons).
+- **Health check (`OPS-05`, parte):** `GET /health/` (`apps/core/views.py`) responde `200 {"status": "ok", "database": "ok"}` tras un `SELECT 1`, o `503 {"status": "error", "database": "error"}` si la base falla (el detalle va al log, nunca a la respuesta). Sin autenticación, `never_cache`, solo `GET`/`HEAD`. `TenantMiddleware` deja pasar esa ruta exacta con cualquier `Host` y con tenants en construcción. **Configurar en Render: Health Check Path = `/health/`** (dashboard; `render.yaml` no sincroniza el servicio). Pendientes de `OPS-05`: cache compartida y Sentry.
 - **Variables y secretos:** inventario en [`Inventario_Secretos.md`](Inventario_Secretos.md).
-- **Calidad:** 219 tests (`python manage.py test apps`), suite de aislamiento (`apps.tenants.tests_isolation`), Playwright (humo + a11y). El gate corre en GitHub Actions (`.github/workflows/ci.yml`, `SEC-12`) y también a mano. Reglas: sección "Arnés de TDD" del kanban.
+- **Calidad:** suite completa (`python manage.py test apps`), suite de aislamiento (`apps.tenants.tests_isolation`), Playwright (humo + a11y). El gate corre en GitHub Actions (`.github/workflows/ci.yml`, `SEC-12`) y también a mano. Reglas: sección "Arnés de TDD" del kanban.
 
 ## 8. Limitaciones conocidas (enlazadas al kanban)
 

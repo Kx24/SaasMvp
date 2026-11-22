@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Solicitud sobre tus datos personales{% endblock %}
+
+{% block content %}
+<main class="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
+    <h1 class="mb-4 text-3xl font-bold tracking-tight">Solicitud sobre tus datos personales</h1>
+
+    {% if sent %}
+        <div role="status" class="rounded-lg border border-green-300 bg-green-50 p-4 text-green-900">
+            Recibimos tu solicitud. Si el correo indicado es válido, te enviaremos un acuse de recibo con la fecha límite
+            de respuesta (30 días corridos).
+        </div>
+    {% else %}
+        <p class="mb-6 text-base leading-relaxed">
+            Usa este formulario para ejercer tus derechos de acceso, rectificación, supresión, oposición, portabilidad
+            o bloqueo temporal. Responderemos al correo que indiques en un máximo de <strong>30 días corridos</strong>.
+            No verificamos tu identidad en este formulario: la respuesta se enviará únicamente a ese correo.
+        </p>
+
+        {% if rate_limited %}
+            <div role="alert" class="mb-6 rounded-lg border border-red-300 bg-red-50 p-4 text-red-900">
+                Demasiados intentos. Espera unos minutos antes de reintentar.
+            </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'data_subject_request' %}" class="space-y-5" novalidate>
+            {% csrf_token %}
+
+            <div class="absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0" aria-hidden="true">
+                <label for="{{ form.website.id_for_label }}">No completar este campo</label>
+                {{ form.website }}
+            </div>
+
+            <div>
+                <label for="{{ form.request_type.id_for_label }}" class="mb-1 block text-sm font-medium">Derecho que quieres ejercer</label>
+                <select name="{{ form.request_type.html_name }}" id="{{ form.request_type.id_for_label }}" required
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1">
+                    {% for value, label in form.fields.request_type.choices %}
+                        <option value="{{ value }}"{% if form.request_type.value == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% for error in form.request_type.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="mb-1 block text-sm font-medium">Nombre</label>
+                <input type="text" name="{{ form.name.html_name }}" id="{{ form.name.id_for_label }}" value="{{ form.name.value|default:'' }}"
+                       required autocomplete="name"
+                       class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1">
+                {% for error in form.name.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div>
+                <label for="{{ form.email.id_for_label }}" class="mb-1 block text-sm font-medium">Correo electrónico</label>
+                <input type="email" name="{{ form.email.html_name }}" id="{{ form.email.id_for_label }}" value="{{ form.email.value|default:'' }}"
+                       required autocomplete="email"
+                       class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1">
+                {% for error in form.email.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div>
+                <label for="{{ form.detail.id_for_label }}" class="mb-1 block text-sm font-medium">Detalle de tu solicitud</label>
+                <textarea name="{{ form.detail.html_name }}" id="{{ form.detail.id_for_label }}" rows="5" required
+                          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1">{{ form.detail.value|default:'' }}</textarea>
+                {% for error in form.detail.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+            </div>
+
+            <button type="submit"
+                    class="rounded-lg bg-gray-900 px-5 py-2.5 font-semibold text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2">
+                Enviar solicitud
+            </button>
+        </form>
+    {% endif %}
+
+    <p class="mt-10 text-sm"><a href="{% url 'privacy_policy' %}" class="underline">Volver a la política de privacidad</a></p>
+</main>
+{% endblock %}

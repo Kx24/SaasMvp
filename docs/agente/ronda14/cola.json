@@ -1,0 +1,24 @@
+{
+  "ronda": 14,
+  "rama": "agent/ronda14",
+  "cards": [
+    {
+      "id": "BOLT-73",
+      "maestra": "DEUDA-14",
+      "titulo": "Import de cloudinary.api y fixtures con slug de tema inválido",
+      "estado": "DONE",
+      "spec": "BOLT-73.md",
+      "red_tests": [
+        "apps.tenants.tests_setup_cloudinary_folders_import"
+      ],
+      "permite_migracion": false,
+      "costo_usd": 0.26,
+      "tests": 935,
+      "hallazgos": [],
+      "revisar_humano": [
+        "El test nuevo inspecciona el AST en vez de correr un subproceso limpio. El spec admitía ambas opciones, pero el AST no detecta si el import realmente funciona en tiempo de ejecución.",
+        "KANBAN_PROYECTO.md no se editó; DEUDA-14 solo quedó en el histórico. Eso coincide con lo que dice el spec, porque la fila no existía en el kanban."
+      ]
+    }
+  ]
+}

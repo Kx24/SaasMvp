@@ -1,0 +1,126 @@
+{% comment %}
+Sección CTA de cierre. Un solo marcado para todos los temas.
+
+Parámetros:
+    variant → "orbs" (andesscale: fondo oscuro con orbs animados, dos botones)
+              "glow" (servelec: fondo verde con brillo, badge, botón + teléfono)
+              Por defecto "orbs".
+    client  → Client del tenant (variant "glow" muestra client.settings.contact_phone)
+
+Uso: el home.html del tema incluye este archivo directamente con su variante.
+No crear themes/<tema>/components/cta.html: el loader lo resolvería primero
+y el include se llamaría a sí mismo.
+{% endcomment %}
+{% if variant == "glow" %}
+<section class="relative py-28 overflow-hidden" style="background:#0b2818;">
+
+    <div class="absolute inset-0 opacity-30" aria-hidden="true" style="
+        background:
+            radial-gradient(circle at 0% 0%, rgba(29,185,84,0.15) 0%, transparent 40%),
+            radial-gradient(circle at 100% 100%, rgba(29,185,84,0.15) 0%, transparent 40%);
+    "></div>
+
+    <div class="absolute inset-0 opacity-10" aria-hidden="true" style="
+        background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+        background-size: 25px 25px;">
+    </div>
+
+    <div class="relative max-w-4xl mx-auto px-6 lg:px-8 text-center fade-up">
+
+        <span class="inline-flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full mb-6"
+              style="background:rgba(29,185,84,0.2); color:#FFFFFF; border:1px solid rgba(29,185,84,0.3);">
+            <span class="relative flex h-2 w-2" aria-hidden="true">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style="background:#1DB954;"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2" style="background:#1DB954;"></span>
+            </span>
+            Soporte Técnico
+        </span>
+
+        <h2 class="font-display text-4xl md:text-5xl lg:text-6xl font-black leading-tight mb-6"
+            style="color:#FFFFFF; letter-spacing:-0.03em;">
+            ¿Necesitas un servicio<br>
+            <span style="color:#1DB954;">Eléctrico?</span>
+        </h2>
+
+        <p class="text-lg mb-12 max-w-xl mx-auto font-medium" style="color:#D1D1D1;">
+            Realizamos diagnósticos y ejecuciones soluciones oportunas e innovadoras.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+
+            <a href="#contacto"
+               class="group relative px-10 py-5 font-black rounded-xl inline-flex items-center justify-center gap-3 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden bg-primary-a11y"
+               style="color:#FFFFFF; border:2px solid #1DB954; box-shadow:0 4px 6px -1px rgba(29,185,84,0.3);">
+                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true"
+                     style="background:radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 70%);"></div>
+                <span class="relative z-10 flex items-center gap-3">
+                    Agendar Evaluación
+                    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
+                </span>
+            </a>
+
+            {% if client.settings.contact_phone %}
+            <a href="tel:{{ client.settings.contact_phone }}"
+               class="group text-sm font-bold flex items-center gap-2 transition-colors duration-300"
+               style="color:#D1D1D1;">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 6.75z"/>
+                </svg>
+                O llámanos ahora
+            </a>
+            {% endif %}
+
+        </div>
+    </div>
+</section>
+{% else %}
+<!--
+  ANDESSCALE — components/cta.html
+   Sección estática: CTA de fondo oscuro con orbs animados.
+
+-->
+
+<section class="py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden"
+         x-data="{ mouseX: 0, mouseY: 0 }"
+         @mousemove="mouseX = $event.clientX / window.innerWidth; mouseY = $event.clientY / window.innerHeight">
+
+    <div class="absolute inset-0" aria-hidden="true">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-float transition-transform duration-1000"
+             :style="`transform: translate(${mouseX * 50}px, ${mouseY * 50}px)`"></div>
+        <div class="absolute bottom-0 right-1/4 w-80 h-80 bg-indigo-400/20 rounded-full blur-3xl animate-float transition-transform duration-1000"
+             style="animation-delay:-3s;"
+             :style="`transform: translate(${mouseX * -30}px, ${mouseY * -30}px)`"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
+    </div>
+    <div class="absolute inset-0 stripe-grid opacity-10" aria-hidden="true"></div>
+
+    <div class="relative max-w-4xl mx-auto px-6 lg:px-8 text-center fade-up">
+        <h2 class="font-display text-4xl md:text-5xl font-bold text-white mb-6 text-glow">
+            ¿Listo para <span class="bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">transformar</span> tu negocio?
+        </h2>
+        <p class="text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Agenda una consulta gratuita y descubre cómo podemos ayudarte a alcanzar tus objetivos.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="#contacto"
+               class="group px-8 py-4 bg-white text-slate-900 font-semibold rounded-full hover:bg-slate-50 transition-all duration-300 inline-flex items-center justify-center gap-2 shadow-xl shadow-white/10 hover:shadow-2xl hover:scale-105 active:scale-95">
+                Agendar consulta
+                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </a>
+            <a href="#servicios"
+               class="group px-8 py-4 text-white font-semibold border border-white/30 rounded-full hover:bg-white/10 hover:border-white/50 transition-all duration-300 backdrop-blur-sm hover:scale-105 active:scale-95 inline-flex items-center justify-center gap-2">
+                Ver servicios
+                <svg class="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}

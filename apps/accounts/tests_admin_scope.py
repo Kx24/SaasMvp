@@ -213,3 +213,119 @@ class AdminForeignKeyScopeTests(TestCase):
         qs = self._order_field_queryset(self.root)
         self.assertIn(self.order_a, qs)
         self.assertIn(self.order_b, qs)
+
+
+class EveryTenantAdminScopeTests(TestCase):
+    """SEC-18 / BOLT-41: recorre `admin.site._registry`; un admin nuevo sin cubrir falla."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from apps.website.models import ContactSubmission, DataSubjectRequest, Section, Service
+
+        cls.a = _tenant('all-a')
+        cls.b = _tenant('all-b')
+        plan = Plan.objects.create(name='Plan All', slug='plan-all', price=Decimal('100000'))
+        for tenant, tag in ((cls.a, 'a'), (cls.b, 'b')):
+            order = Order.objects.create(plan=plan, client=tenant, email=f'all@{tag}.test',
+                                         amount=Decimal('100000'))
+            PaymentLog.objects.create(order=order, action='webhook', status='approved')
+            Section.objects.create(client=tenant, section_type='hero', title=f'Sec {tag}')
+            Service.objects.create(client=tenant, name=f'Srv {tag}', slug=f'srv-{tag}',
+                                   description='x')
+            ContactSubmission.objects.create(client=tenant, name=f'N {tag}',
+                                             email=f'n@{tag}.test', message='hola')
+            DataSubjectRequest.objects.create(client=tenant, request_type='access', name=f'D {tag}',
+                                              email=f'd@{tag}.test', detail='x')
+            user = User.objects.create_user(username=f'user_all_{tag}', password='x')
+            UserProfile.objects.filter(user=user).update(client=tenant)
+        cls.staff_a = User.objects.get(username='user_all_a')
+        cls.staff_a.is_staff = True
+        cls.staff_a.save()
+        cls.staff_a.user_permissions.set(Permission.objects.filter(
+            codename__regex=r'^(view|change|delete)_',
+            content_type__app_label__in=['orders', 'tenants', 'marketing', 'accounts', 'website']))
+        cls.staff_none = User.objects.create_user(username='staff_none_all', password='x',
+                                                  is_staff=True)
+        cls.staff_none.user_permissions.set(cls.staff_a.user_permissions.all())
+
+    def _mixin_admins(self):
+        from apps.accounts.mixins import TenantAdminMixin
+        return [ma for ma in admin.site._registry.values() if isinstance(ma, TenantAdminMixin)]
+
+    def _is_b(self, obj):
+        if isinstance(obj, PaymentLog):
+            return obj.order.client == self.b
+        if isinstance(obj, User):
+            return getattr(getattr(obj, 'profile', None), 'client', None) == self.b
+        if hasattr(obj, 'client'):
+            return obj.client == self.b
+        return False
+
+    def _objects_of_b(self, model):
+        return [o for o in model._default_manager.all() if self._is_b(o)]
+
+    def _request(self, user):
+        request = RequestFactory().get('/superadmin/')
+        request.user = User.objects.get(pk=user.pk)
+        return request
+
+    def test_registry_is_covered_by_fixtures(self):
+        covered = {Order, PaymentLog, Domain, ClientSettings, ClientEmailSettings, FormConfig,
+                   SEOConfig, UserProfile}
+        from apps.website.models import ContactSubmission, DataSubjectRequest, Section, Service
+        covered |= {Section, Service, ContactSubmission, DataSubjectRequest}
+        for ma in self._mixin_admins():
+            self.assertIn(ma.model, covered, f'{ma.__class__.__name__} sin cobertura de aislamiento')
+
+    def test_changelist_and_change_hide_other_tenant(self):
+        self.client.force_login(self.staff_a)
+        for ma in self._mixin_admins():
+            meta = ma.model._meta
+            with self.subTest(admin=ma.__class__.__name__):
+                response = self.client.get(
+                    reverse(f'admin:{meta.app_label}_{meta.model_name}_changelist'),
+                    HTTP_HOST='localhost')
+                self.assertEqual(response.status_code, 200)
+                listed = list(response.context_data['cl'].queryset)
+                self.assertFalse([o for o in listed if self._is_b(o)])
+                for obj in self._objects_of_b(ma.model):
+                    url = reverse(f'admin:{meta.app_label}_{meta.model_name}_change', args=[obj.pk])
+                    got = self.client.get(url, HTTP_HOST='localhost')
+                    self.assertIn(got.status_code, (302, 403, 404))
+
+    def test_fk_dropdowns_exclude_other_tenant(self):
+        request = self._request(self.staff_a)
+        for ma in self._mixin_admins():
+            for db_field in ma.model._meta.get_fields():
+                if not (db_field.many_to_one and db_field.concrete):
+                    continue
+                with self.subTest(admin=ma.__class__.__name__, field=db_field.name):
+                    qs = ma.formfield_for_foreignkey(db_field, request).queryset
+                    self.assertFalse([o for o in qs if self._is_b(o)
+                                      and not isinstance(o, Client)])
+                    if db_field.related_model is Client:
+                        self.assertEqual(list(qs), [self.a])
+
+    def test_staff_without_tenant_gets_nothing(self):
+        request = self._request(self.staff_none)
+        for ma in self._mixin_admins():
+            with self.subTest(admin=ma.__class__.__name__):
+                self.assertEqual(ma.get_queryset(request).count(), 0)
+
+    def test_no_tenant_path_filter_for_staff(self):
+        request = self._request(self.staff_a)
+        for ma in self._mixin_admins():
+            with self.subTest(admin=ma.__class__.__name__):
+                filters = ma.get_list_filter(request)
+                self.assertNotIn('client', filters)
+                self.assertNotIn(ma.tenant_field, filters)
+
+    def test_only_one_tenant_admin_mixin_class(self):
+        import pathlib
+
+        import apps
+        root = pathlib.Path(apps.__file__).resolve().parent
+        found = [p for p in root.rglob('*.py')
+                 if 'class TenantAdminMixin' in p.read_text(encoding='utf-8')
+                 and p.name != 'tests_admin_scope.py']
+        self.assertEqual([p.name for p in found], ['mixins.py'])

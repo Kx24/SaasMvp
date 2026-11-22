@@ -45,7 +45,7 @@ AGENT_SETTINGS = BASE_DIR / '.claude' / 'settings.agent.json'
 WORKFLOWS_DIR = BASE_DIR / '.claude' / 'workflows'
 GATEKEEPER = BASE_DIR / 'scripts' / 'gatekeeper.py'
 BASELINE_PATH = BASE_DIR / 'scripts' / 'gate_baseline.json'
-DEV_TIMEOUT_S = 60 * 60
+DEV_TIMEOUT_S = 90 * 60
 VALIDATOR_TIMEOUT_S = 20 * 60
 MAX_BUDGET_USD = '25'
 # Rutas que ninguna card puede tocar salvo que su entrada en cola.json las
@@ -57,6 +57,14 @@ FORBIDDEN_PATHS = (
     'scripts/gate_baseline.json', 'docs/agente/', 'render.yaml', 'build.sh', 'Procfile',
     'templates/themes/ranchocachimba/', 'CLAUDE.md',
 )
+# Cuota de la cuenta agotada ("You've hit your 5-hour limit · resets 2:10pm"): no es un fallo de
+# la card. Se espera y se reintenta la misma sesión.
+QUOTA_RE = re.compile(r"hit your .{0,40}limit|usage limit reached", re.I)
+QUOTA_POLL_S = 900
+QUOTA_MAX_WAIT_S = 6 * 3600
+QUOTA_RESUME_NOTE = ('NOTA DEL ORQUESTADOR: una sesión anterior de esta misma tarea se interrumpió por '
+                     'cuota. Puede haber trabajo a medias en el árbol: revisa `git status` y `git diff` '
+                     'y continúa desde ahí.\n\n')
 VALIDATOR_SCHEMA = {
     'type': 'object',
     'properties': {
@@ -241,6 +249,10 @@ class ClaudeCliRunner:
     def _env(self):
         env = dict(os.environ)
         env['PATH'] = str(Path(sys.executable).parent) + os.pathsep + env.get('PATH', '')
+        # La suite que corre el agente no relanza el gate desde test_gatekeeper (cada test
+        # repite la suite entera y con ~650 tests agota su timeout): BOLT-45 murio asi. El
+        # gate real lo corre este proceso despues; test_gatekeeper queda para la CI.
+        env['GATEKEEPER_TEST_RUN'] = '1'
         return env
 
     def _git(self, *args, check=False):
@@ -292,6 +304,23 @@ class ClaudeCliRunner:
         (self.round_dir / 'ESTADO.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
     def _claude(self, prompt, extra_args, timeout):
+        """Sesión de `claude -p`. Si se agota la cuota de la cuenta, espera y reintenta
+        (hasta QUOTA_MAX_WAIT_S) en vez de dar la card por fallida."""
+        waited = 0
+        while True:
+            payload = self._claude_once(prompt, extra_args, timeout)
+            text = str(payload.get('result', ''))
+            # El aviso de cuota es un mensaje corto; un informe largo que cite la frase no cuenta.
+            if len(text) > 300 or not QUOTA_RE.search(text) or waited >= QUOTA_MAX_WAIT_S:
+                return payload
+            print(f'[cuota] {text.strip()[:120]} -> espero {QUOTA_POLL_S // 60} min '
+                  f'(acumulado {waited // 60} min)', flush=True)
+            time.sleep(QUOTA_POLL_S)
+            waited += QUOTA_POLL_S
+            if not prompt.startswith(QUOTA_RESUME_NOTE):
+                prompt = QUOTA_RESUME_NOTE + prompt
+
+    def _claude_once(self, prompt, extra_args, timeout):
         cmd = [
             self.claude, '-p', '--model', self.model, '--output-format', 'json',
             '--settings', str(AGENT_SETTINGS), '--max-budget-usd', MAX_BUDGET_USD, *extra_args,

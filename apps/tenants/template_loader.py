@@ -1,20 +1,26 @@
 """
 TenantTemplateLoader - Carga templates por CLIENTE
 ===================================================
-Nueva estructura (un directorio por cliente/marca):
+Árbol de temas (COMP-02):
 
-  AndesScale (marca propia):
-    1. templates/andesscale/{template_name}
-    2. templates/{template_name}              ← fallback global
+  templates/themes/default/      ← tema base
+  templates/themes/servelec/     ← Servelec
+  templates/themes/andesscale/   ← tema de la plataforma
+  templates/components/          ← componentes compartidos (fallback global)
 
-  Clientes (tenant con slug o template configurado):
-    1. templates/{tenant.slug}/{template_name}     ← carpeta del cliente
-    2. templates/default/{template_name}           ← fallback genérico
-    3. templates/{template_name}                   ← fallback global
+Búsqueda para un tenant:
+    1. templates/{tenant.template}/{template_name}   ← ej. themes/servelec
+       (si `Client.template` no está seteado, templates/{tenant.slug}/...)
+    2. templates/default/{template_name}             ← fallback genérico
+    3. templates/{template_name}                     ← fallback global
+
+El tenant de la plataforma (settings.PLATFORM_TENANT_SLUG) usa
+`Client.template = 'themes/andesscale'`; en una base sin migrar (template
+base) el loader lo resuelve igual por slug.
 
 Ejemplos:
-  servelec  → templates/themes/servelec/landing/home.html
-  andesscale → templates/andesscale/landing/home.html
+  servelec   → templates/themes/servelec/landing/home.html
+  plataforma → templates/themes/andesscale/landing/home.html
 
 Compatible con Django 5.2+
 """
@@ -27,6 +33,8 @@ from django.template import Origin, TemplateDoesNotExist
 from django.template.loaders.base import Loader as BaseLoader
 
 logger = logging.getLogger(__name__)
+
+PLATFORM_THEME = 'themes/andesscale'
 
 
 class TenantTemplateLoader(BaseLoader):
@@ -54,18 +62,20 @@ class TenantTemplateLoader(BaseLoader):
             logger.debug(f"[ThemeLoader] No tenant: {e}")
 
         # Construir candidatos según el tenant
-        if tenant and tenant.slug == 'andesscale':
-            # Marca propia — usa su propia carpeta
-            candidates = [
-                base_dir / 'andesscale' / template_name,
-                base_dir / template_name,
-            ]
-        elif tenant:
-            # Cliente — usa slug como nombre de carpeta
-            # Si tiene un campo 'template' configurado, ese tiene prioridad
+        if tenant:
+            # Si tiene un campo 'template' configurado, ese tiene prioridad;
+            # si no, el slug del cliente hace de nombre de carpeta.
             client_folder = tenant.slug
             if hasattr(tenant, 'template') and tenant.template:
                 client_folder = tenant.template.strip().lower()
+
+            # Fallback para una base sin migrar: el tenant de la plataforma
+            # con el tema base abre el tema de la plataforma.
+            if (
+                tenant.slug == getattr(settings, 'PLATFORM_TENANT_SLUG', None)
+                and client_folder in ('themes/default', tenant.slug)
+            ):
+                client_folder = PLATFORM_THEME
 
             candidates = [
                 base_dir / client_folder / template_name,   # ej: templates/themes/servelec/landing/home.html

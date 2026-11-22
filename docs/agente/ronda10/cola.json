@@ -1,0 +1,106 @@
+{
+  "ronda": 10,
+  "rama": "agent/ronda10",
+  "cards": [
+    {
+      "id": "BOLT-52",
+      "maestra": "CONS-08",
+      "titulo": "Registro de módulos (opción A)",
+      "estado": "DONE",
+      "spec": "BOLT-52.md",
+      "red_tests": [
+        "apps.tenants.tests_modules"
+      ],
+      "permite_migracion": false,
+      "costo_usd": 0.41,
+      "tests": 721,
+      "hallazgos": [],
+      "revisar_humano": [
+        "La entrada de menú \"Portada\" quedó en gallery, no en core como decía la tabla del spec. Es consecuencia de poner dashboard_portada en gallery. Con la galería apagada, CONS-09 ocultaría \"Portada\" y la ruta daría 404.",
+        "Los valores de orden del menú (10 Inicio, 20 Marca, 30 Portada, 40 Secciones, 50 Galería, 60 Mensajes) los eligió el dev; el spec no los fijaba.",
+        "La sección \"Módulos\" de ARQUITECTURA.md quedó como subsección de §5 para no renumerar las demás."
+      ]
+    },
+    {
+      "id": "BOLT-53",
+      "maestra": "CONS-09",
+      "titulo": "Menú y acceso del dashboard desde el registro",
+      "estado": "DONE",
+      "spec": "BOLT-53.md",
+      "red_tests": [
+        "apps.tenants.tests_module_access"
+      ],
+      "permite_migracion": false,
+      "costo_usd": 0.87,
+      "tests": 728,
+      "hallazgos": [
+        "`unread_contacts` no lo define ningún código, así que el contador de mensajes sin leer del menú nunca se muestra (ya ocurría antes). Conviene una card para cablearlo.",
+        "Ninguna plantilla ni templatetag consultaba `enable_contact_form`, contra lo que decía el spec. Se resolvió con la variable `contact_disabled`, pasada solo desde la vista `home`; cualquier otra vista que renderice esos parciales no la recibe y mostraría el formulario.",
+        "El estado `active` de Secciones y Contactos cambió de `'sections' in request.path` / `'contacts' in request.path` a comparar `url_name`. En subpáginas (editar sección, etc.) esas entradas ya no se marcan activas.",
+        "El dev no corrió el rojo antes de implementar. El gate sí lo confirmó: 4 de 7 tests fallan contra HEAD."
+      ],
+      "revisar_humano": [
+        "CAMBIO VISIBLE: con la galería apagada, \"Portada\" y \"Galería\" ya no aparecen atenuados con \"Off\", desaparecen. \"Portada\" quedó en el módulo `gallery` (como lo dejó BOLT-52), así que también desaparece.",
+        "Revisar el menú en el navegador con cada rol (`owner`, `admin`, `editor`, `viewer`) y con galería y contacto apagados.",
+        "Cambio de permisos visibles: \"Galería\" y \"Secciones\" ahora exigen `edit_content` según el registro; `viewer` ya no los ve (antes los veían todos los roles). Confirmar que es lo deseado.",
+        "Las etiquetas del menú ahora salen del registro: \"Marca\" en vez de \"Personalizar\" y \"Mensajes\" en vez de \"Contactos\". Es un texto visible al cliente.",
+        "Con el contacto apagado, el formulario público desaparece de la home en `landing/home.html`, los parciales de contacto y el tema `electricidad`. Mirarlo en la home de un tenant con el contacto apagado.",
+        "`dashboard_sections` no lleva `module_required` porque no tiene flag. Verificar que un `viewer` aún pueda abrir esa URL a mano, ya que solo se le quitó el enlace del menú.",
+        "Se editó `config/settings/base.py` para registrar el context processor `dashboard_menu`."
+      ]
+    },
+    {
+      "id": "BOLT-54",
+      "maestra": "BIZ-01",
+      "titulo": "Límites del plan con efecto real",
+      "estado": "DONE",
+      "spec": "BOLT-54.md",
+      "red_tests": [
+        "apps.tenants.tests_module_limits"
+      ],
+      "permite_migracion": false,
+      "costo_usd": 0.72,
+      "tests": 742,
+      "hallazgos": [
+        "Client.max_pages no tiene uso: no existe modelo de páginas. Quedó como DEUDA-11 en el kanban.",
+        "El botón 'Agregar servicio' del índice del dashboard (templates/dashboard/index.html) sigue activo al tope. La vista lo rechaza igual, pero no se deshabilita ni muestra el uso.",
+        "El dev no corrió el rojo (escribió el código antes que los tests). El red_check del orquestador sí lo confirmó."
+      ],
+      "revisar_humano": [
+        "Antes de desplegar, revisar en producción que ningún cliente ya esté por encima de su límite. Para cada Client c: Service.objects.filter(client=c).count() > c.max_services, y GalleryItem.objects.filter(client=c, section__section_type='gallery').count() > limit_for(c, 'gallery'). Quien esté por encima conserva su contenido, pero no podrá crear más.",
+        "Los clientes con max_images o gallery_images_limit en 0 o negativo quedan sin cupo de galería. Con los defaults (100 y 20) no aplica.",
+        "El tope de galería cambia: ahora es el menor entre gallery_images_limit y max_images. Verificar que ese valor sea el esperado para clientes existentes.",
+        "Texto visible al cliente: el mensaje 'Tu plan permite N servicios / imágenes de galería. Borra uno o pide una ampliación.' y el indicador 'N de M'.",
+        "Decisión del dev: el uso de galería cuenta solo los ítems de la sección gallery. Las imágenes de servicio y la portada no cuentan para el tope del tenant, y cada galería de servicio se limita por su propio conteo.",
+        "Decidir si se borra max_pages (DEUDA-11); borrarlo requiere una migración."
+      ]
+    },
+    {
+      "id": "BOLT-55",
+      "maestra": "DASH-05",
+      "titulo": "Tests del dashboard",
+      "estado": "DONE",
+      "spec": "BOLT-55.md",
+      "red_tests": [],
+      "permite_migracion": false,
+      "rutas_permitidas_extra": [
+        "scripts/gate_baseline.json"
+      ],
+      "costo_usd": 2.01,
+      "tests": 810,
+      "hallazgos": [
+        "`--update-baseline` bajó `orders` de 92.46 a 92.38 sin que el cambio toque `apps/orders`. Parece variación de medición, pero el trinquete quedó más laxo.",
+        "`DASH-06`: `var(--primary)` sigue roto en `templates/dashboard/base.html`; ya está en el kanban.",
+        "`DASH-07`: fallo de a11y abierto, ya está en el kanban. El informe del dev quedó truncado y no se ve el detalle."
+      ],
+      "revisar_humano": [
+        "Restaurar `orders` a 92.46 en `scripts/gate_baseline.json` antes de commitear; el dev no pudo hacerlo por estar bloqueado el archivo.",
+        "Fallos de a11y que quedaron abiertos: `DASH-06` (token `--primary` roto en `base.html`) y `DASH-07`. Revisa el kanban para el detalle.",
+        "`BrandingForm` ahora rechaza colores en forma corta (`#abc`) y cualquier valor que no sea hex de 6 dígitos. Verifica que no haya tenants con colores guardados en otro formato.",
+        "Los mensajes con `is_spam=True` ya no se ven en el dashboard ni en las métricas: cambio de comportamiento visible al cliente.",
+        "`seed_e2e_tenants` crea el usuario `owner-e2e` con contraseña de desarrollo. Confirma que solo corre con `DEBUG=True` y nunca contra producción.",
+        "El menú tiene seis pantallas y no cinco; el dev lo decidió sin que el spec lo cubriera, y usó un tenant `dash-e2e` separado."
+      ]
+    }
+  ]
+}

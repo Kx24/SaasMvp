@@ -17,10 +17,10 @@
     {% include "themes/servelec/components/stats.html" %}
 
     {# Sección dinámica — el cliente edita desde el CMS #}
-    {% include "themes/servelec/components/services.html" %}
+    {% include "components/services.html" with variant="adaptive" subtitle="Soluciones integrales para darle continuidad a tu proceso." %}
 
     {# Sección dinámica — el cliente edita desde el CMS #}
-    {% include "themes/servelec/components/about.html" %}
+    {% include 'components/about.html' with variant='blocks' %}
 
     {% comment %}
 
@@ -61,10 +61,10 @@
         {% endif %}
 
     {# Sección estática — solo tú la editas #}
-    {% include "themes/servelec/components/cta.html" %}
+    {% include 'components/cta.html' with variant='glow' %}
 
     {# Sección dinámica — el cliente edita desde el CMS #}
-    {% include "themes/servelec/components/contact.html" %}
+    {% include "components/contact.html" with variant="servelec" %}
 
 {% endblock %}
 

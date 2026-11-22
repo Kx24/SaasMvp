@@ -1,0 +1,25 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Recibimos tu solicitud{% endblock %}
+
+{% block content %}
+<h1 class="text-center">Recibimos tu solicitud</h1>
+
+<p>Hola {{ dsr.name }},</p>
+
+<p>
+    Recibimos tu solicitud de datos personales (<strong>{{ dsr.get_request_type_display }}</strong>)
+    en <strong>{{ client.name }}</strong>.
+</p>
+
+<div class="info-box">
+    <p style="margin: 0;">
+        Responderemos a <strong>{{ dsr.email }}</strong> a más tardar el
+        <strong>{{ dsr.due_at|date:"d/m/Y" }}</strong> (30 días corridos desde la recepción).
+    </p>
+</div>
+
+<p>Si no fuiste tú quien hizo esta solicitud, puedes ignorar este mensaje.</p>
+
+<p><a href="{{ site_url }}/privacidad/">Política de privacidad</a></p>
+{% endblock %}

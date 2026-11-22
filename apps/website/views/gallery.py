@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from apps.accounts.decorators import tenant_permission_required
 from apps.core.tenant_objects import tenant_object_or_404
+from apps.tenants.modules import ModuleLimitReached, check_limit, limit_for, module_required
 
 from ..forms import GalleryItemForm
 from ..models import GalleryItem, Section, Service
@@ -29,17 +30,13 @@ def _gallery_item_redirect_url(item):
 
 
 @tenant_permission_required('view_dashboard')
+@module_required('gallery')
 def dashboard_gallery(request):
     """
     Vista de galería de imágenes del sitio.
     Solo gestiona la Section 'gallery' — portada tiene su propia vista.
     """
     client = request.client
-    settings = getattr(client, 'settings', None)
-
-    if not settings or not settings.enable_gallery:
-        messages.error(request, 'El módulo de imágenes no está activado para este sitio.')
-        return redirect('dashboard')
 
     gallery_section, _ = Section.objects.get_or_create(
         client=client,
@@ -54,7 +51,7 @@ def dashboard_gallery(request):
         ).order_by('order', 'created_at')
     )
 
-    gallery_limit = settings.gallery_images_limit
+    gallery_limit = limit_for(client, 'gallery')
 
     context = {
         'client':           client,
@@ -68,29 +65,26 @@ def dashboard_gallery(request):
  
  
 @tenant_permission_required('edit_content')
+@module_required('gallery')
 def gallery_item_add(request):
     """
     Subir nueva imagen. Maneja image manualmente via Cloudinary —
     GalleryItemForm excluye image para evitar conflicto con CloudinaryField.
     """
     client = request.client
-    settings = getattr(client, 'settings', None)
-
-    if not settings or not settings.enable_gallery:
-        messages.error(request, 'El módulo de imágenes no está activado.')
-        return redirect('dashboard')
+    settings = client.settings
 
     if request.method != 'POST':
         return redirect('dashboard_portada')
 
     service_id = request.POST.get('service_id')
     owner_kwargs = {}
+    is_hero = False
 
     if service_id:
         service = tenant_object_or_404(request, Service, id=service_id)
         owner_kwargs = {'service': service}
         count = GalleryItem.objects.filter(client=client, service=service).count()
-        limit = settings.gallery_images_limit
         redirect_url = reverse('edit_service_dashboard', kwargs={'service_id': service.id})
         tipo = f'galería de "{service.name}"'
     else:
@@ -105,7 +99,8 @@ def gallery_item_add(request):
         )
         owner_kwargs = {'section': section}
 
-        if gallery_type == 'hero':
+        is_hero = gallery_type == 'hero'
+        if is_hero:
             count = GalleryItem.objects.filter(
                 client=client, section=section, is_default=False
             ).count()
@@ -115,13 +110,19 @@ def gallery_item_add(request):
             count = GalleryItem.objects.filter(
                 client=client, section=section
             ).count()
-            limit = settings.gallery_images_limit
             redirect_url = 'dashboard_gallery'
         tipo = 'portada' if gallery_type == 'hero' else 'galería'
 
-    if count >= limit:
-        messages.error(request, f'Has alcanzado el límite de {limit} imágenes de {tipo}.')
-        return redirect(redirect_url)
+    if is_hero:
+        if count >= limit:
+            messages.error(request, f'Has alcanzado el límite de {limit} imágenes de {tipo}.')
+            return redirect(redirect_url)
+    else:
+        try:
+            check_limit(client, 'gallery', usage=count)
+        except ModuleLimitReached as exc:
+            messages.error(request, exc.message)
+            return redirect(redirect_url)
 
     # Verificar que viene imagen
     if 'image' not in request.FILES:
@@ -170,6 +171,7 @@ def gallery_item_add(request):
  
  
 @tenant_permission_required('edit_content')
+@module_required('gallery')
 def gallery_item_edit(request, item_id):
     client = request.client
     item = tenant_object_or_404(request, GalleryItem, id=item_id)
@@ -223,6 +225,7 @@ def gallery_item_edit(request, item_id):
  
  
 @tenant_permission_required('delete_content')
+@module_required('gallery')
 def gallery_item_delete(request, item_id):
     """
     Eliminar ítem. Protege imágenes default contra eliminación.
@@ -243,6 +246,7 @@ def gallery_item_delete(request, item_id):
  
  
 @tenant_permission_required('edit_content')
+@module_required('gallery')
 def gallery_item_toggle(request, item_id):
     """
     Activar/desactivar ítem.
