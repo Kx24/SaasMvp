@@ -1,0 +1,28 @@
+{
+  "ronda": 17,
+  "rama": "agent/ronda17",
+  "cards": [
+    {
+      "id": "BOLT-81",
+      "maestra": "MOD-01",
+      "titulo": "MOD-01 parte 1a: modelo MediaAsset y embeds de video",
+      "estado": "TODO",
+      "spec": "BOLT-81.md",
+      "red_tests": [
+        "apps.website.tests.test_media_asset"
+      ],
+      "permite_migracion": true
+    },
+    {
+      "id": "BOLT-82",
+      "maestra": "MOD-01",
+      "titulo": "MOD-01 parte 1b: subida firmada a Cloudinary y alta de embeds",
+      "estado": "TODO",
+      "spec": "BOLT-82.md",
+      "red_tests": [
+        "apps.website.tests.test_media_upload"
+      ],
+      "permite_migracion": false
+    }
+  ]
+}
