@@ -32,7 +32,7 @@
 
 **Tanda de decisiones 2 (dueño, 2026-11-22):** ① **ronda 16** con `DEUDA-18`, `SEC-19`, `DEUDA-17` y `BIZ-04`; baseline de `orders` recalibrado a 92,41 % (hecho a mano en `scripts/gate_baseline.json`). ② **Planes:** no se venden "páginas": un plan es **módulos activables + cuotas de medios y servicios** (`MASTER_PLAN` §4.3 ya ajustado). ③ **`Client.plan` pasa a FK de `Plan` ahora**, con migración y antes del despliegue (`BIZ-04`). ④ **`MOD-01`:** video solo como embed de YouTube/Vimeo (nada de video en Cloudinary); límite por **cantidad** de archivos, con tope técnico por peso; en 3 partes: (1) modelo + subida firmada, (2) UI multiarchivo, (3) migración de imágenes existentes y templates. ⑤ **Despliegue a producción justo después de mergear la ronda 16 y antes de `MOD-01`**; el dueño activa 2FA (`SEC-16`) antes. ⑥ `PREV-00`: **alta manual** con `add_preview_domain`, wildcard descartado por ahora.
 
-**▶️ Próximo:** ① PR `agent/ronda15` → `develop`; ② lanzar la ronda 16 (`agent/ronda16`, encadenada sobre la 15) y su PR; ③ despliegue a producción (lista en "Pendiente tuyo" + migraciones `0031`, `orders 0004`, `tenants 0032` y la de `BIZ-04` ensayadas juntas en una rama de Neon; correr `setup_plans` antes si en Neon faltan los `Plan`); ④ spec de `MOD-01` parte 1.
+**▶️ Próximo:** ① PR `agent/ronda15` → `develop`; ② lanzar la ronda 16 (`agent/ronda16`, encadenada sobre la 15) y su PR; ③ despliegue a producción siguiendo [`Runbook_Despliegue.md`](Runbook_Despliegue.md) (lista en "Pendiente tuyo" + migraciones `0031`, `orders 0004`, `tenants 0032` y la de `BIZ-04` ensayadas juntas en una rama de Neon; correr `setup_plans` antes si en Neon faltan los `Plan`); ④ spec de `MOD-01` parte 1.
 
 ---
 
