@@ -6,17 +6,20 @@
 
 ---
 
-## 🌙 Retomar aquí (actualizado 2026-11-22)
+## 🌙 Retomar aquí (actualizado 2026-11-27)
+
+**🚀 Producción desplegada (dueño, 2026-11-27):** `saasmvp` corre `main` (`cf3ef2e`, rondas 3 a 16) con Build Command `./build.sh`; Manual Deploy en verde. Neon: rama `pre-deploy-2026-11` (respaldo inmutable previo) y `ensayo-deploy`, donde se ensayaron `tenants 0019`–`0035` y `orders 0002`–`0004`. Orden aprendido: **`setup_plans` después de `migrate`** (por `orders 0004`) y vincular cada `Client` a su `Plan` a mano. En producción: planes `essential`/`pro`/`enterprise` sembrados; `ranchocachimba`→pro, `servelec`→pro, `andesscale`→enterprise, ninguno en `None`. 2FA activo en Neon y Render. Cerrada `OPS-07`; **siguen abiertas** `CONS-01` (falta el smoke test en vivo) y `DB-02` (falta el restore cronometrado).
+**Pendiente tras el despliegue:** ⓪ smoke test de `CONS-01` y restore cronometrado de `DB-02` (ver sus cards); ① Health Check Path `/health/` en Render (verificar que no reciba 301); ② crons `contact-digest` y `send-pending-emails` (`OPS-06`); ③ borrar `saasmvp-staging` y las ramas de Neon de ensayo (`staging-ensayo`, `ensayo-deploy`; `pre-deploy-2026-11` se conserva); ④ probar en vivo lo que el ensayo dejó abierto: contacto con consentimiento y correo real, portada de Servelec; checkout sandbox sigue en local (`PAY-01`); ⑤ protección de ramas en `main` y `develop`; ⑥ resto de `SEC-16`.
 
 **Foco del trimestre (nov 2026 – feb 2027), sin captar clientes:** ① consolidar la plataforma (módulos reutilizables + dashboard profesional estilo Instagram/Gmail), ② ciberseguridad, ③ Ley 21.719 (**ya no es prioridad**: vigencia postergada al 15-oct-2027, ver nota en "Retomar aquí").
 
 **Decisiones vigentes:** composición de página `MOD-00` opción A ahora, B después (`MOD-02`). Consolidación y seguridad primero; la ley 21.719 pasó a segundo plano al postergarse su vigencia al 15-oct-2027 (2026-11-18). Matriz de roles de `DASH-04` confirmada, el editor sigue por defecto.
 
-**Estado (2026-11-15):** rondas 3 a 7 del agente mergeadas en `main` (PR #3) y `develop` igualada a `main`. **Producción (Render `saasmvp`) sigue en el commit de agosto `1a5d3e2`**: el merge no se desplegó y Auto-Deploy debe quedar en Off hasta decidir. Cerradas: `LEY-01`, `DASH-04`, `SEC-06`, `SEC-10`, `SEC-14`, `CONS-04`/`05`/`06`/`07`, entre otras (detalle en `historico/KANBAN_HISTORICO.md` y `docs/agente/ronda*/`).
+**Estado (2026-11-15, superado por el despliegue del 2026-11-27):** rondas 3 a 7 del agente mergeadas en `main` (PR #3) y `develop` igualada a `main`. Auto-Deploy sigue en Off. Cerradas: `LEY-01`, `DASH-04`, `SEC-06`, `SEC-10`, `SEC-14`, `CONS-04`/`05`/`06`/`07`, entre otras (detalle en `historico/KANBAN_HISTORICO.md` y `docs/agente/ronda*/`).
 **Ensayo `OPS-07` hecho (2026-11-15):** rama de Neon `staging-ensayo` + servicio temporal `saasmvp-staging` desplegado desde `main` (5a2c734) con `./build.sh`. Build de 1 min, migraciones sin error, login, subida de imagen (`pillow` 13), `/privacidad/`, borrado de servicio y admin OK. Hallazgo: el Build Command de Render **no usaba `build.sh`** y sin él no se compila `output.css` (sitio sin estilos). Pendiente del ensayo: contacto con consentimiento y correo, checkout sandbox, portada de Servelec (`DEUDA-08`).
 **Hecho en Render:** `FIELD_ENCRYPTION_KEY` creada y cargada, 2FA activo, Environment Group `saasmvp-shared`. **Aún sin crear:** crons `contact-digest` y `send-pending-emails` (`OPS-06`); sin el primero la purga de 365 días (`LEY-03`) no corre en producción.
 
-**Pendiente tuyo, en orden:** ① cambiar el Build Command de `saasmvp` a `./build.sh` y hacer Manual Deploy de `main` (respaldo: rama de Neon `staging-ensayo`, o crear otra justo antes); ② probar en vivo login, `/privacidad/`, contacto y borrado de servicio; ③ crear los dos crons; ④ borrar `saasmvp-staging` y la rama de Neon; ⑤ activar protección de ramas en `main` y `develop`; ⑥ revisión legal de los textos de privacidad antes del 15-oct-2027 (ya sin urgencia).
+**Pendiente tuyo:** ver "Pendiente tras el despliegue" arriba; además, revisión legal de los textos de privacidad antes del 15-oct-2027 (ya sin urgencia).
 
 **Ritmo:** 2 días/semana × 4–5 h. Card que no entra en 2 h se parte. Rondas del agente: `orchestrate.py` + `claude -p` (Sonnet 5.5) sobre ramas `agent/*`; tú revisas el PR a `develop`.
 
@@ -32,7 +35,7 @@
 
 **Tanda de decisiones 2 (dueño, 2026-11-22):** ① **ronda 16** con `DEUDA-18`, `SEC-19`, `DEUDA-17` y `BIZ-04`; baseline de `orders` recalibrado a 92,41 % (hecho a mano en `scripts/gate_baseline.json`). ② **Planes:** no se venden "páginas": un plan es **módulos activables + cuotas de medios y servicios** (`MASTER_PLAN` §4.3 ya ajustado). ③ **`Client.plan` pasa a FK de `Plan` ahora**, con migración y antes del despliegue (`BIZ-04`). ④ **`MOD-01`:** video solo como embed de YouTube/Vimeo (nada de video en Cloudinary); límite por **cantidad** de archivos, con tope técnico por peso; en 3 partes: (1) modelo + subida firmada, (2) UI multiarchivo, (3) migración de imágenes existentes y templates. ⑤ **Despliegue a producción justo después de mergear la ronda 16 y antes de `MOD-01`**; el dueño activa 2FA (`SEC-16`) antes. ⑥ `PREV-00`: **alta manual** con `add_preview_domain`, wildcard descartado por ahora.
 
-**▶️ Próximo:** ① PR `agent/ronda15` → `develop`; ② lanzar la ronda 16 (`agent/ronda16`, encadenada sobre la 15) y su PR; ③ despliegue a producción siguiendo [`Runbook_Despliegue.md`](Runbook_Despliegue.md) (lista en "Pendiente tuyo" + migraciones `0031`, `orders 0004`, `tenants 0032` y la de `BIZ-04` ensayadas juntas en una rama de Neon; correr `setup_plans` antes si en Neon faltan los `Plan`); ④ spec de `MOD-01` parte 1.
+**▶️ Próximo:** ① pendientes tras el despliegue (arriba); ② ronda 17: `MOD-01` parte 1 (spec ya en `agent/ronda17`, `b7ec8ab`).
 
 ---
 
@@ -86,7 +89,7 @@
 ### Fase 0 — Cerrar lo pendiente (D1)
 | Día | Bloque A | Bloque B |
 |---|---|---|
-| D1 | `CONS-01` Push de `develop` + smoke test de producción | `SEC-10` ✅ Dependencias al día + `pip-audit` |
+| D1 | `CONS-01` 🟡 Push de `develop` + smoke test de producción | `SEC-10` ✅ Dependencias al día + `pip-audit` |
 
 ### Fase 1 — Seguridad y ley mínima (D2–D5; la parte de ley ya no tiene fecha límite en 2026, ver "Retomar aquí")
 | Día | Bloque A | Bloque B |
@@ -99,7 +102,7 @@
 ### Fase 2 — Consolidación (D6–D11, diciembre)
 | Día | Bloque A | Bloque B |
 |---|---|---|
-| D6 | `DB-02` Backup de Neon con restore probado (+ `DB-03`) | `SEC-12` ✅ Integración continua con el gate |
+| D6 | `DB-02` 🟡 Backup de Neon con restore probado (+ `DB-03`) | `SEC-12` ✅ Integración continua con el gate |
 | D7 | `CONS-02` ✅ Documentación al día (Neon, `CLAUDE.md`, README) | `DEUDA-08` ✅ Portada sin titular por defecto |
 | D8 | `CONS-06` ✅ `TenantOwnedMixin` | `DASH-04` ✅ Roles con efecto |
 | D9 | `SEC-05b` ✅ + `DEUDA-06` ✅ Restos del admin y código muerto | `CONS-07` ✅ Separar `views.py` |
@@ -119,9 +122,10 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 | ID | Qué falta |
 |---|---|
 | `LEY-00` | Ubicar `Informe_Cumplimiento_Ley21719.md` (lo cita `MASTER_PLAN` §1.4, no está en el repo). Ya no bloquea: el texto de la ley está en `Documentacion/`. Sí conviene que un abogado revise la política (`LEY-01`) y el contrato (`LEY-07`) |
-| `SEC-16` | Activar 2FA en Render, Neon, Cloudinary, Cloudflare, Zoho y GitHub; revisar qué cuentas `staff`/superuser existen en producción |
+| `SEC-16` | Activar 2FA en Cloudinary, Cloudflare, Zoho y GitHub (Render ✅ 2026-11-25, Neon ✅ 2026-11-27); revisar qué cuentas `staff`/superuser existen en producción |
 | `OPS-01` | Servelec: `servelec-ingenieria.cl` en NXDOMAIN (web **y correo** caídos), mitigado con `servelec.andesscale.com`. Definitivo: recuperar la clave NIC, o reactivar la zona en Bluehosting, o zona en Cloudflare + cambio de NS (A `@` 216.24.57.1, CNAME `www`, MX Zoho 10/20/50, SPF `v=spf1 include:zoho.com ~all`, DKIM). Confirmar en vivo los pasos de la mitigación |
 | `OPS-06` | Crear cron `send-pending-emails` en Render (pagado) para volver a `EMAIL_ASYNC=true`; tampoco existe `contact-digest` |
+| `OPS-08` | ✅ **Hecho 2026-11-25:** acceso a Render recuperado (2FA quitado por soporte) y workspace `SERVELEC-INGENIERIA` bajado de Pro ($25/mes) a Hobby ($0); queda el servidor Starter ($7/mes). Límites Hobby a vigilar: 1 miembro, 2 dominios propios incluidos ($0.25/mes c/u extra), 5 GB/mes de ancho de banda; un wildcard de preview (`#PREV`) o sumar colaboradores puede obligar a volver a Pro. 2FA reactivado el mismo día (`SEC-16`) |
 | `PAY-01` | MercadoPago a producción: `MP_*`, trámite SII, pasada manual en sandbox. Hoy apagado a propósito |
 | `MAIL-01` | SPF/DKIM de Zoho; probar plantillas en Gmail/Outlook móvil |
 | `SEC-09` | CSP en `/checkout/`; requiere sandbox de MercadoPago (después de `PAY-01`) |
@@ -133,7 +137,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `CONS` — Consolidación
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `CONS-01` | Push + smoke test de producción | P0 | S | Checklist del PR #2: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant; deploy de Render en verde |
+| `CONS-01` | Smoke test de producción | P0 | S | **Deploy de `main` en verde y planes vinculados ✅ (2026-11-27).** Falta en vivo: login por tenant, login cruzado rechazado, contacto con correo real, links con `BASE_URL`, galerías, Tailwind, `check_tenant_setup` por tenant |
 
 ### `COMP` — Componentes
 | ID | Card | P | Esf. | Definición de hecho |
@@ -143,7 +147,7 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### `MOD` — Módulos
 | ID | Card | P | Esf. | Definición de hecho |
 |---|---|---|---|---|
-| `MOD-01` | Módulo **Media** (3 partes, decidido 2026-11-22: solo embeds de video, límite por cantidad) | P1 | XL (~5 d) | `MediaAsset` (imagen / video Cloudinary / embed YouTube-Vimeo), subida directa navegador→Cloudinary firmada, multi-archivo, límites por plan (`BIZ-01`). Unifica las 6 subidas del dashboard, que hoy llaman `cloudinary.uploader.upload` a mano con carpeta `{slug}/…` en vez de `upload_to_cloudinary` y `tenants/{slug}/…` (hallado por `BOLT-13`). Migra `Section.image`/`background_image`/`Service.image` al pool (~16 templates). DoD: subir 10 fotos y un video desde el celular; los 3 tenants renderizan igual |
+| `MOD-01` | Módulo **Media** (3 partes, decidido 2026-11-22: solo embeds de video, límite por cantidad). **Parte 1 completa** (`BOLT-81`: modelo `MediaAsset`, parser de embeds, módulo `media`; `BOLT-82`: endpoints JSON de firma, confirmación y embed); faltan 2 (UI multiarchivo / grilla) y 3 (migración al pool) | P1 | XL (~3,5 d restantes) | `MediaAsset` (imagen / embed YouTube-Vimeo; el video en Cloudinary se descartó), subida directa navegador→Cloudinary firmada, multi-archivo, límites por plan (`BIZ-01`). Unifica las 6 subidas del dashboard, que hoy llaman `cloudinary.uploader.upload` a mano con carpeta `{slug}/…` en vez de `upload_to_cloudinary` y `tenants/{slug}/…` (hallado por `BOLT-13`). Migra `Section.image`/`background_image`/`Service.image` al pool (~16 templates). DoD: subir 10 fotos y un video desde el celular; los 3 tenants renderizan igual |
 | `MOD-02` | Orden y visibilidad de bloques (opción B) | P2 | L | El cliente reordena y oculta los bloques que su tema trae; cada `home.html` itera una lista en vez de includes fijos |
 
 ### `DASH` — Dashboard
@@ -172,14 +176,13 @@ Las estimaciones no están medidas; recalibrar al cerrar cada fase.
 ### Negocio, datos y operación
 | ID | Card | P | Esf. | Nota |
 |---|---|---|---|---|
-| `DB-02` | Backup de Neon con restore probado | P1 | M | Restore a una rama, documentado con tiempos |
+| `DB-02` | Backup de Neon con restore probado | P1 | M | **Respaldo `pre-deploy-2026-11` y ensayo de migraciones en `ensayo-deploy` ✅ (2026-11-27).** Falta: restaurar a una rama nueva y documentar los tiempos (en `Runbook_Incidentes.md`, caso base dañada) |
 | `DB-03` | `EXPLAIN ANALYZE` de consultas calientes en Neon | P3 | S | Junto a `DB-02` |
 | `BIZ-02` | `Plan.renewal_price` y `Client.monthly_fee` alineados al modelo real | P2 | S | Pago único + mantención 12 meses + renovación anual (`MASTER_PLAN` §4.4). La FK de `Client.plan` se separó en `BIZ-04` |
 | `BIZ-03` | Cláusulas de mantención y fin de servicio | P2 | M | Sin código. `MASTER_PLAN` §4.5 |
 | `FLOW-03` | Onboarding 100 % autoservicio | P2 | L | Depende de `PAY-01`; spec en `PAY-02` |
 | `PAY-02` | Registro de fricciones del cobro manual | P3 | S | — |
 | `OPS-05` | Cache compartida y Sentry | P3 | M | Antes de más de un proceso. `/health/` ya existe (`BOLT-72`); falta configurar el Health Check Path en Render |
-| `OPS-07` | Ensayo de despliegue antes de `develop` → `main` | P0 | M | **Ensayo hecho 2026-11-15** (ver Retomar aquí). Falta el deploy real de `main`: Build Command de `saasmvp` → `./build.sh`, Manual Deploy y pruebas en vivo; luego borrar `saasmvp-staging` y la rama `staging-ensayo`. Pendiente de probar: formulario de contacto con consentimiento y correo, checkout sandbox (en local con credenciales `TEST-`), portada de Servelec. Build medido: 1 min |
 
 ### `RC` — Rancho Cachimba ⏸️ (rama `feature/RanchocachimbaEtapa1`; no tocar sin pedido explícito)
 | ID | Card | Depende de |

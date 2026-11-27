@@ -14,6 +14,7 @@ from .gallery import (
     gallery_item_edit,
     gallery_item_toggle,
 )
+from .media import media_embed_add, media_upload_confirm, media_upload_signature
 from .public import contact_submit, data_subject_request, home, privacy_policy
 from .sections import dashboard_sections, edit_section_dashboard
 from .services import (
@@ -35,4 +36,5 @@ __all__ = [
     'gallery_item_delete', 'gallery_item_edit', 'gallery_item_toggle', 'get_client_ip',
     'home', 'mark_contact_read', 'mark_contact_replied', 'privacy_policy', 'reorder_services',
     'toggle_service', 'toggle_service_active', 'toggle_service_featured',
+    'media_embed_add', 'media_upload_confirm', 'media_upload_signature',
 ]

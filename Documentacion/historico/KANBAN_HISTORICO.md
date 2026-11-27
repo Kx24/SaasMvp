@@ -68,6 +68,7 @@
 |---|---|---|
 | `#MED-03` | Índices compuestos reales en `Service` y `Domain` (el resto ya estaba bien) | 2026-08-22 |
 | `#DEUDA-02` Fase 1 | `GalleryItem.gallery_type` → FKs `section`/`service`; un `Service` puede tener galería | 2026-08-24 (`1a0794d`) |
+| `DB-02` (parte) | Respaldo de Neon antes del despliegue: rama inmutable `pre-deploy-2026-11` y rama `ensayo-deploy` con `tenants 0019`–`0035` y `orders 0002`–`0004` ensayadas en Postgres; hallado que `setup_plans` va después de `migrate` y que los `Client` se vinculan a mano a su `Plan` | 2026-11-27 |
 
 ## Frontend, temas y diseño
 
@@ -137,7 +138,11 @@
 | `OPS-04` | Alerta de créditos de Cloudinary: `CLOUDINARY_ALERT_THRESHOLDS` (70/90) y `PLATFORM_ALERT_EMAIL` en settings; `cloudinary_usage --alert` envía un correo de aviso/alerta y `send_contact_digest` lo ejecuta una vez por corrida (no en `--dry-run`, sin bloquear el digest) | 2026-11-16 | `BOLT-51` |
 | `OPS-05` (parcial) | Endpoint `GET /health/` (200/503 con `SELECT 1`, sin detalles, `never_cache`, solo GET/HEAD) que responde con cualquier `Host` y con tenant en construcción vía excepción de ruta exacta en `TenantMiddleware` (`apps.core.tests.test_health`); quedan cache compartida y Sentry | 2026-11-18 | `BOLT-72` |
 | `TOOL-08` | `test_gatekeeper` sin falsos rojos: tope de 900 s (sobrescribible con `GATEKEEPER_TEST_TIMEOUT_S`), una sola corrida del gate para la clase sana (cacheada en `setUpClass`) y `TimeoutExpired` convertido en fallo que sugiere subir el tope (`apps.core.tests.test_gatekeeper_runtime`) | 2026-11-18 | `BOLT-65` |
+| `OPS-07` | Ensayo de despliegue cerrado con el deploy real: Build Command de `saasmvp` → `./build.sh` (compila `output.css`, `collectstatic`, `migrate`) y Manual Deploy de `main` en verde | 2026-11-27 | — |
+| `CONS-01` (parte) | Producción al día: de `1a5d3e2` (agosto) a `main` `cf3ef2e` (rondas 3 a 16); planes `essential`/`pro`/`enterprise` sembrados con `setup_plans` y tenants vinculados (`ranchocachimba`/`servelec`→pro, `andesscale`→enterprise). 2FA en Neon (`SEC-16`, parcial) | 2026-11-27 | — |
 | `BIZ-04` | `Client.plan` es FK a `orders.Plan` (`null=True`, `PROTECT`): migraciones `0033`–`0035` copian el slug al FK (slug sin `Plan` queda en null y se informa), con `reverse` probado en la base de desarrollo; onboarding asigna el objeto y `setup_dev_env` busca el `Plan` por slug (`apps.tenants.tests_client_plan_fk`) | 2026-11-22 | `BOLT-80` |
+| `MOD-01` (parte) | Parte 1a: modelo `MediaAsset` (imagen Cloudinary o embed YouTube/Vimeo con solo el ID, migración `website 0026`), `parse_video_url` (`apps/website/media.py`), módulo `media` en el registro (cuenta solo imágenes; `MEDIA_MAX_EMBEDS = 200` para embeds) y su admin con scope por tenant; sin UI (`apps.website.tests.test_media_asset`) | 2026-11-27 | `BOLT-81` |
+| `MOD-01` (parte) | Parte 1b: tres endpoints JSON POST (`media_upload_signature`, `media_upload_confirm`, `media_embed_add`) con subida directa firmada a Cloudinary (el servidor fija carpeta y `public_id`, verifica con `cloudinary.api.resource` antes de crear), límite del plan, tope `MEDIA_MAX_IMAGE_MB = 10`, rate limit 30/10 min y embeds sin duplicar (`apps.website.tests.test_media_upload`) | 2026-11-27 | `BOLT-82` |
 
 ## Rancho Cachimba (en pausa — rama `feature/RanchocachimbaEtapa1`)
 

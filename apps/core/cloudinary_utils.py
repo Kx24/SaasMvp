@@ -8,6 +8,7 @@
 #   tenants/{tenant_slug}/services/     ← imágenes de servicios
 #   tenants/{tenant_slug}/branding/     ← logo, favicon, logo_footer
 #   tenants/{tenant_slug}/gallery/      ← galería de fotos
+#   tenants/{tenant_slug}/media/        ← biblioteca de medios (MOD-01)
 #   tenants/{tenant_slug}/catalog/      ← catálogo de productos
 #   tenants/{tenant_slug}/videos/       ← videos propios (Cloudinary)
 #   tenants/{tenant_slug}/documents/    ← PDFs, archivos descargables
@@ -38,6 +39,7 @@ VALID_RESOURCE_TYPES = [
     'services',     # Tarjetas de servicios
     'branding',     # Logo, favicon, logo_footer
     'gallery',      # Galería de fotos
+    'media',        # Biblioteca de medios del tenant (MOD-01)
     'catalog',      # Catálogo de productos
     'videos',       # Videos propios subidos a Cloudinary
     'documents',    # PDFs y archivos descargables
