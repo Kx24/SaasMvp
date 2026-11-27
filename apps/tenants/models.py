@@ -59,20 +59,17 @@ class Client(models.Model):
         help_text="Carpeta del tema visual a utilizar"
     )
 
-    # Nuevo: Estrategia de monetización
-    PLAN_CHOICES = [
-        ('essential', 'Plan Básico (Solo tema default)'),
-        ('pro', 'Plan Pro (Selección de temas + Logo)'),
-        ('enterprise', 'Plan Enterprise (Diseño a medida)'),
-    ]
-    
-    plan = models.CharField(
-        max_length=20, 
-        choices=PLAN_CHOICES, 
-        default='essential',
-        help_text="Nivel de suscripción del cliente"
+    # Plan contratado (BIZ-04). Los límites copiados (max_images, max_services)
+    # siguen en Client; que sigan al plan es otra card.
+    plan = models.ForeignKey(
+        'orders.Plan',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='clients',
+        help_text="Plan contratado por el cliente"
     )
-    
+
     # ==================== ESTADO Y BILLING ====================
     is_active = models.BooleanField(default=True)
     mode_under_construction = models.BooleanField(
@@ -87,7 +84,6 @@ class Client(models.Model):
     
     # ==================== LÍMITES ====================
     max_images = models.IntegerField(default=100)
-    max_pages = models.IntegerField(default=10)
     max_services = models.IntegerField(default=20)
     
     # ==================== METADATA ====================

@@ -60,5 +60,8 @@ urlpatterns = [
     path('dashboard/gallery/<int:item_id>/edit/', views.gallery_item_edit, name='gallery_item_edit'),
     path('dashboard/gallery/<int:item_id>/delete/', views.gallery_item_delete, name='gallery_item_delete'),
     path('dashboard/gallery/<int:item_id>/toggle/', views.gallery_item_toggle, name='gallery_item_toggle'),
+    path('dashboard/media/firma/', views.media_upload_signature, name='media_upload_signature'),
+    path('dashboard/media/confirmar/', views.media_upload_confirm, name='media_upload_confirm'),
+    path('dashboard/media/embed/', views.media_embed_add, name='media_embed_add'),
 
 ]

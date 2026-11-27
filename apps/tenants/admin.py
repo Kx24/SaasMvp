@@ -334,7 +334,7 @@ class ClientAdmin(admin.ModelAdmin):
         ('Límites', {
             'classes': ('collapse',),
             'fields': (
-                ('max_images', 'max_pages', 'max_services'),
+                ('max_images', 'max_services'),
             )
         }),
         ('Metadata', {

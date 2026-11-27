@@ -38,7 +38,7 @@ class Plan(models.Model):
     Cada plan define:
     - Precio y características incluidas
     - Temas visuales disponibles
-    - Límites de recursos (páginas, servicios, imágenes)
+    - Límites de recursos (servicios, imágenes)
     """
     
     name = models.CharField(
@@ -102,11 +102,6 @@ class Plan(models.Model):
     )
     
     # ==================== LÍMITES ====================
-    
-    max_pages = models.IntegerField(
-        default=5,
-        help_text="Máximo de páginas permitidas"
-    )
     
     max_services = models.IntegerField(
         default=10,

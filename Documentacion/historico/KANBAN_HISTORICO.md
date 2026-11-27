@@ -37,6 +37,7 @@
 | `DASH-08` | Ya cubierta por `BOLT-55`: el context processor define `unread_contacts`; la fila quedó obsoleta | 2026-11-18 | `BOLT-64` |
 | `DASH-09` | Fondo del ícono de Contactos usaba `--primary-rgb` (inexistente, siempre azul); ahora `color-mix` sobre `--color-primary`, con test que recorre `templates/` | 2026-11-18 | `BOLT-68` |
 | `SEC-15` | Runbook de incidentes y rotación de secretos (`Documentacion/Runbook_Incidentes.md`): primeros 15 minutos, fuga de secreto, acceso indebido, base dañada (con `DB-02` pendiente), deploy caído, correo/dominio comprometido, datos personales (remite a `LEY-06`), contactos y registro de incidentes | 2026-11-18 | `BOLT-67` |
+| `SEC-19` | `tenant_static` y `get_tenant_media_url` rechazan rutas con `../` o absolutas que salen de `MEDIA_ROOT/tenants/<slug>/` (helper `_tenant_file_exists` con `resolve()` + `is_relative_to`); caen al fallback / cadena vacía | 2026-11-22 | `BOLT-78` |
 
 \* commit del gate de seguridad completo en `feature/RanchocachimbaEtapa1`.
 
@@ -67,6 +68,7 @@
 |---|---|---|
 | `#MED-03` | Índices compuestos reales en `Service` y `Domain` (el resto ya estaba bien) | 2026-08-22 |
 | `#DEUDA-02` Fase 1 | `GalleryItem.gallery_type` → FKs `section`/`service`; un `Service` puede tener galería | 2026-08-24 (`1a0794d`) |
+| `DB-02` (parte) | Respaldo de Neon antes del despliegue: rama inmutable `pre-deploy-2026-11` y rama `ensayo-deploy` con `tenants 0019`–`0035` y `orders 0002`–`0004` ensayadas en Postgres; hallado que `setup_plans` va después de `migrate` y que los `Client` se vinculan a mano a su `Plan` | 2026-11-27 |
 
 ## Frontend, temas y diseño
 
@@ -85,6 +87,11 @@
 | `DEUDA-12` | Footer default con año actual (`{% now "Y" %}`), fallback de onboarding `themes/default` (antes el slug inválido `default`), `ARQUITECTURA.md` sin `hero_ctas_base` y `hero_overlay.html` huérfanos de default y servelec borrados | 2026-11-18 | `BOLT-66` |
 | `DEUDA-13` | `Plan.get_available_themes_list` filtra contra `Client.THEME_CHOICES` y su fallback pasa a `themes/default` (antes el slug inválido `default`) | 2026-11-18 | `BOLT-69` |
 | `DEUDA-14` | `setup_cloudinary_folders` importa `cloudinary.api` por sí mismo (antes `AttributeError` si corría solo) y cinco archivos de tests arman planes con `themes/default` en vez del slug inválido `default`; test guardia por AST | 2026-11-18 | `BOLT-73` |
+| `DEUDA-15` | Comando `create_tenant` borrado con sus tests y menciones en README/ARQUITECTURA; `provision_tenant` es el vigente; test guardia con `get_commands()` | 2026-11-22 | `BOLT-74` |
+| `DEUDA-16` | `TenantSectionsSitemap` borrada del sitemap (filtraba por un `Section.slug` inexistente y apuntaba a una ruta inexistente); el sitemap solo expone `pages` y `/sitemap-sections.xml` da 404 | 2026-11-22 | `BOLT-75` |
+| `DEUDA-11` | `max_pages` borrado de `Client` y de `Plan` (modelos, admins, `setup_plans`, onboarding, docs vigentes) con una migración por app (`tenants` 0032, `orders` 0004); test `apps.tenants.tests_max_pages_removed` | 2026-11-22 | `BOLT-76` |
+| `DEUDA-18` | El JSON-LD de `SEOConfig.get_schema_json` lee `ClientSettings.contact_phone` (antes `phone`, inexistente) e incluye `telephone`; test `apps.marketing.tests_schema_telefono` | 2026-11-22 | `BOLT-77` |
+| `DEUDA-17` | `audit_cloudinary_assets` solo cuenta como referencia los `CloudinaryField` y los `CharField` con prefijo de Cloudinary (`tenants/...`, `{slug}/...` de un `Client`, o categoría de `VALID_RESOURCE_TYPES` en segundo segmento); inclusivo, en la duda cuenta; `_purge_orphans` intacto; test `apps.core.tests.test_audit_cloudinary_referencias` | 2026-11-22 | `BOLT-79` |
 | `COMP-03` | El botón de enviar de los 4 formularios de contacto activa "Enviando..." solo en el `submit` real (no en el clic) y se recupera de error o de volver a la página | 2026-11-15 | `BOLT-42` |
 | `COMP-02` | Árbol de temas ordenado: `themes/electricidad` archivado, `andesscale` movido a `themes/andesscale` (`THEME_CHOICES` + migración de datos 0031, loader sin literal), fuera `templates_library/` y 2 componentes vacíos de `themes/default` | 2026-11-17 | `BOLT-56` |
 | `COMP-01` (parte) | Componente `cta` compartido en `templates/components/cta.html` (parámetro `variant` orbs/glow); los `home.html` de andesscale y servelec lo incluyen directo y se borraron los `cta.html` de tema; equivalencia de HTML por fixture | 2026-11-17 | `BOLT-57` |
@@ -131,6 +138,11 @@
 | `OPS-04` | Alerta de créditos de Cloudinary: `CLOUDINARY_ALERT_THRESHOLDS` (70/90) y `PLATFORM_ALERT_EMAIL` en settings; `cloudinary_usage --alert` envía un correo de aviso/alerta y `send_contact_digest` lo ejecuta una vez por corrida (no en `--dry-run`, sin bloquear el digest) | 2026-11-16 | `BOLT-51` |
 | `OPS-05` (parcial) | Endpoint `GET /health/` (200/503 con `SELECT 1`, sin detalles, `never_cache`, solo GET/HEAD) que responde con cualquier `Host` y con tenant en construcción vía excepción de ruta exacta en `TenantMiddleware` (`apps.core.tests.test_health`); quedan cache compartida y Sentry | 2026-11-18 | `BOLT-72` |
 | `TOOL-08` | `test_gatekeeper` sin falsos rojos: tope de 900 s (sobrescribible con `GATEKEEPER_TEST_TIMEOUT_S`), una sola corrida del gate para la clase sana (cacheada en `setUpClass`) y `TimeoutExpired` convertido en fallo que sugiere subir el tope (`apps.core.tests.test_gatekeeper_runtime`) | 2026-11-18 | `BOLT-65` |
+| `OPS-07` | Ensayo de despliegue cerrado con el deploy real: Build Command de `saasmvp` → `./build.sh` (compila `output.css`, `collectstatic`, `migrate`) y Manual Deploy de `main` en verde | 2026-11-27 | — |
+| `CONS-01` (parte) | Producción al día: de `1a5d3e2` (agosto) a `main` `cf3ef2e` (rondas 3 a 16); planes `essential`/`pro`/`enterprise` sembrados con `setup_plans` y tenants vinculados (`ranchocachimba`/`servelec`→pro, `andesscale`→enterprise). 2FA en Neon (`SEC-16`, parcial) | 2026-11-27 | — |
+| `BIZ-04` | `Client.plan` es FK a `orders.Plan` (`null=True`, `PROTECT`): migraciones `0033`–`0035` copian el slug al FK (slug sin `Plan` queda en null y se informa), con `reverse` probado en la base de desarrollo; onboarding asigna el objeto y `setup_dev_env` busca el `Plan` por slug (`apps.tenants.tests_client_plan_fk`) | 2026-11-22 | `BOLT-80` |
+| `MOD-01` (parte) | Parte 1a: modelo `MediaAsset` (imagen Cloudinary o embed YouTube/Vimeo con solo el ID, migración `website 0026`), `parse_video_url` (`apps/website/media.py`), módulo `media` en el registro (cuenta solo imágenes; `MEDIA_MAX_EMBEDS = 200` para embeds) y su admin con scope por tenant; sin UI (`apps.website.tests.test_media_asset`) | 2026-11-27 | `BOLT-81` |
+| `MOD-01` (parte) | Parte 1b: tres endpoints JSON POST (`media_upload_signature`, `media_upload_confirm`, `media_embed_add`) con subida directa firmada a Cloudinary (el servidor fija carpeta y `public_id`, verifica con `cloudinary.api.resource` antes de crear), límite del plan, tope `MEDIA_MAX_IMAGE_MB = 10`, rate limit 30/10 min y embeds sin duplicar (`apps.website.tests.test_media_upload`) | 2026-11-27 | `BOLT-82` |
 
 ## Rancho Cachimba (en pausa — rama `feature/RanchocachimbaEtapa1`)
 
@@ -151,3 +163,4 @@
 - **Reorganización de documentación** (2026-11-11): kanban unificado, snapshot y archivos obsoletos a `Documentacion/historico/`.
 - **`MOD-00` decidido** (2026-11-12): composición de página = opción A ahora (registro de módulos, home por tema), B después (`MOD-02`), page-builder descartado. Detalle en `AUDITORIA_PLATAFORMA_2026-11.md` §4.
 - **Chequeo de ciberseguridad y plan trimestral** (2026-11-12): `SEGURIDAD.md`, `ARQUITECTURA.md`, diccionario de nomenclaturas y plan de ejecución por fases en el kanban; orden "seguridad y ley primero".
+- **`PREV-00` decidido** (2026-11-22): URL temporal con alta manual (`add_preview_domain`); wildcard `*.andesscale.com` descartado por ahora.

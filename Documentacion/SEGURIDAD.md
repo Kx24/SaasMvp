@@ -118,4 +118,4 @@ Greps útiles: `csrf_exempt` (solo los 2 webhooks), `mark_safe` y `|safe`, `logg
 
 ## 6. Próxima revisión
 
-Repetir este chequeo al cerrar la Fase 1 del plan (con la Fase 1 ya cerrada) y en cada release. Pendiente fuera del repo: cuentas staff reales en producción, 2FA en Render/Neon/Cloudinary/Cloudflare/Zoho/GitHub, permisos del repositorio.
+Repetir este chequeo al cerrar la Fase 1 del plan (con la Fase 1 ya cerrada) y en cada release. Pendiente fuera del repo: cuentas staff reales en producción, 2FA en Cloudinary/Cloudflare/Zoho/GitHub (Render y Neon activos desde 2026-11-27), permisos del repositorio.

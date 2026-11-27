@@ -92,6 +92,19 @@ MODULES = (
         ),
     ),
     Module(
+        key='media',
+        label='Medios',
+        flag=None,
+        limit_field='max_images',
+        usage=lambda client: _usage_media(client),
+        limit_noun='archivos',
+        url_names=(
+            'media_upload_signature',
+            'media_upload_confirm',
+            'media_embed_add',
+        ),
+    ),
+    Module(
         key='contact',
         label='Contacto',
         flag='enable_contact_form',
@@ -145,6 +158,13 @@ def _usage_gallery(client):
     return GalleryItem.objects.filter(
         client=client, section__section_type='gallery'
     ).count()
+
+
+def _usage_media(client):
+    """Solo imágenes: los embeds no son archivos (tope técnico MEDIA_MAX_EMBEDS)."""
+    from apps.website.models import MediaAsset
+
+    return MediaAsset.objects.filter(client=client, kind='image').count()
 
 
 def limit_for(client, key):

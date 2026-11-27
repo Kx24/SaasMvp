@@ -36,6 +36,7 @@
 | [`Procedimiento_Nuevo_Tenant.md`](Procedimiento_Nuevo_Tenant.md) | Runbook de alta de cliente (+ checklist de custodia DNS) |
 | [`Inventario_Secretos.md`](Inventario_Secretos.md) | Qué env vars/secretos existen y dónde viven |
 | [`Runbook_Incidentes.md`](Runbook_Incidentes.md) | Qué hacer ante una fuga, acceso indebido, base dañada, deploy caído o correo/dominio comprometido; rotación de secretos |
+| [`Runbook_Despliegue.md`](Runbook_Despliegue.md) | Checklist del despliegue de las rondas 3 a 16 a producción: ramas de Neon, ensayo de migraciones, deploy, verificación en vivo, crons y rollback (2026-11-22) |
 | [`Ley-21719_13-DIC-2024.pdf`](Ley-21719_13-DIC-2024.pdf) | Texto oficial de la Ley 21.719 (BCN, vigencia postergada al 15-oct-2027). Su aplicación a la plataforma está en `SEGURIDAD.md` §3 |
 
 ## 5. Piloto agéntico (se queda en `docs/` porque el código lo referencia por ruta)

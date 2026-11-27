@@ -198,7 +198,6 @@ project_root/
 **Comandos de management:**
  
 ```bash
-python manage.py create_tenant          # Crea tenant interactivo
 python manage.py provision_tenant --industry=<rubro> --theme=<Client.THEME_CHOICES>  # Alta completa con seed data (#FLOW-01)
 python manage.py check_tenant_setup <slug>  # Gate de QA: tema, dominio, email, SEO, contenido
 python manage.py list_tenants           # Lista todos los tenants activos
@@ -335,7 +334,7 @@ Usuario → /checkout/ → MercadoPago (preferencia) → Pago externo
 | Archivo | Función |
 |---|---|
 | `seo_tags.py` | `{% seo_tags "home" %}` — inyecta en `<head>`: title, meta, OG, JSON-LD, canonical |
-| `sitemaps.py` | `TenantStaticSitemap`, `TenantSectionsSitemap` — filtrado por tenant |
+| `sitemaps.py` | `TenantStaticSitemap` — filtrado por tenant |
 | `views_robots.py` | `/robots.txt` dinámico por tenant |
 | `views_verification.py` | Sirve `/google<code>.html` para verificar Search Console |
 | `views_sitemap.py` | Sirve `/sitemap.xml` y `/sitemap-<section>.xml` |

@@ -767,3 +767,93 @@ def exclude_blocked(queryset, client):
     if not blocked:
         return queryset
     return queryset.annotate(_email_lc=Lower('email')).exclude(_email_lc__in=blocked)
+
+
+
+# =============================================================================
+# MEDIA ASSET (MOD-01 parte 1a): biblioteca de medios del tenant
+# =============================================================================
+
+class MediaAsset(models.Model):
+    """Imagen (Cloudinary) o embed de video (YouTube/Vimeo) de la biblioteca del tenant.
+
+    Sin dueño: en la parte 3 de MOD-01 GalleryItem, Section y Service apuntarán aquí.
+    Del embed se guarda solo el ID, nunca la URL ni el HTML pegado.
+    """
+
+    KIND_IMAGE = 'image'
+    KIND_EMBED = 'embed'
+    KIND_CHOICES = [(KIND_IMAGE, 'Imagen'), (KIND_EMBED, 'Video embebido')]
+    PROVIDER_CHOICES = [('youtube', 'YouTube'), ('vimeo', 'Vimeo')]
+
+    client = models.ForeignKey(
+        'tenants.Client', on_delete=models.CASCADE, related_name='media'
+    )
+    kind = models.CharField(max_length=10, choices=KIND_CHOICES)
+    image = CloudinaryField(
+        'image', folder=cloudinary_upload_path('media'), blank=True, null=True
+    )
+    provider = models.CharField(max_length=10, choices=PROVIDER_CHOICES, blank=True)
+    video_id = models.CharField(max_length=20, blank=True)
+
+    title = models.CharField(max_length=200, blank=True)
+    alt_text = models.CharField(max_length=300, blank=True)
+    bytes = models.PositiveIntegerField(null=True, blank=True)
+    width = models.PositiveIntegerField(null=True, blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True)
+    format = models.CharField(max_length=20, blank=True)
+    uploaded_by = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    objects = TenantAwareManager()
+
+    class Meta:
+        verbose_name = 'Medio'
+        verbose_name_plural = 'Medios'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(
+                fields=['client', 'kind', 'created_at'], name='media_client_kind_idx'
+            ),
+        ]
+
+    def __str__(self):
+        return self.title or f'{self.kind} #{self.pk}'
+
+    def clean(self):
+        if self.kind == self.KIND_IMAGE:
+            if not self.image:
+                raise ValidationError({'image': 'Una imagen requiere el archivo.'})
+            if self.provider or self.video_id:
+                raise ValidationError('Una imagen no lleva proveedor ni ID de video.')
+        elif self.kind == self.KIND_EMBED:
+            if not self.provider or not self.video_id:
+                raise ValidationError('Un video embebido requiere proveedor e ID.')
+            if self.image:
+                raise ValidationError('Un video embebido no lleva imagen.')
+        else:
+            raise ValidationError({'kind': 'Tipo de medio inválido.'})
+
+    def embed_url(self):
+        if self.kind != self.KIND_EMBED:
+            return None
+        if self.provider == 'youtube':
+            return f'https://www.youtube-nocookie.com/embed/{self.video_id}'
+        if self.provider == 'vimeo':
+            return f'https://player.vimeo.com/video/{self.video_id}?dnt=1'
+        return None
+
+    def thumbnail_url(self):
+        if self.kind == self.KIND_EMBED:
+            if self.provider == 'youtube':
+                return f'https://img.youtube.com/vi/{self.video_id}/hqdefault.jpg'
+            return None
+        if not self.image:
+            return None
+        from apps.core.cloudinary_utils import get_cloudinary_url
+
+        return get_cloudinary_url(self.image, 'thumbnail')

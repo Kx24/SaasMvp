@@ -33,7 +33,7 @@
 ### 2.4 Medios: la infraestructura existe, el modelo no
 - `apps/core/cloudinary_utils.py` ya tiene `get_video_url`, `get_video_thumbnail_url`, `get_video_sources`, `validate_video_file`, presets y `get_tenant_usage`.
 - Pero **ningún modelo guarda video**: solo hay un comentario de diseño en `apps/website/models.py:17`. `Section.image`, `Section.background_image`, `Service.image` y `GalleryItem` (FKs a `section`/`service` desde `#DEUDA-02` Fase 1) siguen siendo imágenes sueltas por dueño.
-- Límites: `ClientSettings.hero_images_limit` / `gallery_images_limit` se aplican en la galería; los límites de `Plan` (`max_pages`/`max_services`/`max_images`) **no se aplican en ningún lado** (solo aparecen en `admin.py`).
+- Límites: `ClientSettings.hero_images_limit` / `gallery_images_limit` se aplican en la galería; los límites de `Plan` (`max_services`/`max_images`) **no se aplican en ningún lado** (solo aparecen en `admin.py`).
 
 ### 2.5 Flags y módulos a medias
 - `enable_gallery`: gobierna vistas del dashboard (real).

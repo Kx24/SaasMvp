@@ -45,7 +45,27 @@ from django.apps import apps
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from apps.core.cloudinary_utils import VALID_RESOURCE_TYPES
+
 logger = logging.getLogger(__name__)
+
+
+def _looks_like_public_id(value: str, legacy_slugs) -> bool:
+    """
+    ¿Un valor de CharField parece un public_id de Cloudinary?
+
+    Es deliberadamente inclusivo: en la duda cuenta como referencia, porque un
+    falso negativo haría que --fix purgue un asset en uso.
+      - `tenants/...` (carpeta vigente, ver get_cloudinary_folder)
+      - `{slug}/...` con slug de un Client (legacy del dashboard)
+      - `{algo}/{categoría}/...` con categoría de VALID_RESOURCE_TYPES
+    """
+    if '/' not in value:
+        return False
+    parts = value.split('/')
+    if parts[0] == 'tenants' or parts[0] in legacy_slugs:
+        return True
+    return len(parts) > 2 and parts[1] in VALID_RESOURCE_TYPES
 
 
 class Command(BaseCommand):
@@ -217,6 +237,10 @@ class Command(BaseCommand):
         Filtra por tenant_slug si se especifica.
         """
         db_ids = set()
+        # Prefijos legacy `{slug}/...` de subidas del dashboard (BOLT-13).
+        legacy_slugs = set(
+            apps.get_model('tenants', 'Client').objects.values_list('slug', flat=True)
+        )
 
         for model in apps.get_models():
             cloudinary_fields = []
@@ -255,7 +279,8 @@ class Command(BaseCommand):
                         if hasattr(value, 'public_id') and value.public_id:
                             # CloudinaryResource — cubre todos los prefijos legacy
                             public_id = value.public_id
-                        elif isinstance(value, str) and value.strip():
+                        elif isinstance(value, str) and _looks_like_public_id(
+                                value.strip(), legacy_slugs):
                             # CharField legacy con public_id directo
                             public_id = value.strip()
 
