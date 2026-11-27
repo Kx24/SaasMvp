@@ -98,7 +98,11 @@ MODULES = (
         limit_field='max_images',
         usage=lambda client: _usage_media(client),
         limit_noun='archivos',
-        url_names=(),  # las rutas llegan en BOLT-82
+        url_names=(
+            'media_upload_signature',
+            'media_upload_confirm',
+            'media_embed_add',
+        ),
     ),
     Module(
         key='contact',

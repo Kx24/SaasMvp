@@ -142,6 +142,7 @@
 | `CONS-01` (parte) | Producción al día: de `1a5d3e2` (agosto) a `main` `cf3ef2e` (rondas 3 a 16); planes `essential`/`pro`/`enterprise` sembrados con `setup_plans` y tenants vinculados (`ranchocachimba`/`servelec`→pro, `andesscale`→enterprise). 2FA en Neon (`SEC-16`, parcial) | 2026-11-27 | — |
 | `BIZ-04` | `Client.plan` es FK a `orders.Plan` (`null=True`, `PROTECT`): migraciones `0033`–`0035` copian el slug al FK (slug sin `Plan` queda en null y se informa), con `reverse` probado en la base de desarrollo; onboarding asigna el objeto y `setup_dev_env` busca el `Plan` por slug (`apps.tenants.tests_client_plan_fk`) | 2026-11-22 | `BOLT-80` |
 | `MOD-01` (parte) | Parte 1a: modelo `MediaAsset` (imagen Cloudinary o embed YouTube/Vimeo con solo el ID, migración `website 0026`), `parse_video_url` (`apps/website/media.py`), módulo `media` en el registro (cuenta solo imágenes; `MEDIA_MAX_EMBEDS = 200` para embeds) y su admin con scope por tenant; sin UI (`apps.website.tests.test_media_asset`) | 2026-11-27 | `BOLT-81` |
+| `MOD-01` (parte) | Parte 1b: tres endpoints JSON POST (`media_upload_signature`, `media_upload_confirm`, `media_embed_add`) con subida directa firmada a Cloudinary (el servidor fija carpeta y `public_id`, verifica con `cloudinary.api.resource` antes de crear), límite del plan, tope `MEDIA_MAX_IMAGE_MB = 10`, rate limit 30/10 min y embeds sin duplicar (`apps.website.tests.test_media_upload`) | 2026-11-27 | `BOLT-82` |
 
 ## Rancho Cachimba (en pausa — rama `feature/RanchocachimbaEtapa1`)
 

@@ -433,3 +433,6 @@ PLATFORM_TENANT_SLUG = config('PLATFORM_TENANT_SLUG', default='andesscale')
 # Tope tecnico de embeds de video (YouTube/Vimeo) por tenant en la biblioteca de medios
 # (MOD-01). Los embeds no cuentan para el limite del plan (no son archivos).
 MEDIA_MAX_EMBEDS = 200
+# Tope tecnico de peso por imagen (MB). El limite del plan es por cantidad (max_images);
+# esto solo evita archivos desmedidos.
+MEDIA_MAX_IMAGE_MB = 10

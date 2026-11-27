@@ -27,12 +27,24 @@
       "id": "BOLT-82",
       "maestra": "MOD-01",
       "titulo": "MOD-01 parte 1b: subida firmada a Cloudinary y alta de embeds",
-      "estado": "TODO",
+      "estado": "DONE",
       "spec": "BOLT-82.md",
       "red_tests": [
         "apps.website.tests.test_media_upload"
       ],
-      "permite_migracion": false
+      "permite_migracion": false,
+      "costo_usd": 0.63,
+      "tests": 991,
+      "hallazgos": [
+        "Un public_id ya registrado devuelve 200 en vez de 201, tanto en confirmar como en embed; el spec no lo definía.",
+        "El tope de embeds (403) es independiente de check_limit, que cuenta solo imágenes."
+      ],
+      "revisar_humano": [
+        "Probar a mano en desarrollo la subida real a Cloudinary con un archivo del teléfono (HEIC incluido) antes de la parte 2; los tests la simulan.",
+        "Confirmar que cloudinary.api.resource(public_id) funciona con el public_id que devuelve la subida (carpeta + id) y que el campo MediaAsset.image guarda el mismo formato; la idempotencia depende de eso.",
+        "Decisión del dev sin spec: respuesta 200 (no 201) cuando el asset o embed ya existía.",
+        "Revisar el rate limit de la firma: RateLimiter es en memoria del proceso (OPS-05), así que no es global entre workers."
+      ]
     }
   ]
 }

@@ -2,7 +2,7 @@
   "coverage": {
     "orders": 92.41,
     "tenants_core": 100.0,
-    "total": 90.5
+    "total": 90.62
   },
   "bandit_medium_high": 0
 }
