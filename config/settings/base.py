@@ -429,3 +429,7 @@ PRIVACY_POLICY_VERSION = '2026-12-01'
 PRIVACY_POLICY_DATE = '1 de diciembre de 2026'
 # Slug del tenant de la plataforma (AndesScale es responsable, no encargado).
 PLATFORM_TENANT_SLUG = config('PLATFORM_TENANT_SLUG', default='andesscale')
+
+# Tope tecnico de embeds de video (YouTube/Vimeo) por tenant en la biblioteca de medios
+# (MOD-01). Los embeds no cuentan para el limite del plan (no son archivos).
+MEDIA_MAX_EMBEDS = 200

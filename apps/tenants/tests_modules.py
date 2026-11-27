@@ -69,7 +69,7 @@ class ModuleRegistryDeclarationTests(SimpleTestCase):
     def test_claves_unicas_e_inmutables(self):
         keys = [m.key for m in modules.MODULES]
         self.assertEqual(len(keys), len(set(keys)))
-        self.assertEqual(set(keys), {'core', 'services', 'gallery', 'contact'})
+        self.assertEqual(set(keys), {'core', 'services', 'gallery', 'media', 'contact'})
         self.assertIsInstance(modules.MODULES, tuple)
         with self.assertRaises(dataclasses.FrozenInstanceError):
             modules.MODULES[0].key = 'x'
@@ -118,5 +118,5 @@ class IsEnabledTests(TestCase):
     def test_sin_cliente_o_sin_settings_solo_modulos_sin_flag(self):
         for c in (None, SimpleNamespace()):
             self.assertEqual(
-                [m.key for m in modules.enabled_modules(c)], ['core', 'services']
+                [m.key for m in modules.enabled_modules(c)], ['core', 'services', 'media']
             )

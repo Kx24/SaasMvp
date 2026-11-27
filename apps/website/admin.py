@@ -9,7 +9,7 @@ from django.utils.html import format_html
 
 from apps.accounts.mixins import TenantAdminMixin
 
-from .models import ContactSubmission, DataSubjectRequest, Section, Service
+from .models import ContactSubmission, DataSubjectRequest, MediaAsset, Section, Service
 
 # =============================================================================
 # SECTION ADMIN
@@ -334,3 +334,25 @@ class DataSubjectRequestAdmin(TenantAdminMixin, admin.ModelAdmin):
         if days < 0:
             return 'vencida'
         return f'vence en {days} días'
+
+
+# =============================================================================
+# MEDIA ASSET (MOD-01)
+# =============================================================================
+
+@admin.register(MediaAsset)
+class MediaAssetAdmin(TenantAdminMixin, admin.ModelAdmin):
+    """Biblioteca de medios; solo lectura de metadatos."""
+
+    tenant_field = 'client'
+
+    list_display = ['__str__', 'kind', 'provider', 'client', 'is_active', 'created_at']
+    list_filter = ['kind', 'is_active']
+    search_fields = ['title', 'alt_text', 'video_id']
+    ordering = ['-created_at']
+    readonly_fields = ['bytes', 'width', 'height', 'format', 'uploaded_by', 'created_at']
+
+    def get_list_filter(self, request):
+        if request.user.is_superuser:
+            return ['kind', 'is_active', 'client']
+        return ['kind', 'is_active']
